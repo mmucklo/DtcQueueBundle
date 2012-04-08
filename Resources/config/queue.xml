@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <parameter key="dtc_queue.job_class">null</parameter>
+    </parameters>
+
+    <services>
+        <service id="dtc_queue.job_manager" class="Dtc\QueueBundle\Model\JobManager">
+        </service>
+        
+        <service id="dtc_queue.worker_manager" class="Dtc\QueueBundle\Model\WorkerManager">
+            <argument type="service" id="dtc_queue.job_manager"></argument>
+        </service>
+    </services>
+</container>
