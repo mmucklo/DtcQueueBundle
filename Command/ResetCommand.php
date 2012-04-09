@@ -10,14 +10,14 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class PruneCommand
+class ResetCommand
     extends ContainerAwareCommand
 {
     protected function configure()
     {
         $this
-        ->setName('dtc:queue_worker:prune')
-        ->setDescription('Prune job with error status')
+            ->setName('dtc:queue_worker:reset')
+            ->setDescription('Reset jobs with error status')
         ;
     }
 

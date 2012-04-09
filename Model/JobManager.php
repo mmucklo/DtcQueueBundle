@@ -31,6 +31,10 @@ class JobManager
         return $this->dm->getRepository($this->documentName);
     }
 
+    public function resetErroneousJobs($workerName = null, $methodName = null) {
+
+    }
+
     /**
      * Get the next job to run (can be filtered by workername and method name)
      *
