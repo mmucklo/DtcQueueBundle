@@ -377,8 +377,10 @@ abstract class Job
         $this->jobManager = $jobManager;
     }
 
+    protected $worker;
 	public function __construct(Worker $worker, \DateTime $when, $batch, $priority)
     {
+        $this->worker = $worker;
         $this->jobManager = $worker->getJobManager();
         $this->className = get_class($worker);
         $this->workerName = $worker->getName();
@@ -397,6 +399,11 @@ abstract class Job
         $job->jobManager = null;
         $job->createdAt = new \DateTime();
         $job->updatedAt = new \DateTime();
+
+        // Make sure the method exists - job should not be created
+        if (!is_callable($this->worker, $method)) {
+            throw new Exception("{$this->className}->{$method} is not callable");
+        }
 
         $this->jobManager->save($job);
         return $job;

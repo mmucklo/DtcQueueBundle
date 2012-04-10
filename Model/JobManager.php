@@ -32,7 +32,44 @@ class JobManager
     }
 
     public function resetErroneousJobs($workerName = null, $methodName = null) {
+        $qb = $this->dm->createQueryBuilder($this->documentName);
+        $qb
+            ->update()
+            ->multiple(true)
+            ->field('status')->equals(Job::STATUS_ERROR, false)
+            ->field('locked')->set(null)
+            ->field('status')->set(Job::STATUS_NEW);
 
+
+        if ($workerName) {
+            $qb->field('workerName')->equals($workerName);
+        }
+
+        if ($methodName = null) {
+            $qb->field('methodName')->equals($methodName);
+        }
+
+        $query = $qb->getQuery();
+        $query->execute();
+    }
+
+    public function pruneErroneousJobs($workerName = null, $methodName = null) {
+        $qb = $this->dm->createQueryBuilder($this->documentName);
+        $qb
+        ->remove()
+        ->multiple(true)
+        ->field('status')->equals(Job::STATUS_ERROR, false);
+
+        if ($workerName) {
+            $qb->field('workerName')->equals($workerName);
+        }
+
+        if ($methodName = null) {
+            $qb->field('methodName')->equals($methodName);
+        }
+
+        $query = $qb->getQuery();
+        $query->execute();
     }
 
     /**

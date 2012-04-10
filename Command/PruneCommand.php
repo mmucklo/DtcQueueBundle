@@ -24,7 +24,7 @@ class PruneCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $container = $this->getContainer();
-        $workerManager = $container->get('dtc_queue.worker_manager');
-        $job = $workerManager->run();
+        $jobManager = $container->get('dtc_queue.job_manager');
+        $job = $jobManager->pruneErroneousJobs();
     }
 }
