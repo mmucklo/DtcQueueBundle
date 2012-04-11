@@ -401,8 +401,8 @@ abstract class Job
         $job->updatedAt = new \DateTime();
 
         // Make sure the method exists - job should not be created
-        if (!is_callable($this->worker, $method)) {
-            throw new Exception("{$this->className}->{$method} is not callable");
+        if (!is_callable(array($this->worker, $method), true)) {
+            throw new \Exception("{$this->className}->{$method} is not callable");
         }
 
         $this->jobManager->save($job);
