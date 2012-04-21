@@ -30,10 +30,12 @@ class RunCommand
         $container = $this->getContainer();
         $period = $input->getOption('period');
         $workerManager = $container->get('dtc_queue.worker_manager');
+        $workerName = $input->getArgument('worker_name');
+        $methodName = $input->getArgument('method');
 
         while (true) {
             try {
-                $job = $workerManager->run();
+                $job = $workerManager->run($workerName, $methodName);
 
                 if ($job) {
                     $output->writeln("Finished job id: {$job->getId()}");

@@ -5,7 +5,6 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 
 /**
  * @ODM\Document(db="queue", collection="job")
- * @ODM\Index(keys={"className"="asc"})
  */
 abstract class Job
 {
@@ -20,16 +19,19 @@ abstract class Job
 
     /**
      * @ODM\Field(type="string", name="worker_name")
+     * @ODM\Index()
      */
     protected $workerName;
 
     /**
      * @ODM\Field(type="string", name="class_name")
+     * @ODM\Index()
      */
     protected $className;
 
     /**
      * @ODM\Field(type="string")
+     * @ODM\Index()
      */
     protected $method;
 
@@ -45,6 +47,7 @@ abstract class Job
 
     /**
      * @ODM\Field(type="string")
+     * @ODM\Index()
      */
     protected $status;
 
@@ -55,6 +58,7 @@ abstract class Job
 
     /**
      * @ODM\Field(type="string")
+     * @ODM\Index()
      */
     protected $priority;
 
@@ -67,6 +71,7 @@ abstract class Job
      * If job is locked (checked out by a worker)
      *
      * @ODM\Field(type="boolean")
+     * @ODM\Index()
      */
     protected $locked;
 
@@ -81,6 +86,7 @@ abstract class Job
      * When the job should start
      *
      * @ODM\Field(type="date")
+     * @ODM\Index(order="asc")
      */
     protected $when;
 

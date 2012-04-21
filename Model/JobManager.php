@@ -72,6 +72,30 @@ class JobManager
         $query->execute();
     }
 
+    public function getJobCount($workerName = null, $methodName = null) {
+        $qb = $this->dm->createQueryBuilder($this->documentName);
+        $qb
+        ->find();
+
+        if ($workerName) {
+            $qb->field('workerName')->equals($workerName);
+        }
+
+        if ($methodName = null) {
+            $qb->field('methodName')->equals($methodName);
+        }
+
+        // Filter
+        $qb
+            ->addOr($qb->expr()->field('when')->equals(null))
+            ->addOr($qb->expr()->field('when')->lte(new \DateTime()))
+            ->field('status')->equals(Job::STATUS_NEW)
+            ->field('locked')->equals(null);
+
+        $query = $qb->getQuery();
+        return $query->count(true);
+    }
+
     /**
      * Get the next job to run (can be filtered by workername and method name)
      *
