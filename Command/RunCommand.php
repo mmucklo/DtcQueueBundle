@@ -62,7 +62,8 @@ class RunCommand
                 $output->writeln("Finished job id: {$job->getId()}");
             }
             else {
-                // No Job to run... should we output?
+                $output->writeln("No job to run... sleeping");
+                sleep(15);        // Sleep for 10 seconds when out of job
             }
         } catch (\Exception $e) {
             if ($msg = $e->getMessage()) {
