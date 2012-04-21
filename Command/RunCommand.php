@@ -34,6 +34,7 @@ class RunCommand
         $threads = $input->getOption('threads');
         $logger = $container->get('monolog.logger.dtc_queue');
         $lockFile = $container->getParameter('dtc_queue.lock_file');
+        $processTimeout = 3600;
 
         // Check to see if there are other instances
         $processCount = intval(shell_exec  ('ps -ef | grep dtc:queue_worker:run | grep -vc grep'));
@@ -42,6 +43,13 @@ class RunCommand
         if (file_exists($lockFile))
         {
             $processCount = intval(file_get_contents($lockFile));
+
+            // Check time - we don't want the process to locked over 30 mnutes
+            if (filemtime($lockFile) < (time() - $processTimeout)) {
+                // Start up another job
+                file_put_contents($lockFile, --$processCount);
+                $logger->err('One of the process is taking too long, making room for one more');
+            }
         }
 
         // Exit if total process running is less than threads count
@@ -52,7 +60,7 @@ class RunCommand
 
         file_put_contents($lockFile, ++$processCount);
 
-        set_time_limit(3600);    // Set an hour timeout
+        set_time_limit($processTimeout);    // Set an hour timeout
 
         try {
             $logger->debug("Staring up a new job...");
@@ -75,6 +83,7 @@ class RunCommand
 
         $logger->debug("Total process via lock file: " . file_get_contents($lockFile));
         $logger->debug("Finished a new job");
-        file_put_contents($lockFile, --$processCount);
+        $processCount = ($processCount > 0) ? $processCount - 1 : 0;
+        file_put_contents($lockFile, $processCount);
     }
 }
