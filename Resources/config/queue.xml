@@ -6,6 +6,7 @@
 
     <parameters>
         <parameter key="dtc_queue.job_class">null</parameter>
+        <parameter key="dtc_queue.lock_file">/tmp/dtc_queue.lock</parameter>
     </parameters>
 
     <services>
@@ -14,6 +15,8 @@
         
         <service id="dtc_queue.worker_manager" class="Dtc\QueueBundle\Model\WorkerManager">
             <argument type="service" id="dtc_queue.job_manager"></argument>
+            <argument type="service" id="logger" strict="false"></argument>
+            <tag name="monolog.logger" channel="dtc_queue" />
         </service>
     </services>
 </container>

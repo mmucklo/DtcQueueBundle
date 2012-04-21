@@ -32,16 +32,30 @@ class RunCommand
         $workerName = $input->getArgument('worker_name');
         $methodName = $input->getArgument('method');
         $threads = $input->getOption('threads');
+        $logger = $container->get('monolog.logger.dtc_queue');
+        $lockFile = $container->getParameter('dtc_queue.lock_file');
 
         // Check to see if there are other instances
         $processCount = intval(shell_exec  ('ps -ef | grep dtc:queue_worker:run | grep -vc grep'));
 
+        $processCount = 0;
+        if (file_exists($lockFile))
+        {
+            $processCount = intval(file_get_contents($lockFile));
+        }
+
         // Exit if total process running is less than threads count
         if ($processCount >= $threads) {
+            $logger->debug("Total of {$processCount} >= {$threads} running, exiting...");
             exit();
         }
 
+        file_put_contents($lockFile, ++$processCount);
+
+        set_time_limit(3600);    // Set an hour timeout
+
         try {
+            $logger->debug("Staring up a new job...");
             $job = $workerManager->run($workerName, $methodName);
 
             if ($job) {
@@ -50,8 +64,6 @@ class RunCommand
             else {
                 // No Job to run... should we output?
             }
-
-            sleep($period);
         } catch (\Exception $e) {
             if ($msg = $e->getMessage()) {
                 $output->writeln('<error>[error]</error> '.$msg);
@@ -59,5 +71,9 @@ class RunCommand
 
             // Seem like job had some error...
         }
+
+        $logger->debug("Total process via lock file: " . file_get_contents($lockFile));
+        $logger->debug("Finished a new job");
+        file_put_contents($lockFile, --$processCount);
     }
 }
