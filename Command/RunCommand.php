@@ -20,6 +20,7 @@ class RunCommand
         ->setName('dtc:queue_worker:run')
         ->addArgument('worker_name', InputArgument::OPTIONAL, 'Name of worker')
         ->addArgument('method', InputArgument::OPTIONAL, 'DI method of worker')
+        ->addOption('threads', 't', InputOption::VALUE_REQUIRED, 'Total number of simultaneous threads', 1)
         ->addOption('period', null, InputOption::VALUE_REQUIRED, 'Set the polling period in seconds', 1)
         ->setDescription('Start up a job in queue')
         ;
@@ -32,6 +33,15 @@ class RunCommand
         $workerManager = $container->get('dtc_queue.worker_manager');
         $workerName = $input->getArgument('worker_name');
         $methodName = $input->getArgument('method');
+        $threads = $input->getOption('threads');
+
+        // Check to see if there are other instances
+        $processCount = intval(shell_exec  ('ps -ef | grep dtc:queue_worker:run | grep -vc grep'));
+
+        // Exit if total process running is less than threads count
+        if ($processCount >= $threads) {
+            exit();
+        }
 
         while (true) {
             try {
