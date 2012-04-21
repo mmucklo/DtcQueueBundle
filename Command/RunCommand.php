@@ -21,7 +21,6 @@ class RunCommand
         ->addArgument('worker_name', InputArgument::OPTIONAL, 'Name of worker')
         ->addArgument('method', InputArgument::OPTIONAL, 'DI method of worker')
         ->addOption('threads', 't', InputOption::VALUE_REQUIRED, 'Total number of simultaneous threads', 1)
-        ->addOption('period', null, InputOption::VALUE_REQUIRED, 'Set the polling period in seconds', 1)
         ->setDescription('Start up a job in queue')
         ;
     }
@@ -29,7 +28,6 @@ class RunCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $container = $this->getContainer();
-        $period = $input->getOption('period');
         $workerManager = $container->get('dtc_queue.worker_manager');
         $workerName = $input->getArgument('worker_name');
         $methodName = $input->getArgument('method');
@@ -43,23 +41,23 @@ class RunCommand
             exit();
         }
 
-        while (true) {
-            try {
-                $job = $workerManager->run($workerName, $methodName);
+        try {
+            $job = $workerManager->run($workerName, $methodName);
 
-                if ($job) {
-                    $output->writeln("Finished job id: {$job->getId()}");
-                }
-                else {
-                    // No Job to run... should we output?
-                }
-
-                sleep($period);
-            } catch (\Exception $e) {
-                if ($msg = $e->getMessage()) {
-                    $output->writeln('<error>[error]</error> '.$msg);
-                }
+            if ($job) {
+                $output->writeln("Finished job id: {$job->getId()}");
             }
+            else {
+                // No Job to run... should we output?
+            }
+
+            sleep($period);
+        } catch (\Exception $e) {
+            if ($msg = $e->getMessage()) {
+                $output->writeln('<error>[error]</error> '.$msg);
+            }
+
+            // Seem like job had some error...
         }
     }
 }
