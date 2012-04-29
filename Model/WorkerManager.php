@@ -45,6 +45,10 @@ class WorkerManager
             return;        // no job to run
         }
 
+        return $this->runJob($job);
+    }
+
+    public function runJob(Job $job) {
         try {
             $worker = $this->getWorker($job->getWorkerName());
             $start = microtime(true);

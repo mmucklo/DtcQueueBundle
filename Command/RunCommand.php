@@ -25,6 +25,12 @@ class RunCommand
         ;
     }
 
+    /**
+     * Note: If exit was called, then we  can't decrement the number of running processes correctly
+     *
+     * (non-PHPdoc)
+     * @see Symfony\Component\Console\Command.Command::execute()
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $container = $this->getContainer();
