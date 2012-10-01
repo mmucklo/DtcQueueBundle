@@ -1,0 +1,19 @@
+{
+    "name": "dtc/queue",
+    "description": "Message Queue Manager for symfony2.",
+    "keywords": ["queue", "Message queue"],
+    "type": "symfony-bundle",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "David Tee"
+        }
+    ],
+    "require": {
+        "symfony/framework-bundle": "2.*"
+    },
+    "autoload": {
+        "psr-0": { "Dtc\\QueueBundle": "" }
+    },
+    "target-dir": "Dtc/QueueBundle"
+}
