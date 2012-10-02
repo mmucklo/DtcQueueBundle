@@ -22,7 +22,7 @@ class DtcQueueExtension
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('queue.xml');
 
-        $odmManager = "doctrine.odm.mongodb.{$config['document_manager']}_document_manager";
+        $odmManager = "doctrine_mongodb.odm.{$config['document_manager']}_document_manager";
 
         $jobManagerDev = $container->getDefinition('dtc_queue.job_manager');
         $jobManagerDev->addArgument(new Reference($odmManager));
