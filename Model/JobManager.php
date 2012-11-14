@@ -89,11 +89,54 @@ class JobManager
         $qb
             ->addOr($qb->expr()->field('when')->equals(null))
             ->addOr($qb->expr()->field('when')->lte(new \DateTime()))
-            ->field('status')->equals(Job::STATUS_NEW)
             ->field('locked')->equals(null);
 
         $query = $qb->getQuery();
         return $query->count(true);
+    }
+
+    /**
+     * Get Status Jobs
+     */
+    public function getStatus() {
+        // Run a map reduce function get worker and status break down
+        $mapFunc = "function() {
+            var result = {};
+            result[this.status] = 1;
+            var key = this.worker_name + '->' + this.method + '()';
+            emit(key, result);
+        }";
+
+        $reduceFunc = "function(k, vals) {
+            var result = {};
+            for (var i in vals) {
+                if (result.hasOwnProperty(i)) {
+                    result[i] += vals[i];
+                }
+                else {
+                    result[i] = vals[i];
+                }
+            }
+            return result;
+        }";
+
+        $qb = $this->dm->createQueryBuilder($this->documentName)
+            ->map($mapFunc)
+            ->reduce($reduceFunc);
+        $query = $qb->getQuery();
+        $results = $query->execute();
+
+        $allStatus = array(
+            Job::STATUS_ERROR => 0,
+            Job::STATUS_NEW => 0,
+            Job::STATUS_SUCCESS => 0
+        );
+
+        foreach ($results as $info) {
+            $status[$info['_id']] = $info['value'] + $allStatus;
+        }
+
+        return $status;
     }
 
     /**

@@ -79,6 +79,16 @@ To Debug message queue status.
 
 jobId could be obtained from mongodb.
 
+Admin
+-----
+
+You can register admin routes to see queue status. In your routing.yml file, add the following:
+
+	queue:
+	    resource: "@DtcQueueBundle/Controller/QueueController.php"
+	    prefix:  /queue/
+	    type: annotation
+
 License
 -------
 

@@ -1,0 +1,12 @@
+{% extends "DtcQueueBundle::layout.html.twig" %}
+
+{% block content %}
+	{% for worker, info in  status %}
+		<h3>{{ worker }}</h3>
+		<ul>
+		{% for job_status, count in info %}
+			<li>{{ job_status }}: {{ count }}</li>
+		{% endfor %}
+		</ul>
+	{% endfor %}
+{% endblock %}

@@ -1,6 +1,8 @@
 <?php
 namespace Dtc\QueueBundle\Command;
 
+use Dtc\QueueBundle\Model\Job;
+
 use Asc\PlatformBundle\Documents\Profile\UserProfile;
 use Asc\PlatformBundle\Documents\UserAuth;
 
@@ -52,17 +54,17 @@ class RunJobCommand
 
             if ($job) {
                 $output->writeln("Finished job id: {$job->getId()}");
-            }
-            else {
-                $output->writeln("No job to run... sleeping");
-                sleep(15);        // Sleep for 10 seconds when out of job
+
+                if ($job->getStatus() == Job::STATUS_ERROR) {
+	                $output->writeln("Error:");
+	                $output->writeln("<error>{$job->getMessage()}</error>" );
+	                $output->writeln("\n");
+                }
             }
         } catch (\Exception $e) {
             if ($msg = $e->getMessage()) {
                 $output->writeln('<error>[error]</error> '.$msg);
             }
-
-            // Seem like job had some error...
         }
 
         $logger->debug("Finished job: {$job->getId()}");

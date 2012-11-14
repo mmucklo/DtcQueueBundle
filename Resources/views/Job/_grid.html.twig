@@ -1,0 +1,32 @@
+{% block id %}
+	{{ obj.id }}
+{% endblock %}
+
+{% block status %}
+	{{ obj.status }}
+{% endblock %}
+
+{% block worker %}
+	{{ obj.workerName }}
+{% endblock %}
+
+{% block args %}
+	{% for arg in obj.args %}
+		{{ arg }}
+	{% endfor %}
+{% endblock %}
+
+{% block createdAt %}
+	{{ obj.createdAt | date("Y-m-d") }}
+{% endblock %}
+
+{% block runAt %}
+	{{ obj.lockedAt | date("Y-m-d") }}
+{% endblock %}
+
+{% block runTime %}
+{% endblock %}
+
+{% block message %}
+	{{ obj.message }}
+{% endblock %}

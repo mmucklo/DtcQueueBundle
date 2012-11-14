@@ -74,6 +74,8 @@ class RunCommand
 
             if ($job) {
                 $output->writeln("Finished job id: {$job->getId()}");
+                $output->writeln("Message:");
+                $output->writeln($job->getMessage());
             }
             else {
                 $output->writeln("No job to run... sleeping");

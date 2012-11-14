@@ -7,9 +7,10 @@ use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\DependencyInjection\Loader;
 
 class DtcQueueExtension
-	extends Extension
+    extends Extension
 {
     public function load(array $configs, ContainerBuilder $container)
     {
@@ -24,11 +25,19 @@ class DtcQueueExtension
 
         $odmManager = "doctrine_mongodb.odm.{$config['document_manager']}_document_manager";
 
-        $jobManagerDev = $container->getDefinition('dtc_queue.job_manager');
-        $jobManagerDev->addArgument(new Reference($odmManager));
-        $jobManagerDev->addArgument($config['class']);
+        $jobManagerDef = $container->getDefinition('dtc_queue.job_manager');
+        $jobManagerDef->addArgument(new Reference($odmManager));
+        $jobManagerDef->addArgument($config['class']);
 
         $container->setParameter('dtc_queue.job_class', $config['class']);
+
+        // Load Grid if Dtc\GridBundle Bundle is registered
+        $yamlLoader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        $yamlLoader->load('grid.yml');
+
+        $jobGridSourceDef = $container->getDefinition('dtc_queue.grid.source.job');
+        $jobGridSourceDef->addArgument(new Reference($odmManager));
+        $jobGridSourceDef->addArgument($config['class']);
     }
 
     public function getAlias()
