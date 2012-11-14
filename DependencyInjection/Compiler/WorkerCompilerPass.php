@@ -19,7 +19,7 @@ class WorkerCompilerPass implements CompilerPassInterface
         $jobClass = $container->getParameter('dtc_queue.job_class');
 
         // Add each worker to workerManager, make sure each worker has instance to work
-        foreach ($container->findTaggedServiceIds('dat_queue.worker') as $id => $attributes) {
+        foreach ($container->findTaggedServiceIds('dtc_queue.worker') as $id => $attributes) {
             $worker = $container->getDefinition($id);
             $class = $container->getDefinition($id)->getClass();
 
