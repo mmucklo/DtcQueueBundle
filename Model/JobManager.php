@@ -40,7 +40,6 @@ class JobManager
             ->field('locked')->set(null)
             ->field('status')->set(Job::STATUS_NEW);
 
-
         if ($workerName) {
             $qb->field('workerName')->equals($workerName);
         }
@@ -106,15 +105,17 @@ class JobManager
             var key = this.worker_name + '->' + this.method + '()';
             emit(key, result);
         }";
-
         $reduceFunc = "function(k, vals) {
             var result = {};
-            for (var i in vals) {
-                if (result.hasOwnProperty(i)) {
-                    result[i] += vals[i];
-                }
-                else {
-                    result[i] = vals[i];
+            for (var index in vals) {
+                var val =  vals[index];
+                for (var i in val) {
+                    if (result.hasOwnProperty(i)) {
+                        result[i] += val[i];
+                    }
+                    else {
+                        result[i] = val[i];
+                    }
                 }
             }
             return result;
