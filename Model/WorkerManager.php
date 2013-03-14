@@ -57,22 +57,29 @@ class WorkerManager
             call_user_func_array(array($worker, $job->getMethod()), $job->getArgs());
 
             $total = microtime(true) - $start;
-            $this->logger->debug("Finished: {$job->getClassName()}->{$job->getMethod()}");
-            $this->logger->info("Finished: {$job->getClassName()}->{$job->getMethod()} in {$total} micro-seconds");
+            if ($this->logger) {
+                $this->logger->debug("Finished: {$job->getClassName()}->{$job->getMethod()}");
+                $this->logger->info("Finished: {$job->getClassName()}->{$job->getMethod()} in {$total} micro-seconds");
+            }
 
             // Job finshed successfuly... do we remove the job from database?
             $job->setStatus(Job::STATUS_SUCCESS);
             $job->setMessage(null);
         }
         catch (\Exception $e) {
-            $this->logger->debug("Failed: {$job->getClassName()}->{$job->getMethod()} - {$e->getMessage()}");
-
+            if ($this->logger) {
+                $this->logger->debug("Failed: {$job->getClassName()}->{$job->getMethod()} - {$e->getMessage()}");
+            }
             $job->setStatus(Job::STATUS_ERROR);
             $job->setMessage($e->getTraceAsString());
         }
 
-        $this->logger->debug("Save Job: {$job->getId()}");
-        $this->jobManager->save($job);
+        if (if ($this->logger) {) {
+            $this->logger->debug("Save Job: {$job->getId()}");
+        }
+
+        // save Job history
+        $this->jobManager->saveHistory($job);
 
         return $job;
     }

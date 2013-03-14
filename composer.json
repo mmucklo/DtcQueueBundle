@@ -10,7 +10,8 @@
         }
     ],
     "require": {
-        "symfony/framework-bundle": "2.*"
+        "symfony/framework-bundle": "2.*",
+        "pda/pheanstalk": "dev-master"
     },
     "autoload": {
         "psr-0": { "Dtc\\QueueBundle": "" }

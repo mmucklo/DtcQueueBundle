@@ -1,10 +1,12 @@
 <?php
-namespace Dtc\QueueBundle\Model;
+namespace Dtc\QueueBundle\Documents;
 
+use Dtc\QueueBundle\Model\JobManagerInterface;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Doctrine\ODM\MongoDB\DocumentManager;
 
 class JobManager
+    implements JobManagerInterface
 {
     protected $dm;
     protected $documentName;
@@ -196,6 +198,10 @@ class JobManager
     public function deleteJob(Job $job) {
         $this->dm->remove($job);
         $this->dm->flush();
+    }
+
+    public function saveHistory(Job $job) {
+        $this->save($job);
     }
 
     public function save(Job $job)
