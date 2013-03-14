@@ -1,5 +1,5 @@
 <?php
-namespace Dtc\QueueBundle\Test;
+namespace Dtc\QueueBundle\Tests;
 
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobManagerInterface;
@@ -29,7 +29,7 @@ class StaticJobManager
         }
 
         $total = 0;
-        for ($this->jobs as $jobWorkerName => $jobs) {
+        foreach ($this->jobs as $jobWorkerName => $jobs) {
             $total += count($this->jobs[$jobWorkerName]);
         }
 
@@ -41,13 +41,18 @@ class StaticJobManager
     }
 
     public function deleteJob(Job $job) {
-        unset($this->allJobs[$job->getId()]);
         unset($this->jobs[$job->getWorkerName()][$job->getId()]);
     }
 
     public function getJob($workerName = null, $methodName = null, $prioritize = true) {
         if ($workerName && isset($this->jobs[$workerName])) {
             return array_pop($this->jobs[$workerName]);
+        }
+
+        foreach ($this->jobs as $jobWorkerName => $jobs) {
+            if ($jobs) {
+                return array_pop($jobs);
+            }
         }
     }
 

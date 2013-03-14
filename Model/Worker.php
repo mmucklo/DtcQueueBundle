@@ -1,5 +1,6 @@
 <?php
 namespace Dtc\QueueBundle\Model;
+
 abstract class Worker
 {
     protected $jobManager;
@@ -22,7 +23,7 @@ abstract class Worker
         $this->jobClass = $jobClass;
     }
 
-    public function setJobManager(JobManager $jobManager)
+    public function setJobManager(JobManagerInterface $jobManager)
     {
         $this->jobManager = $jobManager;
     }

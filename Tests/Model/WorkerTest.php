@@ -2,13 +2,12 @@
 namespace Dtc\QueueBundle\Test\Model;
 
 use Dtc\QueueBundle\Model\Job;
-
-use Dtc\QueueBundle\Test\FibonacciWorker;
-use Dtc\QueueBundle\Test\StaticJobManager;
+use Dtc\QueueBundle\Tests\FibonacciWorker;
+use Dtc\QueueBundle\Tests\StaticJobManager;
 use Dtc\QueueBundle\Model\WorkerManager;
 use Monolog\Logger;
 
-class WorkerManagerTest
+class WorkerTest
     extends \PHPUnit_Framework_TestCase
 {
     protected $worker;
@@ -27,12 +26,13 @@ class WorkerManagerTest
 
         // Test at with priority
         $priority = 1024;
-        $job = $this->worker->at(0, $priority)->fibonacci(20);
+        $job = $this->worker->at($time, false, $priority)->fibonacci(20);
         $this->assertJob($job, $time, "fibonacci", $priority);
+        $this->assertFalse($job->getBatch(), "Should not be batching");
 
         // Test job with object
         try {
-            $object = new stdClass();
+            $object = new \stdClass();
             $job = $this->worker->at($time)->fibonacci($object);
             $this->fail("Exception should be thrown.");
         } catch (\Exception $e) {
@@ -43,6 +43,7 @@ class WorkerManagerTest
         $time = null;
         $job = $this->worker->later()->fibonacci(20);
         $this->assertJob($job, $time, "fibonacci");
+        $this->assertFalse($job->getBatch(), "Should not be batching");
 
         // Test later with priority
         $priority = 1024;
@@ -51,7 +52,7 @@ class WorkerManagerTest
 
         // Test job with object
         try {
-            $object = new stdClass();
+            $object = new \stdClass();
             $job = $this->worker->later($time)->fibonacci($object);
             $this->fail("Exception should be thrown.");
         } catch (\Exception $e) {
@@ -62,6 +63,7 @@ class WorkerManagerTest
         $time = null;
         $job = $this->worker->batchLater()->fibonacci(20);
         $this->assertJob($job, $time, "fibonacci");
+        $this->assertTrue($job->getBatch(), "Should be batching");
 
         /* // Test later
         $later = 100;
@@ -76,7 +78,7 @@ class WorkerManagerTest
 
         // Test job with object
         try {
-            $object = new stdClass();
+            $object = new \stdClass();
             $job = $this->worker->batchLater($time)->fibonacci($object);
             $this->fail("Exception should be thrown.");
         } catch (\Exception $e) {
@@ -87,6 +89,7 @@ class WorkerManagerTest
         $time = time() + 3600;
         $job = $this->worker->batchAt($time)->fibonacci(20);
         $this->assertJob($job, $time, "fibonacci");
+        $this->assertTrue($job->getBatch(), "Should be batching");
 
         // Test priority
         $priority = 1024;
@@ -95,30 +98,30 @@ class WorkerManagerTest
 
         // Test job with object
         try {
-            $object = new stdClass();
+            $object = new \stdClass();
             $job = $this->worker->batchAt($time)->fibonacci($object);
             $this->fail("Exception should be thrown.");
         } catch (\Exception $e) {
         }
     }
 
-    protected function assertJob(Job $job, $time, $method, $priority) {
+    protected function assertJob(Job $job, $time, $method, $priority = null) {
         $this->assertNotEmpty($job->getId(), "Job should have an id");
 
-        if ($time) {
+        if ($time && $time > 0) {
             $this->assertEquals($time, $job->getWhen()->getTimestamp(),
                     "Job start time should equals");
         }
 
         if ($priority) {
-            $this->assertNull($priority, $job->getPriority(),
+            $this->assertEquals($priority, $job->getPriority(),
                     "Priority should be the same.");
         }
         else {
             $this->assertNull($job->getPriority(), "Priority should be null");
         }
 
-        $this->assertEquals($this->worker->getName(), $job->setWorkerName(),
+        $this->assertEquals($this->worker->getName(), $job->getWorkerName(),
                 "Worker should be the same");
         $this->assertEquals($method, $job->getMethod(),
                 "Worker method should be the same");

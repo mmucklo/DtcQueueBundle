@@ -9,7 +9,7 @@ class WorkerManager
     protected $jobManager;
     protected $logger;
 
-    public function __construct(JobManager $jobManager, Logger $logger = null) {
+    public function __construct(JobManagerInterface $jobManager, Logger $logger = null) {
         $this->workers = array();
         $this->jobManager = $jobManager;
         $this->logger = $logger;
@@ -57,7 +57,9 @@ class WorkerManager
         try {
             $worker = $this->getWorker($job->getWorkerName());
             $start = microtime(true);
-            $this->logger->debug("Start: {$job->getClassName()}->{$job->getMethod()}", $job->getArgs());
+            if ($this->logger) {
+            	$this->logger->debug("Start: {$job->getClassName()}->{$job->getMethod()}", $job->getArgs());
+            }
 
             call_user_func_array(array($worker, $job->getMethod()), $job->getArgs());
 

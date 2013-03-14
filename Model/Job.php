@@ -6,7 +6,7 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 /**
  * @ODM\Document(db="queue", collection="job")
  */
-abstract class Job
+class Job
 {
     const STATUS_SUCCESS = 'success';
     const STATUS_ERROR = 'error';
@@ -334,7 +334,7 @@ abstract class Job
     protected function recursiveValidArgs($args) {
         if (is_array($args)) {
             foreach ($args as $key => $value) {
-                if (!$this->recursiveValidArgs($args)) {
+                if (!$this->recursiveValidArgs($value)) {
                     return false;
                 }
             }
@@ -418,19 +418,17 @@ abstract class Job
 
     public function __call($method, $args)
     {
-        $job = clone ($this);
-        $job->method = $method;
-        $job->args = $args;
-        $job->jobManager = null;
-        $job->createdAt = new \DateTime();
-        $job->updatedAt = new \DateTime();
+        $this->method = $method;
+        $this->setArgs($args);
+        $this->createdAt = new \DateTime();
+        $this->updatedAt = new \DateTime();
 
         // Make sure the method exists - job should not be created
         if (!is_callable(array($this->worker, $method), true)) {
-            throw new \Exception("{$this->className}->{$method} is not callable");
+            throw new \Exception("{$this->className}->{$method}() is not callable");
         }
 
-        $this->jobManager->save($job);
-        return $job;
+        $this->jobManager->save($this);
+        return $this;
     }
 }
