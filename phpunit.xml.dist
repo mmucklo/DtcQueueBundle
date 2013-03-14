@@ -3,6 +3,7 @@
 <phpunit bootstrap="./Tests/bootstrap.php" colors="true">
     <testsuites>
         <testsuite name="DtcQueueBundle Test Suite">
+            <file>./Tests/Model/StaticJobManagerTest.php</file>
             <file>./Tests/Model/JobTest.php</file>
             <file>./Tests/Model/WorkerTest.php</file>
             <file>./Tests/Model/WorkerManagerTest.php</file>

@@ -1,11 +1,10 @@
 <?php
-namespace Dtc\QueueBundle\Test\Model;
+namespace Dtc\QueueBundle\Tests\Model;
 
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\StaticJobManager;
 use Dtc\QueueBundle\Model\WorkerManager;
-use Monolog\Logger;
 
 class WorkerTest
     extends \PHPUnit_Framework_TestCase
