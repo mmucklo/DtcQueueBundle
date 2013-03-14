@@ -45,6 +45,20 @@ class WorkerManagerTest
                 "Worker run should be successful");
     }
 
+    public function testErrorRun() {
+        $this->workerManager->addWorker($this->worker);
+        // Create a job
+        $this->worker->later()->exceptionThrown(20);
+
+        // run the job
+        $job = $this->workerManager->run();
+
+        $this->assertNotNull($job, "Job object should not be null");
+        $this->assertEquals(Job::STATUS_ERROR, $job->getStatus(),
+                "Worker run should be not successful");
+        $this->assertNotEmpty($job->getMessage(), 'Error message should not be empty');
+    }
+
     public function testRunJob() {
         $this->workerManager->addWorker($this->worker);
 

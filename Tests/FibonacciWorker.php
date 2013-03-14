@@ -32,6 +32,10 @@ class FibonacciWorker
         return 'fibonacci';
     }
 
+    public function exceptionThrown() {
+        throw new \Exception('error...');
+    }
+
     /**
      * @return the $filename
      */
