@@ -119,7 +119,7 @@ abstract class Job
         return $this->message;
     }
 
-	/**
+    /**
      * @param field_type $message
      */
     public function setMessage($message)
@@ -127,7 +127,7 @@ abstract class Job
         $this->message = $message;
     }
 
-	/**
+    /**
      * @return the $status
      */
     public function getStatus()
@@ -135,7 +135,7 @@ abstract class Job
         return $this->status;
     }
 
-	/**
+    /**
      * @return the $locked
      */
     public function getLocked()
@@ -143,7 +143,7 @@ abstract class Job
         return $this->locked;
     }
 
-	/**
+    /**
      * @return the $lockedAt
      */
     public function getLockedAt()
@@ -151,7 +151,7 @@ abstract class Job
         return $this->lockedAt;
     }
 
-	/**
+    /**
      * @return the $expire
      */
     public function getExpire()
@@ -159,7 +159,7 @@ abstract class Job
         return $this->expire;
     }
 
-	/**
+    /**
      * @param field_type $status
      */
     public function setStatus($status)
@@ -167,7 +167,7 @@ abstract class Job
         $this->status = $status;
     }
 
-	/**
+    /**
      * @param field_type $locked
      */
     public function setLocked($locked)
@@ -175,7 +175,7 @@ abstract class Job
         $this->locked = $locked;
     }
 
-	/**
+    /**
      * @param field_type $lockedAt
      */
     public function setLockedAt($lockedAt)
@@ -183,7 +183,7 @@ abstract class Job
         $this->lockedAt = $lockedAt;
     }
 
-	/**
+    /**
      * @param field_type $expire
      */
     public function setExpire($expire)
@@ -191,7 +191,7 @@ abstract class Job
         $this->expire = $expire;
     }
 
-	/**
+    /**
      * @return the $id
      */
     public function getId()
@@ -199,7 +199,7 @@ abstract class Job
         return $this->id;
     }
 
-	/**
+    /**
      * @return the $workerName
      */
     public function getWorkerName()
@@ -207,7 +207,7 @@ abstract class Job
         return $this->workerName;
     }
 
-	/**
+    /**
      * @return the $className
      */
     public function getClassName()
@@ -215,7 +215,7 @@ abstract class Job
         return $this->className;
     }
 
-	/**
+    /**
      * @return the $method
      */
     public function getMethod()
@@ -223,7 +223,7 @@ abstract class Job
         return $this->method;
     }
 
-	/**
+    /**
      * @return the $args
      */
     public function getArgs()
@@ -231,7 +231,7 @@ abstract class Job
         return $this->args;
     }
 
-	/**
+    /**
      * @return the $batch
      */
     public function getBatch()
@@ -239,7 +239,7 @@ abstract class Job
         return $this->batch;
     }
 
-	/**
+    /**
      * @return the $priority
      */
     public function getPriority()
@@ -247,7 +247,7 @@ abstract class Job
         return $this->priority;
     }
 
-	/**
+    /**
      * @return the $crcHash
      */
     public function getCrcHash()
@@ -255,7 +255,7 @@ abstract class Job
         return $this->crcHash;
     }
 
-	/**
+    /**
      * @return the $when
      */
     public function getWhen()
@@ -263,7 +263,7 @@ abstract class Job
         return $this->when;
     }
 
-	/**
+    /**
      * @return the $createdAt
      */
     public function getCreatedAt()
@@ -271,7 +271,7 @@ abstract class Job
         return $this->createdAt;
     }
 
-	/**
+    /**
      * @return the $updatedAt
      */
     public function getUpdatedAt()
@@ -279,7 +279,7 @@ abstract class Job
         return $this->updatedAt;
     }
 
-	/**
+    /**
      * @return the $jobManager
      */
     public function getJobManager()
@@ -287,7 +287,7 @@ abstract class Job
         return $this->jobManager;
     }
 
-	/**
+    /**
      * @param field_type $id
      */
     public function setId($id)
@@ -295,7 +295,7 @@ abstract class Job
         $this->id = $id;
     }
 
-	/**
+    /**
      * @param field_type $workerName
      */
     public function setWorkerName($workerName)
@@ -303,7 +303,7 @@ abstract class Job
         $this->workerName = $workerName;
     }
 
-	/**
+    /**
      * @param string $className
      */
     public function setClassName($className)
@@ -311,7 +311,7 @@ abstract class Job
         $this->className = $className;
     }
 
-	/**
+    /**
      * @param field_type $method
      */
     public function setMethod($method)
@@ -319,15 +319,34 @@ abstract class Job
         $this->method = $method;
     }
 
-	/**
+    /**
      * @param field_type $args
      */
     public function setArgs($args)
     {
+        if (!$this->recursiveValidArgs($args)) {
+            throw new \Exception("Args must not contain object");
+        }
+
         $this->args = $args;
     }
 
-	/**
+    protected function recursiveValidArgs($args) {
+        if (is_array($args)) {
+            foreach ($args as $key => $value) {
+                if (!$this->recursiveValidArgs($args)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        else {
+            return !is_object($args);
+        }
+    }
+
+    /**
      * @param field_type $batch
      */
     public function setBatch($batch)
@@ -335,7 +354,7 @@ abstract class Job
         $this->batch = $batch;
     }
 
-	/**
+    /**
      * @param field_type $priority
      */
     public function setPriority($priority)
@@ -343,7 +362,7 @@ abstract class Job
         $this->priority = $priority;
     }
 
-	/**
+    /**
      * @param field_type $crcHash
      */
     public function setCrcHash($crcHash)
@@ -351,7 +370,7 @@ abstract class Job
         $this->crcHash = $crcHash;
     }
 
-	/**
+    /**
      * @param field_type $when
      */
     public function setWhen($when)
@@ -359,7 +378,7 @@ abstract class Job
         $this->when = $when;
     }
 
-	/**
+    /**
      * @param field_type $createdAt
      */
     public function setCreatedAt($createdAt)
@@ -367,7 +386,7 @@ abstract class Job
         $this->createdAt = $createdAt;
     }
 
-	/**
+    /**
      * @param field_type $updatedAt
      */
     public function setUpdatedAt($updatedAt)
@@ -375,7 +394,7 @@ abstract class Job
         $this->updatedAt = $updatedAt;
     }
 
-	/**
+    /**
      * @param field_type $jobManager
      */
     public function setJobManager($jobManager)
@@ -384,7 +403,7 @@ abstract class Job
     }
 
     protected $worker;
-	public function __construct(Worker $worker, \DateTime $when, $batch, $priority)
+    public function __construct(Worker $worker, \DateTime $when, $batch, $priority)
     {
         $this->worker = $worker;
         $this->jobManager = $worker->getJobManager();

@@ -16,7 +16,9 @@ class WorkerManager
     }
 
     public function addWorker(Worker $worker) {
-        $this->logger->debug("Added worker: {$worker->getName()}");
+        if ($this->logger) {
+            $this->logger->debug("Added worker: {$worker->getName()}");
+        }
 
         if (isset($this->workers[$worker->getName()])) {
             throw new \Exception("{$worker->getName()} already exists in worker manager");
@@ -41,7 +43,10 @@ class WorkerManager
     {
         $job = $this->jobManager->getJob($workerName, $methodName, $prioritize);
         if (!$job) {
-            $this->logger->debug("No job to run");
+            if ($this->logger) {
+                $this->logger->debug("No job to run");
+            }
+
             return;        // no job to run
         }
 
@@ -70,11 +75,12 @@ class WorkerManager
             if ($this->logger) {
                 $this->logger->debug("Failed: {$job->getClassName()}->{$job->getMethod()} - {$e->getMessage()}");
             }
+
             $job->setStatus(Job::STATUS_ERROR);
             $job->setMessage($e->getTraceAsString());
         }
 
-        if (if ($this->logger) {) {
+        if ($this->logger) {
             $this->logger->debug("Save Job: {$job->getId()}");
         }
 
