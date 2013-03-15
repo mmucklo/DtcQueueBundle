@@ -1,17 +1,18 @@
 DtcQueueBundle
 ==============
 
-> Note: In beta, supports ODM only. Planned support for AMQP.
+> Allow symfony developers to create background job as easily as: `$worker->later()->process(1,2,3)`
 
 This bundle provides a way to queue long running jobs that should be
 run in backend.
 
 - Turn any long running code into background task with a few lines
 - Add workers to your application with very little effort
-- Atomic operation for Job/Task
-- Logs Error from worker on task
-- Command to run Jobs from console
+- Atomic operation for jobs
+- Logs errors from worker
+- Command to run and debug jobs from console
 - Works with GridBundle to provide queue management
+- Well tested code: 15 tests, 74 assertions (plus 5 tests and 16 assertions more each service)
 
 [![Build Status](https://secure.travis-ci.org/dtee/queue.png?branch=master)](http://travis-ci.org/dtee/queue)
 
@@ -106,10 +107,10 @@ Running as upstart service:
 	# /etc/init/queue.conf
 
 	author "David Tee"
-	description "Starts QVC queue worker server"
+	description "Queue worker service"
 
 	respawn
-	start on startup solr_push
+	start on startup
 
 	script
 	        /{path to}/console dtc:queue_worker:run >> /var/logs/queue.log 2>&1
