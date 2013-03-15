@@ -7,7 +7,7 @@ php:
 services: mongodb
 
 before_script:
-  - pecl -q install mongo-${MONGO_VERSION} && echo "extension=mongo.so" >> `php --ini | grep "Loaded Configuration" | sed -e "s|.*:\s*||"`
+  - pecl install -f mongo-1.2.12
   - composer install
 
 script: phpunit --coverage-text
