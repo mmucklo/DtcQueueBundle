@@ -3,110 +3,27 @@ namespace Dtc\QueueBundle\Model;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 
-/**
- * @ODM\Document(db="queue", collection="job")
- */
 class Job
 {
     const STATUS_SUCCESS = 'success';
     const STATUS_ERROR = 'error';
     const STATUS_NEW = 'new';
 
-    /**
-     * @ODM\Id
-     */
     protected $id;
-
-    /**
-     * @ODM\Field(type="string", name="worker_name")
-     * @ODM\Index()
-     */
     protected $workerName;
-
-    /**
-     * @ODM\Field(type="string", name="class_name")
-     * @ODM\Index()
-     */
     protected $className;
-
-    /**
-     * @ODM\Field(type="string")
-     * @ODM\Index()
-     */
     protected $method;
-
-    /**
-     * @ODM\Field(type="string")
-     */
     protected $args;
-
-    /**
-     * @ODM\Field(type="string")
-     */
     protected $batch;
-
-    /**
-     * @ODM\Field(type="string")
-     * @ODM\Index()
-     */
     protected $status;
-
-    /**
-     * @ODM\Field(type="string")
-     */
     protected $message;
-
-    /**
-     * @ODM\Field(type="string")
-     * @ODM\Index()
-     */
     protected $priority;
-
-    /**
-     * @ODM\Field(type="string")
-     */
     protected $crcHash;
-
-    /**
-     * If job is locked (checked out by a worker)
-     *
-     * @ODM\Field(type="boolean")
-     * @ODM\Index()
-     */
     protected $locked;
-
-    /**
-     * When the job get locked
-     *
-     * @ODM\Field(type="date", name="locked_at")
-     */
     protected $lockedAt;
-
-    /**
-     * When the job should start
-     *
-     * @ODM\Field(type="date")
-     * @ODM\Index(order="asc")
-     */
     protected $when;
-
-    /**
-     * When the job is estimated to be finished by
-     *     If the job does not finish by expire time, a differnt worker
-     *     will pick up the job and attempt to finish it
-     *
-     * @ODM\Field(type="date")
-     */
     protected $expire;
-
-    /**
-     * @ODM\Field(type="date")
-     */
     protected $createdAt;
-
-    /**
-     * @ODM\Field(type="date")
-     */
     protected $updatedAt;
 
     protected $jobManager;
@@ -403,7 +320,7 @@ class Job
     }
 
     protected $worker;
-    public function __construct(Worker $worker, \DateTime $when, $batch, $priority)
+    public function __construct(Worker $worker, $batch, $priority, \DateTime $when = null)
     {
         $this->worker = $worker;
         $this->jobManager = $worker->getJobManager();
@@ -411,7 +328,7 @@ class Job
         $this->workerName = $worker->getName();
 
         $this->when = $when;
-        $this->batch = $batch;
+        $this->batch = $batch ? true : false;
         $this->priority = $priority;
         $this->status = self::STATUS_NEW;
     }

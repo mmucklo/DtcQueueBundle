@@ -42,10 +42,15 @@ abstract class Worker
             $time = time();
         }
 
-        $dateTime = new \DateTime();
-        $dateTime->setTimestamp($time);
+        if ($time) {
+            $dateTime = new \DateTime();
+            $dateTime->setTimestamp($time);
+        }
+        else {
+            $dateTime = null;
+        }
 
-        return new $this->jobClass($this, $dateTime, $batch, $priority);
+        return new $this->jobClass($this, $batch, $priority, $dateTime);
     }
 
     public function later($delay = 0, $priority = null)

@@ -11,7 +11,8 @@
     ],
     "require": {
         "php":  ">=5.3.2",
-        "pda/pheanstalk": "dev-master"
+        "pda/pheanstalk": "dev-master",
+        "doctrine/mongodb-odm": "1.0.0-BETA8"
     },
     "autoload": {
         "psr-0": { "Dtc\\QueueBundle": "" }

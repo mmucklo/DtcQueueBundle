@@ -12,6 +12,7 @@ class StaticJobManagerTest
     public function setup() {
         $this->jobManager = new StaticJobManager();
         $this->worker = new FibonacciWorker();
-        $this->worker->setJobManager($this->jobManager);
+
+        parent::setup();
     }
 }

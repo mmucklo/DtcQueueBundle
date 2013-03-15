@@ -11,7 +11,7 @@ class JobTest
 {
     public function testSetArgs() {
         $worker = new FibonacciWorker();
-        $job = new Job($worker, new \DateTime(), false, null);
+        $job = new Job($worker, false, null);
         $job->setArgs(array(1));
         $job->setArgs(array(1, array(1,2)));
 
@@ -33,7 +33,7 @@ class JobTest
         $worker = new FibonacciWorker();
         $worker->setJobManager($jobManager);
 
-        $job = new Job($worker, new \DateTime(), false, null);
+        $job = new Job($worker, false, null);
         $this->assertNull($job->getId(), "Job id should be null");
 
         $job->fibonacci(1);

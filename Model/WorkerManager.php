@@ -75,7 +75,7 @@ class WorkerManager
         }
         catch (\Exception $e) {
             if ($this->logger) {
-                $this->logger->debug("Failed: {$job->getClassName()}->{$job->getMethod()} - {$e->getMessage()}");
+                $this->logger->debug("Failed: {$job->getClassName()}->{$job->getMethod()}\n{$e->getMessage()}");
             }
 
             $job->setStatus(Job::STATUS_ERROR);
@@ -83,7 +83,7 @@ class WorkerManager
         }
 
         if ($this->logger) {
-            $this->logger->debug("Save Job: {$job->getId()}");
+            $this->logger->debug("Save job history: {$job->getId()}");
         }
 
         // save Job history

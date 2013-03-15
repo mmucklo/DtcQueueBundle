@@ -37,12 +37,13 @@ class Job
     protected $args;
 
     /**
-     * @ODM\Field(type="string")
+     * @ODM\Field(type="boolean")
      */
     protected $batch;
 
     /**
-     * @ODM\Field(type="string")
+     * @ODM\Field(type="int")
+     * @ODM\Index(unique=false, order="asc")
      */
     protected $priority;
 
@@ -53,6 +54,7 @@ class Job
 
     /**
      * @ODM\Field(type="date")
+     * @ODM\Index(unique=false, order="asc")
      */
     protected $when;
 

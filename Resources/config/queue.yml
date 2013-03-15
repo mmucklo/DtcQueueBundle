@@ -2,16 +2,21 @@ parameters:
     dtc_queue.job_class: ~
 
 services:
-    dtc_queue.job_manager:
-        class: Dtc\QueueBundle\Model\JobManager
+    dtc_queue.document_manager:
+        synthetic: true
+
     dtc_queue.job_manager.mongodb:
         class: Dtc\QueueBundle\Documents\JobManager
         arguments:
             - '@dtc_queue.document_manager'
             - '%dtc_queue.job_class%'
+
     dtc_queue.worker_manager:
         class: Dtc\QueueBundle\Model\WorkerManager
         arguments:
             - '@dtc_queue.job_manager'
             - { type: service, id: logger, strict: false } #'@logger='
         tags: [{ name: monolog.logger, channel: dtc_queue }]
+
+    dtc_queue.job_manager:
+        alias: 'dtc_queue.job_manager.mongodb'

@@ -26,6 +26,14 @@ class JobManager
     }
 
     /**
+     * @return the $documentName
+     */
+    public function getDocumentName()
+    {
+        return $this->documentName;
+    }
+
+    /**
      * @return DocumentRepository
      */
     public function getRepository()
@@ -195,16 +203,16 @@ class JobManager
         return $job;
     }
 
-    public function deleteJob(Job $job) {
+    public function deleteJob(\Dtc\QueueBundle\Model\Job $job) {
         $this->dm->remove($job);
         $this->dm->flush();
     }
 
-    public function saveHistory(Job $job) {
+    public function saveHistory(\Dtc\QueueBundle\Model\Job $job) {
         $this->save($job);
     }
 
-    public function save(Job $job)
+    public function save(\Dtc\QueueBundle\Model\Job $job)
     {
         // Todo: Serialize args
 

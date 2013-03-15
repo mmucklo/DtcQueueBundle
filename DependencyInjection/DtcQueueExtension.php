@@ -23,12 +23,12 @@ class DtcQueueExtension
 
         // Load Grid if Dtc\GridBundle Bundle is registered
         $yamlLoader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
-        $yamlLoader->load('grid.yml');
-        $yamlLoader->load('queue.yml')
 
-        $jobGridSourceDef = $container->getDefinition('dtc_queue.grid.source.job');
-        $jobGridSourceDef->addArgument(new Reference($odmManager));
-        $jobGridSourceDef->addArgument($config['class']);
+        $yamlLoader->load('queue.yml');
+        $yamlLoader->load('grid.yml');
+
+        $odmManager = "doctrine_mongodb.odm.{$config['document_manager']}_document_manager";
+        $container->setAlias('dtc_queue.document_manager', $odmManager);
     }
 
     public function getAlias()

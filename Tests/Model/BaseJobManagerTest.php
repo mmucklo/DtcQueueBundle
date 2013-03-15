@@ -11,10 +11,10 @@ class BaseJobManagerTest
 {
     protected $jobManager;
     protected $worker;
+    protected $jobClass;
 
-    public function setup() {
-        $this->jobManager = new StaticJobManager();
-        $this->worker = new FibonacciWorker();
+    public function setUp() {
+        $this->jobClass = $this->worker->getJobClass();
         $this->worker->setJobManager($this->jobManager);
     }
 
@@ -22,19 +22,20 @@ class BaseJobManagerTest
      * Not all managers will support job priority
      */
     public function testJobPriority() {
-        $firstJob = new Job($this->worker, new \DateTime(), false, 12);
+        $firstJob = new $this->jobClass($this->worker, false, 12);
         $firstJob->fibonacci(1);
         $this->assertNotNull($firstJob->getId(), "Job id should be generated");
 
-        $secondJob = new Job($this->worker, new \DateTime(), false, 1);
+        $secondJob = new $this->jobClass($this->worker, false, 1);
         $secondJob->fibonacci(1);
         $this->assertNotNull($secondJob->getId(), "Job id should be generated");
 
-        $thirdJob = new Job($this->worker, new \DateTime(), false, 5);
+        $thirdJob = new $this->jobClass($this->worker, false, 5);
         $thirdJob->fibonacci(1);
         $this->assertNotNull($thirdJob->getId(), "Job id should be generated");
 
         $jobInQueue = $this->jobManager->getJob();
+        $this->assertNotNull($jobInQueue, "There should be a job.");
         $this->assertEquals($secondJob->getId(), $jobInQueue->getId(),
                 "Second job id should be returned - lower number unload first");
 
@@ -48,17 +49,18 @@ class BaseJobManagerTest
     }
 
     public function testGetJob() {
-        $job = new Job($this->worker, new \DateTime(), false, null);
+        $job = new $this->jobClass($this->worker, false, null);
         $job->fibonacci(1);
         $this->assertNotNull($job->getId(), "Job id should be generated");
 
         $jobInQueue = $this->jobManager->getJob();
+        $this->assertNotNull($jobInQueue, "There should be a job.");
         $this->assertEquals($job->getId(), $jobInQueue->getId(),
                 "Job id returned by manager should be the same");
     }
 
     public function testGetJobByWorker() {
-        $job = new Job($this->worker, new \DateTime(), false, null);
+        $job = new $this->jobClass($this->worker, false, null);
         $job->fibonacci(1);
         $this->assertNotNull($job->getId(), "Job id should be generated");
 
@@ -68,7 +70,7 @@ class BaseJobManagerTest
     }
 
     public function testDeleteJob() {
-        $job = new Job($this->worker, new \DateTime(), false, null);
+        $job = new $this->jobClass($this->worker, false, null);
         $job->fibonacci(1);
         $this->assertNotNull($job->getId(), "Job id should be generated");
 
@@ -79,7 +81,7 @@ class BaseJobManagerTest
     }
 
     public function testSaveJob() {
-        $job = new Job($this->worker, new \DateTime(), false, null);
+        $job = new $this->jobClass($this->worker, false, null);
         $job->fibonacci(1);
         $this->assertNotNull($job->getId(), "Job id should be generated");
     }
