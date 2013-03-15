@@ -52,8 +52,9 @@ class JobManagerTest
         $sm = self::$dm->getSchemaManager();
         $timeout  = 1000;
 
-        $sm->updateDocumentIndexes($documentName, $timeout);
         $sm->dropDocumentCollection($documentName);
+        $sm->createDocumentCollection($documentName);
+        $sm->updateDocumentIndexes($documentName, $timeout);
 
         $this->jobManager = new JobManager(self::$dm, $documentName);
         $this->worker = new FibonacciWorker();
