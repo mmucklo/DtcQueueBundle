@@ -96,6 +96,17 @@ class BaseJobManagerTest
         }
 
         $total = microtime(true) - $start;
-        echo "Total of {$jobsTotal} jobs created in {$total} seconds";
+        echo "\nTotal of {$jobsTotal} jobs enqueued in {$total} seconds\n";
+
+
+        $start = microtime(true);
+        for ($i = 0; $i < $jobsTotal; $i++) {
+            $job = $this->jobManager->getJob();
+        }
+        $total = microtime(true) - $start;
+        echo "Total of {$jobsTotal} jobs dequeued in {$total} seconds\n";
+
+        $nextJob = $this->jobManager->getJob();
+        $this->assertNull($nextJob, "Shouldn't be any jobs left in queue");
     }
 }
