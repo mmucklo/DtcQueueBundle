@@ -1,74 +1,88 @@
 <?php
 namespace Dtc\QueueBundle\BeanStalkd;
 
-use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\Job as BaseJob;
 use Dtc\QueueBundle\Model\JobManagerInterface;
 
 class JobManager
-	implements JobManagerInterfac
+    implements JobManagerInterface
 {
-	protected $beanstalkd;
-	public function __construct(\Pheanstalk_Pheanstalk $beanstalkd) {
-		$this->beanstalkd = $beanstalkd;
-	}
+    protected $beanstalkd;
+    protected $isBuryOnGet;
+    public function __construct(\Pheanstalk_Pheanstalk $beanstalkd, $isBuryOnGet = false) {
+        $this->beanstalkd = $beanstalkd;
+        $this->isBuryOnGet = $isBuryOnGet;
+    }
 
-	public function getJobCount($workerName = null, $methodName = null) {
-		if ($methodName) {
-			throw new \Exception("Unsupported");
-		}
+    public function save($job) {
+        $jobId = $this->beanstalkd
+            ->watch($job->getWorkerName())
+            ->put($job->toMessage(), $job->getPriority(), $job->getDelay(), $job->getTTR());
 
-		if ($workerName) {
-			$job = $this->beanstalkd
-				->watch($workerName)
-				->reserve();
-			echo $job->getData();
-		}
-	}
+        $job->setId($jobId);
+        return $job;
+    }
 
-	public function resetErroneousJobs($workerName = null, $methodName = null) {
-		throw new \Exception("Unsupported");
-	}
+    public function getJob($workerName = null, $methodName = null, $prioritize = true)
+    {
+        if ($methodName) {
+            throw new \Exception("Unsupported");
+        }
 
-	public function pruneErroneousJobs($workerName = null, $methodName = null) {
-		throw new \Exception("Unsupported");
-	}
+        $beanJob = $this->beanstalkd;
+        if ($workerName) {
+            $beanJob = $beanJob->watch($workerName);
+        }
 
-	public function getJobCount($workerName = null, $methodName = null) {
-		throw new \Exception("Unsupported");
-	}
+        $beanJob = $beanJob->reserve();
+        if ($beanJob) {
+            if ($this->isBuryOnGet) {
+                $this->beanstalkd->bury($beanJob);
+            }
 
-	public function getJob($workerName = null, $methodName = null, $prioritize = true)
-	{
-		if ($methodName) {
-			throw new \Exception("Unsupported");
-		}
+            $job = new Job();
+            $job->fromMessage($beanJob->getData());
+            $job->setId($beanJob->getId());
+            return $job;
+        }
+    }
 
-		if ($workerName) {
-			$job = $this->beanstalkd
-				->watch($workerName)
-				->reserve();
-			echo $job->getData();
-		}
-	}
+    public function deleteJob($job) {
+        $this->beanstalkd
+            ->delete($job);
+    }
 
-	public function getStatus() {
-		throw new \Exception("Unsupported");
-	}
+    // Save History get called upon completion of the job
+    public function saveHistory($job) {
+        if ($job->getStatus() === BaseJob::STATUS_SUCCESS) {
+            $this->beanstalkd
+                ->delete($job);
+        }
+        else {
+            $this->beanstalkd
+                ->bury($job);
+        }
+    }
 
-	public function deleteJob(Job $job) {
-		$this->beanstalkd
-			->delete($job->getId());
-	}
+    public function getJobCount($workerName = null, $methodName = null) {
+        if ($methodName) {
+            throw new \Exception("Unsupported");
+        }
 
-	public function save(Job $job) {
-		$job = $this->beanstalkd
-			->watch($workerName)
-			->reserve();
+        if ($workerName) {
+            throw new \Exception("Unsupported");
+        }
+    }
 
-		// To handle duplicate, there must be a duplicate job manager
-		echo $job->getData();
-		// convert job to Job class
-	}
+    public function resetErroneousJobs($workerName = null, $methodName = null) {
+        throw new \Exception("Unsupported");
+    }
 
-	//public function deleteJobById($jobId);
+    public function pruneErroneousJobs($workerName = null, $methodName = null) {
+        throw new \Exception("Unsupported");
+    }
+
+    public function getStatus() {
+        throw new \Exception("Unsupported");
+    }
 }

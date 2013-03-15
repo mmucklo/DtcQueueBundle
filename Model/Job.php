@@ -25,6 +25,7 @@ class Job
     protected $expire;
     protected $createdAt;
     protected $updatedAt;
+    protected $delay;
 
     protected $jobManager;
 
@@ -320,12 +321,14 @@ class Job
     }
 
     protected $worker;
-    public function __construct(Worker $worker, $batch, $priority, \DateTime $when = null)
+    public function __construct(Worker $worker = null, $batch = false, $priority = 10, \DateTime $when = null)
     {
         $this->worker = $worker;
-        $this->jobManager = $worker->getJobManager();
-        $this->className = get_class($worker);
-        $this->workerName = $worker->getName();
+        if ($worker) {
+            $this->jobManager = $worker->getJobManager();
+            $this->className = get_class($worker);
+            $this->workerName = $worker->getName();
+        }
 
         $this->when = $when;
         $this->batch = $batch ? true : false;
@@ -348,4 +351,36 @@ class Job
         $this->jobManager->save($this);
         return $this;
     }
+    /**
+     * @return the $delay
+     */
+    public function getDelay()
+    {
+        return $this->delay;
+    }
+
+    /**
+     * @return the $worker
+     */
+    public function getWorker()
+    {
+        return $this->worker;
+    }
+
+    /**
+     * @param field_type $delay
+     */
+    public function setDelay($delay)
+    {
+        $this->delay = $delay;
+    }
+
+    /**
+     * @param Worker $worker
+     */
+    public function setWorker($worker)
+    {
+        $this->worker = $worker;
+    }
+
 }

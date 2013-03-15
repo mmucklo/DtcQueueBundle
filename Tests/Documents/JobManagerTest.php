@@ -45,9 +45,7 @@ class JobManagerTest
         $config->setMetadataDriverImpl(AnnotationDriver::create($classPath));
 
         self::$dm = DocumentManager::create(new Connection(), $config);
-    }
 
-    public function setup() {
         $documentName = 'Dtc\QueueBundle\Documents\Job';
         $sm = self::$dm->getSchemaManager();
         $timeout  = 1000;
@@ -56,10 +54,10 @@ class JobManagerTest
         $sm->createDocumentCollection($documentName);
         $sm->updateDocumentIndexes($documentName, $timeout);
 
-        $this->jobManager = new JobManager(self::$dm, $documentName);
-        $this->worker = new FibonacciWorker();
-        $this->worker->setJobClass($documentName);
+        self::$jobManager = new JobManager(self::$dm, $documentName);
+        self::$worker = new FibonacciWorker();
+        self::$worker->setJobClass($documentName);
 
-        parent::setup();
+        parent::setUpBeforeClass();
     }
 }

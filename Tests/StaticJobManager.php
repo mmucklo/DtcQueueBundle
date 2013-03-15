@@ -46,7 +46,7 @@ class StaticJobManager
         return null;
     }
 
-    public function deleteJob(Job $job) {
+    public function deleteJob($job) {
         unset($this->jobs[$job->getWorkerName()][$job->getId()]);
     }
 
@@ -62,7 +62,7 @@ class StaticJobManager
         }
     }
 
-    public function save(Job $job) {
+    public function save($job) {
         if (!$job->getId()) {
             $job->setId($this->uniqeId);
             $this->jobs[$job->getWorkerName()][$this->uniqeId]  = $job;
@@ -78,7 +78,7 @@ class StaticJobManager
         return $b->getPriority() - $a->getPriority();
     }
 
-    public function saveHistory(Job $job) {
+    public function saveHistory($job) {
         $this->save($job);
     }
 }

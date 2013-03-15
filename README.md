@@ -128,6 +128,21 @@ You can register admin routes to see queue status. In your routing.yml file, add
 	    prefix:  /queue/
 	    type: annotation
 
+
+Testing
+-------
+
+You can run unittest by typing `phpunit` in source folder. If you want to run
+integration testing with Mongodb, you need to set up Mongodb server on
+localhost and run:
+
+	phpunit Tests/Documents/JobManagerTest.php
+
+If you want to run Beanstalkd integration testing, you need to run a local
+empty instance of beanstalkd for testing.
+
+	sudo service beanstalkd restart; phpunit Tests/BeanStalkd/JobManagerTest.php
+
 License
 -------
 

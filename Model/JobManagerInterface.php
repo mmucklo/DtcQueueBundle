@@ -11,9 +11,9 @@ interface JobManagerInterface
     public function getJobCount($workerName = null, $methodName = null);
     public function getStatus();
     public function getJob($workerName = null, $methodName = null, $prioritize = true);
-    public function deleteJob(Job $job);
-    public function save(Job $job);
-    public function saveHistory(Job $job);
+    public function deleteJob($job);
+    public function save($job);
+    public function saveHistory($job);
 
     //public function deleteJobById($jobId);
 }

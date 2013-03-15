@@ -202,16 +202,16 @@ class JobManager
         return $job;
     }
 
-    public function deleteJob(\Dtc\QueueBundle\Model\Job $job) {
+    public function deleteJob($job) {
         $this->dm->remove($job);
         $this->dm->flush();
     }
 
-    public function saveHistory(\Dtc\QueueBundle\Model\Job $job) {
+    public function saveHistory($job) {
         $this->save($job);
     }
 
-    public function save(\Dtc\QueueBundle\Model\Job $job)
+    public function save($job)
     {
         // Todo: Serialize args
 

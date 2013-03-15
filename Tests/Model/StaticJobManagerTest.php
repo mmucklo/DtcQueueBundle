@@ -9,10 +9,9 @@ use Dtc\QueueBundle\Model\WorkerManager;
 class StaticJobManagerTest
     extends BaseJobManagerTest
 {
-    public function setup() {
-        $this->jobManager = new StaticJobManager();
-        $this->worker = new FibonacciWorker();
-
-        parent::setup();
+    public static function setUpBeforeClass() {
+        self::$jobManager = new StaticJobManager();
+        self::$worker = new FibonacciWorker();
+        parent::setUpBeforeClass();
     }
 }

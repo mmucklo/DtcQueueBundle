@@ -17,17 +17,17 @@ use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest;
 class JobManagerTest
     extends BaseJobManagerTest
 {
-    public static $dm;
+    public static $beanstalkd;
     public static  function setUpBeforeClass() {
-
-    }
-
-    public function setup() {
         $host = 'localhost';
-        $beanstalkd = new Pheanstalk_Pheanstalk($host);
-        $this->jobManager = new JobManager($beanstalkd);
-        $this->worker = new FibonacciWorker();
+        $className = 'Dtc\QueueBundle\BeanStalkd\Job';
 
-        parent::setup();
+        self::$beanstalkd = new \Pheanstalk_Pheanstalk($host);
+
+        self::$jobManager = new JobManager(self::$beanstalkd);
+        self::$worker = new FibonacciWorker();
+        self::$worker->setJobClass($className);
+
+        parent::setUpBeforeClass();
     }
 }
