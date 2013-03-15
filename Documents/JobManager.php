@@ -188,7 +188,6 @@ class JobManager
             ->addOr($qb->expr()->field('when')->lte(new \DateTime()))
             ->field('status')->equals(Job::STATUS_NEW)
             ->field('locked')->equals(null);
-
         // Update
         $qb
             ->field('lockedAt')->set(new \DateTime())        // Set started

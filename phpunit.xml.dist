@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<phpunit bootstrap="./Tests/bootstrap.php" colors="true">
+<phpunit bootstrap="./Tests/bootstrap.php"
+    stopOnFailure               = "true"
+    syntaxCheck                 = "true"
+    verbose                     = "true"
+    debug                       = "true"
+    colors                      = "true">
+
     <testsuites>
         <testsuite name="DtcQueueBundle Test Suite">
             <file>./Tests/Model/StaticJobManagerTest.php</file>

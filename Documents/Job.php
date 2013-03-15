@@ -32,6 +32,11 @@ class Job
     protected $method;
 
     /**
+     * @ODM\Field(type="string")
+     */
+    protected $status;
+
+    /**
      * @ODM\Field(type="hash")
      */
     protected $args;
@@ -40,6 +45,11 @@ class Job
      * @ODM\Field(type="boolean")
      */
     protected $batch;
+
+    /**
+     * @ODM\Field(type="boolean")
+     */
+    protected $locked;
 
     /**
      * @ODM\Field(type="int")

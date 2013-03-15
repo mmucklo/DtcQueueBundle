@@ -24,12 +24,20 @@ class JobManagerTest
 {
     public static $dm;
     public static  function setUpBeforeClass() {
+        if (!is_dir("/tmp/dtcqueuetest/generate/proxies")) {
+            mkdir("/tmp/dtcqueuetest/generate/proxies", 0777, true);
+        }
+
+        if (!is_dir("/tmp/dtcqueuetest/generate/hydrators")) {
+            mkdir("/tmp/dtcqueuetest/generate/hydrators", 0777, true);
+        }
         AnnotationDriver::registerAnnotationClasses();
 
         // Set up database delete here??
         $config = new Configuration();
         $config->setProxyDir('/tmp/dtcqueuetest/generate/proxies');
         $config->setProxyNamespace('Proxies');
+
         $config->setHydratorDir('/tmp/dtcqueuetest/generate/hydrators');
         $config->setHydratorNamespace('Hydrators');
 
@@ -52,5 +60,16 @@ class JobManagerTest
         $this->worker->setJobClass($documentName);
 
         parent::setup();
+    }
+
+    public function testPerformance() {
+        $start = microtime(true);
+        $jobsTotal = 1000;
+        for ($i = 0; $i < $jobsTotal; $i++) {
+            $this->worker->later()->fibonacci(1);
+        }
+
+        $total = microtime(true) - $start;
+        echo "Total of {$jobsTotal} jobs created in {$total} seconds";
     }
 }
