@@ -17,6 +17,11 @@ use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest;
 class JobManagerTest
     extends BaseJobManagerTest
 {
+    public static $dm;
+    public static  function setUpBeforeClass() {
+
+    }
+
     public function setup() {
         $host = 'localhost';
         $beanstalkd = new Pheanstalk_Pheanstalk($host);

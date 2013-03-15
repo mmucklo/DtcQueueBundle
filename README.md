@@ -13,6 +13,8 @@ run in backend.
 - Command to run Jobs from console
 - Works with GridBundle to provide queue management
 
+[![Build Status](https://secure.travis-ci.org/dtee/queue.png?branch=master)](http://travis-ci.org/dtee/queue)
+
 Installation
 ------------
 
