@@ -61,15 +61,4 @@ class JobManagerTest
 
         parent::setup();
     }
-
-    public function testPerformance() {
-        $start = microtime(true);
-        $jobsTotal = 1000;
-        for ($i = 0; $i < $jobsTotal; $i++) {
-            $this->worker->later()->fibonacci(1);
-        }
-
-        $total = microtime(true) - $start;
-        echo "Total of {$jobsTotal} jobs created in {$total} seconds";
-    }
 }

@@ -14,6 +14,7 @@ class StaticJobManager
 {
     private $jobs;
     private $uniqeId;
+    public $enableSorting = true;
 
     public function __construct() {
         $this->jobs = array();
@@ -65,7 +66,10 @@ class StaticJobManager
         if (!$job->getId()) {
             $job->setId($this->uniqeId);
             $this->jobs[$job->getWorkerName()][$this->uniqeId]  = $job;
-            uasort($this->jobs[$job->getWorkerName()], array($this, 'compareJobPriority'));
+            if ($this->enableSorting) {
+                uasort($this->jobs[$job->getWorkerName()], array($this, 'compareJobPriority'));
+            }
+
             $this->uniqeId++;
         }
     }
