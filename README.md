@@ -110,18 +110,20 @@ jobId could be obtained from mongodb.
 Running as upstart service:
 ---------------------------
 
-1. Create the following file in /etc/init/.
+1. Create the following file in /etc/init/. PHP is terrible at memory management
+ and garbage collection: to deal with out of memory issues, run 20 jobs at
+ a time. (Or a manageable job size)
 
 	# /etc/init/queue.conf
 
 	author "David Tee"
-	description "Queue worker service"
+	description "Queue worker service, run 20 jobs at a time, process timeout of 3600"
 
 	respawn
 	start on startup
 
 	script
-	        /{path to}/console dtc:queue_worker:run >> /var/logs/queue.log 2>&1
+	        /{path to}/console dtc:queue_worker:run -t 20 -v -to 3600>> /var/logs/queue.log 2>&1
 	end script
 
 2. Reload config: sudo initctl reload-configuration
