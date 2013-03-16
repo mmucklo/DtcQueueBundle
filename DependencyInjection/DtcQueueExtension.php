@@ -14,12 +14,13 @@ class DtcQueueExtension
 {
     public function load(array $configs, ContainerBuilder $container)
     {
+    	$documentName = 'Dtc\QueueBundle\Documents\Job';
         $processor = new Processor();
         $configuration = new Configuration();
 
         $config = $processor->processConfiguration($configuration, $configs);
         $container->setParameter('dtc_queue.document_manager', $config['document_manager']);
-        $container->setParameter('dtc_queue.job_class', $config['class']);
+        $container->setParameter('dtc_queue.job_class', $documentName);
 
         // Load Grid if Dtc\GridBundle Bundle is registered
         $yamlLoader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));

@@ -1,6 +1,8 @@
 <?php
 namespace Dtc\QueueBundle\Command;
 
+use Dtc\QueueBundle\Model\Job;
+
 use Asc\PlatformBundle\Documents\Profile\UserProfile;
 use Asc\PlatformBundle\Documents\UserAuth;
 
@@ -12,86 +14,66 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\Command;
 
 class RunCommand
-    extends ContainerAwareCommand
+	extends ContainerAwareCommand
 {
-    protected function configure()
-    {
-        $this
-        ->setName('dtc:queue_worker:run')
-        ->addArgument('worker_name', InputArgument::OPTIONAL, 'Name of worker')
-        ->addArgument('method', InputArgument::OPTIONAL, 'DI method of worker')
-        ->addOption('threads', 't', InputOption::VALUE_REQUIRED, 'Total number of simultaneous threads', 1)
-        ->setDescription('Start up a job in queue')
-        ;
-    }
+	protected function configure()
+	{
+		$this
+			->setName('dtc:queue_worker:run')
+			->addArgument('worker_name', InputArgument::OPTIONAL, 'Name of worker')
+			->addArgument('method', InputArgument::OPTIONAL, 'DI method of worker')
+			->addOption('total_jobs', 't', InputOption::VALUE_REQUIRED,
+					'Total number of job to work on before exiting', 1)
+			->addOption('timeout', 'to', InputOption::VALUE_REQUIRED,
+					'Process timeout in seconds', 3600)
+			->setDescription('Start up a job in queue')
+		;
+	}
 
-    /**
-     * Note: If exit was called, then we  can't decrement the number of running processes correctly
-     *
-     * (non-PHPdoc)
-     * @see Symfony\Component\Console\Command.Command::execute()
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
-        $container = $this->getContainer();
-        $workerManager = $container->get('dtc_queue.worker_manager');
-        $workerName = $input->getArgument('worker_name');
-        $methodName = $input->getArgument('method');
-        $threads = $input->getOption('threads');
-        $logger = $container->get('monolog.logger.dtc_queue');
-        $lockFile = $container->getParameter('dtc_queue.lock_file');
-        $processTimeout = 3600;
+	protected function execute(InputInterface $input, OutputInterface $output)
+	{
+		$container = $this->getContainer();
+		$workerManager = $container->get('dtc_queue.worker_manager');
+		$workerName = $input->getArgument('worker_name');
+		$methodName = $input->getArgument('method');
+		$totalJobs = $input->getOption('total_jobs', 1);
+		$logger = $container->get('monolog.logger.dtc_queue');
+		$processTimeout = $input->getOption('timeout', 3600);
 
-        // Check to see if there are other instances
-        $processCount = intval(shell_exec  ('ps -ef | grep dtc:queue_worker:run | grep -vc grep'));
+		// Check to see if there are other instances
+		set_time_limit($processTimeout);    // Set an hour timeout
 
-        $processCount = 0;
-        if (file_exists($lockFile))
-        {
-            $processCount = intval(file_get_contents($lockFile));
+		try {
+			$output->writeln("<info>Staring up a new job...</info>");
+			$currentJob = 1;
 
-            // Check time - we don't want the process to locked over 30 mnutes
-            if (filemtime($lockFile) < (time() - $processTimeout)) {
-                // Start up another job
-                file_put_contents($lockFile, --$processCount);
-                $logger->err('One of the process is taking too long, making room for one more');
-            }
-        }
+			do {
+				$job = $workerManager->run($workerName, $methodName);
 
-        // Exit if total process running is less than threads count
-        if ($processCount >= $threads) {
-            $logger->debug("Total of {$processCount} >= {$threads} running, exiting...");
-            exit();
-        }
+				if ($job) {
+					$this->reportJob($job, $output);
+					$currentJob++;
+				}
+				else {
+					$output->writeln("<info>No job to run... sleeping</info>");
+					sleep(15);        // Sleep for 10 seconds when out of job
+				}
+			} while ($currentJob <= $totalJobs);
+		} catch (\Exception $e) {
+			// Uncaught error: possibly with QueueBundle itself
+			if ($msg = $e->getMessage()) {
+				$output->writeln('<error>[critical]</error> '.$msg);
+			}
+		}
+	}
 
-        file_put_contents($lockFile, ++$processCount);
+	protected function reportJob(Job $job, OutputInterface $output) {
+		if ($job->getStatus() == Job::STATUS_ERROR) {
+			$output->writeln("<error>[error]</error>  Error with job id: {$job->getId()}");
+			$output->writeln($job->getMessage());
+		}
 
-        set_time_limit($processTimeout);    // Set an hour timeout
-
-        try {
-            $logger->debug("Staring up a new job...");
-            $job = $workerManager->run($workerName, $methodName);
-
-            if ($job) {
-                $output->writeln("Finished job id: {$job->getId()}");
-                $output->writeln("Message:");
-                $output->writeln($job->getMessage());
-            }
-            else {
-                $output->writeln("No job to run... sleeping");
-                sleep(15);        // Sleep for 10 seconds when out of job
-            }
-        } catch (\Exception $e) {
-            if ($msg = $e->getMessage()) {
-                $output->writeln('<error>[error]</error> '.$msg);
-            }
-
-            // Seem like job had some error...
-        }
-
-        $logger->debug("Total process via lock file: " . file_get_contents($lockFile));
-        $logger->debug("Finished a new job");
-        $processCount = ($processCount > 0) ? $processCount - 1 : 0;
-        file_put_contents($lockFile, $processCount);
-    }
+		$message = "Finished job id: {$job->getId()} in {$job->getElapsed()} seconds\n";
+		$output->writeln("<info>{$message}</info>");
+	}
 }

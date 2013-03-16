@@ -26,6 +26,7 @@ class Job
     protected $createdAt;
     protected $updatedAt;
     protected $delay;
+    protected $elapsed;
 
     protected $jobManager;
 
@@ -382,5 +383,19 @@ class Job
     {
         $this->worker = $worker;
     }
+	/**
+	 * @return the $elapsed
+	 */
+	public function getElapsed()
+	{
+		return $this->elapsed;
+	}
 
+	/**
+	 * @param field_type $elapsed
+	 */
+	public function setElapsed($elapsed)
+	{
+		$this->elapsed = $elapsed;
+	}
 }

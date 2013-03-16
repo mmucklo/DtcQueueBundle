@@ -18,18 +18,22 @@ class JobColumns
         $columns[] = $column;
 
         $column = new TwigBlockGridColumn('status', 'Status', $template, $env);
+        $column->setOption('sortable', true);
         $columns[] = $column;
 
         $column = new TwigBlockGridColumn('worker', 'Worker', $template, $env);
+        $column->setOption('sortable', true);
         $columns[] = $column;
 
         $column = new TwigBlockGridColumn('args', 'Args', $template, $env);
         $columns[] = $column;
 
         $column = new TwigBlockGridColumn('createdAt', 'Created At', $template, $env);
+        $column->setOption('sortable', true);
         $columns[] = $column;
 
         $column = new TwigBlockGridColumn('runAt', 'Run At', $template, $env);
+        $column->setOption('sortable', true);
         $columns[] = $column;
 
         $column = new TwigBlockGridColumn('runTime', 'Run Time', $template, $env);

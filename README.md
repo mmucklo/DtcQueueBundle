@@ -16,12 +16,20 @@ run in backend.
 
 [![Build Status](https://secure.travis-ci.org/dtee/queue.png?branch=master)](http://travis-ci.org/dtee/queue)
 
+Supports
+--------
+
+- MongoDB via Doctrine-ODM
+- Beanstalkd via pheanstalk
+- RabbitMQ via php-amqplib
+
 Installation
 ------------
 
-Add an config entry for using document manager
+Add an config entry for using document manager.
 
 	dtc_queue:
+	    server_type: mongodb
 	    document_manager: default
 
 

@@ -1,5 +1,5 @@
 {
-    "hash": "da96bb175bd3d3abd5e788a0b2fac1b5",
+    "hash": "40e77b73724b9bafd4ae66a5f0b670e5",
     "packages": [
         {
             "name": "doctrine/common",
@@ -291,6 +291,47 @@
             "description": "Symfony Console Component",
             "homepage": "http://symfony.com",
             "time": "2013-03-01 06:43:14"
+        },
+        {
+            "name": "videlalvaro/php-amqplib",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/videlalvaro/php-amqplib.git",
+                "reference": "v2.0.2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/videlalvaro/php-amqplib/zipball/v2.0.2",
+                "reference": "v2.0.2",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "PhpAmqpLib": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-2.1"
+            ],
+            "authors": [
+                {
+                    "name": "Alvaro Videla"
+                }
+            ],
+            "description": "This library is a pure PHP implementation of the AMQP protocol. It's been tested against RabbitMQ.",
+            "homepage": "https://github.com/videlalvaro/php-amqplib/",
+            "keywords": [
+                "message",
+                "queue",
+                "rabbitmq"
+            ],
+            "time": "2013-02-13 19:43:51"
         }
     ],
     "packages-dev": [
@@ -302,6 +343,7 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "pda/pheanstalk": 20,
+        "videlalvaro/php-amqplib": 20,
         "doctrine/mongodb-odm": 10
     },
     "platform": {
