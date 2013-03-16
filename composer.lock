@@ -1,5 +1,5 @@
 {
-    "hash": "40e77b73724b9bafd4ae66a5f0b670e5",
+    "hash": "e0b9d051c02f82c71791984c72baab5a",
     "packages": [
         {
             "name": "doctrine/common",
@@ -132,16 +132,16 @@
         },
         {
             "name": "doctrine/mongodb-odm",
-            "version": "1.0.0-BETA8",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/doctrine/mongodb-odm.git",
-                "reference": "1.0.0-BETA8"
+                "reference": "78a06c3a9ac409057c2a7a509dc3e1f50627637e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/doctrine/mongodb-odm/zipball/1.0.0-BETA8",
-                "reference": "1.0.0-BETA8",
+                "url": "https://api.github.com/repos/doctrine/mongodb-odm/zipball/78a06c3a9ac409057c2a7a509dc3e1f50627637e",
+                "reference": "78a06c3a9ac409057c2a7a509dc3e1f50627637e",
                 "shasum": ""
             },
             "require": {
@@ -201,7 +201,7 @@
                 "odm",
                 "persistence"
             ],
-            "time": "2013-02-26 22:19:21"
+            "time": "2013-03-15 17:37:15"
         },
         {
             "name": "pda/pheanstalk",
@@ -344,7 +344,7 @@
     "stability-flags": {
         "pda/pheanstalk": 20,
         "videlalvaro/php-amqplib": 20,
-        "doctrine/mongodb-odm": 10
+        "doctrine/mongodb-odm": 20
     },
     "platform": {
         "php": ">=5.3.2"
