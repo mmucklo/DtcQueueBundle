@@ -7,49 +7,6 @@ use Dtc\QueueBundle\Model\JobManagerInterface;
 use PhpAmqpLib\Connection\AMQPConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
-$exchange = 'bench_exchange';
-$queue = 'bench_queue';
-
-$conn = new AMQPConnection(HOST, PORT, USER, PASS, VHOST);
-$ch = $conn->channel();
-
-$ch->queue_declare($queue, false, false, false, false);
-
-$ch->exchange_declare($exchange, 'direct', false, false, false);
-
-$ch->queue_bind($queue, $exchange);
-
-$msg_body = <<<EOT
-abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz
-abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz
-abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz
-abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz
-abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz
-abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz
-abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz
-abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz
-abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz
-abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyza
-EOT;
-
-$msg = new AMQPMessage($msg_body);
-
-$time = microtime(true);
-
-$max = isset($argv[1]) ? (int) $argv[1] : 1;
-
-// Publishes $max messages using $msg_body as the content.
-for ($i = 0; $i < $max; $i++) {
-    $ch->basic_publish($msg, $exchange);
-}
-
-echo microtime(true) - $time, "\n";
-
-$ch->basic_publish(new AMQPMessage('quit'), $exchange);
-
-$ch->close();
-$conn->close();
-
 class JobManager
     implements JobManagerInterface
 {
@@ -65,8 +22,8 @@ class JobManager
         $queue = $job->getWorkerName();
         $exchange = null; 	// User default exchange
 
-        $this->channel->queue_declare($queue, false, false, false, false);
-        $this->channel->exchange_declare($exchange, 'direct', false, false, false);
+        $this->channel->queue_declare($queue, false, true, false, false);
+        $this->channel->exchange_declare($exchange, 'direct', false, true, false);
         $this->channel->queue_bind($queue, $exchange);
 
         $msg = new AMQPMessage($job->toMessage());
@@ -84,7 +41,7 @@ class JobManager
 
         $beanJob = $this->beanstalkd;
         if ($workerName) {
-            $beanJob = $beanJob->watch($workerName);
+            $this->channel->basic_consume($workerName, '', false, true, false, false);
         }
 
         $beanJob = $beanJob->reserve();

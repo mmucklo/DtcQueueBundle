@@ -37,7 +37,6 @@ class RunJobCommand
         $jobId = $input->getArgument('job_id');
         $jobManager = $container->get('dtc_queue.job_manager');
         $logger = $container->get('monolog.logger.dtc_queue');
-        $lockFile = $container->getParameter('dtc_queue.lock_file');
         $processTimeout = 3600;
         $workerManager = $container->get('dtc_queue.worker_manager');
 
