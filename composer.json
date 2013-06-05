@@ -10,7 +10,8 @@
         }
     ],
     "require": {
-        "php": ">=5.3.2"
+        "php": ">=5.3.2",
+        "dtc/grid": "dev-master"
     },
     "require-dev": {
         "pda/pheanstalk": "dev-master",
