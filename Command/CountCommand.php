@@ -1,9 +1,6 @@
 <?php
 namespace Dtc\QueueBundle\Command;
 
-use Asc\PlatformBundle\Documents\Profile\UserProfile;
-use Asc\PlatformBundle\Documents\UserAuth;
-
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,10 +13,8 @@ class CountCommand
     protected function configure()
     {
         $this
-        ->setName('dtc:queue_worker:count')
-        ->addArgument('worker_name', InputArgument::OPTIONAL, 'Name of worker', null)
-        ->addArgument('method', InputArgument::OPTIONAL, 'DI method of worker', null)
-        ->setDescription('Count total jobs left')
+            ->setName('dtc:queue_worker:count')
+            ->setDescription('Display job queue status.')
         ;
     }
 
@@ -27,10 +22,18 @@ class CountCommand
     {
         $container = $this->getContainer();
         $jobManager = $container->get('dtc_queue.job_manager');
-        $workerName = $input->getArgument('worker_name');
-        $methodName = $input->getArgument('method');
+        $count = $jobManager->getJobCount();
 
-        $count = $jobManager->getJobCount($workerName, $methodName);
+        $format = "%-50s %8s %8s %8s";
+        $status = $jobManager->getStatus();
+        $msg = sprintf($format, "Job name", 'Success', 'New', 'Error');
+        $output->writeln($msg);
+
+        foreach ($status as $func => $info) {
+            $msg = sprintf($format, $func, $info['success'], $info['new'], $info['error']);
+            $output->writeln($msg);
+        }
+
         $output->writeln("Total jobs: {$count}");
     }
 }

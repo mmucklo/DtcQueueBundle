@@ -103,7 +103,7 @@ Create a background job.
 To Debug message queue status.
 
 	./app/console dtc:queue_worker:count
-	./app/console dtc:queue_worker:run-job {jobId}
+	./app/console dtc:queue_worker:run --id={jobId}
 
 jobId could be obtained from mongodb.
 
