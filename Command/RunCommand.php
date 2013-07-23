@@ -83,8 +83,8 @@ class RunCommand
                     $this->reportJob($job);
                     $currentJob++;
                 } else {
-                    $this->logger->info("No job to run... sleeping");
-                    sleep(15); // Sleep for 10 seconds when out of job
+                    $this->logger->info("No job to run...");
+                    return;
                 }
             } while ($currentJob <= $totalJobs);
         } catch (\Exception $e) {
