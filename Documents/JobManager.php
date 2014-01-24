@@ -171,7 +171,7 @@ class JobManager
             $qb->field('workerName')->equals($workerName);
         }
 
-        if ($methodName = null) {
+        if ($methodName != null) {
             $qb->field('methodName')->equals($methodName);
         }
 
