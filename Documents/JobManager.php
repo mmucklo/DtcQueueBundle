@@ -171,8 +171,8 @@ class JobManager
             $qb->field('workerName')->equals($workerName);
         }
 
-        if ($methodName != null) {
-            $qb->field('methodName')->equals($methodName);
+        if ($methodName) {
+            $qb->field('method')->equals($methodName);
         }
 
         if ($prioritize) {
