@@ -12,8 +12,12 @@ services:
         class: Dtc\QueueBundle\Model\WorkerManager
         arguments:
             - '@dtc_queue.job_manager'
+            - '@dtc_queue.event_dispatcher'
             - '@logger='
         tags: [{ name: monolog.logger, channel: dtc_queue }]
 
     dtc_queue.job_manager:
         alias: 'dtc_queue.job_manager.mongodb'
+
+    dtc_queue.event_dispatcher:
+        class: Dtc\QueueBundle\EventDispatcher\EventDispatcher

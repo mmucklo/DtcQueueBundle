@@ -107,6 +107,58 @@ To Debug message queue status.
 
 jobId could be obtained from mongodb.
 
+Job Event Subscriber
+--------------------
+
+It's useful to listen to event in a long running script to clear doctrine manger or send email about status of a job. To
+add a job event subscriber, create a new service with tag: dtc_queue.event_subscriber:
+
+    services:
+        voices.queue.listener.clear_manager:
+            class: ClearManagerSubscriber
+            arguments:
+                - '@service_container'
+            tags:
+                - { name: dtc_queue.event_subscriber, connection: default }
+
+ClearManagerSubscriber.php
+
+    <?php
+    use Dtc\QueueBundle\EventDispatcher\Event;
+    use Dtc\QueueBundle\EventDispatcher\EventSubscriberInterface;
+    use Symfony\Component\DependencyInjection\ContainerInterface;
+
+    class ClearManagerSubscriber
+        implements EventSubscriberInterface
+    {
+        private $container;
+        public function __construct(ContainerInterface $container) {
+            $this->container = $container;
+        }
+
+        public function onPostJob(Event $event)
+        {
+            $managerIds = [
+                'doctrine.odm.mongodb.document_manager',
+                'doctrine.orm.default_entity_manager',
+                'doctrine.orm.content_entity_manager'
+            ];
+
+            foreach ($managerIds as $id) {
+                $manager = $this->container->get($id);
+                $manager->clear();
+            }
+        }
+
+        public static function getSubscribedEvents()
+        {
+            return array(
+                Event::POST_JOB => 'onPostJob',
+            );
+        }
+    }
+
+
 Running as upstart service:
 ---------------------------
 

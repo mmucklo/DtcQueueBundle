@@ -1,6 +1,8 @@
 <?php
 namespace Dtc\QueueBundle\Model;
 
+use Dtc\QueueBundle\EventDispatcher\Event;
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Monolog\Logger;
 
 class WorkerManager
@@ -8,11 +10,13 @@ class WorkerManager
 	protected $workers;
 	protected $jobManager;
 	protected $logger;
+    protected $eventDispatcher;
 
-	public function __construct(JobManagerInterface $jobManager, Logger $logger = null) {
+	public function __construct(JobManagerInterface $jobManager, EventDispatcher $eventDispatcher, Logger $logger = null) {
 		$this->workers = array();
 		$this->jobManager = $jobManager;
 		$this->logger = $logger;
+        $this->eventDispatcher = $eventDispatcher;
 	}
 
 	public function addWorker(Worker $worker) {
@@ -54,6 +58,9 @@ class WorkerManager
 	}
 
 	public function runJob(Job $job) {
+        $event = new Event($job);
+        $this->eventDispatcher->dispatch(Event::PRE_JOB, $event);
+
 		try {
 			$start = microtime(true);
 			$worker = $this->getWorker($job->getWorkerName());
@@ -86,6 +93,7 @@ class WorkerManager
 		}
 
 		$this->jobManager->saveHistory($job);
+        $this->eventDispatcher->dispatch(Event::POST_JOB, $event);
 
 		return $job;
 	}

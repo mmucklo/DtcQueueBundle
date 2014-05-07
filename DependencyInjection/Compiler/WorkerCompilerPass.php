@@ -35,5 +35,11 @@ class WorkerCompilerPass implements CompilerPassInterface
 
             $definition->addMethodCall('addWorker', array(new Reference($id)));
         }
+
+        $eventDispatcher = $container->getDefinition('dtc_queue.event_dispatcher');
+        foreach ($container->findTaggedServiceIds('dtc_queue.event_subscriber') as $id => $attributes) {
+            $eventSubscriber = $container->getDefinition($id);
+            $eventDispatcher->addMethodCall('addSubscriber', [$eventSubscriber]);
+        }
     }
 }
