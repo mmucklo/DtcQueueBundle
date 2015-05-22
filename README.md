@@ -210,3 +210,8 @@ License
 -------
 
 This bundle is under the MIT license.
+
+Credit
+--------
+Originally written by @dtee
+
