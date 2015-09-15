@@ -5,6 +5,7 @@ use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\StaticJobManager;
 use Dtc\QueueBundle\Model\WorkerManager;
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 
 class WorkerManagerTest
     extends \PHPUnit_Framework_TestCase
@@ -12,12 +13,14 @@ class WorkerManagerTest
     protected $jobManager;
     protected $worker;
     protected $workerManager;
+    protected $eventDispatcher;
 
     public function setup() {
         $this->jobManager = new StaticJobManager();
         $this->worker = new FibonacciWorker();
         $this->worker->setJobManager($this->jobManager);
-        $this->workerManager = new WorkerManager($this->jobManager);
+	$this->eventDispatcher = new EventDispatcher();
+        $this->workerManager = new WorkerManager($this->jobManager, $this->eventDispatcher);
     }
 
     public function testAddWorker() {
