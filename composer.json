@@ -4,6 +4,12 @@
     "keywords": ["queue", "Message queue"],
     "type": "symfony-bundle",
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/dtee/grid.git"
+	}   
+    ],
     "authors": [
         {
             "name": "David Tee"
