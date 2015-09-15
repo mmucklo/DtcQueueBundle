@@ -1,5 +1,5 @@
 language: php
-
+sudo: false
 php:
   - 5.3
   - 5.4
@@ -10,7 +10,7 @@ php:
 services: mongodb
 
 before_script:
-  - pecl install -f mongo-1.6.11
+  - printf "\n" | pecl install -f mongo-1.6.11
   - composer install
 
 script: phpunit --coverage-text
