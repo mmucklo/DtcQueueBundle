@@ -1,16 +1,21 @@
 {
-    "name": "dtc/queue",
-    "description": "Message Queue Manager for symfony2.",
+    "name": "mmucklo/queue",
+    "description": "Message Queue Manager for symfony2",
     "keywords": ["queue", "Message queue"],
     "type": "symfony-bundle",
     "license": "MIT",
     "authors": [
         {
             "name": "David Tee"
-        }
+        },
+	{
+            "name": "Matthew J. Mucklo",
+            "email": "mmucklo@gmail.com"
+        }  
     ],
     "require": {
-        "php": ">=5.3.2"
+        "php": ">=5.3.2",
+	"dtc/grid": "dev-master"
     },
     "require-dev": {
         "pda/pheanstalk": "dev-master",
