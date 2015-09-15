@@ -20,7 +20,8 @@
     "require-dev": {
         "pda/pheanstalk": "dev-master",
         "videlalvaro/php-amqplib": "dev-master",
-        "doctrine/mongodb-odm": "dev-master"
+        "doctrine/mongodb": "dev-master",
+        "doctrine/mongodb-odm": "*"
     },
     "autoload": {
         "psr-0": { "Dtc\\QueueBundle": "" }

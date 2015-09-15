@@ -11,7 +11,7 @@ services: mongodb
 
 before_script:
   - printf "\n" | pecl install -f mongo-1.6.11
-  - composer install
+  - COMPOSER_ROOT_VERSION=dev-master composer --prefer-source install
 
 script: phpunit --coverage-text
 
