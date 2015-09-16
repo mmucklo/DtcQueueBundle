@@ -1,6 +1,8 @@
 DtcQueueBundle
 ==============
 
+[![Build Status](https://secure.travis-ci.org/mmucklo/QueueBundle.png?branch=master)](http://travis-ci.org/mmucklo/QueueBundle)
+
 > Allow symfony developers to create background job as easily as: `$worker->later()->process(1,2,3)`
 
 This bundle provides a way to queue long running jobs that should be
@@ -14,7 +16,6 @@ run in backend.
 - Works with GridBundle to provide queue management
 - Well tested code: 15 tests, 74 assertions (plus 5 tests and 16 assertions more each service)
 
-[![Build Status](https://secure.travis-ci.org/dtee/queue.png?branch=master)](http://travis-ci.org/dtee/queue)
 
 Supports
 --------
