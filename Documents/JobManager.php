@@ -143,6 +143,8 @@ class JobManager
             Job::STATUS_SUCCESS => 0
         );
 
+        $status = [];
+
         foreach ($results as $info) {
             $status[$info['_id']] = $info['value'] + $allStatus;
         }
