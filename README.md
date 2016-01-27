@@ -210,7 +210,7 @@ empty instance of beanstalkd for testing.
 License
 -------
 
-This bundle is under the MIT license.
+This bundle is under the MIT license (see LICENSE file under [Resources/meta/LICENSE](Resources/meta/LICENSE)).
 
 Credit
 --------
