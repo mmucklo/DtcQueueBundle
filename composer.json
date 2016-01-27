@@ -21,7 +21,7 @@
     ],
     "require": {
         "php": ">=5.3.2",
-	"dtc/grid": "dev-master"
+	"mmucklo/grid-bundle": ">=0.9"
     },
     "require-dev": {
         "pda/pheanstalk": "dev-master",
