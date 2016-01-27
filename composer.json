@@ -1,5 +1,5 @@
 {
-    "name": "mmucklo/queue",
+    "name": "mmucklo/queue-bundle",
     "description": "Message Queue Manager for symfony2",
     "keywords": ["queue", "Message queue"],
     "type": "symfony-bundle",
