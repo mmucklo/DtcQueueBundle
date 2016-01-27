@@ -1,6 +1,6 @@
 {
     "name": "mmucklo/queue-bundle",
-    "description": "Message Queue Manager for symfony2",
+    "description": "Message Queue Manager for symfony2/symfony3",
     "keywords": ["queue", "Message queue"],
     "type": "symfony-bundle",
     "license": "MIT",
