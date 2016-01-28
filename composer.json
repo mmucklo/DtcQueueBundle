@@ -26,7 +26,6 @@
     "require-dev": {
         "pda/pheanstalk": "dev-master",
         "videlalvaro/php-amqplib": "dev-master",
-	"mongofill/mongofill": "dev-master",
         "doctrine/mongodb": "dev-master",
         "doctrine/mongodb-odm": "*"
     },

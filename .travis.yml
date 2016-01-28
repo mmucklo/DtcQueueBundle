@@ -9,8 +9,9 @@ services: mongodb
 sudo: required
 
 before_script:
-  - printf "\n" | pecl install -f mongodb-1.1.2
+  - if [ "$TRAVIS_PHP_VERSION" != "7.0" ]; then printf "\n" | pecl install -f mongo-1.6.12; fi
   - composer self-update
+  - if [ "$TRAVIS_PHP_VERSION" = "7.0" ]; then composer require mongofill/mongofill --save; fi
   - composer install
 
 script: phpunit --coverage-text
