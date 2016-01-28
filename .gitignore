@@ -2,3 +2,4 @@ vendor
 *~
 \#*\#
 auto-save-list
+composer.lock
