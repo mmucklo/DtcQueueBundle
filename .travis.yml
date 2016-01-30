@@ -11,7 +11,7 @@ sudo: required
 before_script:
   - if [ "$TRAVIS_PHP_VERSION" != "7.0" ]; then printf "\n" | pecl install -f mongo-1.6.12; fi
   - composer self-update
-  - if [ "$TRAVIS_PHP_VERSION" = "7.0" ]; then composer require --dev mongofill/mongofill; fi
+  - if [ "$TRAVIS_PHP_VERSION" = "7.0" ]; then composer require --update-no-dev mongofill/mongofill; fi
   - composer install
 
 script: phpunit --coverage-text

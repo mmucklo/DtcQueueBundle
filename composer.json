@@ -32,5 +32,7 @@
     "autoload": {
         "psr-0": { "Dtc\\QueueBundle": "" }
     },
-    "target-dir": "Dtc/QueueBundle"
+    "target-dir": "Dtc/QueueBundle",
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
