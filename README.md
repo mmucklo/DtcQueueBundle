@@ -27,6 +27,25 @@ Supports
 Installation
 ------------
 
+Install the bundle using composer:
+
+```
+composer require mmucklo/queue-bundle
+```
+
+Update your `AppKernel.php` file, and register the new bundle:
+
+```
+<?php
+
+// in AppKernel::registerBundles()
+$bundles = array(
+    // ...
+    new Dtc\QueueBundle\DtcQueueBundle(),
+    // ...
+);
+```
+
 Add an config entry for using document manager.
 
 	dtc_queue:
