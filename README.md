@@ -52,17 +52,10 @@ Create a worker class that will work on the background job.
 	class FibonacciWorker
 	    extends \Dtc\QueueBundle\Model\Worker
 	{
-	    private $filename;
-	    public function __construct() {
-	        $this->filename = '/tmp/fib-result.txt';
-	        $this->jobClass = 'Dtc\QueueBundle\Model\Job';
+	    public function __construct(Dtc\QueueBundle\Model\JobManagerInterface $jobManager) {
+	        $this->jobClass = 'Dtc\QueueBundle\Documents\Job';
+	        $this->jobManager = $jobManager;
 	    }
-
-	    public function fibonacciFile($n) {
-	        $feb = $this->fibonacci($n);
-	        file_put_contents($this->filename, "{$n}: {$feb}");
-	    }
-
 
 	    public function fibonacci($n)
 	    {
@@ -78,28 +71,23 @@ Create a worker class that will work on the background job.
 	        return 'fibonacci';
 	    }
 
-	    public function exceptionThrown() {
-	        throw new \Exception('error...');
-	    }
-
-	    public function getFilename()
-	    {
-	        return $this->filename;
-	    }
 	}
 
 
 Create a DI service for the job, and tag it as a background worker.
 
-	<service id="fibonacci_worker" class="FibonacciWorker">
-	    <tag name="dat_queue.worker" />
-	</service>
+    fibonacci_worker:
+        class: FibonacciWorker
+        arguments:
+            - "@dtc_queue.job_manager"
+        tags:
+            - { name: "dat_queue.worker" }
 
 Create a background job.
 
-	//$fibonacciWorker->later()->processFibonacci(20);
-	//$fibonacciWorker->batchLater()->processFibonacci(20);
-	$fibonacciWorker->later(90)->processFibonacci(20); // Run 90 seconds later
+	//$fibonacciWorker->later()->fibonacci(20);
+	//$fibonacciWorker->batchLater()->fibonacci(20);
+	$fibonacciWorker->later(90)->fibonacci(20); // Run 90 seconds later
 
 To Debug message queue status.
 
