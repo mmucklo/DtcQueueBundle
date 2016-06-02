@@ -30,7 +30,6 @@ Installation
 Add an config entry for using document manager.
 
 	dtc_queue:
-	    server_type: mongodb
 	    document_manager: default
 
 
