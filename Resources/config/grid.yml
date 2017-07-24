@@ -7,4 +7,4 @@ services:
         calls: [[setColumns, ['@dtc_queue.grid.source.job.columns']]]
     dtc_queue.grid.source.job.columns:
         class: Dtc\QueueBundle\Grid\JobColumns
-        arguments: ['@twig', '@templating.globals']
+        arguments: ['@twig']
