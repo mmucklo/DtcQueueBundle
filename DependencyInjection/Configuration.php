@@ -19,7 +19,7 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->scalarNode('document_manager')
-                    ->isRequired()
+                    ->defaultValue('default')
                     ->cannotBeEmpty()
                 ->end()
                 ->scalarNode('class')

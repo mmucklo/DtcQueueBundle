@@ -8,7 +8,7 @@ abstract class Worker
     protected $job;
 
     /**
-     * @return the $jobClass
+     * @return string
      */
     public function getJobClass()
     {
@@ -16,7 +16,7 @@ abstract class Worker
     }
 
     /**
-     * @param field_type $jobClass
+     * @param string $jobClass
      */
     public function setJobClass($jobClass)
     {
@@ -29,7 +29,7 @@ abstract class Worker
     }
 
     /**
-     * @return the $jobManager
+     * @return
      */
     public function getJobManager()
     {

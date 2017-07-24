@@ -27,13 +27,6 @@ Supports
 Installation
 ------------
 
-Add an config entry for using document manager.
-
-	dtc_queue:
-	    server_type: mongodb
-	    document_manager: default
-
-
 Add MongoDB ODM setting for Job Document.
 
 	doctrine_mongodb:

@@ -39,7 +39,7 @@ class Job
     }
 
     /**
-     * @param field_type $message
+     * @param $message
      */
     public function setMessage($message)
     {
@@ -47,7 +47,7 @@ class Job
     }
 
     /**
-     * @return the $status
+     * @return $status
      */
     public function getStatus()
     {
@@ -55,7 +55,7 @@ class Job
     }
 
     /**
-     * @return the $locked
+     * @return $locked
      */
     public function getLocked()
     {
@@ -63,7 +63,7 @@ class Job
     }
 
     /**
-     * @return the $lockedAt
+     * @return $lockedAt
      */
     public function getLockedAt()
     {
@@ -71,7 +71,7 @@ class Job
     }
 
     /**
-     * @return the $expire
+     * @return $expire
      */
     public function getExpire()
     {
@@ -79,7 +79,7 @@ class Job
     }
 
     /**
-     * @param field_type $status
+     * @param $status
      */
     public function setStatus($status)
     {
@@ -87,7 +87,7 @@ class Job
     }
 
     /**
-     * @param field_type $locked
+     * @param $locked
      */
     public function setLocked($locked)
     {
@@ -95,7 +95,7 @@ class Job
     }
 
     /**
-     * @param field_type $lockedAt
+     * @param $lockedAt
      */
     public function setLockedAt($lockedAt)
     {
@@ -103,7 +103,7 @@ class Job
     }
 
     /**
-     * @param field_type $expire
+     * @param $expire
      */
     public function setExpire($expire)
     {
@@ -111,7 +111,7 @@ class Job
     }
 
     /**
-     * @return the $id
+     * @return $id
      */
     public function getId()
     {
@@ -119,7 +119,7 @@ class Job
     }
 
     /**
-     * @return the $workerName
+     * @return $workerName
      */
     public function getWorkerName()
     {
@@ -143,7 +143,7 @@ class Job
     }
 
     /**
-     * @return the $args
+     * @return array
      */
     public function getArgs()
     {
