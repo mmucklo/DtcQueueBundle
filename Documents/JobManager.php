@@ -26,7 +26,7 @@ class JobManager
     }
 
     /**
-     * @return the $documentName
+     * @return string
      */
     public function getDocumentName()
     {

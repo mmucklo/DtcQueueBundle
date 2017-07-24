@@ -31,7 +31,7 @@ class Job
     protected $jobManager;
 
     /**
-     * @return the $message
+     * @return
      */
     public function getMessage()
     {

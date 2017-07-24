@@ -14,10 +14,10 @@
         {
             "name": "David Tee"
         },
-	{
+    	{
             "name": "Matthew J. Mucklo",
             "email": "mmucklo@gmail.com"
-        }  
+        }
     ],
     "require": {
         "php": ">=5.5",
