@@ -42,7 +42,7 @@ class CreateJobCommand
         $batch = true;
         $priority = 1;
 
-        $job = new Job($worker, $when, $batch, $priority);
+        $job = new Job($worker, $batch, $priority, $when);
         $job->setMethod($methodName);
         $job->setArgs($args);
 

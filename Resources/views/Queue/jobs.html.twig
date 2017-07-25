@@ -2,5 +2,10 @@
 
 {% block content %}
 	<h3>Jobs in Queue</h3>
-	{{ grid.render | raw }}
+    {{ grid.render | raw }}
+	<script>
+        $(document).ready(function() {
+            $('[data-jqtable]').jqtable();
+        })
+	</script>
 {% endblock %}

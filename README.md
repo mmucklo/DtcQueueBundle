@@ -85,7 +85,7 @@ Create a worker class that will work on the background job.
 Create a DI service for the job, and tag it as a background worker.
 
 	<service id="fibonacci_worker" class="FibonacciWorker">
-	    <tag name="dat_queue.worker" />
+	    <tag name="dtc_queue.worker" />
 	</service>
 
 Create a background job.
