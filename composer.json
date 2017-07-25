@@ -30,7 +30,7 @@
         "doctrine/annotations": "<1.5",
         "doctrine/cache": "<1.7",
         "doctrine/collections": "<1.5",
-        "doctrine/mongodb-odm": "^1.1"
+        "doctrine/mongodb-odm": "^1.1",
         "phpunit/phpunit": "^5.7.0",
         "friendsofphp/php-cs-fixer": "dev-master",
         "phpunit/php-code-coverage": "^4.0"
