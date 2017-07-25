@@ -27,6 +27,22 @@ Supports
 Installation
 ------------
 
+Install via composer:
+
+    composer require mmucklo/queue-bundle
+
+Then add the bundle to AppKernel.php:
+
+    class AppKernel extends Kernel
+    {
+        public function registerBundles()
+        {
+            $bundles = [
+                        //...
+                        new \Dtc\GridBundle\DtcGridBundle(),
+                        new \Dtc\QueueBundle\DtcQueueBundle(),
+   // ...
+   
 Add MongoDB ODM setting for Job Document.
 
 	doctrine_mongodb:

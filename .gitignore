@@ -1,5 +1,25 @@
-vendor
+# emacs
 *~
+\#*
 \#*\#
 auto-save-list
+
+# vim
+*.swp
+
+# composer
+vendor
+
+# bin
+bin
+
+# PHP CS Fixer
+.php_cs.cache
+
+# Jetbrains
+.idea
+
+# Mac
+.DS_Store
+
 composer.lock

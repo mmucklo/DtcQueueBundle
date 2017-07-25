@@ -21,7 +21,7 @@
     ],
     "require": {
         "php": ">=5.6",
-	"mmucklo/grid-bundle": ">=1.0.9"
+	"mmucklo/grid-bundle": ">=1.0.10"
     },
     "require-dev": {
         "pda/pheanstalk": "dev-master",
@@ -31,11 +31,19 @@
         "doctrine/cache": "<1.7",
         "doctrine/collections": "<1.5",
         "doctrine/mongodb-odm": "^1.1"
+        "phpunit/phpunit": "^5.7.0",
+        "friendsofphp/php-cs-fixer": "dev-master",
+        "phpunit/php-code-coverage": "^4.0"
+    },
+    "config": {
+        "bin-dir": "bin"
     },
     "autoload": {
-        "psr-0": { "Dtc\\QueueBundle": "" }
-    },
-    "target-dir": "Dtc/QueueBundle",
+        "psr-4": { "Dtc\\QueueBundle\\": "" },
+        "exclude-from-classmap": [
+            "/Tests/"
+        ]
+    }
     "minimum-stability": "dev",
     "prefer-stable": true
 }

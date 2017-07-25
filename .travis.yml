@@ -14,7 +14,7 @@ before_script:
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then composer require "alcaeus/mongo-php-adapter" --ignore-platform-reqs; fi
   - composer install
 
-script: phpunit --coverage-text
+script: bin/phpunit --coverage-text
 
 notifications:
   email:
