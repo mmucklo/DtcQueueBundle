@@ -1,4 +1,5 @@
 <?php
+
 namespace Dtc\QueueBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
@@ -25,6 +26,12 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('class')
                     ->defaultValue('Dtc\QueueBundle\Documents\Job')
                     ->cannotBeEmpty()
+                ->end()
+                ->arrayNode('beanstalkd')
+                    ->children()
+                       ->scalarNode('host')->end()
+                       ->scalarNode('tube')->end()
+                    ->end()
                 ->end()
             ->end()
         ;

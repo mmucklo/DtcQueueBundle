@@ -1,8 +1,11 @@
 <?php
+
 namespace Dtc\QueueBundle\DependencyInjection\Compiler;
 
+use Pheanstalk\Pheanstalk;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
 class WorkerCompilerPass implements CompilerPassInterface
@@ -11,6 +14,17 @@ class WorkerCompilerPass implements CompilerPassInterface
     {
         if (false === $container->hasDefinition('dtc_queue.worker_manager')) {
             return;
+        }
+
+        // Setup beanstalkd if configuration is present
+        if ($container->hasParameter('dtc_queue.beanstalkd.host')) {
+            $definition = new Definition('Pheanstalk\\Pheanstalk', [$container->getParameter('dtc_queue.beanstalkd.host')]);
+            $container->addDefinitions(['dtc_queue.beanstalkd' => $definition]);
+            $definition = $container->getDefinition('dtc_queue.job_manager.beanstalkd');
+            $definition->addMethodCall('setBeanstalkd', [new Reference('dtc_queue.beanstalkd')]);
+            if ($container->hasParameter('dtc_queue.beanstalkd.tube')) {
+                $definition->addMethodCall('setTube', [$container->getParameter('dtc_queue.beanstalkd.tube')]);
+            }
         }
 
         $definition = $container->getDefinition('dtc_queue.worker_manager');

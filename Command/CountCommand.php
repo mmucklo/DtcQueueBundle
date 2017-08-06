@@ -1,14 +1,12 @@
 <?php
+
 namespace Dtc\QueueBundle\Command;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class CountCommand
-    extends ContainerAwareCommand
+class CountCommand extends ContainerAwareCommand
 {
     protected function configure()
     {
@@ -24,9 +22,9 @@ class CountCommand
         $jobManager = $container->get('dtc_queue.job_manager');
         $count = $jobManager->getJobCount();
 
-        $format = "%-50s %8s %8s %8s";
+        $format = '%-50s %8s %8s %8s';
         $status = $jobManager->getStatus();
-        $msg = sprintf($format, "Job name", 'Success', 'New', 'Error');
+        $msg = sprintf($format, 'Job name', 'Success', 'New', 'Error');
         $output->writeln($msg);
 
         foreach ($status as $func => $info) {

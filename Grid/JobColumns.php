@@ -1,11 +1,11 @@
 <?php
+
 namespace Dtc\QueueBundle\Grid;
 
 use Dtc\GridBundle\Grid\Column\TwigBlockGridColumn;
-use \Twig_Environment;
+use Twig_Environment;
 
-class JobColumns
-    extends \ArrayObject
+class JobColumns extends \ArrayObject
 {
     public function __construct(Twig_Environment $twig)
     {

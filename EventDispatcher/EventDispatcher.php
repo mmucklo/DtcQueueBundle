@@ -1,6 +1,6 @@
 <?php
-namespace Dtc\QueueBundle\EventDispatcher;
 
+namespace Dtc\QueueBundle\EventDispatcher;
 
 class EventDispatcher
 {
@@ -15,7 +15,7 @@ class EventDispatcher
 
     public function hasListeners($eventName)
     {
-        if ( ! isset($this->listeners[$eventName])) {
+        if (!isset($this->listeners[$eventName])) {
             return false;
         }
 
@@ -24,7 +24,7 @@ class EventDispatcher
 
     public function dispatch($eventName, Event $event)
     {
-        if ( ! isset($this->listeners[$eventName])) {
+        if (!isset($this->listeners[$eventName])) {
             return;
         }
 

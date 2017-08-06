@@ -1,7 +1,6 @@
 <?php
-namespace Dtc\QueueBundle\Model;
 
-use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
+namespace Dtc\QueueBundle\Model;
 
 class Job
 {
@@ -26,8 +25,14 @@ class Job
     protected $createdAt;
     protected $updatedAt;
     protected $delay;
+    protected $startedAt;
+    protected $finishedAt;
+    protected $maxDuration;
     protected $elapsed;
 
+    /**
+     * @var JobManagerInterface
+     */
     protected $jobManager;
 
     /**
@@ -127,7 +132,7 @@ class Job
     }
 
     /**
-     * @return the $className
+     * @return $className
      */
     public function getClassName()
     {
@@ -135,7 +140,7 @@ class Job
     }
 
     /**
-     * @return the $method
+     * @return $method
      */
     public function getMethod()
     {
@@ -151,7 +156,7 @@ class Job
     }
 
     /**
-     * @return the $batch
+     * @return $batch
      */
     public function getBatch()
     {
@@ -159,7 +164,7 @@ class Job
     }
 
     /**
-     * @return the $priority
+     * @return $priority
      */
     public function getPriority()
     {
@@ -167,7 +172,7 @@ class Job
     }
 
     /**
-     * @return the $crcHash
+     * @return $crcHash
      */
     public function getCrcHash()
     {
@@ -175,7 +180,7 @@ class Job
     }
 
     /**
-     * @return the $when
+     * @return $when
      */
     public function getWhen()
     {
@@ -183,7 +188,7 @@ class Job
     }
 
     /**
-     * @return the $createdAt
+     * @return $createdAt
      */
     public function getCreatedAt()
     {
@@ -191,7 +196,7 @@ class Job
     }
 
     /**
-     * @return the $updatedAt
+     * @return $updatedAt
      */
     public function getUpdatedAt()
     {
@@ -199,7 +204,7 @@ class Job
     }
 
     /**
-     * @return the $jobManager
+     * @return $jobManager
      */
     public function getJobManager()
     {
@@ -207,7 +212,7 @@ class Job
     }
 
     /**
-     * @param field_type $id
+     * @param $id
      */
     public function setId($id)
     {
@@ -215,7 +220,7 @@ class Job
     }
 
     /**
-     * @param field_type $workerName
+     * @param $workerName
      */
     public function setWorkerName($workerName)
     {
@@ -231,7 +236,7 @@ class Job
     }
 
     /**
-     * @param field_type $method
+     * @param $method
      */
     public function setMethod($method)
     {
@@ -239,18 +244,51 @@ class Job
     }
 
     /**
-     * @param field_type $args
+     * @return mixed
+     */
+    public function getStartedAt()
+    {
+        return $this->startedAt;
+    }
+
+    /**
+     * @param mixed $startedAt
+     */
+    public function setStartedAt(\DateTime $startedAt)
+    {
+        $this->startedAt = $startedAt;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getFinishedAt()
+    {
+        return $this->finishedAt;
+    }
+
+    /**
+     * @param mixed $finishedAt
+     */
+    public function setFinishedAt($finishedAt)
+    {
+        $this->finishedAt = $finishedAt;
+    }
+
+    /**
+     * @param $args
      */
     public function setArgs($args)
     {
         if (!$this->recursiveValidArgs($args)) {
-            throw new \Exception("Args must not contain object");
+            throw new \Exception('Args must not contain object');
         }
 
         $this->args = $args;
     }
 
-    protected function recursiveValidArgs($args) {
+    protected function recursiveValidArgs($args)
+    {
         if (is_array($args)) {
             foreach ($args as $key => $value) {
                 if (!$this->recursiveValidArgs($value)) {
@@ -259,14 +297,13 @@ class Job
             }
 
             return true;
-        }
-        else {
+        } else {
             return !is_object($args);
         }
     }
 
     /**
-     * @param field_type $batch
+     * @param $batch
      */
     public function setBatch($batch)
     {
@@ -274,7 +311,7 @@ class Job
     }
 
     /**
-     * @param field_type $priority
+     * @param $priority
      */
     public function setPriority($priority)
     {
@@ -282,7 +319,7 @@ class Job
     }
 
     /**
-     * @param field_type $crcHash
+     * @param $crcHash
      */
     public function setCrcHash($crcHash)
     {
@@ -290,7 +327,7 @@ class Job
     }
 
     /**
-     * @param field_type $when
+     * @param $when
      */
     public function setWhen($when)
     {
@@ -298,7 +335,7 @@ class Job
     }
 
     /**
-     * @param field_type $createdAt
+     * @param $createdAt
      */
     public function setCreatedAt($createdAt)
     {
@@ -306,7 +343,7 @@ class Job
     }
 
     /**
-     * @param field_type $updatedAt
+     * @param $updatedAt
      */
     public function setUpdatedAt($updatedAt)
     {
@@ -314,7 +351,7 @@ class Job
     }
 
     /**
-     * @param field_type $jobManager
+     * @param $jobManager
      */
     public function setJobManager($jobManager)
     {
@@ -322,6 +359,7 @@ class Job
     }
 
     protected $worker;
+
     public function __construct(Worker $worker = null, $batch = false, $priority = 10, \DateTime $when = null)
     {
         $this->worker = $worker;
@@ -350,10 +388,12 @@ class Job
         }
 
         $this->jobManager->save($this);
+
         return $this;
     }
+
     /**
-     * @return the $delay
+     * @return $delay
      */
     public function getDelay()
     {
@@ -361,7 +401,7 @@ class Job
     }
 
     /**
-     * @return the $worker
+     * @return $worker
      */
     public function getWorker()
     {
@@ -369,7 +409,7 @@ class Job
     }
 
     /**
-     * @param field_type $delay
+     * @param $delay
      */
     public function setDelay($delay)
     {
@@ -383,19 +423,20 @@ class Job
     {
         $this->worker = $worker;
     }
-	/**
-	 * @return the $elapsed
-	 */
-	public function getElapsed()
-	{
-		return $this->elapsed;
-	}
 
-	/**
-	 * @param field_type $elapsed
-	 */
-	public function setElapsed($elapsed)
-	{
-		$this->elapsed = $elapsed;
-	}
+    /**
+     * @return $elapsed
+     */
+    public function getElapsed()
+    {
+        return $this->elapsed;
+    }
+
+    /**
+     * @param $elapsed
+     */
+    public function setElapsed($elapsed)
+    {
+        $this->elapsed = $elapsed;
+    }
 }

@@ -21,19 +21,22 @@
     ],
     "require": {
         "php": ">=5.6",
-	"mmucklo/grid-bundle": ">=1.0.11"
+        "dstuecken/php7ify": ">=1.1",
+    	"mmucklo/grid-bundle": ">=1.0.11"
     },
     "require-dev": {
-        "pda/pheanstalk": "dev-master",
-        "videlalvaro/php-amqplib": "dev-master",
+        "phpunit/phpunit": "^5.7.0",
+        "friendsofphp/php-cs-fixer": "dev-master",
+        "phpunit/php-code-coverage": "^4.0"
+    },
+    "suggest": {
+        "pda/pheanstalk": "For working with beanstalk",
+        "php-amqplib/php-amqplib": "For working with RabbitMQ",
         "doctrine/orm": "^2.4",
         "doctrine/annotations": "<1.5",
         "doctrine/cache": "<1.7",
         "doctrine/collections": "<1.5",
-        "doctrine/mongodb-odm": "^1.1",
-        "phpunit/phpunit": "^5.7.0",
-        "friendsofphp/php-cs-fixer": "dev-master",
-        "phpunit/php-code-coverage": "^4.0"
+        "doctrine/mongodb-odm": "^1.1"
     },
     "config": {
         "bin-dir": "bin"

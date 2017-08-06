@@ -1,4 +1,5 @@
 <?php
+
 namespace Dtc\QueueBundle\Documents;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
@@ -8,8 +9,7 @@ use Dtc\QueueBundle\Model\Job as BaseJob;
  * @ODM\Document(db="queue", collection="job")
  * @ODM\Index(keys={"className"="asc"})
  */
-class Job
-    extends BaseJob
+class Job extends BaseJob
 {
     /**
      * @ODM\Id
@@ -18,6 +18,7 @@ class Job
 
     /**
      * @ODM\Field(type="string", name="worker_name")
+     * @ODM\Index(unique=false, order="asc")
      */
     protected $workerName;
 
@@ -28,11 +29,13 @@ class Job
 
     /**
      * @ODM\Field(type="string")
+     * @ODM\Index(unique=false, order="asc")
      */
     protected $method;
 
     /**
      * @ODM\Field(type="string")
+     * @ODM\Index(unique=false, order="asc")
      */
     protected $status;
 
@@ -52,6 +55,11 @@ class Job
     protected $locked;
 
     /**
+     * @ODM\Field(type="date")
+     */
+    protected $lockedAt;
+
+    /**
      * @ODM\Field(type="int")
      * @ODM\Index(unique=false, order="asc")
      */
@@ -69,25 +77,28 @@ class Job
     protected $when;
 
     /**
-     * When the job get started
+     * When the job started.
      *
      * @ODM\Field(type="date")
      */
-    protected $started;
+    protected $startedAt;
 
     /**
-     * When the job get finished
+     * When the job finished.
      *
      * @ODM\Field(type="date")
      */
-    protected $finished;
+    protected $finishedAt;
 
     /**
-     * When the job should be finished by
-     *
-     * @ODM\Field(type="date")
+     * @ODM\Field(type="float")
      */
-    protected $finishedBy;
+    protected $elapsed;
+
+    /**
+     * @ODM\Field(type="string")
+     */
+    protected $message;
 
     /**
      * @ODM\Field(type="date")

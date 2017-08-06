@@ -87,10 +87,6 @@ Create a worker class that will work on the background job.
 	        return 'fibonacci';
 	    }
 
-	    public function exceptionThrown() {
-	        throw new \Exception('error...');
-	    }
-
 	    public function getFilename()
 	    {
 	        return $this->filename;
@@ -103,17 +99,28 @@ Create a DI service for the job, and tag it as a background worker.
 	<service id="fibonacci_worker" class="FibonacciWorker">
 	    <tag name="dtc_queue.worker" />
 	</service>
+	
+	fibonacci_worker:
+	    class: FibonacciWorker
+	    tags:
+	        - { name: "dtc_queue.worker" }
 
 Create a background job.
 
-	//$fibonacciWorker->later()->processFibonacci(20);
-	//$fibonacciWorker->batchLater()->processFibonacci(20);
-	$fibonacciWorker->later(90)->processFibonacci(20); // Run 90 seconds later
+	//$fibonacciWorker->later()->fibonacci(20);
+	//$fibonacciWorker->later()->fibonacciFile(20);
+	//$fibonacciWorker->batchLater()->fibonacci(20); // Batch up runs into a single run
+	$fibonacciWorker->later(90)->fibonacci(20); // Run 90 seconds later
+
+Run the job
+
+    bin/console dtc:queue_worker:run -t 100
+
 
 To Debug message queue status.
 
-	./app/console dtc:queue_worker:count
-	./app/console dtc:queue_worker:run --id={jobId}
+	bin/console dtc:queue_worker:count
+	bin/console dtc:queue_worker:run --id={jobId}
 
 jobId could be obtained from mongodb.
 

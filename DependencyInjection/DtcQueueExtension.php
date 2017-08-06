@@ -1,24 +1,30 @@
 <?php
+
 namespace Dtc\QueueBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 use Symfony\Component\Config\FileLocator;
-use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\Loader;
 
-class DtcQueueExtension
-    extends Extension
+class DtcQueueExtension extends Extension
 {
     public function load(array $configs, ContainerBuilder $container)
     {
-    	$documentName = 'Dtc\QueueBundle\Documents\Job';
+        $documentName = 'Dtc\QueueBundle\Documents\Job';
         $processor = new Processor();
         $configuration = new Configuration();
 
         $config = $processor->processConfiguration($configuration, $configs);
+
+        if (isset($config['beanstalkd']['host'])) {
+            $container->setParameter('dtc_queue.beanstalkd.host', $config['beanstalkd']['host']);
+        }
+        if (isset($config['beanstalkd']['tube'])) {
+            $container->setParameter('dtc_queue.beanstalkd.tube', $config['beanstalkd']['tube']);
+        }
+
         $container->setParameter('dtc_queue.document_manager', $config['document_manager']);
         $container->setParameter('dtc_queue.job_class', $documentName);
 
