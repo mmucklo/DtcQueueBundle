@@ -12,7 +12,6 @@ class DtcQueueExtension extends Extension
 {
     public function load(array $configs, ContainerBuilder $container)
     {
-        $documentName = 'Dtc\QueueBundle\Documents\Job';
         $processor = new Processor();
         $configuration = new Configuration();
 
@@ -25,8 +24,9 @@ class DtcQueueExtension extends Extension
             $container->setParameter('dtc_queue.beanstalkd.tube', $config['beanstalkd']['tube']);
         }
 
+        $container->setParameter('dtc_queue.default', $config['default']);
         $container->setParameter('dtc_queue.document_manager', $config['document_manager']);
-        $container->setParameter('dtc_queue.job_class', $documentName);
+        $container->setParameter('dtc_queue.job_class', isset($config['class']) ? $config['class'] : null);
 
         // Load Grid if Dtc\GridBundle Bundle is registered
         $yamlLoader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));

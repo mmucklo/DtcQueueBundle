@@ -1,6 +1,6 @@
 <?php
 
-namespace Dtc\QueueBundle\BeanStalkd;
+namespace Dtc\QueueBundle\Beanstalkd;
 
 use Dtc\QueueBundle\Model\Job as BaseJob;
 
@@ -24,7 +24,7 @@ class Job extends BaseJob
         $arr = json_decode($message, true);
         $this->setWorkerName($arr['worker']);
         $this->setArgs($arr['args']);
-        $this->setMessage($arr['method']);
+        $this->setMethod($arr['method']);
     }
 
     public function getTtr()

@@ -1,6 +1,6 @@
 <?php
 
-namespace Dtc\QueueBundle\BeanStalkd;
+namespace Dtc\QueueBundle\Beanstalkd;
 
 use Dtc\QueueBundle\Model\Job as BaseJob;
 use Dtc\QueueBundle\Model\JobManagerInterface;
@@ -8,9 +8,14 @@ use Pheanstalk\Pheanstalk;
 
 class JobManager implements JobManagerInterface
 {
+    const DEFAULT_RESERVE_TIMEOUT = 5; // seconds
+
     /** @var Pheanstalk */
     protected $beanstalkd;
+
     protected $tube;
+
+    protected $reserveTimeout = self::DEFAULT_RESERVE_TIMEOUT;
 
     public function setBeanstalkd(Pheanstalk $beanstalkd)
     {
@@ -22,17 +27,22 @@ class JobManager implements JobManagerInterface
         $this->tube = $tube;
     }
 
+    public function setReserveTimeout($timeout) {
+        $this->reserveTimeout = $timeout;
+    }
+
     public function save(\Dtc\QueueBundle\Model\Job $job)
     {
         /** @var Job $job */
-        $arguments = [$job->toMessage(), $job->getPriority(), $job->getDelay(), $job->getTTR()];
+        $arguments = [$job->toMessage(), $job->getPriority(), $job->getDelay(), $job->getTtr()];
         $method = 'put';
         if ($this->tube) {
             array_unshift($arguments, $this->tube);
             $method .= 'InTube';
         }
+        var_dump(get_class($this->beanstalkd));
+        var_dump($method);
         $jobId = call_user_func_array([$this->beanstalkd, $method], $arguments);
-
         $job->setId($jobId);
 
         return $job;
@@ -49,7 +59,8 @@ class JobManager implements JobManagerInterface
             $beanJob = $beanJob->watch($this->tube);
         }
 
-        $beanJob = $beanJob->reserve();
+
+        $beanJob = $beanJob->reserve($this->reserveTimeout);
         if ($beanJob) {
             $job = new Job();
             $job->fromMessage($beanJob->getData());
@@ -73,7 +84,7 @@ class JobManager implements JobManagerInterface
                 ->delete($job);
         }
 
-        // @Todo Need a strategy for buried jobs
+        // @Todo Need a strategy for buried jobs, if any?
 //        else {
 //            $this->beanstalkd
 //                ->bury($job);
@@ -90,9 +101,11 @@ class JobManager implements JobManagerInterface
             throw new \Exception('Unsupported');
         }
 
-        $stats = $this->beanstalkd->stats();
+        // @Todo - use statistics
+    }
 
-        // @Todo - report statistics
+    public function getStats() {
+        return $this->beanstalkd->stats();
     }
 
     public function resetErroneousJobs($workerName = null, $methodName = null)

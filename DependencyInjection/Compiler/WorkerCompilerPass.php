@@ -2,7 +2,9 @@
 
 namespace Dtc\QueueBundle\DependencyInjection\Compiler;
 
+use Dtc\QueueBundle\Model\Job;
 use Pheanstalk\Pheanstalk;
+use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Definition;
@@ -16,10 +18,18 @@ class WorkerCompilerPass implements CompilerPassInterface
             return;
         }
 
+        $defaultManagerType = $container->getParameter('dtc_queue.default');
+        if (!$container->hasDefinition('dtc_queue.job_manager.' . $defaultManagerType)) {
+            throw new \Exception("No job manager found for dtc_queue.job_manager.$defaultManagerType");
+        }
+
+        $alias = new Alias('dtc_queue.job_manager.'.$defaultManagerType);
+        $container->setAlias('dtc_queue.job_manager', $alias);
+
         // Setup beanstalkd if configuration is present
         if ($container->hasParameter('dtc_queue.beanstalkd.host')) {
             $definition = new Definition('Pheanstalk\\Pheanstalk', [$container->getParameter('dtc_queue.beanstalkd.host')]);
-            $container->addDefinitions(['dtc_queue.beanstalkd' => $definition]);
+            $container->setDefinition('dtc_queue.beanstalkd', $definition);
             $definition = $container->getDefinition('dtc_queue.job_manager.beanstalkd');
             $definition->addMethodCall('setBeanstalkd', [new Reference('dtc_queue.beanstalkd')]);
             if ($container->hasParameter('dtc_queue.beanstalkd.tube')) {
@@ -30,7 +40,7 @@ class WorkerCompilerPass implements CompilerPassInterface
         $definition = $container->getDefinition('dtc_queue.worker_manager');
         $jobManagerRef = array(new Reference('dtc_queue.job_manager'));
 
-        $jobClass = $container->getParameter('dtc_queue.job_class');
+        $jobClass = $this->getJobClass($container);
 
         // Add each worker to workerManager, make sure each worker has instance to work
         foreach ($container->findTaggedServiceIds('dtc_queue.worker') as $id => $attributes) {
@@ -55,5 +65,26 @@ class WorkerCompilerPass implements CompilerPassInterface
             $eventSubscriber = $container->getDefinition($id);
             $eventDispatcher->addMethodCall('addSubscriber', [$eventSubscriber]);
         }
+    }
+
+    public function getJobClass(ContainerBuilder $container) {
+        $jobClass = $container->getParameter('dtc_queue.job_class');
+        if (!$jobClass) {
+            switch ($defaultType = $container->getParameter('dtc_queue.default')) {
+                case 'mongodb':
+                    $jobClass = "Dtc\\QueueBundle\\Documents\\Job";
+                    break;
+                case 'beanstalkd':
+                    $jobClass = "Dtc\\QueueBundle\\Beanstalkd\\Job";
+                    break;
+                default:
+                    throw new \Exception("Unknown type $defaultType - please specify a Job class in the 'class' configuration parameter");
+            }
+        }
+
+        if (!class_exists($jobClass)) {
+            throw new \Exception("Can't find Job class $jobClass");
+        }
+        return $jobClass;
     }
 }

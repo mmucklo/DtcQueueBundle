@@ -1,8 +1,8 @@
 <?php
 
-namespace Dtc\QueueBundle\Tests\BeanStalkd;
+namespace Dtc\QueueBundle\Tests\Beanstalkd;
 
-use Dtc\QueueBundle\BeanStalkd\JobManager;
+use Dtc\QueueBundle\Beanstalkd\JobManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest;
 
@@ -18,7 +18,7 @@ class JobManagerTest extends BaseJobManagerTest
     public static function setUpBeforeClass()
     {
         $host = 'localhost';
-        $className = 'Dtc\QueueBundle\BeanStalkd\Job';
+        $className = 'Dtc\QueueBundle\Beanstalkd\Job';
 
         self::$beanstalkd = new \Pheanstalk_Pheanstalk($host);
 

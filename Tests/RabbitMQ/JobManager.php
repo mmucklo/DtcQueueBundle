@@ -1,6 +1,6 @@
 <?php
 
-namespace Dtc\QueueBundle\Tests\BeanStalkd;
+namespace Dtc\QueueBundle\Tests\Beanstalkd;
 
 use Dtc\QueueBundle\RabbitMQ\JobManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
@@ -19,7 +19,7 @@ class JobManagerTest extends BaseJobManagerTest
     public static function setUpBeforeClass()
     {
         $host = 'localhost';
-        $className = 'Dtc\QueueBundle\BeanStalkd\Job';
+        $className = 'Dtc\QueueBundle\Beanstalkd\Job';
 
         $host = 'localhost';
         $port = null;

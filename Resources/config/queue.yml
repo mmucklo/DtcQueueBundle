@@ -9,7 +9,7 @@ services:
             - '%dtc_queue.job_class%'
 
     dtc_queue.job_manager.beanstalkd:
-        class: Dtc\QueueBundle\BeanStalkd\JobManager
+        class: Dtc\QueueBundle\Beanstalkd\JobManager
         arguments:
             - '%dtc_queue.job_class%'
 
@@ -20,9 +20,6 @@ services:
             - '@dtc_queue.event_dispatcher'
             - '@logger='
         tags: [{ name: monolog.logger, channel: dtc_queue }]
-
-    dtc_queue.job_manager:
-        alias: 'dtc_queue.job_manager.mongodb'
 
     dtc_queue.event_dispatcher:
         class: Dtc\QueueBundle\EventDispatcher\EventDispatcher
