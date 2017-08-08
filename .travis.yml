@@ -13,13 +13,10 @@ before_script:
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then extension="mongo"; echo "yes" | pecl install mongo; else extension="mongodb"; pecl install mongodb; fi
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then composer require "alcaeus/mongo-php-adapter" --ignore-platform-reqs; fi
   - composer install
-  - composer require pda/pheanstalk:^3.1.0
-  - composer require php-amqplib/php-amqplib:^2.6.3
-  - composer require doctrine/orm:^2.4,
-  - composer require doctrine/annotations:~1.5,
-  - composer require doctrine/cache:~1.6,
-  - composer require doctrine/collections:~1.4,
-  - composer require doctrine/mongodb-odm:^1.1,
+  - composer require pda/pheanstalk
+  - composer require php-amqplib/php-amqplib
+  - composer require doctrine/orm
+  - composer require doctrine/mongodb-odm
 
 script: bin/phpunit --coverage-text
 
