@@ -24,7 +24,7 @@ class DtcQueueExtension extends Extension
             $container->setParameter('dtc_queue.beanstalkd.tube', $config['beanstalkd']['tube']);
         }
 
-        $container->setParameter('dtc_queue.default', $config['default']);
+        $container->setParameter('dtc_queue.default_manager', $config['default_manager']);
         $container->setParameter('dtc_queue.document_manager', $config['document_manager']);
         $container->setParameter('dtc_queue.job_class', isset($config['class']) ? $config['class'] : null);
 

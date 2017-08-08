@@ -18,7 +18,7 @@ class WorkerCompilerPass implements CompilerPassInterface
             return;
         }
 
-        $defaultManagerType = $container->getParameter('dtc_queue.default');
+        $defaultManagerType = $container->getParameter('dtc_queue.default_manager');
         if (!$container->hasDefinition('dtc_queue.job_manager.' . $defaultManagerType)) {
             throw new \Exception("No job manager found for dtc_queue.job_manager.$defaultManagerType");
         }

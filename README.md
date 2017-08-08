@@ -96,10 +96,13 @@ Create a worker class that will work on the background job.
 
 Create a DI service for the job, and tag it as a background worker.
 
+XML:
 	<service id="fibonacci_worker" class="FibonacciWorker">
 	    <tag name="dtc_queue.worker" />
 	</service>
 	
+YAML:
+
 	fibonacci_worker:
 	    class: FibonacciWorker
 	    tags:
@@ -123,6 +126,21 @@ To Debug message queue status.
 	bin/console dtc:queue_worker:run --id={jobId}
 
 jobId could be obtained from mongodb.
+
+Beanstalk and Other Queues
+--------------------------
+
+// config.yml
+
+    dtc_queue:
+        beanstalkd:
+            host: beanstalkd
+        default_manager: beanstalkd
+        # class: <optional custom Job class>
+        # (mongodb is the default manager)
+        # (create your own manager service and name it
+        #   dtc_queue.job_manager.<some_name> and put
+        #   <some_name> in the default_manager field above)
 
 Job Event Subscriber
 --------------------
@@ -208,7 +226,6 @@ You can register admin routes to see queue status. In your routing.yml file, add
 	    prefix:  /queue/
 	    type: annotation
 
-
 Testing
 -------
 
@@ -222,6 +239,7 @@ If you want to run Beanstalkd integration testing, you need to run a local
 empty instance of beanstalkd for testing.
 
 	sudo service beanstalkd restart; phpunit Tests/BeanStalkd/JobManagerTest.php
+
 
 License
 -------
