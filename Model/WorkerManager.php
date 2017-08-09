@@ -75,6 +75,14 @@ class WorkerManager
         $this->eventDispatcher->dispatch(Event::PRE_JOB, $event);
 
         $start = microtime(true);
+        $handleException = function ($exception) use ($job) {
+            $exceptionMessage = get_class($exception)."\n".$exception->getCode().' - '.$exception->getMessage()."\n".$exception->getTraceAsString();
+            if ($this->logger) {
+                $this->logger->debug("Failed: {$job->getClassName()}->{$job->getMethod()}\n$exceptionMessage");
+            }
+            $job->setStatus(Job::STATUS_ERROR);
+            $job->setMessage($exceptionMessage);
+        };
         try {
             $worker = $this->getWorker($job->getWorkerName());
             if ($this->logger) {
@@ -87,12 +95,9 @@ class WorkerManager
             $job->setStatus(Job::STATUS_SUCCESS);
             $job->setMessage(null);
         } catch (\Throwable $exception) {
-            $exceptionMessage = get_class($exception)."\n".$exception->getCode().' - '.$exception->getMessage()."\n".$exception->getTraceAsString();
-            if ($this->logger) {
-                $this->logger->debug("Failed: {$job->getClassName()}->{$job->getMethod()}\n$exceptionMessage");
-            }
-            $job->setStatus(Job::STATUS_ERROR);
-            $job->setMessage($exceptionMessage);
+            $handleException($exception);
+        } catch (\Exception $exception) {
+            $handleException($exception);
         }
 
         // save Job history

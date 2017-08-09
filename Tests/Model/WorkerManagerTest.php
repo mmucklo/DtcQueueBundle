@@ -7,11 +7,14 @@ use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\StaticJobManager;
 use Dtc\QueueBundle\Model\WorkerManager;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
+use PHPUnit\Framework\TestCase;
 
-class WorkerManagerTest extends \PHPUnit_Framework_TestCase
+class WorkerManagerTest extends TestCase
 {
     protected $jobManager;
     protected $worker;
+
+    /** @var WorkerManager */
     protected $workerManager;
     protected $eventDispatcher;
 
