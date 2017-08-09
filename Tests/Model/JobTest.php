@@ -5,8 +5,9 @@ namespace Dtc\QueueBundle\Tests\Model;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\StaticJobManager;
+use PHPUnit\Framework\TestCase;
 
-class JobTest extends \PHPUnit_Framework_TestCase
+class JobTest extends TestCase
 {
     public function testSetArgs()
     {
