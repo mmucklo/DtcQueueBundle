@@ -51,7 +51,7 @@ class StaticJobManager implements JobManagerInterface
         return null;
     }
 
-    public function deleteJob($job)
+    public function deleteJob(Job $job)
     {
         unset($this->jobs[$job->getWorkerName()][$job->getId()]);
     }
@@ -69,7 +69,7 @@ class StaticJobManager implements JobManagerInterface
         }
     }
 
-    public function save($job)
+    public function save(Job $job)
     {
         if (!$job->getId()) {
             $job->setId($this->uniqeId);
@@ -87,7 +87,7 @@ class StaticJobManager implements JobManagerInterface
         return $b->getPriority() - $a->getPriority();
     }
 
-    public function saveHistory($job)
+    public function saveHistory(Job $job)
     {
         $this->save($job);
     }
