@@ -276,6 +276,24 @@ class Job
     }
 
     /**
+     * @return mixed
+     */
+    public function getMaxDuration()
+    {
+        return $this->maxDuration;
+    }
+
+    /**
+     * @param mixed $maxDuration
+     */
+    public function setMaxDuration($maxDuration)
+    {
+        $this->maxDuration = $maxDuration;
+    }
+
+    
+
+    /**
      * @param $args
      */
     public function setArgs($args)
