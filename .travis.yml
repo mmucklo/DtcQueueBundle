@@ -15,10 +15,10 @@ before_script:
   - composer install
   - composer require pda/pheanstalk
   - composer require php-amqplib/php-amqplib
-  - if [[ ${TRAVIS_PHP_VERSION:0:2} != "7.1" ]]; composer require doctrine/mongodb-odm 1.1.5; fi
-  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7.1" ]]; composer require doctrine/mongodb-odm dev-master; fi
-  - if [[ ${TRAVIS_PHP_VERSION:0:2} != "7.1" ]]; composer require doctrine/orm 2.5; fi
-  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7.1" ]]; composer require doctrine/orm dev-master; fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:2} != "7.1" ]]; then composer require doctrine/mongodb-odm 1.1.5; fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7.1" ]]; then composer require doctrine/mongodb-odm dev-master; fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:2} != "7.1" ]]; then composer require doctrine/orm 2.5; fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7.1" ]]; then composer require doctrine/orm dev-master; fi
 
 script: bin/phpunit --coverage-text
 
