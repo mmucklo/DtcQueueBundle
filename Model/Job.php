@@ -291,7 +291,7 @@ class Job
         $this->maxDuration = $maxDuration;
     }
 
-    
+
 
     /**
      * @param $args
