@@ -16,7 +16,7 @@
     "require": {
         "php": ">=5.6",
         "dstuecken/php7ify": ">=1.1",
-    	"mmucklo/grid-bundle": ">=1.0.11"
+    	"mmucklo/grid-bundle": ">=1.0.11",
         "sensio/generator-bundle": "2.*|3.*|4.*",
         "symfony/framework-bundle": "2.*|3.*|4.*",
         "sensio/framework-extra-bundle": "2.*|3.*|4.*"
