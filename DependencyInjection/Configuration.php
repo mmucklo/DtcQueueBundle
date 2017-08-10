@@ -35,6 +35,15 @@ class Configuration implements ConfigurationInterface
                        ->scalarNode('tube')->end()
                     ->end()
                 ->end()
+                ->arrayNode('rabbitmq')
+                    ->children()
+                        ->scalarNode('host')->end()
+                        ->scalarNode('port')->end()
+                        ->scalarNode('user')->end()
+                        ->scalarNode('pass')->end()
+                        ->scalarNode('vhost')->end()
+                    ->end()
+                ->end()
             ->end()
         ;
 

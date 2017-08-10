@@ -70,7 +70,7 @@ class WorkerCompilerPass implements CompilerPassInterface
     public function getJobClass(ContainerBuilder $container) {
         $jobClass = $container->getParameter('dtc_queue.job_class');
         if (!$jobClass) {
-            switch ($defaultType = $container->getParameter('dtc_queue.default')) {
+            switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
                 case 'mongodb':
                     $jobClass = "Dtc\\QueueBundle\\Documents\\Job";
                     break;
