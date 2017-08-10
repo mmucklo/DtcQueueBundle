@@ -1,27 +1,16 @@
 language: php
-sudo: false
+
 php:
   - 5.6
   - 7.0
   - 7.1
 
 services: mongodb
-sudo: required
 
 before_script:
   - composer self-update
-  - if [[ -f composer.lock ]]; then echo "composer.lock exists"; rm -f composer.lock; fi
-  - if [[ -d vendor ]]; then echo "vendor exists"; rm -rf vendor; fi
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then extension="mongo"; echo "yes" | pecl install mongo; else extension="mongodb"; pecl install mongodb; fi
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then composer require "alcaeus/mongo-php-adapter" --ignore-platform-reqs; fi
-  - composer require doctrine/mongodb-odm
-  - composer require doctrine/orm
-  - composer require pda/pheanstalk
-  - composer require php-amqplib/php-amqplib
   - composer install
 
 script: bin/phpunit --coverage-text
-
-notifications:
-  email:
-    - mmucklo@gmail.com
