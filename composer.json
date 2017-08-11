@@ -28,7 +28,7 @@
         "doctrine/collections": "<1.5",
         "doctrine/mongodb-odm": "^1.1",
 	"pda/pheanstalk": "^3.1",
-	"php-ampqplib/php-ampqplib": "^2.6",
+	"php-amqplib/php-amqplib": "^2.6",
         "friendsofphp/php-cs-fixer": "dev-master",
         "phpunit/phpunit": "^5.7.0",
         "phpunit/php-code-coverage": "^4.0"
