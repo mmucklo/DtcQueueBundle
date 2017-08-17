@@ -8,25 +8,6 @@ class Job extends BaseJob
 {
     protected $ttr = 3600;
 
-    public function toMessage()
-    {
-        $arr = array(
-                'worker' => $this->getWorkerName(),
-                'args' => $this->getArgs(),
-                'method' => $this->getMethod(),
-        );
-
-        return json_encode($arr);
-    }
-
-    public function fromMessage($message)
-    {
-        $arr = json_decode($message, true);
-        $this->setWorkerName($arr['worker']);
-        $this->setArgs($arr['args']);
-        $this->setMethod($arr['method']);
-    }
-
     public function getTtr()
     {
         return $this->ttr;

@@ -13,6 +13,9 @@ services:
         arguments:
             - '%dtc_queue.job_class%'
 
+    dtc_queue.job_manager.rabbit_mq:
+        class: Dtc\QueueBundle\RabbitMQ\JobManager
+
     dtc_queue.worker_manager:
         class: Dtc\QueueBundle\Model\WorkerManager
         arguments:

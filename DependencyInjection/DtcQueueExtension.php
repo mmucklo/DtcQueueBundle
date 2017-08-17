@@ -19,7 +19,7 @@ class DtcQueueExtension extends Extension
 
         if (isset($config['beanstalkd'])) {
             if (!isset($config['beanstalkd']['host'])) {
-                throw new \Exception("dtc_queue: beanstalkd requires host in config.yml");
+                throw new \Exception('dtc_queue: beanstalkd requires host in config.yml');
             }
         }
 
@@ -30,12 +30,13 @@ class DtcQueueExtension extends Extension
             $container->setParameter('dtc_queue.beanstalkd.tube', $config['beanstalkd']['tube']);
         }
 
-        if (isset($config['rabbitmq'])) {
-            foreach (['host','port','user','pass'] as $value) {
-                if (!isset($config['rabbitmq'][$value]))
-                    throw new \Exception('dtc_queue: rabbitmq must have ' . $value . ' in config.yml');
+        if (isset($config['rabbit_mq'])) {
+            foreach (['host', 'port', 'user', 'password'] as $value) {
+                if (!isset($config['rabbit_mq'][$value])) {
+                    throw new \Exception('dtc_queue: rabbit_mq must have '.$value.' in config.yml');
+                }
             }
-            $container->setParameter('dtc_queue.rabbitmq', $config['rabbitmq']);
+            $container->setParameter('dtc_queue.rabbit_mq', $config['rabbit_mq']);
         }
 
         $container->setParameter('dtc_queue.default_manager', $config['default_manager']);

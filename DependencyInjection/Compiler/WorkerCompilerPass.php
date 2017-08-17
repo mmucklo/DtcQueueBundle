@@ -19,7 +19,7 @@ class WorkerCompilerPass implements CompilerPassInterface
         }
 
         $defaultManagerType = $container->getParameter('dtc_queue.default_manager');
-        if (!$container->hasDefinition('dtc_queue.job_manager.' . $defaultManagerType)) {
+        if (!$container->hasDefinition('dtc_queue.job_manager.'.$defaultManagerType)) {
             throw new \Exception("No job manager found for dtc_queue.job_manager.$defaultManagerType");
         }
 
@@ -27,15 +27,8 @@ class WorkerCompilerPass implements CompilerPassInterface
         $container->setAlias('dtc_queue.job_manager', $alias);
 
         // Setup beanstalkd if configuration is present
-        if ($container->hasParameter('dtc_queue.beanstalkd.host')) {
-            $definition = new Definition('Pheanstalk\\Pheanstalk', [$container->getParameter('dtc_queue.beanstalkd.host')]);
-            $container->setDefinition('dtc_queue.beanstalkd', $definition);
-            $definition = $container->getDefinition('dtc_queue.job_manager.beanstalkd');
-            $definition->addMethodCall('setBeanstalkd', [new Reference('dtc_queue.beanstalkd')]);
-            if ($container->hasParameter('dtc_queue.beanstalkd.tube')) {
-                $definition->addMethodCall('setTube', [$container->getParameter('dtc_queue.beanstalkd.tube')]);
-            }
-        }
+        $this->setupBeanstalkd($container);
+        $this->setupRabbitMQ($container);
 
         $definition = $container->getDefinition('dtc_queue.worker_manager');
         $jobManagerRef = array(new Reference('dtc_queue.job_manager'));
@@ -67,15 +60,133 @@ class WorkerCompilerPass implements CompilerPassInterface
         }
     }
 
-    public function getJobClass(ContainerBuilder $container) {
+    /**
+     * Sets up beanstalkd instance if appropriate.
+     *
+     * @param ContainerBuilder $container
+     */
+    public function setupBeanstalkd(ContainerBuilder $container)
+    {
+        if ($container->hasParameter('dtc_queue.beanstalkd.host')) {
+            $definition = new Definition('Pheanstalk\\Pheanstalk', [$container->getParameter('dtc_queue.beanstalkd.host')]);
+            $container->setDefinition('dtc_queue.beanstalkd', $definition);
+            $definition = $container->getDefinition('dtc_queue.job_manager.beanstalkd');
+            $definition->addMethodCall('setBeanstalkd', [new Reference('dtc_queue.beanstalkd')]);
+            if ($container->hasParameter('dtc_queue.beanstalkd.tube')) {
+                $definition->addMethodCall('setTube', [$container->getParameter('dtc_queue.beanstalkd.tube')]);
+            }
+        }
+    }
+
+    /**
+     * Sets up RabbitMQ instance if appropriate.
+     *
+     * @param ContainerBuilder $container
+     */
+    public function setupRabbitMQ(ContainerBuilder $container)
+    {
+        if ($container->hasParameter('dtc_queue.rabbit_mq')) {
+            $class = 'PhpAmqpLib\\Connection\\AMQPStreamConnection';
+            $rabbitMqConfig = $container->getParameter('dtc_queue.rabbit_mq');
+            $arguments = [
+                $rabbitMqConfig['host'],
+                $rabbitMqConfig['port'],
+                $rabbitMqConfig['user'],
+                $rabbitMqConfig['password'],
+                $rabbitMqConfig['vhost'],
+            ];
+
+            if ($container->hasParameter('dtc_queue.rabbit_mq.ssl') && $container->getParameter('dtc_queue.rabbit_mq.ssl')) {
+                $class = 'PhpAmqpLib\\Connection\\AMQPSSLConnection';
+                if ($container->hasParameter('dtc_queue.rabbit_mq.ssl_options')) {
+                    $arguments[] = $container->getParameter('dtc_queue.rabbit_mq.ssl_options');
+                } else {
+                    $arguments[] = [];
+                }
+                if ($container->hasParameter('dtc_queue.rabbit_mq.options')) {
+                    $arguments[] = $container->getParameter('dtc_queue.rabbit_mq.options');
+                }
+            } else {
+                if ($container->hasParameter('dtc_queue.rabbit_mq.options')) {
+                    $options = $container->getParameter('dtc_queue.rabbit_mq.options');
+                    if (isset($options['insist'])) {
+                        $arguments[] = $options['insist'];
+                    } else {
+                        $arguments[] = false;
+                    }
+                    if (isset($options['login_method'])) {
+                        $arguments[] = $options['login_method'];
+                    } else {
+                        $arguments[] = 'AMQPLAIN';
+                    }
+                    if (isset($options['login_response'])) {
+                        $arguments[] = $options['login_response'];
+                    } else {
+                        $arguments[] = null;
+                    }
+                    if (isset($options['locale'])) {
+                        $arguments[] = $options['locale'];
+                    } else {
+                        $arguments[] = 'en_US';
+                    }
+                    if (isset($options['connection_timeout'])) {
+                        $arguments[] = $options['connection_timeout'];
+                    } else {
+                        $arguments[] = 3.0;
+                    }
+                    if (isset($options['read_write_timeout'])) {
+                        $arguments[] = $options['read_write_timeout'];
+                    } else {
+                        $arguments[] = 3.0;
+                    }
+                    if (isset($options['context'])) {
+                        $arguments[] = $options['context'];
+                    } else {
+                        $arguments[] = null;
+                    }
+                    if (isset($options['keepalive'])) {
+                        $arguments[] = $options['keepalive'];
+                    } else {
+                        $arguments[] = false;
+                    }
+                    if (isset($options['heartbeat'])) {
+                        $arguments[] = $options['heartbeat'];
+                    } else {
+                        $arguments[] = 0;
+                    }
+                }
+            }
+            $definition = new Definition($class, $arguments);
+            $container->setDefinition('dtc_queue.rabbit_mq', $definition);
+            $definition = $container->getDefinition('dtc_queue.job_manager.rabbit_mq');
+            $definition->addMethodCall('setAMQPConnection', [new Reference('dtc_queue.rabbit_mq')]);
+            $definition->addMethodCall('setQueueArgs', array_values($rabbitMqConfig['queue_args']));
+            $definition->addMethodCall('setExchangeArgs', array_values($rabbitMqConfig['exchange_args']));
+        }
+    }
+
+    /**
+     * Determines the job class based on teh queue manager type.
+     *
+     * @param ContainerBuilder $container
+     *
+     * @return mixed|string
+     *
+     * @throws \Exception
+     */
+    public function getJobClass(ContainerBuilder $container)
+    {
         $jobClass = $container->getParameter('dtc_queue.job_class');
         if (!$jobClass) {
             switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
                 case 'mongodb':
-                    $jobClass = "Dtc\\QueueBundle\\Documents\\Job";
+                    $jobClass = 'Dtc\\QueueBundle\\Documents\\Job';
                     break;
                 case 'beanstalkd':
-                    $jobClass = "Dtc\\QueueBundle\\Beanstalkd\\Job";
+                    $jobClass = 'Dtc\\QueueBundle\\Beanstalkd\\Job';
+                    break;
+                case 'rabbit_mq':
+                    $jobClass = 'Dtc\\QueueBundle\\Model\\Job';
                     break;
                 default:
                     throw new \Exception("Unknown type $defaultType - please specify a Job class in the 'class' configuration parameter");
@@ -85,6 +196,7 @@ class WorkerCompilerPass implements CompilerPassInterface
         if (!class_exists($jobClass)) {
             throw new \Exception("Can't find Job class $jobClass");
         }
+
         return $jobClass;
     }
 }

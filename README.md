@@ -127,20 +127,58 @@ To Debug message queue status.
 
 jobId could be obtained from mongodb.
 
-Beanstalk and Other Queues
---------------------------
+Beanstalk Configuration
+------------------------
 
 // config.yml
 
     dtc_queue:
         beanstalkd:
             host: beanstalkd
+            tube: some-tube-name [optional]
         default_manager: beanstalkd
-        # class: <optional custom Job class>
-        # (mongodb is the default manager)
-        # (create your own manager service and name it
+
+RabbitMQ Configuration
+----------------------
+
+// config.yml
+
+    dtc_queue:
+        default_manager: rabbit_mq
+        rabbit_mq:
+            host: rabbitmq
+            port: 5672
+            user: guest
+            password: guest
+            vhost: "/" [optional defaults to "/"]
+            ssl: [optional defaults to false - toggles to use AMQPSSLConnection]
+            options: [optional options to pass to AMQPStreamConnection or AMQPSSLConnection]
+            ssl_options: [optional extra ssl options to pass to AMQPSSLConnection]
+            queue_args: [optional]
+                queue: [optional queue name]
+                passive: [optional defaults to false]
+                durable: [optional defaults to true]
+                exlusive: [optional defaults to false]
+                auto_delete: [optional defaults to false]
+            exchange_args: [optional]
+                exchange: [optional queue name]
+                type: [optional defaults to "direct"]
+                passive: [optional defaults to false]
+                durable: [optional defaults to true]
+                auto_delete: [optional defaults to false]
+
+Custom Jobs and Managers
+------------------------
+
+// config.yml
+
+    dtc_queue:
+         class: Some\Job\ClassName [optional]
+         default_manager: some_name [optional]
+        # (create your own manager service and name or alias it:
         #   dtc_queue.job_manager.<some_name> and put
         #   <some_name> in the default_manager field above)
+ 
 
 Job Event Subscriber
 --------------------

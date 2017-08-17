@@ -29,13 +29,14 @@ class JobTest extends TestCase
         }
     }
 
-    public function testGettersSetters() {
+    public function testGettersSetters()
+    {
         $reflection = new \ReflectionClass('\Dtc\QueueBundle\Model\Job');
         $properties = $reflection->getProperties();
         foreach ($properties as $property) {
             $name = $property->getName();
-            $getMethod = "get" . ucfirst($name);
-            $setMethod = "set" . ucfirst($name);
+            $getMethod = 'get'.ucfirst($name);
+            $setMethod = 'set'.ucfirst($name);
             self::assertTrue($reflection->hasMethod($getMethod), $getMethod);
             self::assertTrue($reflection->hasMethod($setMethod), $setMethod);
 

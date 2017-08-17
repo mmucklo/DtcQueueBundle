@@ -89,7 +89,7 @@ class RunCommand extends ContainerAwareCommand
             } while ($currentJob <= $totalJobs);
         } catch (\Exception $e) {
             // Uncaught error: possibly with QueueBundle itself
-            $this->logger->critical($e->getMessage(), $e);
+            $this->logger->critical($e->getMessage(), $e->getTrace());
         }
     }
 

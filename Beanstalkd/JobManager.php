@@ -27,7 +27,8 @@ class JobManager implements JobManagerInterface
         $this->tube = $tube;
     }
 
-    public function setReserveTimeout($timeout) {
+    public function setReserveTimeout($timeout)
+    {
         $this->reserveTimeout = $timeout;
     }
 
@@ -58,7 +59,6 @@ class JobManager implements JobManagerInterface
         if ($this->tube) {
             $beanJob = $beanJob->watch($this->tube);
         }
-
 
         $beanJob = $beanJob->reserve($this->reserveTimeout);
         if ($beanJob) {
@@ -104,7 +104,8 @@ class JobManager implements JobManagerInterface
         // @Todo - use statistics
     }
 
-    public function getStats() {
+    public function getStats()
+    {
         return $this->beanstalkd->stats();
     }
 
