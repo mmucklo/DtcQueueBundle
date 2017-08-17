@@ -1,12 +1,12 @@
 <?php
+
 namespace Dtc\QueueBundle\Documents;
 
 use Dtc\QueueBundle\Model\JobManagerInterface;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Doctrine\ODM\MongoDB\DocumentManager;
 
-class JobManager
-    implements JobManagerInterface
+class JobManager implements JobManagerInterface
 {
     protected $dm;
     protected $documentName;
@@ -41,12 +41,13 @@ class JobManager
         return $this->dm->getRepository($this->documentName);
     }
 
-    public function resetErroneousJobs($workerName = null, $methodName = null) {
+    public function resetErroneousJobs($workerName = null, $method = null)
+    {
         $qb = $this->dm->createQueryBuilder($this->documentName);
         $qb
             ->update()
             ->multiple(true)
-            ->field('status')->equals(Job::STATUS_ERROR, false)
+            ->field('status')->equals(Job::STATUS_ERROR)
             ->field('locked')->set(null)
             ->field('status')->set(Job::STATUS_NEW);
 
@@ -54,34 +55,36 @@ class JobManager
             $qb->field('workerName')->equals($workerName);
         }
 
-        if ($methodName = null) {
-            $qb->field('methodName')->equals($methodName);
+        if ($method) {
+            $qb->field('method')->equals($method);
         }
 
         $query = $qb->getQuery();
         $query->execute();
     }
 
-    public function pruneErroneousJobs($workerName = null, $methodName = null) {
+    public function pruneErroneousJobs($workerName = null, $method = null)
+    {
         $qb = $this->dm->createQueryBuilder($this->documentName);
         $qb
         ->remove()
         ->multiple(true)
-        ->field('status')->equals(Job::STATUS_ERROR, false);
+        ->field('status')->equals(Job::STATUS_ERROR);
 
         if ($workerName) {
             $qb->field('workerName')->equals($workerName);
         }
 
-        if ($methodName = null) {
-            $qb->field('methodName')->equals($methodName);
+        if ($method) {
+            $qb->field('method')->equals($method);
         }
 
         $query = $qb->getQuery();
         $query->execute();
     }
 
-    public function getJobCount($workerName = null, $methodName = null) {
+    public function getJobCount($workerName = null, $method = null)
+    {
         $qb = $this->dm->createQueryBuilder($this->documentName);
         $qb
         ->find();
@@ -90,8 +93,8 @@ class JobManager
             $qb->field('workerName')->equals($workerName);
         }
 
-        if ($methodName = null) {
-            $qb->field('methodName')->equals($methodName);
+        if ($method) {
+            $qb->field('method')->equals($method);
         }
 
         // Filter
@@ -101,13 +104,15 @@ class JobManager
             ->field('locked')->equals(null);
 
         $query = $qb->getQuery();
+
         return $query->count(true);
     }
 
     /**
-     * Get Status Jobs
+     * Get Status Jobs.
      */
-    public function getStatus() {
+    public function getStatus()
+    {
         // Run a map reduce function get worker and status break down
         $mapFunc = "function() {
             var result = {};
@@ -115,7 +120,7 @@ class JobManager
             var key = this.worker_name + '->' + this.method + '()';
             emit(key, result);
         }";
-        $reduceFunc = "function(k, vals) {
+        $reduceFunc = 'function(k, vals) {
             var result = {};
             for (var index in vals) {
                 var val =  vals[index];
@@ -129,7 +134,7 @@ class JobManager
                 }
             }
             return result;
-        }";
+        }';
 
         $qb = $this->dm->createQueryBuilder($this->documentName)
             ->map($mapFunc)
@@ -140,7 +145,7 @@ class JobManager
         $allStatus = array(
             Job::STATUS_ERROR => 0,
             Job::STATUS_NEW => 0,
-            Job::STATUS_SUCCESS => 0
+            Job::STATUS_SUCCESS => 0,
         );
 
         $status = [];
@@ -153,17 +158,16 @@ class JobManager
     }
 
     /**
-     * Get the next job to run (can be filtered by workername and method name)
+     * Get the next job to run (can be filtered by workername and method name).
      *
      * @param string $workerName
      * @param string $methodName
-     * @param boolean $prioritize
+     * @param bool   $prioritize
      *
-     * @return Dtc\QueueBundle\Model\Job
+     * @return \Dtc\QueueBundle\Model\Job
      */
     public function getJob($workerName = null, $methodName = null, $prioritize = true)
     {
-
         $qb = $this->dm->createQueryBuilder($this->documentName);
         $qb
             ->findAndUpdate()
@@ -179,8 +183,7 @@ class JobManager
 
         if ($prioritize) {
             $qb->sort('priority', 'asc');
-        }
-        else {
+        } else {
             $qb->sort('when', 'asc');
         }
 
@@ -196,24 +199,27 @@ class JobManager
             ->field('locked')->set(true)
         ;
 
-        $arr = $qb->getQueryArray();
+        //$arr = $qb->getQueryArray();
         $query = $qb->getQuery();
 
         //ve($query->debug());
         $job = $query->execute();
+
         return $job;
     }
 
-    public function deleteJob($job) {
+    public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
+    {
         $this->dm->remove($job);
         $this->dm->flush();
     }
 
-    public function saveHistory($job) {
+    public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
+    {
         $this->save($job);
     }
 
-    public function save($job)
+    public function save(\Dtc\QueueBundle\Model\Job $job)
     {
         // Todo: Serialize args
 
@@ -227,8 +233,7 @@ class JobManager
             $criteria = array('crcHash' => $crcHash, 'status' => Job::STATUS_NEW);
             $oldJob = $this->getRepository()->findOneBy($criteria);
 
-            if ($oldJob)
-            {
+            if ($oldJob) {
                 // Old job exists - just override fields Set higher priority
                 $oldJob->setPriority(max($job->getPriority(), $oldJob->getPriority()));
                 $oldJob->setWhen(min($job->getWhen(), $oldJob->getWhen()));
@@ -236,6 +241,7 @@ class JobManager
                 $oldJob->setUpdatedAt(new \DateTime());
 
                 $this->dm->flush();
+
                 return $oldJob;
             }
         }

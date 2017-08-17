@@ -1,4 +1,5 @@
 <?php
+
 namespace Dtc\QueueBundle\EventDispatcher;
 
 use Dtc\QueueBundle\Model\Job;
@@ -9,7 +10,9 @@ class Event
     const POST_JOB = 'queue.post_job';
 
     private $job;
-    public function __construct(Job $job) {
+
+    public function __construct(Job $job)
+    {
         $this->job = $job;
     }
 

@@ -1,17 +1,15 @@
 <?php
+
 namespace Dtc\QueueBundle\Command;
 
 use Dtc\QueueBundle\Model\Job;
-
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Command\Command;
 
-class RunCommand
-    extends ContainerAwareCommand
+class RunCommand extends ContainerAwareCommand
 {
     protected $logger;
 
@@ -29,7 +27,7 @@ class RunCommand
                         'Total number of job to work on before exiting', 1),
                     new inputOption('timeout', 'to', InputOption::VALUE_REQUIRED,
                         'Process timeout in seconds', 3600),
-                    new inputOption('id', null, null, 'Id of a single job to run')
+                    new inputOption('id', null, null, 'Id of a single job to run'),
                 )
             )
             ->setDescription('Start up a job in queue');
@@ -44,6 +42,7 @@ class RunCommand
         $job = $jobManager->getRepository()->find($jobId);
         if (!$job) {
             $this->logger->debug("Job id is not found: {$jobId}");
+
             return;
         }
 
@@ -81,22 +80,23 @@ class RunCommand
 
                 if ($job) {
                     $this->reportJob($job);
-                    $currentJob++;
+                    ++$currentJob;
                 } else {
-                    $this->logger->info("No job to run...");
+                    $this->logger->info('No job to run...');
+
                     return;
                 }
             } while ($currentJob <= $totalJobs);
         } catch (\Exception $e) {
             // Uncaught error: possibly with QueueBundle itself
-            $this->logger->critical($e->getMessage(), $e);
+            $this->logger->critical($e->getMessage(), $e->getTrace());
         }
     }
 
     protected function reportJob(Job $job)
     {
         if ($job->getStatus() == Job::STATUS_ERROR) {
-            $message = "Error with job id: {$job->getId()}\n" . $job->getMessage();
+            $message = "Error with job id: {$job->getId()}\n".$job->getMessage();
             $this->logger->error($message);
         }
 

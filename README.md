@@ -87,10 +87,6 @@ Create a worker class that will work on the background job.
 	        return 'fibonacci';
 	    }
 
-	    public function exceptionThrown() {
-	        throw new \Exception('error...');
-	    }
-
 	    public function getFilename()
 	    {
 	        return $this->filename;
@@ -100,22 +96,89 @@ Create a worker class that will work on the background job.
 
 Create a DI service for the job, and tag it as a background worker.
 
+XML:
 	<service id="fibonacci_worker" class="FibonacciWorker">
 	    <tag name="dtc_queue.worker" />
 	</service>
+	
+YAML:
+
+	fibonacci_worker:
+	    class: FibonacciWorker
+	    tags:
+	        - { name: "dtc_queue.worker" }
 
 Create a background job.
 
-	//$fibonacciWorker->later()->processFibonacci(20);
-	//$fibonacciWorker->batchLater()->processFibonacci(20);
-	$fibonacciWorker->later(90)->processFibonacci(20); // Run 90 seconds later
+	//$fibonacciWorker->later()->fibonacci(20);
+	//$fibonacciWorker->later()->fibonacciFile(20);
+	//$fibonacciWorker->batchLater()->fibonacci(20); // Batch up runs into a single run
+	$fibonacciWorker->later(90)->fibonacci(20); // Run 90 seconds later
+
+Run the job
+
+    bin/console dtc:queue_worker:run -t 100
+
 
 To Debug message queue status.
 
-	./app/console dtc:queue_worker:count
-	./app/console dtc:queue_worker:run --id={jobId}
+	bin/console dtc:queue_worker:count
+	bin/console dtc:queue_worker:run --id={jobId}
 
 jobId could be obtained from mongodb.
+
+Beanstalk Configuration
+------------------------
+
+// config.yml
+
+    dtc_queue:
+        beanstalkd:
+            host: beanstalkd
+            tube: some-tube-name [optional]
+        default_manager: beanstalkd
+
+RabbitMQ Configuration
+----------------------
+
+// config.yml
+
+    dtc_queue:
+        default_manager: rabbit_mq
+        rabbit_mq:
+            host: rabbitmq
+            port: 5672
+            user: guest
+            password: guest
+            vhost: "/" [optional defaults to "/"]
+            ssl: [optional defaults to false - toggles to use AMQPSSLConnection]
+            options: [optional options to pass to AMQPStreamConnection or AMQPSSLConnection]
+            ssl_options: [optional extra ssl options to pass to AMQPSSLConnection]
+            queue_args: [optional]
+                queue: [optional queue name]
+                passive: [optional defaults to false]
+                durable: [optional defaults to true]
+                exlusive: [optional defaults to false]
+                auto_delete: [optional defaults to false]
+            exchange_args: [optional]
+                exchange: [optional queue name]
+                type: [optional defaults to "direct"]
+                passive: [optional defaults to false]
+                durable: [optional defaults to true]
+                auto_delete: [optional defaults to false]
+
+Custom Jobs and Managers
+------------------------
+
+// config.yml
+
+    dtc_queue:
+         class: Some\Job\ClassName [optional]
+         default_manager: some_name [optional]
+        # (create your own manager service and name or alias it:
+        #   dtc_queue.job_manager.<some_name> and put
+        #   <some_name> in the default_manager field above)
+ 
 
 Job Event Subscriber
 --------------------
@@ -201,7 +264,6 @@ You can register admin routes to see queue status. In your routing.yml file, add
 	    prefix:  /queue/
 	    type: annotation
 
-
 Testing
 -------
 
@@ -215,6 +277,7 @@ If you want to run Beanstalkd integration testing, you need to run a local
 empty instance of beanstalkd for testing.
 
 	sudo service beanstalkd restart; phpunit Tests/BeanStalkd/JobManagerTest.php
+
 
 License
 -------

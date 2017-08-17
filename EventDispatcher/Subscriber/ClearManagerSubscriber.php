@@ -1,15 +1,17 @@
 <?php
+
 namespace Dtc\QueueBundle\EventDispatcher\Subscriber;
 
 use Dtc\QueueBundle\EventDispatcher\Event;
 use Dtc\QueueBundle\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class ClearManagerSubscriber
-    implements EventSubscriberInterface
+class ClearManagerSubscriber implements EventSubscriberInterface
 {
     private $container;
-    public function __construct(ContainerInterface $container) {
+
+    public function __construct(ContainerInterface $container)
+    {
         $this->container;
     }
 
@@ -21,7 +23,7 @@ class ClearManagerSubscriber
     public static function getSubscribedEvents()
     {
         return array(
-            Event::POST_JOB => 'onPostJob'
+            Event::POST_JOB => 'onPostJob',
         );
     }
 }

@@ -1,98 +1,121 @@
 <?php
+
 namespace Dtc\QueueBundle\RabbitMQ;
 
-use Dtc\QueueBundle\Model\Job as BaseJob;
+use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobManagerInterface;
-
-use PhpAmqpLib\Connection\AMQPConnection;
+use PhpAmqpLib\Channel\AMQPChannel;
+use PhpAmqpLib\Connection\AbstractConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
-class JobManager
-    implements JobManagerInterface
+class JobManager implements JobManagerInterface
 {
+    /** @var AMQPChannel */
     protected $channel;
-    protected $connection;
 
-    public function __construct(AMQPConnection $connection) {
-        $this->connection = $connection;
-        $this->channel = $connection->channel();;
+    /** @var AbstractConnection */
+    protected $connection;
+    protected $queueArgs;
+    protected $exchangeArgs;
+
+    protected $channelSetup = false;
+
+    public function setExchangeArgs($exchange, $type, $passive, $durable, $autoDelete)
+    {
+        $this->exchangeArgs = func_get_args();
     }
 
-    public function save($job) {
-        $queue = $job->getWorkerName();
-        $exchange = null; 	// User default exchange
+    public function setQueueArgs($queue, $passive, $durable, $exclusive, $autoDelete)
+    {
+        $this->queueArgs = func_get_args();
+    }
 
-        $this->channel->queue_declare($queue, false, true, false, false);
-        $this->channel->exchange_declare($exchange, 'direct', false, true, false);
-        $this->channel->queue_bind($queue, $exchange);
+    public function setAMQPConnection(AbstractConnection $connection)
+    {
+        $this->connection = $connection;
+        $this->channel = $connection->channel();
+    }
 
+    protected function setupChannel()
+    {
+        if (!$this->channelSetup) {
+            call_user_func_array([$this->channel, 'exchange_declare'], $this->exchangeArgs);
+            call_user_func_array([$this->channel, 'queue_declare'], $this->queueArgs);
+            $this->channel->queue_bind($this->queueArgs[0], $this->exchangeArgs[0]);
+            $this->channelSetup = true;
+        }
+    }
+
+    public function save(\Dtc\QueueBundle\Model\Job $job)
+    {
+        $this->setupChannel();
         $msg = new AMQPMessage($job->toMessage());
-        $jobId = $this->channel->basic_publish($msg);
+        $this->channel->basic_publish($msg, $this->exchangeArgs[0]);
 
-        $job->setId($jobId);
         return $job;
     }
 
     public function getJob($workerName = null, $methodName = null, $prioritize = true)
     {
         if ($methodName) {
-            throw new \Exception("Unsupported");
+            throw new \Exception('Unsupported');
         }
 
-        $beanJob = $this->beanstalkd;
-        if ($workerName) {
-            $this->channel->basic_consume($workerName, '', false, true, false, false);
-        }
-
-        $beanJob = $beanJob->reserve();
-        if ($beanJob) {
-            if ($this->isBuryOnGet) {
-                $this->beanstalkd->bury($beanJob);
-            }
-
+        $this->setupChannel();
+        $message = $this->channel->basic_get($this->queueArgs[0]);
+        if ($message) {
             $job = new Job();
-            $job->fromMessage($beanJob->getData());
-            $job->setId($beanJob->getId());
+            $job->fromMessage($message->body);
+            $job->setId($message->delivery_info['delivery_tag']);
+
             return $job;
         }
+
+        return null;
     }
 
-    public function deleteJob($job) {
-        $this->beanstalkd
-            ->delete($job);
+    public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
+    {
+        throw new \Exception('unsupported');
     }
 
     // Save History get called upon completion of the job
-    public function saveHistory($job) {
-        if ($job->getStatus() === BaseJob::STATUS_SUCCESS) {
-            $this->beanstalkd
-                ->delete($job);
-        }
-        else {
-            $this->beanstalkd
-                ->bury($job);
-        }
+    public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
+    {
+        $deliveryTag = $job->getId();
+        $this->channel->basic_ack($deliveryTag);
+
+        return;
     }
 
-    public function getJobCount($workerName = null, $methodName = null) {
+    public function __destruct()
+    {
+        $this->channel->close();
+    }
+
+    public function getJobCount($workerName = null, $methodName = null)
+    {
         if ($methodName) {
-            throw new \Exception("Unsupported");
+            throw new \Exception('Unsupported');
         }
 
         if ($workerName) {
-            throw new \Exception("Unsupported");
+            throw new \Exception('Unsupported');
         }
     }
 
-    public function resetErroneousJobs($workerName = null, $methodName = null) {
-        throw new \Exception("Unsupported");
+    public function resetErroneousJobs($workerName = null, $methodName = null)
+    {
+        throw new \Exception('Unsupported');
     }
 
-    public function pruneErroneousJobs($workerName = null, $methodName = null) {
-        throw new \Exception("Unsupported");
+    public function pruneErroneousJobs($workerName = null, $methodName = null)
+    {
+        throw new \Exception('Unsupported');
     }
 
-    public function getStatus() {
-        throw new \Exception("Unsupported");
+    public function getStatus()
+    {
+        throw new \Exception('Unsupported');
     }
 }

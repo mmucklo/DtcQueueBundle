@@ -1,4 +1,5 @@
 <?php
+
 namespace Dtc\QueueBundle\Tests;
 
 use Dtc\QueueBundle\Model\Job;
@@ -9,27 +10,30 @@ use Dtc\QueueBundle\Model\JobManagerInterface;
  *
  *	Created for Unitesting purposes.
  */
-class StaticJobManager
-    implements JobManagerInterface
+class StaticJobManager implements JobManagerInterface
 {
     private $jobs;
     private $uniqeId;
     public $enableSorting = true;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->jobs = array();
         $this->uniqeId = 1;
     }
 
-    public function resetErroneousJobs($workerName = null, $methodName = null) {
+    public function resetErroneousJobs($workerName = null, $methodName = null)
+    {
         return null;
     }
 
-    public function pruneErroneousJobs($workerName = null, $methodName = null) {
+    public function pruneErroneousJobs($workerName = null, $methodName = null)
+    {
         return null;
     }
 
-    public function getJobCount($workerName = null, $methodName = null) {
+    public function getJobCount($workerName = null, $methodName = null)
+    {
         if ($workerName && isset($this->jobs[$workerName])) {
             return $this->jobs[$workerName];
         }
@@ -42,15 +46,18 @@ class StaticJobManager
         return count($this->jobs[$workerName]);
     }
 
-    public function getStatus() {
+    public function getStatus()
+    {
         return null;
     }
 
-    public function deleteJob($job) {
+    public function deleteJob(Job $job)
+    {
         unset($this->jobs[$job->getWorkerName()][$job->getId()]);
     }
 
-    public function getJob($workerName = null, $methodName = null, $prioritize = true) {
+    public function getJob($workerName = null, $methodName = null, $prioritize = true)
+    {
         if ($workerName && isset($this->jobs[$workerName])) {
             return array_pop($this->jobs[$workerName]);
         }
@@ -62,23 +69,26 @@ class StaticJobManager
         }
     }
 
-    public function save($job) {
+    public function save(Job $job)
+    {
         if (!$job->getId()) {
             $job->setId($this->uniqeId);
-            $this->jobs[$job->getWorkerName()][$this->uniqeId]  = $job;
+            $this->jobs[$job->getWorkerName()][$this->uniqeId] = $job;
             if ($this->enableSorting) {
                 uasort($this->jobs[$job->getWorkerName()], array($this, 'compareJobPriority'));
             }
 
-            $this->uniqeId++;
+            ++$this->uniqeId;
         }
     }
 
-    public function compareJobPriority(Job $a, Job $b) {
+    public function compareJobPriority(Job $a, Job $b)
+    {
         return $b->getPriority() - $a->getPriority();
     }
 
-    public function saveHistory($job) {
+    public function saveHistory(Job $job)
+    {
         $this->save($job);
     }
 }

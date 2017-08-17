@@ -8,7 +8,9 @@ auto-save-list
 *.swp
 
 # composer
+composer.phar
 vendor
+composer.lock
 
 # bin
 bin
@@ -21,5 +23,3 @@ bin
 
 # Mac
 .DS_Store
-
-composer.lock

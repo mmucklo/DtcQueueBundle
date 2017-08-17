@@ -4,12 +4,6 @@
     "keywords": ["queue", "Message queue"],
     "type": "symfony-bundle",
     "license": "MIT",
-    "repositories": [
-        {
-            "type": "git",
-            "url": "https://github.com/dtee/grid.git"
-	}   
-    ],
     "authors": [
         {
             "name": "David Tee"
@@ -21,19 +15,31 @@
     ],
     "require": {
         "php": ">=5.6",
-	"mmucklo/grid-bundle": ">=1.0.11"
+        "dstuecken/php7ify": ">=1.1",
+    	"mmucklo/grid-bundle": ">=1.0.11",
+        "sensio/generator-bundle": "2.*|3.*|4.*",
+        "symfony/framework-bundle": "2.*|3.*|4.*",
+        "sensio/framework-extra-bundle": "2.*|3.*|4.*"
     },
     "require-dev": {
-        "pda/pheanstalk": "dev-master",
-        "videlalvaro/php-amqplib": "dev-master",
         "doctrine/orm": "^2.4",
         "doctrine/annotations": "<1.5",
         "doctrine/cache": "<1.7",
         "doctrine/collections": "<1.5",
+        "doctrine/common": "<2.8",
+	"doctrine/dbal": "<2.6",
         "doctrine/mongodb-odm": "^1.1",
-        "phpunit/phpunit": "^5.7.0",
+	"pda/pheanstalk": "^3.1",
+	"php-amqplib/php-amqplib": "^2.6",
         "friendsofphp/php-cs-fixer": "dev-master",
+        "phpunit/phpunit": "^5.7.0",
         "phpunit/php-code-coverage": "^4.0"
+    },
+    "suggest": {
+        "pda/pheanstalk": "For working with beanstalk",
+        "php-amqplib/php-amqplib": "For working with RabbitMQ",
+        "doctrine/orm": "for working with RDBMS",
+        "doctrine/mongodb-odm": "for a mongo db based queue"
     },
     "config": {
         "bin-dir": "bin"

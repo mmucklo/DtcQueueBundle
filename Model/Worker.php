@@ -1,4 +1,5 @@
 <?php
+
 namespace Dtc\QueueBundle\Model;
 
 abstract class Worker
@@ -45,8 +46,7 @@ abstract class Worker
         if ($time) {
             $dateTime = new \DateTime();
             $dateTime->setTimestamp($time);
-        }
-        else {
+        } else {
             $dateTime = null;
         }
 
@@ -57,6 +57,7 @@ abstract class Worker
     {
         $job = $this->at(time() + $delay, false, $priority);
         $job->setDelay($delay);
+
         return $job;
     }
 
@@ -64,6 +65,7 @@ abstract class Worker
     {
         $job = $this->at($delay, true, $priority);
         $job->setDelay($delay);
+
         return $job;
     }
 
@@ -72,5 +74,5 @@ abstract class Worker
         return $this->at($time, true, $priority);
     }
 
-    abstract function getName();
+    abstract public function getName();
 }

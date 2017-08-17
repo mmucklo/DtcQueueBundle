@@ -1,24 +1,22 @@
 <?php
+
 namespace Dtc\QueueBundle\Controller;
 
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
-
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
 
-class QueueController
-    extends Controller
+class QueueController extends Controller
 {
     /**
-     * Summary stats
+     * Summary stats.
      *
      * @Route("/")
      * @Route("/status/")
      * @Template()
      */
-    public function statusAction() {
+    public function statusAction()
+    {
         $params = array();
         $jobManager = $this->get('dtc_queue.job_manager');
         $workerName = null;
@@ -30,12 +28,13 @@ class QueueController
     }
 
     /**
-     * List jobs in system by default
+     * List jobs in system by default.
      *
      * @Route("/jobs/")
      * @Template()
      */
-    public function jobsAction() {
+    public function jobsAction()
+    {
         $renderer = $this->get('grid.renderer.jq_table_grid');
 
         $gridSource = $this->get('dtc_queue.grid.source.job');
@@ -45,24 +44,26 @@ class QueueController
     }
 
     /**
-     * List registered workers in the system
+     * List registered workers in the system.
      *
      * @Route("/jobs/")
      * @Template()
      */
-    public function workersAction() {
+    public function workersAction()
+    {
         $params = array();
-        ve('testing one two...');
+        //   ve('testing one two...');
 
         return $params;
     }
 
     /**
-     * Show a graph of job trends
+     * Show a graph of job trends.
+     *
      * @Route("/trends/")
      * @Template()
      */
-    public function trendsAction() {
-
+    public function trendsAction()
+    {
     }
 }

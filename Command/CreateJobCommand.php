@@ -1,16 +1,14 @@
 <?php
+
 namespace Dtc\QueueBundle\Command;
 
 use Dtc\QueueBundle\Documents\Job;
-
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class CreateJobCommand
-    extends ContainerAwareCommand
+class CreateJobCommand extends ContainerAwareCommand
 {
     protected function configure()
     {
@@ -42,7 +40,8 @@ class CreateJobCommand
         $batch = true;
         $priority = 1;
 
-        $job = new Job($worker, $batch, $priority, $when);
+        $jobClass = $worker->getJobClass();
+        $job = new $jobClass($worker, $batch, $priority, $when);
         $job->setMethod($methodName);
         $job->setArgs($args);
 

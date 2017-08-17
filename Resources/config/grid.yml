@@ -4,7 +4,8 @@ services:
         arguments:
             - '@dtc_queue.job_manager.mongodb'
         tags: [{ name: dtc_grid.source }]
-        calls: [[setColumns, ['@dtc_queue.grid.source.job.columns']]]
+        calls: [[autoDiscoverColumns]]
+#        calls: [[setColumns, ['@dtc_queue.grid.source.job.columns']]]
     dtc_queue.grid.source.job.columns:
         class: Dtc\QueueBundle\Grid\JobColumns
         arguments: ['@twig']

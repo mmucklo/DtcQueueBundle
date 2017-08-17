@@ -1,12 +1,11 @@
 language: php
-sudo: false
+
 php:
   - 5.6
   - 7.0
   - 7.1
 
 services: mongodb
-sudo: required
 
 before_script:
   - composer self-update
@@ -15,7 +14,3 @@ before_script:
   - composer install
 
 script: bin/phpunit --coverage-text
-
-notifications:
-  email:
-    - mmucklo@gmail.com

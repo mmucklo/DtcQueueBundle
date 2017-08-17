@@ -1,4 +1,5 @@
 <?php
+
 namespace Dtc\QueueBundle\Command;
 
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
@@ -7,8 +8,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ResetCommand
-    extends ContainerAwareCommand
+class ResetCommand extends ContainerAwareCommand
 {
     protected function configure()
     {
@@ -24,7 +24,7 @@ class ResetCommand
                         'Total number of job to work on before exiting', 1),
                     new inputOption('timeout', 'to', InputOption::VALUE_REQUIRED,
                         'Process timeout in seconds', 3600),
-                    new inputOption('id', null, null, 'Id of a single job to run')
+                    new inputOption('id', null, null, 'Id of a single job to run'),
                 )
             )
             ->setDescription('Reset jobs with error status')
