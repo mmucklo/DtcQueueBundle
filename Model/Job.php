@@ -399,8 +399,8 @@ class Job
         $this->updatedAt = new \DateTime();
 
         // Make sure the method exists - job should not be created
-        if (!is_callable(array($this->worker, $method), true)) {
-            throw new \Exception("{$this->className}->{$method}() is not callable");
+        if (!method_exists($this->worker, $method)) {
+            throw new \Exception("{$this->className}->{$method}() does not exist");
         }
 
         $this->jobManager->save($this);
