@@ -37,6 +37,9 @@ class QueueController extends Controller
     {
         $renderer = $this->get('grid.renderer.jq_table_grid');
 
+        if (!$this->container->has('dtc_queue.grid.source.job')) {
+            throw $this->createNotFoundException();
+        }
         $gridSource = $this->get('dtc_queue.grid.source.job');
         $renderer->bind($gridSource);
 

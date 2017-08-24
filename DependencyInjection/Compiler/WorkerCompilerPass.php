@@ -34,6 +34,7 @@ class WorkerCompilerPass implements CompilerPassInterface
         $jobManagerRef = array(new Reference('dtc_queue.job_manager'));
 
         $jobClass = $this->getJobClass($container);
+        $container->setParameter('dtc_queue.job_class', $jobClass);
 
         // Add each worker to workerManager, make sure each worker has instance to work
         foreach ($container->findTaggedServiceIds('dtc_queue.worker') as $id => $attributes) {
@@ -58,6 +59,7 @@ class WorkerCompilerPass implements CompilerPassInterface
             $eventSubscriber = $container->getDefinition($id);
             $eventDispatcher->addMethodCall('addSubscriber', [$eventSubscriber]);
         }
+        $this->setupGridSource($container);
     }
 
     /**
@@ -166,6 +168,21 @@ class WorkerCompilerPass implements CompilerPassInterface
     }
 
     /**
+     * Sets up the grid source for viewing the queue
+     */
+    public function setupGridSource(ContainerBuilder $container) {
+        switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
+            case 'mongodb':
+                $container->setAlias('dtc_queue.grid.source.job', new Alias('dtc_queue.document.grid.source.job'));
+                break;
+            case 'orm':
+                $container->setAlias('dtc_queue.grid.source.job', new Alias('dtc_queue.entity.grid.source.job'));
+                break;
+        }
+    }
+
+
+    /**
      * Determines the job class based on teh queue manager type.
      *
      * @param ContainerBuilder $container
@@ -188,8 +205,11 @@ class WorkerCompilerPass implements CompilerPassInterface
                 case 'rabbit_mq':
                     $jobClass = 'Dtc\\QueueBundle\\Model\\Job';
                     break;
+                case 'orm':
+                    $jobClass = 'Dtc\\QueueBundle\\Entity\\Job';
+                    break;
                 default:
-                    throw new \Exception("Unknown type $defaultType - please specify a Job class in the 'class' configuration parameter");
+                    throw new \Exception("Unknown default_manager type $defaultType - please specify a Job class in the 'class' configuration parameter");
             }
         }
 

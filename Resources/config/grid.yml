@@ -1,11 +1,14 @@
 services:
-    dtc_queue.grid.source.job:
-        class: Dtc\QueueBundle\Grid\JobGridSource
+    dtc_queue.document.grid.source.job:
+        class: Dtc\QueueBundle\Grid\JobDocumentGridSource
         arguments:
             - '@dtc_queue.job_manager.mongodb'
         tags: [{ name: dtc_grid.source }]
         calls: [[autoDiscoverColumns]]
-#        calls: [[setColumns, ['@dtc_queue.grid.source.job.columns']]]
-    dtc_queue.grid.source.job.columns:
-        class: Dtc\QueueBundle\Grid\JobColumns
-        arguments: ['@twig']
+    dtc_queue.entity.grid.source.job:
+        class: Dtc\QueueBundle\Grid\JobEntityGridSource
+        arguments:
+            - '@dtc_queue.job_manager.orm'
+        tags: [{ name: dtc_grid.source }]
+        calls: [[autoDiscoverColumns]]
+

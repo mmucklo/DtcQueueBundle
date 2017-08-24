@@ -44,7 +44,7 @@ class CreateJobCommand extends ContainerAwareCommand
         $job = new $jobClass($worker, $batch, $priority, $when);
         $job->setMethod($methodName);
         $job->setArgs($args);
-
+        $job->setLocked(null);
         $job->setCreatedAt($when);
         $job->setUpdatedAt($when);
 

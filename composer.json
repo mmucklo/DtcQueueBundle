@@ -27,10 +27,10 @@
         "doctrine/cache": "<1.7",
         "doctrine/collections": "<1.5",
         "doctrine/common": "<2.8",
-	"doctrine/dbal": "<2.6",
+        "doctrine/dbal": "<2.6",
         "doctrine/mongodb-odm": "^1.1",
-	"pda/pheanstalk": "^3.1",
-	"php-amqplib/php-amqplib": "^2.6",
+        "pda/pheanstalk": "^3.1",
+        "php-amqplib/php-amqplib": "^2.6",
         "friendsofphp/php-cs-fixer": "dev-master",
         "phpunit/phpunit": "^5.7.0",
         "phpunit/php-code-coverage": "^4.0"

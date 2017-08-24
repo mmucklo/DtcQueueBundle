@@ -21,6 +21,7 @@ Supports
 --------
 
 - MongoDB via Doctrine-ODM
+- Mysql / Doctrine 2 supported databases via Doctrine-ORM
 - Beanstalkd via pheanstalk
 - RabbitMQ via php-amqplib
 
@@ -43,7 +44,7 @@ Then add the bundle to AppKernel.php:
                         new \Dtc\QueueBundle\DtcQueueBundle(),
    // ...
    
-Add MongoDB ODM setting for Job Document.
+(If using MongoDB) Add MongoDB ODM setting for Job Document.
 
 	doctrine_mongodb:
 	    document_managers:
@@ -127,6 +128,38 @@ To Debug message queue status.
 
 jobId could be obtained from mongodb.
 
+MongoDB Customization
+---------------------
+Change the document manager
+
+// config.yml
+
+    dtc_queue:
+        document_manager: [default|something_else]
+
+Mysql (ORM) Configuration
+-------------------------
+
+    dtc_queue:
+        default_manager: orm
+
+Change the entity manager
+
+// config.yml
+
+    dtc_queue:
+        entity_manager: [default|something_else]
+        
+
+NOTE: You may need to add DtcQueueBundle to your mappings section in config.yml if auto_mapping is not enabled
+   
+    doctrine:
+       #...
+       orm:
+           #...
+           mappings:
+               DtcQueueBundle: ~
+
 Beanstalk Configuration
 ------------------------
 
@@ -179,6 +212,17 @@ Custom Jobs and Managers
         #   dtc_queue.job_manager.<some_name> and put
         #   <some_name> in the default_manager field above)
  
+Rename the Database or Table Name
+---------------------------------
+
+* Extend either:
+
+    Dtc\QueueBundle\Document\Job
+    
+            or
+    
+    Dtc\QueueBundle\Entity\Job
+
 
 Job Event Subscriber
 --------------------

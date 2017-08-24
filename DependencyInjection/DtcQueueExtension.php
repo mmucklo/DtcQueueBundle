@@ -41,6 +41,7 @@ class DtcQueueExtension extends Extension
 
         $container->setParameter('dtc_queue.default_manager', $config['default_manager']);
         $container->setParameter('dtc_queue.document_manager', $config['document_manager']);
+        $container->setParameter('dtc_queue.entity_manager', $config['entity_manager']);
         $container->setParameter('dtc_queue.job_class', isset($config['class']) ? $config['class'] : null);
 
         // Load Grid if Dtc\GridBundle Bundle is registered
@@ -51,6 +52,9 @@ class DtcQueueExtension extends Extension
 
         $odmManager = "doctrine_mongodb.odm.{$config['document_manager']}_document_manager";
         $container->setAlias('dtc_queue.document_manager', $odmManager);
+
+        $ormManager = "doctrine.orm.{$config['entity_manager']}_entity_manager";
+        $container->setAlias('dtc_queue.entity_manager', $ormManager);
     }
 
     public function getAlias()

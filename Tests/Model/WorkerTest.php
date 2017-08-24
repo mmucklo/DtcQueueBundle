@@ -113,7 +113,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $this->assertNotEmpty($job->getId(), 'Job should have an id');
 
         if ($time && $time > 0) {
-            $this->assertEquals($time, $job->getWhen()->getTimestamp(),
+            $this->assertEquals($time, $job->getWhenAt()->getTimestamp(),
                     'Job start time should equals');
         }
 

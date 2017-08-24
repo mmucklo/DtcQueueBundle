@@ -20,7 +20,7 @@ class Job
     protected $crcHash;
     protected $locked;
     protected $lockedAt;
-    protected $when;
+    protected $whenAt;
     protected $expire;
     protected $createdAt;
     protected $updatedAt;
@@ -180,11 +180,11 @@ class Job
     }
 
     /**
-     * @return $when
+     * @return $whenAt
      */
-    public function getWhen()
+    public function getWhenAt()
     {
-        return $this->when;
+        return $this->whenAt;
     }
 
     /**
@@ -343,11 +343,11 @@ class Job
     }
 
     /**
-     * @param $when
+     * @param $whenAt
      */
-    public function setWhen($when)
+    public function setWhenAt($whenAt)
     {
-        $this->when = $when;
+        $this->whenAt = $whenAt;
     }
 
     /**
@@ -376,7 +376,7 @@ class Job
 
     protected $worker;
 
-    public function __construct(Worker $worker = null, $batch = false, $priority = 10, \DateTime $when = null)
+    public function __construct(Worker $worker = null, $batch = false, $priority = 10, \DateTime $whenAt = null)
     {
         $this->worker = $worker;
         if ($worker) {
@@ -385,7 +385,7 @@ class Job
             $this->workerName = $worker->getName();
         }
 
-        $this->when = $when;
+        $this->whenAt = $whenAt;
         $this->batch = $batch ? true : false;
         $this->priority = $priority;
         $this->status = self::STATUS_NEW;
@@ -474,4 +474,6 @@ class Job
         $this->setArgs($arr['args']);
         $this->setMethod($arr['method']);
     }
+
+
 }

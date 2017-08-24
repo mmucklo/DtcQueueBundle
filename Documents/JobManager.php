@@ -8,12 +8,12 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 
 class JobManager implements JobManagerInterface
 {
-    protected $dm;
+    protected $documentManager;
     protected $documentName;
 
-    public function __construct(DocumentManager $dm, $documentName)
+    public function __construct(DocumentManager $documentManager, $documentName)
     {
-        $this->dm = $dm;
+        $this->documentManager = $documentManager;
         $this->documentName = $documentName;
     }
 
@@ -22,7 +22,7 @@ class JobManager implements JobManagerInterface
      */
     public function getDocumentManager()
     {
-        return $this->dm;
+        return $this->documentManager;
     }
 
     /**
@@ -38,12 +38,12 @@ class JobManager implements JobManagerInterface
      */
     public function getRepository()
     {
-        return $this->dm->getRepository($this->documentName);
+        return $this->getDocumentManager()->getRepository($this->getDocumentName());
     }
 
     public function resetErroneousJobs($workerName = null, $method = null)
     {
-        $qb = $this->dm->createQueryBuilder($this->documentName);
+        $qb = $this->getDocumentManager()->createQueryBuilder($this->getDocumentName());
         $qb
             ->update()
             ->multiple(true)
@@ -65,7 +65,7 @@ class JobManager implements JobManagerInterface
 
     public function pruneErroneousJobs($workerName = null, $method = null)
     {
-        $qb = $this->dm->createQueryBuilder($this->documentName);
+        $qb = $this->getDocumentManager()->createQueryBuilder($this->getDocumentName());
         $qb
         ->remove()
         ->multiple(true)
@@ -85,7 +85,7 @@ class JobManager implements JobManagerInterface
 
     public function getJobCount($workerName = null, $method = null)
     {
-        $qb = $this->dm->createQueryBuilder($this->documentName);
+        $qb = $this->getDocumentManager()->createQueryBuilder($this->getDocumentName());
         $qb
         ->find();
 
@@ -99,8 +99,8 @@ class JobManager implements JobManagerInterface
 
         // Filter
         $qb
-            ->addOr($qb->expr()->field('when')->equals(null))
-            ->addOr($qb->expr()->field('when')->lte(new \DateTime()))
+            ->addOr($qb->expr()->field('whenAt')->equals(null))
+            ->addOr($qb->expr()->field('whenAt')->lte(new \DateTime()))
             ->field('locked')->equals(null);
 
         $query = $qb->getQuery();
@@ -136,7 +136,7 @@ class JobManager implements JobManagerInterface
             return result;
         }';
 
-        $qb = $this->dm->createQueryBuilder($this->documentName)
+        $qb = $this->getDocumentManager()->createQueryBuilder($this->getDocumentName())
             ->map($mapFunc)
             ->reduce($reduceFunc);
         $query = $qb->getQuery();
@@ -168,7 +168,7 @@ class JobManager implements JobManagerInterface
      */
     public function getJob($workerName = null, $methodName = null, $prioritize = true)
     {
-        $qb = $this->dm->createQueryBuilder($this->documentName);
+        $qb = $this->getDocumentManager()->createQueryBuilder($this->getDocumentName());
         $qb
             ->findAndUpdate()
             ->returnNew();
@@ -189,8 +189,8 @@ class JobManager implements JobManagerInterface
 
         // Filter
         $qb
-            ->addOr($qb->expr()->field('when')->equals(null))
-            ->addOr($qb->expr()->field('when')->lte(new \DateTime()))
+            ->addOr($qb->expr()->field('whenAt')->equals(null))
+            ->addOr($qb->expr()->field('whenAt')->lte(new \DateTime()))
             ->field('status')->equals(Job::STATUS_NEW)
             ->field('locked')->equals(null);
         // Update
@@ -210,8 +210,8 @@ class JobManager implements JobManagerInterface
 
     public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
     {
-        $this->dm->remove($job);
-        $this->dm->flush();
+        $this->getDocumentManager()->remove($job);
+        $this->getDocumentManager()->flush();
     }
 
     public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
@@ -236,19 +236,18 @@ class JobManager implements JobManagerInterface
             if ($oldJob) {
                 // Old job exists - just override fields Set higher priority
                 $oldJob->setPriority(max($job->getPriority(), $oldJob->getPriority()));
-                $oldJob->setWhen(min($job->getWhen(), $oldJob->getWhen()));
+                $oldJob->setWhenAt(min($job->getWhenAt(), $oldJob->getWhenAt()));
                 $oldJob->setBatch(true);
                 $oldJob->setUpdatedAt(new \DateTime());
-
-                $this->dm->flush();
+                $this->getDocumentManager()->flush();
 
                 return $oldJob;
             }
         }
 
         // Just save a new job
-        $this->dm->persist($job);
-        $this->dm->flush();
+        $this->getDocumentManager()->persist($job);
+        $this->getDocumentManager()->flush();
 
         return $job;
     }
