@@ -152,11 +152,11 @@ class JobManager implements JobManagerInterface
         $qb = $repositoryManager->createQueryBuilder('j');
         $qb = $qb
             ->select('j')
-            ->where('j.status = :status')->setParameter(':status', Job::STATUS_NEW);
-//            ->andWhere('j.locked is NULL');
-//            ->andWhere($qb->expr()->orX($qb->expr()->isNull('j.whenAt'),
-//                        $qb->expr()->lte('j.whenAt', ':whenAt')))
-//            ->setParameter(':whenAt', new \DateTime());
+            ->where('j.status = :status')->setParameter(':status', Job::STATUS_NEW)
+            ->andWhere('j.locked is NULL')
+            ->andWhere($qb->expr()->orX($qb->expr()->isNull('j.whenAt'),
+                        $qb->expr()->lte('j.whenAt', ':whenAt')))
+            ->setParameter(':whenAt', new \DateTime());
 
         if ($workerName) {
             $qb = $qb->andWhere('j.workerName = :workerName')->setParameter(':workerName', $workerName);
