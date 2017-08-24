@@ -23,7 +23,8 @@ class JobManagerTest extends BaseJobManagerTest
 
         self::$beanstalkd = new Pheanstalk($host);
 
-        self::$jobManager = new JobManager(self::$beanstalkd);
+        self::$jobManager = new JobManager();
+        self::$jobManager->setBeanstalkd(self::$beanstalkd);
         self::$worker = new FibonacciWorker();
         self::$worker->setJobClass($className);
 
