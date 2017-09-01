@@ -7,10 +7,10 @@ use Doctrine\ORM\Mapping as ORM;
 
 /**
  * @ORM\Entity
- * @ORM\Table(indexes={@ORM\Index(name="job_crc_hash_idx", columns={"crc_hash","status"}),
- *                  @ORM\Index(name="job_priority_idx", columns={"priority","when_at"}),
- *                  @ORM\Index(name="job_when_idx", columns={"when_at","locked"}),
- *                  @ORM\Index(name="job_status_idx", columns={"status","locked","when_at"})})
+ * @ORM\Table(name="job", indexes={@ORM\Index(name="job_crc_hash_idx", columns={"crcHash","status"}),
+ *                  @ORM\Index(name="job_priority_idx", columns={"priority","whenAt"}),
+ *                  @ORM\Index(name="job_when_idx", columns={"whenAt","locked"}),
+ *                  @ORM\Index(name="job_status_idx", columns={"status","locked","whenAt"})})
  */
 class Job extends BaseJob
 {

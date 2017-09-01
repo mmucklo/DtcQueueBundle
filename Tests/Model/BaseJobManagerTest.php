@@ -87,7 +87,7 @@ abstract class BaseJobManagerTest extends TestCase
         echo "\n".static::class.": Testing Performance\n";
         flush();
         $start = microtime(true);
-        $jobsTotal = 10;
+        $jobsTotal = 1000;
         self::$jobManager->enableSorting = false;    // Ignore priority
 
         for ($i = 0; $i < $jobsTotal; ++$i) {
