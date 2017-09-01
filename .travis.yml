@@ -23,6 +23,7 @@ before_script:
   - composer self-update
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then extension="mongo"; echo "yes" | pecl install mongo; else extension="mongodb"; pecl install mongodb; fi
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then composer require "alcaeus/mongo-php-adapter" --ignore-platform-reqs; fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then composer require "symfony/framework-bundle:3.3.6" --ignore-platform-reqs; fi
   - composer install
 
 script: BEANSTALKD_HOST=localhost MONGODB_HOST=localhost RABBIT_MQ_HOST=localhost MYSQL_HOST=localhost MYSQL_USER=root MYSQL_DATABASE=queue_test bin/phpunit --coverage-text
