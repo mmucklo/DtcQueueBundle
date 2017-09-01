@@ -7,6 +7,7 @@ class Job
     const STATUS_SUCCESS = 'success';
     const STATUS_ERROR = 'error';
     const STATUS_NEW = 'new';
+    const STATUS_EXPIRED = 'expired';
 
     protected $id;
     protected $workerName;
@@ -21,7 +22,7 @@ class Job
     protected $locked;
     protected $lockedAt;
     protected $whenAt;
-    protected $expire;
+    protected $expiresAt;
     protected $createdAt;
     protected $updatedAt;
     protected $delay;
@@ -36,7 +37,7 @@ class Job
     protected $jobManager;
 
     /**
-     * @return
+     * @return string|null
      */
     public function getMessage()
     {
@@ -44,7 +45,7 @@ class Job
     }
 
     /**
-     * @param $message
+     * @param string $message
      */
     public function setMessage($message)
     {
@@ -52,7 +53,7 @@ class Job
     }
 
     /**
-     * @return $status
+     * @return string The status of the job
      */
     public function getStatus()
     {
@@ -60,7 +61,7 @@ class Job
     }
 
     /**
-     * @return $locked
+     * @return bool|null
      */
     public function getLocked()
     {
@@ -68,7 +69,7 @@ class Job
     }
 
     /**
-     * @return $lockedAt
+     * @return \DateTime|null
      */
     public function getLockedAt()
     {
@@ -76,15 +77,15 @@ class Job
     }
 
     /**
-     * @return $expire
+     * @return \DateTime|null
      */
-    public function getExpire()
+    public function getExpiresAt()
     {
-        return $this->expire;
+        return $this->expiresAt;
     }
 
     /**
-     * @param $status
+     * @param string $status The status of the job
      */
     public function setStatus($status)
     {
@@ -92,7 +93,7 @@ class Job
     }
 
     /**
-     * @param $locked
+     * @param bool|null $locked
      */
     public function setLocked($locked)
     {
@@ -100,7 +101,7 @@ class Job
     }
 
     /**
-     * @param $lockedAt
+     * @param \DateTime|null $lockedAt
      */
     public function setLockedAt($lockedAt)
     {
@@ -108,15 +109,15 @@ class Job
     }
 
     /**
-     * @param $expire
+     * @param \DateTime $expiresAt
      */
-    public function setExpire($expire)
+    public function setExpiresAt(\DateTime $expiresAt)
     {
-        $this->expire = $expire;
+        $this->expiresAt = $expiresAt;
     }
 
     /**
-     * @return $id
+     * @return int
      */
     public function getId()
     {
@@ -124,7 +125,7 @@ class Job
     }
 
     /**
-     * @return $workerName
+     * @return string
      */
     public function getWorkerName()
     {
@@ -132,7 +133,7 @@ class Job
     }
 
     /**
-     * @return $className
+     * @return string
      */
     public function getClassName()
     {
@@ -140,7 +141,7 @@ class Job
     }
 
     /**
-     * @return $method
+     * @return string
      */
     public function getMethod()
     {
@@ -156,7 +157,7 @@ class Job
     }
 
     /**
-     * @return $batch
+     * @return bool
      */
     public function getBatch()
     {
@@ -164,7 +165,7 @@ class Job
     }
 
     /**
-     * @return $priority
+     * @return int
      */
     public function getPriority()
     {
@@ -172,7 +173,7 @@ class Job
     }
 
     /**
-     * @return $crcHash
+     * @return string
      */
     public function getCrcHash()
     {
@@ -180,7 +181,7 @@ class Job
     }
 
     /**
-     * @return $whenAt
+     * @return \DateTime|null
      */
     public function getWhenAt()
     {
@@ -188,7 +189,7 @@ class Job
     }
 
     /**
-     * @return $createdAt
+     * @return \DateTime
      */
     public function getCreatedAt()
     {
@@ -196,7 +197,7 @@ class Job
     }
 
     /**
-     * @return $updatedAt
+     * @return \DateTime
      */
     public function getUpdatedAt()
     {
@@ -204,7 +205,7 @@ class Job
     }
 
     /**
-     * @return $jobManager
+     * @return JobManagerInterface
      */
     public function getJobManager()
     {
@@ -212,7 +213,7 @@ class Job
     }
 
     /**
-     * @param $id
+     * @param mixed $id
      */
     public function setId($id)
     {
@@ -220,7 +221,7 @@ class Job
     }
 
     /**
-     * @param $workerName
+     * @param string $workerName
      */
     public function setWorkerName($workerName)
     {
@@ -236,7 +237,7 @@ class Job
     }
 
     /**
-     * @param $method
+     * @param string $method
      */
     public function setMethod($method)
     {
@@ -244,7 +245,7 @@ class Job
     }
 
     /**
-     * @return mixed
+     * @return \DateTime|null
      */
     public function getStartedAt()
     {
@@ -252,7 +253,7 @@ class Job
     }
 
     /**
-     * @param mixed $startedAt
+     * @param \DateTime $startedAt
      */
     public function setStartedAt(\DateTime $startedAt)
     {
@@ -260,7 +261,7 @@ class Job
     }
 
     /**
-     * @return mixed
+     * @return \DateTime|null
      */
     public function getFinishedAt()
     {
@@ -268,7 +269,7 @@ class Job
     }
 
     /**
-     * @param mixed $finishedAt
+     * @param \DateTime $finishedAt
      */
     public function setFinishedAt($finishedAt)
     {
@@ -276,7 +277,7 @@ class Job
     }
 
     /**
-     * @return mixed
+     * @return int|null
      */
     public function getMaxDuration()
     {
@@ -284,7 +285,7 @@ class Job
     }
 
     /**
-     * @param mixed $maxDuration
+     * @param int|null $maxDuration
      */
     public function setMaxDuration($maxDuration)
     {
@@ -292,22 +293,22 @@ class Job
     }
 
     /**
-     * @param $args
+     * @param array $args
      */
     public function setArgs($args)
     {
-        if (!$this->recursiveValidArgs($args)) {
+        if (!$this->validateArgs($args)) {
             throw new \Exception('Args must not contain object');
         }
 
         $this->args = $args;
     }
 
-    protected function recursiveValidArgs($args)
+    protected function validateArgs($args)
     {
         if (is_array($args)) {
             foreach ($args as $key => $value) {
-                if (!$this->recursiveValidArgs($value)) {
+                if (!$this->validateArgs($value)) {
                     return false;
                 }
             }
@@ -319,7 +320,7 @@ class Job
     }
 
     /**
-     * @param $batch
+     * @param bool $batch
      */
     public function setBatch($batch)
     {
@@ -327,7 +328,7 @@ class Job
     }
 
     /**
-     * @param $priority
+     * @param int $priority
      */
     public function setPriority($priority)
     {
@@ -335,7 +336,7 @@ class Job
     }
 
     /**
-     * @param $crcHash
+     * @param string $crcHash
      */
     public function setCrcHash($crcHash)
     {
@@ -343,33 +344,33 @@ class Job
     }
 
     /**
-     * @param $whenAt
+     * @param \DateTime $whenAt
      */
-    public function setWhenAt($whenAt)
+    public function setWhenAt(\DateTime $whenAt)
     {
         $this->whenAt = $whenAt;
     }
 
     /**
-     * @param $createdAt
+     * @param \DateTime $createdAt
      */
-    public function setCreatedAt($createdAt)
+    public function setCreatedAt(\DateTime $createdAt)
     {
         $this->createdAt = $createdAt;
     }
 
     /**
-     * @param $updatedAt
+     * @param \DateTime $updatedAt
      */
-    public function setUpdatedAt($updatedAt)
+    public function setUpdatedAt(\DateTime $updatedAt)
     {
         $this->updatedAt = $updatedAt;
     }
 
     /**
-     * @param $jobManager
+     * @param JobManagerInterface $jobManager
      */
-    public function setJobManager($jobManager)
+    public function setJobManager(JobManagerInterface $jobManager)
     {
         $this->jobManager = $jobManager;
     }
@@ -409,7 +410,7 @@ class Job
     }
 
     /**
-     * @return $delay
+     * @return int
      */
     public function getDelay()
     {
@@ -417,7 +418,7 @@ class Job
     }
 
     /**
-     * @return $worker
+     * @return Worker
      */
     public function getWorker()
     {
@@ -425,7 +426,7 @@ class Job
     }
 
     /**
-     * @param $delay
+     * @param int $delay Delay in seconds
      */
     public function setDelay($delay)
     {
@@ -441,7 +442,7 @@ class Job
     }
 
     /**
-     * @return $elapsed
+     * @return int
      */
     public function getElapsed()
     {
@@ -449,13 +450,16 @@ class Job
     }
 
     /**
-     * @param $elapsed
+     * @param int $elapsed
      */
     public function setElapsed($elapsed)
     {
         $this->elapsed = $elapsed;
     }
 
+    /**
+     * @return string A json_encoded version of a queueable version of the object
+     */
     public function toMessage()
     {
         $arr = array(
@@ -467,6 +471,9 @@ class Job
         return json_encode($arr);
     }
 
+    /**
+     * @param string $message a json_encoded version of the object
+     */
     public function fromMessage($message)
     {
         $arr = json_decode($message, true);
@@ -474,6 +481,4 @@ class Job
         $this->setArgs($arr['args']);
         $this->setMethod($arr['method']);
     }
-
-
 }

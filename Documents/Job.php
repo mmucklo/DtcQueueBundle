@@ -45,22 +45,22 @@ class Job extends BaseJob
     protected $args;
 
     /**
-     * @ODM\Field(type="boolean")
+     * @ODM\Field(type="boolean", nullable=true)
      */
     protected $batch;
 
     /**
-     * @ODM\Field(type="boolean")
+     * @ODM\Field(type="boolean", nullable=true)
      */
     protected $locked;
 
     /**
-     * @ODM\Field(type="date")
+     * @ODM\Field(type="date", nullable=true)
      */
     protected $lockedAt;
 
     /**
-     * @ODM\Field(type="int")
+     * @ODM\Field(type="int", nullable=true)
      * @ODM\Index(unique=false, order="asc")
      */
     protected $priority;
@@ -71,22 +71,27 @@ class Job extends BaseJob
     protected $crcHash;
 
     /**
-     * @ODM\Field(type="date")
+     * @ODM\Field(type="date", nullable=true)
      * @ODM\Index(unique=false, order="asc")
      */
-    protected $when;
+    protected $whenAt;
+
+    /**
+     * @ODM\Field(type="date", nullable=true)
+     */
+    protected $expiresAt;
 
     /**
      * When the job started.
      *
-     * @ODM\Field(type="date")
+     * @ODM\Field(type="date", nullable=true)
      */
     protected $startedAt;
 
     /**
      * When the job finished.
      *
-     * @ODM\Field(type="date")
+     * @ODM\Field(type="date", nullable=true)
      */
     protected $finishedAt;
 
@@ -96,7 +101,7 @@ class Job extends BaseJob
     protected $elapsed;
 
     /**
-     * @ODM\Field(type="string")
+     * @ODM\Field(type="string", nullable=true)
      */
     protected $message;
 
@@ -109,4 +114,9 @@ class Job extends BaseJob
      * @ODM\Field(type="date")
      */
     protected $updatedAt;
+
+    /**
+     * @ODM\Field(type="int", nullable=true)
+     */
+    protected $maxDuration;
 }

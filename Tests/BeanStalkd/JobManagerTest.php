@@ -18,7 +18,7 @@ class JobManagerTest extends BaseJobManagerTest
 
     public static function setUpBeforeClass()
     {
-        $host = 'localhost';
+        $host = getenv('BEANSTALKD_HOST');
         $className = 'Dtc\QueueBundle\Beanstalkd\Job';
 
         self::$beanstalkd = new Pheanstalk($host);
@@ -28,6 +28,18 @@ class JobManagerTest extends BaseJobManagerTest
         self::$worker = new FibonacciWorker();
         self::$worker->setJobClass($className);
 
+        $drained = 0;
+        do {
+            $beanJob = self::$beanstalkd->reserve(1);
+            if ($beanJob) {
+                self::$beanstalkd->delete($beanJob);
+                ++$drained;
+            }
+        } while ($beanJob);
+
+        if ($drained) {
+            echo "\nbeanstalkd: drained $drained prior to test\n";
+        }
         parent::setUpBeforeClass();
     }
 }

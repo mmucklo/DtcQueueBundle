@@ -41,7 +41,7 @@ class JobManagerTest extends BaseJobManagerTest
         $classPath = __DIR__.'../../Documents';
         $config->setMetadataDriverImpl(AnnotationDriver::create($classPath));
 
-        self::$dm = DocumentManager::create(new Connection(), $config);
+        self::$dm = DocumentManager::create(new Connection(getenv('MONGODB_HOST')), $config);
 
         $documentName = 'Dtc\QueueBundle\Documents\Job';
         $sm = self::$dm->getSchemaManager();
@@ -49,7 +49,7 @@ class JobManagerTest extends BaseJobManagerTest
 
         $sm->dropDocumentCollection($documentName);
         $sm->createDocumentCollection($documentName);
-        $sm->updateDocumentIndexes($documentName, $timeout);
+        $sm->updateDocumentIndexes($documentName);
 
         self::$jobManager = new JobManager(self::$dm, $documentName);
         self::$worker = new FibonacciWorker();

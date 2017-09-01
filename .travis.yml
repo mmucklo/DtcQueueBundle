@@ -5,7 +5,18 @@ php:
   - 7.0
   - 7.1
 
-services: mongodb
+services:
+  - mongodb
+  - rabbitmq
+
+
+# beanstalkd setup from https://github.com/assaf/ironium/blob/220c112fd92ffea144b954ae4697c6b5cabe7016/.travis.yml
+# (MIT Licensed - see LICENSE for MIT License information, Copyright (c) 2014 Assaf Arkin)
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install -y beanstalkd
+  - echo "START=yes" | sudo tee -a /etc/default/beanstalkd > /dev/null
+  - sudo service beanstalkd restart
 
 before_script:
   - composer self-update
@@ -13,4 +24,4 @@ before_script:
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then composer require "alcaeus/mongo-php-adapter" --ignore-platform-reqs; fi
   - composer install
 
-script: bin/phpunit --coverage-text
+script: BEANSTALKD_HOST=localhost MONGODB_HOST=localhost RABBIT_MQ_HOST=localhost bin/phpunit --coverage-text

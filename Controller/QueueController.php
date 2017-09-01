@@ -19,8 +19,6 @@ class QueueController extends Controller
     {
         $params = array();
         $jobManager = $this->get('dtc_queue.job_manager');
-        $workerName = null;
-        $methodName = null;
 
         $params['status'] = $jobManager->getStatus();
 
@@ -55,7 +53,6 @@ class QueueController extends Controller
     public function workersAction()
     {
         $params = array();
-        //   ve('testing one two...');
 
         return $params;
     }

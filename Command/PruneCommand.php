@@ -20,6 +20,6 @@ class PruneCommand extends ContainerAwareCommand
     {
         $container = $this->getContainer();
         $jobManager = $container->get('dtc_queue.job_manager');
-        $job = $jobManager->pruneErroneousJobs();
+        $jobManager->pruneErroneousJobs();
     }
 }

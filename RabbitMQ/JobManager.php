@@ -2,13 +2,12 @@
 
 namespace Dtc\QueueBundle\RabbitMQ;
 
-use Dtc\QueueBundle\Model\Job;
-use Dtc\QueueBundle\Model\JobManagerInterface;
+use Dtc\QueueBundle\Model\AbstractJobManager;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AbstractConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
-class JobManager implements JobManagerInterface
+class JobManager extends AbstractJobManager
 {
     /** @var AMQPChannel */
     protected $channel;
@@ -20,14 +19,34 @@ class JobManager implements JobManagerInterface
 
     protected $channelSetup = false;
 
+    protected $hostname;
+    protected $pid;
+    protected $maxPriority;
+
+    public function __construct()
+    {
+        $this->hostname = gethostname() ?: '';
+        $this->pid = getmypid();
+    }
+
     public function setExchangeArgs($exchange, $type, $passive, $durable, $autoDelete)
     {
         $this->exchangeArgs = func_get_args();
     }
 
-    public function setQueueArgs($queue, $passive, $durable, $exclusive, $autoDelete)
+    public function setQueueArgs($queue, $passive, $durable, $exclusive, $autoDelete, $maxPriority)
     {
-        $this->queueArgs = func_get_args();
+        $arguments = func_get_args();
+        array_pop($arguments); // Pop off max priority
+
+        $this->queueArgs = $arguments;
+        if (!ctype_digit(strval($maxPriority))) {
+            throw new \Exception('Max Priority needs to be a non-negative integer');
+        }
+        if (strval(intval($maxPriority)) !== strval($maxPriority)) {
+            throw new \Exception('Priority is higher than '.PHP_INT_MAX);
+        }
+        $this->maxPriority = $maxPriority;
     }
 
     public function setAMQPConnection(AbstractConnection $connection)
@@ -36,10 +55,29 @@ class JobManager implements JobManagerInterface
         $this->channel = $connection->channel();
     }
 
-    protected function setupChannel()
+    /**
+     * @return AMQPChannel
+     */
+    public function getChannel()
     {
+        return $this->channel;
+    }
+
+    public function setupChannel()
+    {
+        if (!$this->queueArgs) {
+            throw new \Exception(__METHOD__.': queue args need to be set via setQueueArgs(...)');
+        }
+        if (!$this->exchangeArgs) {
+            throw new \Exception(__METHOD__.': exchange args need to be set via setExchangeArgs(...)');
+        }
+
         if (!$this->channelSetup) {
             call_user_func_array([$this->channel, 'exchange_declare'], $this->exchangeArgs);
+            if ($this->maxPriority) {
+                array_push($this->queueArgs, false);
+                array_push($this->queueArgs, ['x-max-priority' => ['I', intval($this->maxPriority)]]);
+            }
             call_user_func_array([$this->channel, 'queue_declare'], $this->queueArgs);
             $this->channel->queue_bind($this->queueArgs[0], $this->exchangeArgs[0]);
             $this->channelSetup = true;
@@ -49,7 +87,20 @@ class JobManager implements JobManagerInterface
     public function save(\Dtc\QueueBundle\Model\Job $job)
     {
         $this->setupChannel();
+        if (!$job->getId()) {
+            $job->setId(uniqid($this->hostname.'-'.$this->pid, true));
+        }
+
+        if (null !== ($priority = $job->getPriority()) && !$this->maxPriority) {
+            throw new \Exception('This queue does not support priorities');
+        }
+
         $msg = new AMQPMessage($job->toMessage());
+
+        if ($this->maxPriority) {
+            $priority = $priority === null ? 0 : $this->maxPriority - $priority;
+            $msg->set('priority', $priority);
+        }
         $this->channel->basic_publish($msg, $this->exchangeArgs[0]);
 
         return $job;
@@ -66,7 +117,7 @@ class JobManager implements JobManagerInterface
         if ($message) {
             $job = new Job();
             $job->fromMessage($message->body);
-            $job->setId($message->delivery_info['delivery_tag']);
+            $job->setDeliveryTag($message->delivery_info['delivery_tag']);
 
             return $job;
         }
@@ -74,15 +125,13 @@ class JobManager implements JobManagerInterface
         return null;
     }
 
-    public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
-    {
-        throw new \Exception('unsupported');
-    }
-
     // Save History get called upon completion of the job
     public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
     {
-        $deliveryTag = $job->getId();
+        if (!$job instanceof Job) {
+            throw new \Exception("Expected \Dtc\QueueBundle\RabbitMQ\Job, got ".get_class($job));
+        }
+        $deliveryTag = $job->getDeliveryTag();
         $this->channel->basic_ack($deliveryTag);
 
         return;
@@ -91,31 +140,5 @@ class JobManager implements JobManagerInterface
     public function __destruct()
     {
         $this->channel->close();
-    }
-
-    public function getJobCount($workerName = null, $methodName = null)
-    {
-        if ($methodName) {
-            throw new \Exception('Unsupported');
-        }
-
-        if ($workerName) {
-            throw new \Exception('Unsupported');
-        }
-    }
-
-    public function resetErroneousJobs($workerName = null, $methodName = null)
-    {
-        throw new \Exception('Unsupported');
-    }
-
-    public function pruneErroneousJobs($workerName = null, $methodName = null)
-    {
-        throw new \Exception('Unsupported');
-    }
-
-    public function getStatus()
-    {
-        throw new \Exception('Unsupported');
     }
 }

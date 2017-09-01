@@ -62,6 +62,7 @@ class JobManager implements JobManagerInterface
         }
 
         $query = $qb->getQuery();
+
         return $query->execute();
     }
 
@@ -81,6 +82,7 @@ class JobManager implements JobManagerInterface
         }
 
         $query = $qb->getQuery();
+
         return $query->execute();
     }
 
@@ -94,23 +96,26 @@ class JobManager implements JobManagerInterface
                 $qb = $qb->where($qb->expr()->andX($qb->expr()->eq('j.workerName', ':workerName'),
                                              $qb->expr()->eq('j.method', ':method')))
                     ->setParameter(':method', $method);
-            }
-            else {
+            } else {
                 $qb = $qb->where('j.workerName = :workerName');
             }
             $qb = $qb->setParameter(':workerName', $workerName);
             $where = 'andWhere';
-        }
-        else if ($method) {
+        } elseif ($method) {
             $qb = $qb->where('j.method = :method')->setParameter(':method', $method);
             $where = 'andWhere';
         }
 
+        $dateTime = new \DateTime();
         // Filter
         $qb = $qb
             ->$where($qb->expr()->orX($qb->expr()->isNull('j.whenAt'),
                                         $qb->expr()->lte('j.whenAt', ':whenAt')))
-            ->andWhere('j.locked is NULL')->setParameter(':whenAt', new \DateTime());
+            ->andWhere($qb->expr()->orX($qb->expr()->isNull('j.expiresAt'),
+                $qb->expr()->gt('j.expiresAt', ':expiresAt')))
+            ->andWhere('j.locked is NULL')
+            ->setParameter(':whenAt', $dateTime)
+            ->setParameter(':expiresAt', $dateTime);
 
         $query = $qb->getQuery();
 
@@ -150,29 +155,34 @@ class JobManager implements JobManagerInterface
         $entityManager->beginTransaction();
         $repositoryManager = $this->getRepository();
         $qb = $repositoryManager->createQueryBuilder('j');
+        $dateTime = new \DateTime();
         $qb = $qb
             ->select('j')
             ->where('j.status = :status')->setParameter(':status', Job::STATUS_NEW)
             ->andWhere('j.locked is NULL')
             ->andWhere($qb->expr()->orX($qb->expr()->isNull('j.whenAt'),
                         $qb->expr()->lte('j.whenAt', ':whenAt')))
-            ->setParameter(':whenAt', new \DateTime());
+            ->andWhere($qb->expr()->orX($qb->expr()->isNull('j.expiresAt'),
+                        $qb->expr()->gt('j.expiresAt', ':expiresAt')))
+            ->setParameter(':whenAt', $dateTime)
+            ->setParameter(':expiresAt', $dateTime);
 
         if ($workerName) {
-            $qb = $qb->andWhere('j.workerName = :workerName')->setParameter(':workerName', $workerName);
+            $qb = $qb->andWhere('j.workerName = :workerName')
+                ->setParameter(':workerName', $workerName);
         }
 
         if ($methodName) {
-            $qb = $qb->andWhere('j.method = :method')->setParameter(':method', $methodName);
+            $qb = $qb->andWhere('j.method = :method')
+                ->setParameter(':method', $methodName);
         }
 
         if ($prioritize) {
-            $qb = $qb->add('orderBy','j.priority ASC, j.whenAt ASC');
+            $qb = $qb->add('orderBy', 'j.priority ASC, j.whenAt ASC');
         } else {
             $qb = $qb->orderBy('j.whenAt', 'ASC');
         }
         $qb = $qb->setMaxResults(1);
-
 
         /** @var QueryBuilder $qb */
         $query = $qb->getQuery();
@@ -183,21 +193,23 @@ class JobManager implements JobManagerInterface
             /** @var Job $job */
             $job = $jobs[0];
             if (!$job) {
-                throw new \Exception("No job found for $hash, even though last result was count of $result");
+                throw new \Exception("No job found for $hash, even though last result was count ".count($jobs));
             }
             $job->setLocked(true);
             $job->setLockedAt(new \DateTime());
             $entityManager->commit();
             $entityManager->flush();
+
             return $job;
         }
+
         return null;
-   }
+    }
 
     public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
     {
-        if (! $job instanceof Job) {
-            throw new \Exception("Job must be instance of Dtc\\QueuBundle\\Entity\\Job, instead it's " . get_class($job));
+        if (!$job instanceof Job) {
+            throw new \Exception("Job must be instance of Dtc\\QueuBundle\\Entity\\Job, instead it's ".get_class($job));
         }
         $this->entityManager->remove($job);
         $this->entityManager->flush();
@@ -230,6 +242,7 @@ class JobManager implements JobManagerInterface
                 $oldJob->setBatch(true);
                 $oldJob->setUpdatedAt(new \DateTime());
                 $entityManager->flush();
+
                 return $oldJob;
             }
         }

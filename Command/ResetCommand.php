@@ -35,6 +35,6 @@ class ResetCommand extends ContainerAwareCommand
     {
         $container = $this->getContainer();
         $jobManager = $container->get('dtc_queue.job_manager');
-        $job = $jobManager->resetErroneousJobs();
+        $jobManager->resetErroneousJobs();
     }
 }

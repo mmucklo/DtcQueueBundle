@@ -57,6 +57,7 @@ class Configuration implements ConfigurationInterface
                                 ->booleanNode('durable')->defaultTrue()->end()
                                 ->booleanNode('exclusive')->defaultFalse()->end()
                                 ->booleanNode('auto_delete')->defaultFalse()->end()
+                                ->integerNode('max_priority')->defaultValue(255)->end()
                             ->end()
                         ->end()
                         ->arrayNode('exchange_args')

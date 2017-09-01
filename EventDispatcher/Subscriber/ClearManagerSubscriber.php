@@ -17,7 +17,6 @@ class ClearManagerSubscriber implements EventSubscriberInterface
 
     public function onPostJob(Event $event)
     {
-        ve('on post job...');
     }
 
     public static function getSubscribedEvents()

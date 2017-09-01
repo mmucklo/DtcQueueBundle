@@ -168,9 +168,10 @@ class WorkerCompilerPass implements CompilerPassInterface
     }
 
     /**
-     * Sets up the grid source for viewing the queue
+     * Sets up the grid source for viewing the queue.
      */
-    public function setupGridSource(ContainerBuilder $container) {
+    public function setupGridSource(ContainerBuilder $container)
+    {
         switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
             case 'mongodb':
                 $container->setAlias('dtc_queue.grid.source.job', new Alias('dtc_queue.document.grid.source.job'));
@@ -180,7 +181,6 @@ class WorkerCompilerPass implements CompilerPassInterface
                 break;
         }
     }
-
 
     /**
      * Determines the job class based on teh queue manager type.
@@ -203,7 +203,7 @@ class WorkerCompilerPass implements CompilerPassInterface
                     $jobClass = 'Dtc\\QueueBundle\\Beanstalkd\\Job';
                     break;
                 case 'rabbit_mq':
-                    $jobClass = 'Dtc\\QueueBundle\\Model\\Job';
+                    $jobClass = 'Dtc\\QueueBundle\\RabbitMQ\\Job';
                     break;
                 case 'orm':
                     $jobClass = 'Dtc\\QueueBundle\\Entity\\Job';

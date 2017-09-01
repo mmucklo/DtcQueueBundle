@@ -184,20 +184,21 @@ class JobManager implements JobManagerInterface
         if ($prioritize) {
             $qb->sort('priority', 'asc');
         } else {
-            $qb->sort('when', 'asc');
+            $qb->sort('whenAt', 'asc');
         }
 
         // Filter
+        $date = new \DateTime();
         $qb
-            ->addOr($qb->expr()->field('whenAt')->equals(null))
-            ->addOr($qb->expr()->field('whenAt')->lte(new \DateTime()))
+            ->addAnd($qb->expr()->addOr($qb->expr()->field('whenAt')->equals(null), $qb->expr()->field('whenAt')->lte($date)),
+                $qb->expr()->addOr($qb->expr()->field('expiresAt')->equals(null), $qb->expr()->field('expiresAt')->gt($date)))
             ->field('status')->equals(Job::STATUS_NEW)
             ->field('locked')->equals(null);
+
         // Update
         $qb
-            ->field('lockedAt')->set(new \DateTime())        // Set started
-            ->field('locked')->set(true)
-        ;
+            ->field('lockedAt')->set($date) // Set started
+            ->field('locked')->set(true);
 
         //$arr = $qb->getQueryArray();
         $query = $qb->getQuery();

@@ -2,9 +2,9 @@
 
 namespace Dtc\QueueBundle\Tests\Model;
 
-use Dtc\QueueBundle\Model\Job;
+use PHPUnit\Framework\TestCase;
 
-class BaseJobManagerTest extends \PHPUnit_Framework_TestCase
+abstract class BaseJobManagerTest extends TestCase
 {
     public static $worker;
     public static $jobClass;
@@ -84,8 +84,10 @@ class BaseJobManagerTest extends \PHPUnit_Framework_TestCase
 
     public function testPerformance()
     {
+        echo "\n".static::class.": Testing Performance\n";
+        flush();
         $start = microtime(true);
-        $jobsTotal = 1000;
+        $jobsTotal = 10;
         self::$jobManager->enableSorting = false;    // Ignore priority
 
         for ($i = 0; $i < $jobsTotal; ++$i) {
