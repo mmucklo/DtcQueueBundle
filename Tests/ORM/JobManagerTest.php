@@ -1,18 +1,13 @@
 <?php
 
-namespace Dtc\QueueBundle\Tests\Documents;
+namespace Dtc\QueueBundle\Tests\ORM;
 
-use Doctrine\Common\Annotations\AnnotationRegistry;
-use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Driver\Mysqli\MysqliConnection;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Tools\Setup;
 use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\ORM\JobManager;
-use Doctrine\ORM\Configuration;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 
 /**
  * @author David
@@ -41,7 +36,7 @@ class JobManagerTest extends BaseJobManagerTest
                     'user' => $user,
                     'driver' => 'mysqli',
                     'password' => $password,
-                    'dbname' => $db];
+                    'dbname' => $db, ];
         self::$entityManager = EntityManager::create($params, $config);
 
         $entityName = 'Dtc\QueueBundle\Entity\Job';
