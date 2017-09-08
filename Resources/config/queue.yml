@@ -3,10 +3,11 @@ services:
         synthetic: true
 
     dtc_queue.job_manager.mongodb:
-        class: Dtc\QueueBundle\Documents\JobManager
+        class: Dtc\QueueBundle\ODM\JobManager
         arguments:
             - '@dtc_queue.document_manager'
             - '%dtc_queue.job_class%'
+            - '%dtc_queue.job_class_archive%'
 
     dtc_queue.job_manager.beanstalkd:
         class: Dtc\QueueBundle\Beanstalkd\JobManager
@@ -21,6 +22,7 @@ services:
         arguments:
             - '@dtc_queue.entity_manager'
             - '%dtc_queue.job_class%'
+            - '%dtc_queue.job_class_archive%'
 
     dtc_queue.worker_manager:
         class: Dtc\QueueBundle\Model\WorkerManager

@@ -1,20 +1,24 @@
 <?php
 
-namespace Dtc\QueueBundle\Documents;
+namespace Dtc\QueueBundle\ODM;
 
 use Dtc\QueueBundle\Model\JobManagerInterface;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Dtc\QueueBundle\Documents\Job;
+use Dtc\QueueBundle\Util\Util;
 
 class JobManager implements JobManagerInterface
 {
     protected $documentManager;
     protected $documentName;
+    protected $archiveDocumentName;
 
-    public function __construct(DocumentManager $documentManager, $documentName)
+    public function __construct(DocumentManager $documentManager, $documentName, $archiveDocumentName)
     {
         $this->documentManager = $documentManager;
         $this->documentName = $documentName;
+        $this->archiveDocumentName = $archiveDocumentName;
     }
 
     /**
@@ -34,6 +38,14 @@ class JobManager implements JobManagerInterface
     }
 
     /**
+     * @return string
+     */
+    public function getArchiveDocumentName()
+    {
+        return $this->archiveDocumentName;
+    }
+
+    /**
      * @return DocumentRepository
      */
     public function getRepository()
@@ -43,13 +55,67 @@ class JobManager implements JobManagerInterface
 
     public function resetErroneousJobs($workerName = null, $method = null)
     {
-        $qb = $this->getDocumentManager()->createQueryBuilder($this->getDocumentName());
+        $archiveDocumentName = $this->getArchiveDocumentName();
+        $documentManager = $this->getDocumentManager();
+        $qb = $documentManager->createQueryBuilder($archiveDocumentName);
         $qb
-            ->update()
-            ->multiple(true)
-            ->field('status')->equals(Job::STATUS_ERROR)
-            ->field('locked')->set(null)
-            ->field('status')->set(Job::STATUS_NEW);
+            ->find()
+            ->field('status')->equals(Job::STATUS_ERROR);
+
+        if ($workerName) {
+            $qb->field('workerName')->equals($workerName);
+        }
+
+        if ($method) {
+            $qb->field('method')->equals($method);
+        }
+
+        $query = $qb->getQuery();
+        $count = $query->count();
+
+        $countProcessed = 0;
+        for ($i = 0; $i < $count; $i += 100) {
+            $repository = $documentManager->getRepository($archiveDocumentName);
+            $criterion = ['status' => Job::STATUS_ERROR];
+            if ($workerName) {
+                $criterion['workerName'] = $workerName;
+            }
+            if ($method) {
+                $criterion['method'] = $method;
+            }
+            $results = $repository->findBy($criterion, null, 100);
+            foreach ($results as $jobArchive) {
+                $job = new Job();
+                Util::copy($jobArchive, $job);
+                $job->setStatus(Job::STATUS_NEW);
+                $job->setLocked(null);
+                $job->setLockedAt(null);
+                $job->setUpdatedAt(new \DateTime());
+
+                // Mongo has no transactions, so there is a chance for duplicates if persisting happens
+                //  but things crash on or before remove.
+                try {
+                    $documentManager->persist($job);
+                } catch (\Exception $e) {
+                    // @Todo - output or return a warning?
+                    continue;
+                }
+                $documentManager->remove($jobArchive);
+                ++$countProcessed;
+            }
+            $documentManager->flush();
+        }
+
+        return $countProcessed;
+    }
+
+    public function pruneErroneousJobs($workerName = null, $method = null)
+    {
+        $qb = $this->getDocumentManager()->createQueryBuilder($this->getArchiveDocumentName());
+        $qb
+        ->remove()
+        ->updateMany()
+        ->field('status')->equals(Job::STATUS_ERROR);
 
         if ($workerName) {
             $qb->field('workerName')->equals($workerName);
@@ -63,21 +129,33 @@ class JobManager implements JobManagerInterface
         $query->execute();
     }
 
-    public function pruneErroneousJobs($workerName = null, $method = null)
+    /**
+     * Prunes expired jobs.
+     */
+    public function pruneExpiredJobs()
     {
         $qb = $this->getDocumentManager()->createQueryBuilder($this->getDocumentName());
         $qb
-        ->remove()
-        ->multiple(true)
-        ->field('status')->equals(Job::STATUS_ERROR);
+            ->remove()
+            ->updateMany()
+            ->field('expiresAt')->lte(new \DateTime());
 
-        if ($workerName) {
-            $qb->field('workerName')->equals($workerName);
-        }
+        $query = $qb->getQuery();
+        $query->execute();
+    }
 
-        if ($method) {
-            $qb->field('method')->equals($method);
-        }
+    /**
+     * Removes archived jobs older than $olderThan.
+     *
+     * @param \DateTime $olderThan
+     */
+    public function pruneArchivedJobs(\DateTime $olderThan)
+    {
+        $qb = $this->getDocumentManager()->createQueryBuilder($this->getDocumentName());
+        $qb
+            ->remove()
+            ->updateMany()
+            ->field('updatedAt')->lt($olderThan);
 
         $query = $qb->getQuery();
         $query->execute();

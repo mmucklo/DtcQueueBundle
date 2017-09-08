@@ -67,15 +67,25 @@ class JobManager extends AbstractJobManager
             $beanstalkd = $this->beanstalkd->watch($this->tube);
         }
 
-        $beanJob = $beanstalkd->reserve($this->reserveTimeout);
-        if ($beanJob) {
-            $job = new Job();
-            $job->fromMessage($beanJob->getData());
-            $job->setId($beanJob->getId());
-            $job->setBeanJob($beanJob);
+        $expiredJob = false;
 
-            return $job;
-        }
+        do {
+            $beanJob = $beanstalkd->reserve($this->reserveTimeout);
+            if ($beanJob) {
+                $job = new Job();
+                $job->fromMessage($beanJob->getData());
+                $job->setId($beanJob->getId());
+
+                if (($expiresAt = $job->getExpiresAt()) && $expiresAt->getTimestamp() < time()) {
+                    $expiredJob = true;
+                    $this->beanstalkd->delete($beanJob);
+                    continue;
+                }
+                $job->setBeanJob($beanJob);
+
+                return $job;
+            }
+        } while ($expiredJob);
     }
 
     public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
@@ -95,8 +105,18 @@ class JobManager extends AbstractJobManager
         }
     }
 
+    public function pruneExpiredJobs()
+    {
+        throw new \Exception('Not Supported');
+    }
+
     public function getStats()
     {
         return $this->beanstalkd->stats();
+    }
+
+    public function pruneArchivedJobs(\DateTime $olderThan)
+    {
+        throw new \Exception('Not Supported');
     }
 }

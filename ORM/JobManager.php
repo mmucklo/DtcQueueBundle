@@ -5,19 +5,31 @@ namespace Dtc\QueueBundle\ORM;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Id\AssignedGenerator;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\QueryBuilder;
 use Dtc\QueueBundle\Entity\Job;
+use Dtc\QueueBundle\Entity\JobArchive;
 use Dtc\QueueBundle\Model\JobManagerInterface;
+use Dtc\QueueBundle\Util\Util;
 
 class JobManager implements JobManagerInterface
 {
     protected $entityManager;
     protected $entityName;
+    protected $archiveEntityName;
 
-    public function __construct(EntityManager $entityManager, $entityName)
+    public function __construct(EntityManager $entityManager, $entityName, $archiveEntityName)
     {
         $this->entityManager = $entityManager;
         $this->entityName = $entityName;
+        $this->archiveEntityName = $archiveEntityName;
+        if (!$entityName) {
+            throw new \Exception('$entityName is empty');
+        }
+        if (!$archiveEntityName) {
+            throw new \Exception('$archiveEntityName is empty');
+        }
     }
 
     /**
@@ -37,6 +49,14 @@ class JobManager implements JobManagerInterface
     }
 
     /**
+     * @return string
+     */
+    public function getArchiveEntityName()
+    {
+        return $this->archiveEntityName;
+    }
+
+    /**
      * @return EntityRepository
      */
     public function getRepository()
@@ -46,19 +66,77 @@ class JobManager implements JobManagerInterface
 
     public function resetErroneousJobs($workerName = null, $method = null)
     {
-        $qb = $this->getEntityManager()->createQueryBuilder()->update($this->entityName, 'j');
+        $archiveEntityName = $this->getArchiveEntityName();
+        $entityManager = $this->getEntityManager();
+        $qb = $entityManager
+            ->createQueryBuilder()
+            ->select('count(*)')
+            ->from($archiveEntityName, 'ja')
+            ->where('ja.status = :status');
+
+        if ($workerName) {
+            $qb->andWhere('ja.workerName = :workerName')
+                ->setParameter(':workerName', $workerName);
+        }
+
+        if ($method) {
+            $qb->andWhere('ja.method = :method')
+                ->setParameter(':method', $workerName);
+        }
+
+        $count = $qb->setParameter(':status', Job::STATUS_ERROR)
+            ->getQuery()->getSingleScalarResult();
+
+        if (!$count) {
+            return 0;
+        }
+
+        $countProcessed = 0;
+        for ($i = 0; $i < $count; $i += 100) {
+            $repository = $entityManager->getRepository($archiveEntityName);
+            $criterion = ['status' => Job::STATUS_ERROR];
+            if ($workerName) {
+                $criterion['workerName'] = $workerName;
+            }
+            if ($method) {
+                $criterion['method'] = $method;
+            }
+            $results = $repository->findBy($criterion, 100);
+            $entityManager->beginTransaction();
+            foreach ($results as $jobArchive) {
+                $job = new Job();
+                Util::copy($jobArchive, $job);
+                $job->setStatus(Job::STATUS_NEW);
+                $job->setLocked(null);
+                $job->setLockedAt(null);
+                $job->setUpdatedAt(new \DateTime());
+                $metadata = $entityManager->getClassMetadata($this->getEntityName());
+                $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
+                $metadata->setIdGenerator(new AssignedGenerator());
+                $entityManager->remove($jobArchive);
+                $entityManager->persist($job);
+                ++$countProcessed;
+            }
+            $entityManager->commit();
+            $entityManager->flush();
+        }
+
+        return $countProcessed;
+    }
+
+    public function pruneErroneousJobs($workerName = null, $method = null)
+    {
+        $qb = $this->getEntityManager()->createQueryBuilder()->delete($this->getArchiveEntityName(), 'j');
         $qb = $qb
-            ->set('j.locked', $qb->expr()->literal(null))
-            ->set('j.status', $qb->expr()->literal(Job::STATUS_NEW))
             ->where('j.status = :status')
             ->setParameter(':status', Job::STATUS_ERROR);
 
         if ($workerName) {
-            $qb = $qb->andWhere('j.workerName = :workerName')->setParameter(':workerName', $workerName);
+            $qb->andWhere('j.workerName = :workerName')->setParameter(':workerName', $workerName);
         }
 
         if ($method) {
-            $qb = $qb->andWhere('j.method = :method')->setParameter(':method', $method);
+            $qb->andWhere('j.method = :method')->setParameter(':method', $method);
         }
 
         $query = $qb->getQuery();
@@ -66,20 +144,29 @@ class JobManager implements JobManagerInterface
         return $query->execute();
     }
 
-    public function pruneErroneousJobs($workerName = null, $method = null)
+    public function pruneExpiredJobs()
     {
-        $qb = $this->getEntityManager()->createQueryBuilder()->delete($this->entityName, 'j');
+        $qb = $this->getEntityManager()->createQueryBuilder()->delete($this->getEntityName(), 'j');
         $qb = $qb
-            ->where('j.status = :status')
-            ->setParameter(':status', Job::STATUS_ERROR);
+            ->where('j.expiresAt <= :expiresAt')
+            ->setParameter(':expiresAt', new \DateTime());
 
-        if ($workerName) {
-            $qb = $qb->andWhere('j.workerName = :workerName')->setParameter(':workerName', $workerName);
-        }
+        $query = $qb->getQuery();
 
-        if ($method) {
-            $qb = $qb->andWhere('j.method = :method')->setParameter(':method', $method);
-        }
+        return $query->execute();
+    }
+
+    /**
+     * Removes archived jobs older than $olderThan.
+     *
+     * @param \DateTime $olderThan
+     */
+    public function pruneArchivedJobs(\DateTime $olderThan)
+    {
+        $qb = $this->getEntityManager()->createQueryBuilder()->delete($this->getArchiveEntityName(), 'j');
+        $qb = $qb
+            ->where('j.updatedAt < :updatedAt')
+            ->setParameter(':updatedAt', $olderThan);
 
         $query = $qb->getQuery();
 
@@ -93,22 +180,22 @@ class JobManager implements JobManagerInterface
         $where = 'where';
         if ($workerName) {
             if ($method) {
-                $qb = $qb->where($qb->expr()->andX($qb->expr()->eq('j.workerName', ':workerName'),
+                $qb->where($qb->expr()->andX($qb->expr()->eq('j.workerName', ':workerName'),
                                              $qb->expr()->eq('j.method', ':method')))
                     ->setParameter(':method', $method);
             } else {
-                $qb = $qb->where('j.workerName = :workerName');
+                $qb->where('j.workerName = :workerName');
             }
-            $qb = $qb->setParameter(':workerName', $workerName);
+            $qb->setParameter(':workerName', $workerName);
             $where = 'andWhere';
         } elseif ($method) {
-            $qb = $qb->where('j.method = :method')->setParameter(':method', $method);
+            $qb->where('j.method = :method')->setParameter(':method', $method);
             $where = 'andWhere';
         }
 
         $dateTime = new \DateTime();
         // Filter
-        $qb = $qb
+        $qb
             ->$where($qb->expr()->orX($qb->expr()->isNull('j.whenAt'),
                                         $qb->expr()->lte('j.whenAt', ':whenAt')))
             ->andWhere($qb->expr()->orX($qb->expr()->isNull('j.expiresAt'),
@@ -156,7 +243,7 @@ class JobManager implements JobManagerInterface
         $repositoryManager = $this->getRepository();
         $qb = $repositoryManager->createQueryBuilder('j');
         $dateTime = new \DateTime();
-        $qb = $qb
+        $qb
             ->select('j')
             ->where('j.status = :status')->setParameter(':status', Job::STATUS_NEW)
             ->andWhere('j.locked is NULL')
@@ -168,21 +255,21 @@ class JobManager implements JobManagerInterface
             ->setParameter(':expiresAt', $dateTime);
 
         if ($workerName) {
-            $qb = $qb->andWhere('j.workerName = :workerName')
+            $qb->andWhere('j.workerName = :workerName')
                 ->setParameter(':workerName', $workerName);
         }
 
         if ($methodName) {
-            $qb = $qb->andWhere('j.method = :method')
+            $qb->andWhere('j.method = :method')
                 ->setParameter(':method', $methodName);
         }
 
         if ($prioritize) {
-            $qb = $qb->add('orderBy', 'j.priority ASC, j.whenAt ASC');
+            $qb->add('orderBy', 'j.priority ASC, j.whenAt ASC');
         } else {
-            $qb = $qb->orderBy('j.whenAt', 'ASC');
+            $qb->orderBy('j.whenAt', 'ASC');
         }
-        $qb = $qb->setMaxResults(1);
+        $qb->setMaxResults(1);
 
         /** @var QueryBuilder $qb */
         $query = $qb->getQuery();
@@ -217,13 +304,19 @@ class JobManager implements JobManagerInterface
 
     public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
     {
-        $this->save($job);
+        $jobArchive = new JobArchive();
+        Util::copy($job, $jobArchive);
+
+        $metadata = $this->entityManager->getClassMetadata($this->getArchiveEntityName());
+        $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
+        $metadata->setIdGenerator(new AssignedGenerator());
+        $this->entityManager->persist($jobArchive);
+        $this->entityManager->remove($job);
+        $this->entityManager->flush();
     }
 
     public function save(\Dtc\QueueBundle\Model\Job $job)
     {
-        // Todo: Serialize args
-
         // Generate crc hash for the job
         $hashValues = array($job->getClassName(), $job->getMethod(), $job->getWorkerName(), $job->getArgs());
         $crcHash = hash('sha256', serialize($hashValues));

@@ -8,6 +8,13 @@ interface JobManagerInterface
 
     public function pruneErroneousJobs($workerName = null, $methodName = null);
 
+    /**
+     * Prunes (or archived) jobs that are expired.
+     *
+     * @return mixed
+     */
+    public function pruneExpiredJobs();
+
     public function getJobCount($workerName = null, $methodName = null);
 
     public function getStatus();
@@ -19,6 +26,13 @@ interface JobManagerInterface
     public function save(Job $job);
 
     public function saveHistory(Job $job);
+
+    /**
+     * Removes archived jobs older than $olderThan.
+     *
+     * @param \DateTime $olderThan
+     */
+    public function pruneArchivedJobs(\DateTime $olderThan);
 
     //public function deleteJobById($jobId);
 }

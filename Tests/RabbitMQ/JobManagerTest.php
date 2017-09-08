@@ -68,4 +68,16 @@ class JobManagerTest extends BaseJobManagerTest
         }
         self::$jobManager->getJob();
     }
+
+    public function testSaveJob()
+    {
+        $job = new self::$jobClass(self::$worker, false, null);
+        $job->fibonacci(1);
+        $this->assertNotNull($job->getId(), 'Job id should be generated');
+
+        $jobInQueue = self::$jobManager->getJob();
+        $this->assertNotNull($jobInQueue, 'There should be a job.');
+        $this->assertEquals($job->getId(), $jobInQueue->getId(),
+            'Job id returned by manager should be the same');
+    }
 }

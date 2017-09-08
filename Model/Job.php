@@ -466,6 +466,7 @@ class Job
             'worker' => $this->getWorkerName(),
             'args' => $this->getArgs(),
             'method' => $this->getMethod(),
+            'expiresAt' => ($expiresAt = $this->getExpiresAt()) ? $expiresAt->getTimestamp() : null,
         );
 
         return json_encode($arr);
@@ -480,5 +481,12 @@ class Job
         $this->setWorkerName($arr['worker']);
         $this->setArgs($arr['args']);
         $this->setMethod($arr['method']);
+        $expiresAt = $arr['expiresAt'];
+
+        if ($expiresAt) {
+            $dateTime = new \DateTime();
+            $dateTime->setTimestamp(intval($expiresAt));
+            $this->setExpiresAt($dateTime);
+        }
     }
 }

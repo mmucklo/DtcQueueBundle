@@ -113,16 +113,31 @@ class JobManager extends AbstractJobManager
         }
 
         $this->setupChannel();
-        $message = $this->channel->basic_get($this->queueArgs[0]);
-        if ($message) {
-            $job = new Job();
-            $job->fromMessage($message->body);
-            $job->setDeliveryTag($message->delivery_info['delivery_tag']);
 
-            return $job;
-        }
+        $expiredJob = false;
+        do {
+            $message = $this->channel->basic_get($this->queueArgs[0]);
+            if ($message) {
+                $job = new Job();
+                $job->fromMessage($message->body);
+
+                if (($expiresAt = $job->getExpiresAt()) && $expiresAt->getTimestamp() < time()) {
+                    $expiredJob = true;
+                    $this->channel->basic_nack($message->delivery_info['delivery_tag']);
+                    continue;
+                }
+                $job->setDeliveryTag($message->delivery_info['delivery_tag']);
+
+                return $job;
+            }
+        } while ($expiredJob);
 
         return null;
+    }
+
+    public function pruneExpiredJobs()
+    {
+        throw new \Exception('Not Supported');
     }
 
     // Save History get called upon completion of the job
@@ -135,6 +150,11 @@ class JobManager extends AbstractJobManager
         $this->channel->basic_ack($deliveryTag);
 
         return;
+    }
+
+    public function pruneArchivedJobs(\DateTime $olderThan)
+    {
+        throw new \Exception('Not Supported');
     }
 
     public function __destruct()

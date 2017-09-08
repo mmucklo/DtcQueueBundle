@@ -33,6 +33,8 @@ class Configuration implements ConfigurationInterface
                 ->end()
                 ->scalarNode('class')
                 ->end()
+                ->scalarNode('class_archive')
+                ->end()
                 ->arrayNode('beanstalkd')
                     ->children()
                        ->scalarNode('host')->end()

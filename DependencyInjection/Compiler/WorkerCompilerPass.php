@@ -34,8 +34,9 @@ class WorkerCompilerPass implements CompilerPassInterface
         $jobManagerRef = array(new Reference('dtc_queue.job_manager'));
 
         $jobClass = $this->getJobClass($container);
+        $jobClassArchive = $this->getJobClassArchive($container);
         $container->setParameter('dtc_queue.job_class', $jobClass);
-
+        $container->setParameter('dtc_queue.job_class_archive', $jobClassArchive);
         // Add each worker to workerManager, make sure each worker has instance to work
         foreach ($container->findTaggedServiceIds('dtc_queue.worker') as $id => $attributes) {
             $worker = $container->getDefinition($id);
@@ -183,7 +184,7 @@ class WorkerCompilerPass implements CompilerPassInterface
     }
 
     /**
-     * Determines the job class based on teh queue manager type.
+     * Determines the job class based on the queue manager type.
      *
      * @param ContainerBuilder $container
      *
@@ -214,6 +215,36 @@ class WorkerCompilerPass implements CompilerPassInterface
         }
 
         if (!class_exists($jobClass)) {
+            throw new \Exception("Can't find Job class $jobClass");
+        }
+
+        return $jobClass;
+    }
+
+    /**
+     * Determines the job class based on the queue manager type.
+     *
+     * @param ContainerBuilder $container
+     *
+     * @return mixed|string
+     *
+     * @throws \Exception
+     */
+    public function getJobClassArchive(ContainerBuilder $container)
+    {
+        $jobClass = $container->getParameter('dtc_queue.job_class_archive');
+        if (!$jobClass) {
+            switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
+                case 'mongodb':
+                    $jobClass = 'Dtc\\QueueBundle\\Documents\\JobArchive';
+                    break;
+                case 'orm':
+                    $jobClass = 'Dtc\\QueueBundle\\Entity\\JobArchive';
+                    break;
+            }
+        }
+
+        if ($jobClass && !class_exists($jobClass)) {
             throw new \Exception("Can't find Job class $jobClass");
         }
 

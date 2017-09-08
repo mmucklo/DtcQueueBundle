@@ -2,6 +2,7 @@ DtcQueueBundle
 ==============
 
 [![Build Status](https://secure.travis-ci.org/mmucklo/DtcQueueBundle.png?branch=master)](http://travis-ci.org/mmucklo/DtcQueueBundle)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/mmucklo/DtcQueueBundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/mmucklo/DtcQueueBundle/?branch=master)
 
 > Allow symfony developers to create background job as easily as: `$worker->later()->process(1,2,3)`
 
@@ -14,8 +15,6 @@ run in backend.
 - Logs errors from worker
 - Command to run and debug jobs from console
 - Works with GridBundle to provide queue management
-- Well tested code: 15 tests, 74 assertions (plus 5 tests and 16 assertions more each service)
-
 
 Supports
 --------
@@ -116,10 +115,22 @@ Create a background job.
 	//$fibonacciWorker->batchLater()->fibonacci(20); // Batch up runs into a single run
 	$fibonacciWorker->later(90)->fibonacci(20); // Run 90 seconds later
 
-Run the job
+
+Running jobs
+------------
+It's recommended that you background the following console commands
 
     bin/console dtc:queue_worker:run -t 100
-
+    # the -t parameter is a tunable number of jobs to process for that run
+    
+    # If you're running a MongoDB or ORM based job store:
+    #
+    bin/console dtc:queue_worker:prune old --older 1m
+    # deletes jobs older than one month from the Archive table
+    #
+    #  You can tune 1m to a smaller interval such as 10d (10 days)
+    #  if you have too many jobs flowing through the system.
+   
 
 To Debug message queue status.
 
@@ -136,6 +147,7 @@ Change the document manager
 
     dtc_queue:
         document_manager: [default|something_else]
+        
 
 Mysql (ORM) Configuration
 -------------------------
@@ -215,13 +227,68 @@ Custom Jobs and Managers
 Rename the Database or Table Name
 ---------------------------------
 
-* Extend either:
+1) Extend the following:
 
     Dtc\QueueBundle\Document\Job
+    Dtc\QueueBundle\Document\JobArchive
     
             or
     
     Dtc\QueueBundle\Entity\Job
+    Dtc\QueueBundle\Entity\JobArchive
+
+    (Depending on whether you're using Mongo or an ORM)
+        
+2) Change the parameters on the class appropriately
+
+```php
+namespace AppBundle\Entity; // Or whatever
+
+use Dtc\QueueBundle\Entity\Job as BaseJob;
+use Doctrine\ORM\Mapping as ORM;
+
+/**
+ * @ORM\Entity
+ * @ORM\Table(name="job_some_other_name", indexes={@ORM\Index(name="job_crc_hash_idx", columns={"crcHash","status"}),
+ *                  @ORM\Index(name="job_priority_idx", columns={"priority","whenAt"}),
+ *                  @ORM\Index(name="job_when_idx", columns={"whenAt","locked"}),
+ *                  @ORM\Index(name="job_status_idx", columns={"status","locked","whenAt"})})
+ */
+class Job extends BaseJob {
+}
+
+// ... similarly for Entity\JobArchive if necessary
+```
+
+```php
+namespace AppBundle\Documents;
+
+use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
+use Dtc\QueueBundle\Documents\Job as BaseJob;
+
+/**
+ * @ODM\Document(db="my_db", collection="my_job_collection")
+ */
+class Job extends BaseJob
+{
+}
+
+// ... similarly for Documents\JobArchive if necessary
+```
+
+
+3) Add the new class(es) to config.yml
+
+```yaml
+# config.yml
+# ...
+dtc_queue:
+    class: AppBundle\Entity\Job
+    class_archive: AppBundle\Entity\JobArchive
+```
+
+
+
 
 
 Job Event Subscriber

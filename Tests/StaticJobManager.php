@@ -32,6 +32,16 @@ class StaticJobManager implements JobManagerInterface
         return null;
     }
 
+    public function pruneArchivedJobs(\DateTime $olderThan)
+    {
+        return 0;
+    }
+
+    public function pruneExpiredJobs()
+    {
+        return 0;
+    }
+
     public function getJobCount($workerName = null, $methodName = null)
     {
         if ($workerName && isset($this->jobs[$workerName])) {

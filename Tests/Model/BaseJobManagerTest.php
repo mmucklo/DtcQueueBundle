@@ -26,6 +26,7 @@ abstract class BaseJobManagerTest extends TestCase
         $this->assertNotNull($jobInQueue, 'There should be a job.');
         $this->assertEquals($job->getId(), $jobInQueue->getId(),
                 'Job id returned by manager should be the same');
+        self::$jobManager->deleteJob($job);
     }
 
     public function testDeleteJob()
@@ -82,16 +83,21 @@ abstract class BaseJobManagerTest extends TestCase
                 'Job id returned by manager should be the same');
     }
 
+    /**
+     * @outputBuffering disabled
+     */
     public function testPerformance()
     {
         echo "\n".static::class.": Testing Performance\n";
         flush();
         $start = microtime(true);
-        $jobsTotal = 100;
+        $jobsTotal = 1000;
         self::$jobManager->enableSorting = false;    // Ignore priority
 
         for ($i = 0; $i < $jobsTotal; ++$i) {
+            $startLater = microtime(true);
             self::$worker->later()->fibonacci(1);
+            echo "set $i: ".(microtime(true) - $startLater)."\n";
         }
 
         $total = microtime(true) - $start;
@@ -99,7 +105,10 @@ abstract class BaseJobManagerTest extends TestCase
 
         $start = microtime(true);
         for ($i = 0; $i < $jobsTotal; ++$i) {
+            $startTime = microtime(true);
             $job = self::$jobManager->getJob();
+            echo "Job {$job->getId()}\n";
+            echo "get $i: ".(microtime(true) - $startTime)."\n";
         }
         $total = microtime(true) - $start;
         echo "Total of {$jobsTotal} jobs dequeued in {$total} seconds\n";

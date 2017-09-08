@@ -1,10 +1,10 @@
 <?php
 
-namespace Dtc\QueueBundle\Tests\Documents;
+namespace Dtc\QueueBundle\Tests\ODM;
 
 use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
-use Dtc\QueueBundle\Documents\JobManager;
+use Dtc\QueueBundle\ODM\JobManager;
 use Doctrine\MongoDB\Connection;
 use Doctrine\ODM\MongoDB\Configuration;
 use Doctrine\ODM\MongoDB\DocumentManager;
@@ -44,14 +44,14 @@ class JobManagerTest extends BaseJobManagerTest
         self::$dm = DocumentManager::create(new Connection(getenv('MONGODB_HOST')), $config);
 
         $documentName = 'Dtc\QueueBundle\Documents\Job';
+        $archiveDocumentName = 'Dtc\QueueBundle\Documents\JobArchive';
         $sm = self::$dm->getSchemaManager();
-        $timeout = 1000;
 
         $sm->dropDocumentCollection($documentName);
         $sm->createDocumentCollection($documentName);
         $sm->updateDocumentIndexes($documentName);
 
-        self::$jobManager = new JobManager(self::$dm, $documentName);
+        self::$jobManager = new JobManager(self::$dm, $documentName, $archiveDocumentName);
         self::$worker = new FibonacciWorker();
         self::$worker->setJobClass($documentName);
 

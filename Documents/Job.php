@@ -7,7 +7,6 @@ use Dtc\QueueBundle\Model\Job as BaseJob;
 
 /**
  * @ODM\Document(db="queue", collection="job")
- * @ODM\Index(keys={"className"="asc"})
  */
 class Job extends BaseJob
 {
@@ -18,7 +17,6 @@ class Job extends BaseJob
 
     /**
      * @ODM\Field(type="string", name="worker_name")
-     * @ODM\Index(unique=false, order="asc")
      */
     protected $workerName;
 
@@ -29,7 +27,6 @@ class Job extends BaseJob
 
     /**
      * @ODM\Field(type="string")
-     * @ODM\Index(unique=false, order="asc")
      */
     protected $method;
 
