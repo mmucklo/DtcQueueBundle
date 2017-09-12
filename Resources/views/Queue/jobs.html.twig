@@ -1,11 +1,8 @@
-{% extends "DtcQueueBundle::layout.html.twig" %}
+{% extends "DtcGridBundle:Page:datatables.html.twig" %}
 
-{% block content %}
-	<h3>Jobs in Queue</h3>
-    {{ grid.render | raw }}
-	<script>
-        $(document).ready(function() {
-            $('[data-jqtable]').jqtable();
-        })
-	</script>
+{% block grid %}
+    <h3>Live Jobs</h3>
+    {{ dtc_grid.render | raw }}
+    <h3>Archived Jobs</h3>
+    {{ archive_grid.render | raw }}
 {% endblock %}

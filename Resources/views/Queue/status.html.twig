@@ -5,7 +5,7 @@
 		<h3>{{ worker }}</h3>
 		<ul>
 		{% for job_status, count in info %}
-			<li>{{ job_status }}: {{ count }}</li>
+			<li>{{ job_status }}: {{ count|e }}</li>
 		{% endfor %}
 		</ul>
 	{% endfor %}

@@ -149,7 +149,7 @@ class Job
     }
 
     /**
-     * @return array
+     * @return
      */
     public function getArgs()
     {
@@ -293,7 +293,7 @@ class Job
     }
 
     /**
-     * @param array $args
+     * @param $args
      */
     public function setArgs($args)
     {

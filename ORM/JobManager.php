@@ -9,7 +9,6 @@ use Doctrine\ORM\Id\AssignedGenerator;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\QueryBuilder;
 use Dtc\QueueBundle\Entity\Job;
-use Dtc\QueueBundle\Entity\JobArchive;
 use Dtc\QueueBundle\Model\JobManagerInterface;
 use Dtc\QueueBundle\Util\Util;
 
@@ -70,7 +69,7 @@ class JobManager implements JobManagerInterface
         $entityManager = $this->getEntityManager();
         $qb = $entityManager
             ->createQueryBuilder()
-            ->select('count(*)')
+            ->select('count(ja.id)')
             ->from($archiveEntityName, 'ja')
             ->where('ja.status = :status');
 
@@ -101,10 +100,11 @@ class JobManager implements JobManagerInterface
             if ($method) {
                 $criterion['method'] = $method;
             }
-            $results = $repository->findBy($criterion, 100);
+            $results = $repository->findBy($criterion, null, 100);
             $entityManager->beginTransaction();
             foreach ($results as $jobArchive) {
-                $job = new Job();
+                $className = $this->getEntityName();
+                $job = new $className();
                 Util::copy($jobArchive, $job);
                 $job->setStatus(Job::STATUS_NEW);
                 $job->setLocked(null);
@@ -214,14 +214,36 @@ class JobManager implements JobManagerInterface
      */
     public function getStatus()
     {
-        return $this->getRepository()->createQueryBuilder('j')->select('j.status, count(j)')
+        $result = [];
+        $this->getStatusByEntityName($this->getEntityName(), $result);
+        $this->getStatusByEntityName($this->getArchiveEntityName(), $result);
+
+        $finalResult = [];
+        foreach ($result as $key => $item) {
+            ksort($item);
+            $finalResult[$key] = $item;
+        }
+        return $finalResult;
+    }
+
+    protected function getStatusByEntityName($entityName, array &$result) {
+        $result1 = $this->getEntityManager()->getRepository($entityName)->createQueryBuilder('j')->select('j.workerName, j.status, count(j) as c')
             ->where('j.status = :status1')
             ->orWhere('j.status = :status2')
             ->orWhere('j.status = :status3')
             ->setParameter(':status1', Job::STATUS_ERROR)
             ->setParameter(':status2', Job::STATUS_NEW)
             ->setParameter(':status3', Job::STATUS_SUCCESS)
-            ->groupBy('j.status')->getQuery()->getArrayResult();
+            ->groupBy('j.workerName, j.status')->getQuery()->getArrayResult();
+
+        foreach ($result1 as $item) {
+            if (isset($result[$item['workerName']][$item['status']])) {
+                $result[$item['workerName']][$item['status']] += $item['c'];
+            }
+            else {
+                $result[$item['workerName']][$item['status']] = $item['c'];
+            }
+        }
     }
 
     /**
@@ -304,7 +326,8 @@ class JobManager implements JobManagerInterface
 
     public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
     {
-        $jobArchive = new JobArchive();
+        $className = $this->getArchiveEntityName();
+        $jobArchive = new $className();
         Util::copy($job, $jobArchive);
 
         $metadata = $this->entityManager->getClassMetadata($this->getArchiveEntityName());

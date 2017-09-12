@@ -7,7 +7,7 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 /**
  * @ODM\Document(db="queue", collection="job_archive")
  */
-class JobArchive extends Job
+class JobArchive extends BaseJob
 {
     /**
      * @ODM\Field(type="string")

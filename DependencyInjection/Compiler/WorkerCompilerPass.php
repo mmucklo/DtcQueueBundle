@@ -176,9 +176,11 @@ class WorkerCompilerPass implements CompilerPassInterface
         switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
             case 'mongodb':
                 $container->setAlias('dtc_queue.grid.source.job', new Alias('dtc_queue.document.grid.source.job'));
+                $container->setAlias('dtc_queue.grid.source.job_archive', new Alias('dtc_queue.document.grid.source.job_archive'));
                 break;
             case 'orm':
                 $container->setAlias('dtc_queue.grid.source.job', new Alias('dtc_queue.entity.grid.source.job'));
+                $container->setAlias('dtc_queue.grid.source.job_archive', new Alias('dtc_queue.entity.grid.source.job_archive'));
                 break;
         }
     }

@@ -2,6 +2,8 @@
 
 namespace Dtc\QueueBundle\ODM;
 
+use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
+use Dtc\QueueBundle\Entity\JobArchive;
 use Dtc\QueueBundle\Model\JobManagerInterface;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Doctrine\ODM\MongoDB\DocumentManager;
@@ -85,12 +87,15 @@ class JobManager implements JobManagerInterface
             }
             $results = $repository->findBy($criterion, null, 100);
             foreach ($results as $jobArchive) {
-                $job = new Job();
+                $className = $this->getDocumentName();
+                $job = new $className();
                 Util::copy($jobArchive, $job);
                 $job->setStatus(Job::STATUS_NEW);
                 $job->setLocked(null);
                 $job->setLockedAt(null);
                 $job->setUpdatedAt(new \DateTime());
+                $metadata = $this->documentManager->getClassMetadata($this->getDocumentName());
+                $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
 
                 // Mongo has no transactions, so there is a chance for duplicates if persisting happens
                 //  but things crash on or before remove.
@@ -113,18 +118,16 @@ class JobManager implements JobManagerInterface
     {
         $qb = $this->getDocumentManager()->createQueryBuilder($this->getArchiveDocumentName());
         $qb
-        ->remove()
-        ->updateMany()
-        ->field('status')->equals(Job::STATUS_ERROR);
+            ->remove()
+            ->field('status')->equals(Job::STATUS_ERROR);
 
-        if ($workerName) {
+         if ($workerName) {
             $qb->field('workerName')->equals($workerName);
         }
 
         if ($method) {
             $qb->field('method')->equals($method);
         }
-
         $query = $qb->getQuery();
         $query->execute();
     }
@@ -137,7 +140,6 @@ class JobManager implements JobManagerInterface
         $qb = $this->getDocumentManager()->createQueryBuilder($this->getDocumentName());
         $qb
             ->remove()
-            ->updateMany()
             ->field('expiresAt')->lte(new \DateTime());
 
         $query = $qb->getQuery();
@@ -151,10 +153,9 @@ class JobManager implements JobManagerInterface
      */
     public function pruneArchivedJobs(\DateTime $olderThan)
     {
-        $qb = $this->getDocumentManager()->createQueryBuilder($this->getDocumentName());
+        $qb = $this->getDocumentManager()->createQueryBuilder($this->getArchiveDocumentName());
         $qb
             ->remove()
-            ->updateMany()
             ->field('updatedAt')->lt($olderThan);
 
         $query = $qb->getQuery();
@@ -189,7 +190,7 @@ class JobManager implements JobManagerInterface
     /**
      * Get Status Jobs.
      */
-    public function getStatus()
+    public function _getStatusByDocument($documentName)
     {
         // Run a map reduce function get worker and status break down
         $mapFunc = "function() {
@@ -214,7 +215,7 @@ class JobManager implements JobManagerInterface
             return result;
         }';
 
-        $qb = $this->getDocumentManager()->createQueryBuilder($this->getDocumentName())
+        $qb = $this->getDocumentManager()->createQueryBuilder($documentName)
             ->map($mapFunc)
             ->reduce($reduceFunc);
         $query = $qb->getQuery();
@@ -233,6 +234,23 @@ class JobManager implements JobManagerInterface
         }
 
         return $status;
+    }
+
+    public function getStatus() {
+        $result = $this->_getStatusByDocument($this->getDocumentName());
+        $status2 = $this->_getStatusByDocument($this->getArchiveDocumentName());
+        foreach ($status2 as $key => $value) {
+            foreach ($value as $k => $v) {
+                $result[$key][$k] += $v;
+            }
+        }
+
+        $finalResult = [];
+        foreach ($result as $key => $item) {
+            ksort($item);
+            $finalResult[$key] = $item;
+        }
+        return $finalResult;
     }
 
     /**
@@ -295,7 +313,15 @@ class JobManager implements JobManagerInterface
 
     public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
     {
-        $this->save($job);
+        $className = $this->getArchiveDocumentName();
+        $jobArchive = new $className();
+        Util::copy($job, $jobArchive);
+
+        $metadata = $this->documentManager->getClassMetadata($this->getArchiveDocumentName());
+        $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
+        $this->documentManager->persist($jobArchive);
+        $this->documentManager->remove($job);
+        $this->documentManager->flush();
     }
 
     public function save(\Dtc\QueueBundle\Model\Job $job)
