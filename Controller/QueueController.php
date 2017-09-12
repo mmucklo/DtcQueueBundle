@@ -32,13 +32,14 @@ class QueueController extends Controller
      */
     public function jobsAction()
     {
-        $renderer = $this->get('dtc_grid.renderer.datatables');
+        $rendererFactory = $this->get('dtc_grid.renderer.factory');
+        $renderer = $rendererFactory->create('datatables');
         $className = $this->container->getParameter('dtc_queue.job_class');
         $gridSource = $this->get('dtc_grid.manager.source')->get($className);
         $renderer->bind($gridSource);
         $params = $renderer->getParams();
 
-        $renderer2 = $this->get('dtc_grid.renderer.datatables');
+        $renderer2 = $rendererFactory->create('datatables');
         $className = $this->container->getParameter('dtc_queue.job_class_archive');
         $gridSource = $this->get('dtc_grid.manager.source')->get($className);
         $renderer2->bind($gridSource);
@@ -46,25 +47,6 @@ class QueueController extends Controller
 
         $params['archive_grid'] = $params2['dtc_grid'];
         return $this->render('@DtcQueue/Queue/jobs.html.twig', $params);
-    }
-
-    /**
-     * List jobs in system by default.
-     *
-     * @Route("/jobs_archive/")
-     * @Template()
-     */
-    public function jobsArchiveAction()
-    {
-        $renderer = $this->get('grid.renderer.jq_table_grid');
-
-        if (!$this->container->has('dtc_queue.grid.source.job_archive')) {
-            throw $this->createNotFoundException();
-        }
-        $gridSource = $this->get('dtc_queue.grid.source.job_archive');
-        $renderer->bind($gridSource);
-
-        return array('grid' => $renderer);
     }
 
     /**
