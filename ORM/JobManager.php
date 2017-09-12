@@ -223,10 +223,12 @@ class JobManager implements JobManagerInterface
             ksort($item);
             $finalResult[$key] = $item;
         }
+
         return $finalResult;
     }
 
-    protected function getStatusByEntityName($entityName, array &$result) {
+    protected function getStatusByEntityName($entityName, array &$result)
+    {
         $result1 = $this->getEntityManager()->getRepository($entityName)->createQueryBuilder('j')->select('j.workerName, j.status, count(j) as c')
             ->where('j.status = :status1')
             ->orWhere('j.status = :status2')
@@ -239,8 +241,7 @@ class JobManager implements JobManagerInterface
         foreach ($result1 as $item) {
             if (isset($result[$item['workerName']][$item['status']])) {
                 $result[$item['workerName']][$item['status']] += $item['c'];
-            }
-            else {
+            } else {
                 $result[$item['workerName']][$item['status']] = $item['c'];
             }
         }
@@ -346,7 +347,7 @@ class JobManager implements JobManagerInterface
         $job->setCrcHash($crcHash);
         $entityManager = $this->getEntityManager();
 
-        if ($job->getBatch() === true) {
+        if (true === $job->getBatch()) {
             // See if similar job that hasn't run exists
             $criteria = array('crcHash' => $crcHash, 'status' => Job::STATUS_NEW);
             $oldJob = $this->getRepository()->findOneBy($criteria);

@@ -14,4 +14,5 @@ if (!file_exists($file)) {
     throw new RuntimeException('Install dependencies to run test suite.');
 }
 
+require_once __DIR__.'/../vendor/mmucklo/grid-bundle/Annotation/GridColumn.php';
 $autoload = require_once $file;

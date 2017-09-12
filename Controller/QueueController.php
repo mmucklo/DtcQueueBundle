@@ -32,6 +32,7 @@ class QueueController extends Controller
      */
     public function jobsAction()
     {
+        // @TODO throw an error when not supported (such as RabbitMQ / Beanstalkd)
         $rendererFactory = $this->get('dtc_grid.renderer.factory');
         $renderer = $rendererFactory->create('datatables');
         $className = $this->container->getParameter('dtc_queue.job_class');
@@ -46,6 +47,7 @@ class QueueController extends Controller
         $params2 = $renderer2->getParams();
 
         $params['archive_grid'] = $params2['dtc_grid'];
+
         return $this->render('@DtcQueue/Queue/jobs.html.twig', $params);
     }
 

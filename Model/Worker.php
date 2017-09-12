@@ -39,7 +39,7 @@ abstract class Worker
 
     public function at($time = null, $batch = false, $priority = null)
     {
-        if ($time === null) {
+        if (null === $time) {
             $time = time();
         }
 

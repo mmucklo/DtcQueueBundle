@@ -98,7 +98,7 @@ class JobManager extends AbstractJobManager
         $msg = new AMQPMessage($job->toMessage());
 
         if ($this->maxPriority) {
-            $priority = $priority === null ? 0 : $this->maxPriority - $priority;
+            $priority = null === $priority ? 0 : $this->maxPriority - $priority;
             $msg->set('priority', $priority);
         }
         $this->channel->basic_publish($msg, $this->exchangeArgs[0]);

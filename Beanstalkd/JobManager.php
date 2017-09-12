@@ -99,7 +99,7 @@ class JobManager extends AbstractJobManager
     // Save History get called upon completion of the job
     public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
     {
-        if ($job->getStatus() === BaseJob::STATUS_SUCCESS) {
+        if (BaseJob::STATUS_SUCCESS === $job->getStatus()) {
             $this->beanstalkd
                 ->delete($job);
         }

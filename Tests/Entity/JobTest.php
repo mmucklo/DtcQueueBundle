@@ -31,7 +31,7 @@ class JobTest extends TestCase
             $job = new Job();
 
             $parameters = $reflection->getMethod($setMethod)->getParameters();
-            if ($parameters && count($parameters) == 1) {
+            if ($parameters && 1 == count($parameters)) {
                 $parameter = $parameters[0];
                 if (!$parameter->getClass()) {
                     $someValue = 'somevalue';

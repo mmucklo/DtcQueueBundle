@@ -25,13 +25,13 @@ class Util
         $publicVars = $reflection1->getProperties(\ReflectionProperty::IS_PUBLIC);
         foreach ($methods as $method) {
             $methodName = $method->getName();
-            if (strpos($methodName, 'get') === 0) {
+            if (0 === strpos($methodName, 'get')) {
                 $getMethod = $methodName;
                 $setMethod = $methodName;
                 $setMethod[0] = 's';
                 if ($reflection2->hasMethod($setMethod)) {
                     $value = $obj1->$getMethod();
-                    if ($value !== null) {
+                    if (null !== $value) {
                         $obj2->$setMethod($value);
                     }
                 }

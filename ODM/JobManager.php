@@ -3,7 +3,6 @@
 namespace Dtc\QueueBundle\ODM;
 
 use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
-use Dtc\QueueBundle\Entity\JobArchive;
 use Dtc\QueueBundle\Model\JobManagerInterface;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Doctrine\ODM\MongoDB\DocumentManager;
@@ -121,7 +120,7 @@ class JobManager implements JobManagerInterface
             ->remove()
             ->field('status')->equals(Job::STATUS_ERROR);
 
-         if ($workerName) {
+        if ($workerName) {
             $qb->field('workerName')->equals($workerName);
         }
 
@@ -236,7 +235,8 @@ class JobManager implements JobManagerInterface
         return $status;
     }
 
-    public function getStatus() {
+    public function getStatus()
+    {
         $result = $this->_getStatusByDocument($this->getDocumentName());
         $status2 = $this->_getStatusByDocument($this->getArchiveDocumentName());
         foreach ($status2 as $key => $value) {
@@ -250,6 +250,7 @@ class JobManager implements JobManagerInterface
             ksort($item);
             $finalResult[$key] = $item;
         }
+
         return $finalResult;
     }
 
@@ -333,7 +334,7 @@ class JobManager implements JobManagerInterface
         $crcHash = hash('sha256', serialize($hashValues));
         $job->setCrcHash($crcHash);
 
-        if ($job->getBatch() === true) {
+        if (true === $job->getBatch()) {
             // See if similar job that hasn't run exists
             $criteria = array('crcHash' => $crcHash, 'status' => Job::STATUS_NEW);
             $oldJob = $this->getRepository()->findOneBy($criteria);

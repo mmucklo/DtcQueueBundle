@@ -95,7 +95,7 @@ class RunCommand extends ContainerAwareCommand
 
     protected function reportJob(Job $job)
     {
-        if ($job->getStatus() == Job::STATUS_ERROR) {
+        if (Job::STATUS_ERROR == $job->getStatus()) {
             $message = "Error with job id: {$job->getId()}\n".$job->getMessage();
             $this->logger->error($message);
         }
