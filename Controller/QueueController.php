@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Controller;
 
+use Dtc\GridBundle\Grid\Column\GridColumn;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -37,6 +38,8 @@ class QueueController extends Controller
         $renderer = $rendererFactory->create('datatables');
         $className = $this->container->getParameter('dtc_queue.job_class');
         $gridSource = $this->get('dtc_grid.manager.source')->get($className);
+        $gridSource->addColumns([new GridColumn('action', 'Action', null, ['defaultContent' => '<button>Delete</button>', 'data' => null])]);
+
         $renderer->bind($gridSource);
         $params = $renderer->getParams();
 

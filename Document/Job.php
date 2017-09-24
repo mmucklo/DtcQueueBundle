@@ -1,6 +1,6 @@
 <?php
 
-namespace Dtc\QueueBundle\Documents;
+namespace Dtc\QueueBundle\Document;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 

@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Dtc\GridBundle\Annotation\GridColumn;
 
 /**
  * @ORM\Entity
@@ -16,4 +17,18 @@ class JobArchive extends BaseJob
      * @ORM\Id
      */
     protected $id;
+
+    /**
+     * When the job finished.
+     *
+     * @GridColumn()
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    protected $finishedAt;
+
+    /**
+     * @GridColumn()
+     * @ORM\Column(type="float", nullable=true)
+     */
+    protected $elapsed;
 }

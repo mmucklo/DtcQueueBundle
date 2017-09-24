@@ -50,7 +50,7 @@ Then add the bundle to AppKernel.php:
 	        default:
 	            mappings:
 	                DtcQueueBundle:
-	                    dir: Documents/
+	                    dir: Document/
 	                    type: annotation
 
 Usage
@@ -261,10 +261,10 @@ class Job extends BaseJob {
 ```
 
 ```php
-namespace AppBundle\Documents;
+namespace AppBundle\Document
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
-use Dtc\QueueBundle\Documents\Job as BaseJob;
+use Dtc\QueueBundle\Document\Job as BaseJob;
 
 /**
  * @ODM\Document(db="my_db", collection="my_job_collection")
@@ -273,7 +273,7 @@ class Job extends BaseJob
 {
 }
 
-// ... similarly for Documents\JobArchive if necessary
+// ... similarly for Document\JobArchive if necessary
 ```
 
 
@@ -382,7 +382,7 @@ You can run unittest by typing `phpunit` in source folder. If you want to run
 integration testing with Mongodb, you need to set up Mongodb server on
 localhost and run:
 
-	phpunit Tests/Documents/JobManagerTest.php
+	phpunit Tests/Document/JobManagerTest.php
 
 If you want to run Beanstalkd integration testing, you need to run a local
 empty instance of beanstalkd for testing.

@@ -200,7 +200,7 @@ class WorkerCompilerPass implements CompilerPassInterface
         if (!$jobClass) {
             switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
                 case 'mongodb':
-                    $jobClass = 'Dtc\\QueueBundle\\Documents\\Job';
+                    $jobClass = 'Dtc\\QueueBundle\\Document\\Job';
                     break;
                 case 'beanstalkd':
                     $jobClass = 'Dtc\\QueueBundle\\Beanstalkd\\Job';
