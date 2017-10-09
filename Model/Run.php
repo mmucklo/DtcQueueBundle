@@ -12,6 +12,7 @@ class Run
     protected $id;
     protected $startedAt;
     protected $endedAt;
+    protected $elapsed;
     protected $duration; // How long to run for in seconds
     protected $lastHeartbeatAt;
     protected $maxCount;
@@ -161,5 +162,21 @@ class Run
     public function setPid($pid)
     {
         $this->pid = $pid;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getElapsed()
+    {
+        return $this->elapsed;
+    }
+
+    /**
+     * @param mixed $elapsed
+     */
+    public function setElapsed($elapsed)
+    {
+        $this->elapsed = $elapsed;
     }
 }

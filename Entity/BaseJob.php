@@ -2,14 +2,14 @@
 
 namespace Dtc\QueueBundle\Entity;
 
-use Dtc\GridBundle\Annotation\GridColumn;
+use Dtc\GridBundle\Annotation as Grid;
 use Dtc\QueueBundle\Model\Job;
 use Doctrine\ORM\Mapping as ORM;
 
 abstract class BaseJob extends Job
 {
     /**
-     * @GridColumn()
+     * @Grid\Column()
      * @ORM\Column(type="bigint")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
@@ -17,25 +17,25 @@ abstract class BaseJob extends Job
     protected $id;
 
     /**
-     * @GridColumn()
+     * @Grid\Column(sortable=true, searchable=true)
      * @ORM\Column(type="string")
      */
     protected $workerName;
 
     /**
-     * @GridColumn()
+     * @Grid\Column(sortable=true, searchable=true)
      * @ORM\Column(type="string")
      */
     protected $className;
 
     /**
-     * @GridColumn()
+     * @Grid\Column(sortable=true, searchable=true)
      * @ORM\Column(type="string")
      */
     protected $method;
 
     /**
-     * @GridColumn()
+     * @Grid\Column(sortable=true, searchable=true)
      * @ORM\Column(type="string")
      */
     protected $status;
@@ -51,19 +51,19 @@ abstract class BaseJob extends Job
     protected $batch;
 
     /**
-     * @GridColumn()
+     * @Grid\Column(sortable=true, searchable=true)
      * @ORM\Column(type="boolean", nullable=true)
      */
     protected $locked;
 
     /**
-     * @GridColumn()
+     * @Grid\Column(sortable=true)
      * @ORM\Column(type="datetime", nullable=true)
      */
     protected $lockedAt;
 
     /**
-     * @GridColumn()
+     * @Grid\Column(sortable=true)
      * @ORM\Column(type="integer", nullable=true)
      */
     protected $priority;
@@ -74,13 +74,13 @@ abstract class BaseJob extends Job
     protected $crcHash;
 
     /**
-     * @GridColumn()
+     * @Grid\Column(sortable=true)
      * @ORM\Column(type="datetime", nullable=true)
      */
     protected $whenAt;
 
     /**
-     * @GridColumn()
+     * @Grid\Column(sortable=true)
      * @ORM\Column(type="datetime", nullable=true)
      */
     protected $expiresAt;
@@ -88,7 +88,7 @@ abstract class BaseJob extends Job
     /**
      * When the job started.
      *
-     * @GridColumn()
+     * @Grid\Column(sortable=true)
      * @ORM\Column(type="datetime", nullable=true)
      */
     protected $startedAt;

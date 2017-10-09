@@ -3,37 +3,37 @@
 namespace Dtc\QueueBundle\Document;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
-use Dtc\GridBundle\Annotation\GridColumn;
+use Dtc\GridBundle\Annotation as Grid;
 use Dtc\QueueBundle\Model\Job;
 
 abstract class BaseJob extends Job
 {
     /**
-     * @GridColumn()
+     * @Grid\Column()
      * @ODM\Id
      */
     protected $id;
 
     /**
-     * @GridColumn()
+     * @Grid\Column()
      * @ODM\Field(type="string", name="worker_name")
      */
     protected $workerName;
 
     /**
-     * @GridColumn()
+     * @Grid\Column()
      * @ODM\Field(type="string", name="class_name")
      */
     protected $className;
 
     /**
-     * @GridColumn()
+     * @Grid\Column()
      * @ODM\Field(type="string")
      */
     protected $method;
 
     /**
-     * @GridColumn()
+     * @Grid\Column()
      * @ODM\Field(type="string")
      * @ODM\Index(unique=false, order="asc")
      */
@@ -50,19 +50,19 @@ abstract class BaseJob extends Job
     protected $batch;
 
     /**
-     * @GridColumn()
+     * @Grid\Column()
      * @ODM\Field(type="boolean", nullable=true)
      */
     protected $locked;
 
     /**
-     * @GridColumn()
+     * @Grid\Column()
      * @ODM\Field(type="date", nullable=true)
      */
     protected $lockedAt;
 
     /**
-     * @GridColumn()
+     * @Grid\Column()
      * @ODM\Field(type="int", nullable=true)
      * @ODM\Index(unique=false, order="asc")
      */
@@ -74,14 +74,14 @@ abstract class BaseJob extends Job
     protected $crcHash;
 
     /**
-     * @GridColumn()
+     * @Grid\Column()
      * @ODM\Field(type="date", nullable=true)
      * @ODM\Index(unique=false, order="asc")
      */
     protected $whenAt;
 
     /**
-     * @GridColumn()
+     * @Grid\Column()
      * @ODM\Field(type="date", nullable=true)
      */
     protected $expiresAt;
@@ -89,7 +89,7 @@ abstract class BaseJob extends Job
     /**
      * When the job started.
      *
-     * @GridColumn()
+     * @Grid\Column()
      * @ODM\Field(type="date", nullable=true)
      */
     protected $startedAt;
@@ -102,7 +102,7 @@ abstract class BaseJob extends Job
     protected $finishedAt;
 
     /**
-     * @ODM\Field(type="float")
+     * @ODM\Field(type="float", nullable=true)
      */
     protected $elapsed;
 

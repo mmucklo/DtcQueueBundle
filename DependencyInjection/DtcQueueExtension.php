@@ -49,13 +49,6 @@ class DtcQueueExtension extends Extension
         $yamlLoader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
 
         $yamlLoader->load('queue.yml');
-        $yamlLoader->load('grid.yml');
-
-        $odmManager = "doctrine_mongodb.odm.{$config['document_manager']}_document_manager";
-        $container->setAlias('dtc_queue.document_manager', $odmManager);
-
-        $ormManager = "doctrine.orm.{$config['entity_manager']}_entity_manager";
-        $container->setAlias('dtc_queue.entity_manager', $ormManager);
     }
 
     public function getAlias()

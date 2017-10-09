@@ -2,6 +2,9 @@ services:
     dtc_queue.document_manager:
         synthetic: true
 
+    dtc_queue.entity_manager:
+        synthetic: true
+
     dtc_queue.job_manager.mongodb:
         class: Dtc\QueueBundle\ODM\JobManager
         arguments:
@@ -34,3 +37,8 @@ services:
 
     dtc_queue.event_dispatcher:
         class: Dtc\QueueBundle\EventDispatcher\EventDispatcher
+
+    dtc_queue.remove_listener:
+        class: Dtc\QueueBundle\Doctrine\RemoveListener
+        tags:
+            - { name: doctrine.event_listener, event: preRemove }

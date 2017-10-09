@@ -1,12 +1,14 @@
 <?php
 
-namespace Dtc\QueueBundle\Document;
+namespace Dtc\QueueBundle\Entity;
 
-use Dtc\GridBundle\Annotation\GridColumn;
+use Doctrine\ORM\Mapping as ORM;
+use Dtc\GridBundle\Annotation as Grid;
 
 /**
  * @ORM\Entity
  * @ORM\Table(name="run_archive")
+ * @Grid\Grid(actions={@Grid\ShowAction()})
  */
 class RunArchive extends BaseRun
 {
@@ -15,10 +17,21 @@ class RunArchive extends BaseRun
      */
     protected $startedAt;
     /**
-     * @GridColumn()
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    protected $duration; // How long to run for in seconds
+
+    /**
+     * @Grid\Column(sortable=true)
      * @ORM\Column(type="datetime", nullable=true)
      */
     protected $endedAt;
+
+    /**
+     * @Grid\Column()
+     * @ORM\Column(type="float", nullable=true)
+     */
+    protected $elapsed;
 
     /**
      * @ORM\Column(type="integer", nullable=true)

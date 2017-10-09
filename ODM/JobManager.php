@@ -6,7 +6,7 @@ use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
 use Dtc\QueueBundle\Model\JobManagerInterface;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Doctrine\ODM\MongoDB\DocumentManager;
-use Dtc\QueueBundle\Documents\Job;
+use Dtc\QueueBundle\Document\Job;
 use Dtc\QueueBundle\Util\Util;
 
 class JobManager implements JobManagerInterface
@@ -76,7 +76,6 @@ class JobManager implements JobManagerInterface
 
         $countProcessed = 0;
         for ($i = 0; $i < $count; $i += 100) {
-            $repository = $documentManager->getRepository($archiveDocumentName);
             $criterion = ['status' => Job::STATUS_ERROR];
             if ($workerName) {
                 $criterion['workerName'] = $workerName;
@@ -84,32 +83,45 @@ class JobManager implements JobManagerInterface
             if ($method) {
                 $criterion['method'] = $method;
             }
-            $results = $repository->findBy($criterion, null, 100);
-            foreach ($results as $jobArchive) {
-                $className = $this->getDocumentName();
-                $job = new $className();
-                Util::copy($jobArchive, $job);
-                $job->setStatus(Job::STATUS_NEW);
-                $job->setLocked(null);
-                $job->setLockedAt(null);
-                $job->setUpdatedAt(new \DateTime());
-                $metadata = $this->documentManager->getClassMetadata($this->getDocumentName());
-                $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
-
-                // Mongo has no transactions, so there is a chance for duplicates if persisting happens
-                //  but things crash on or before remove.
-                try {
-                    $documentManager->persist($job);
-                } catch (\Exception $e) {
-                    // @Todo - output or return a warning?
-                    continue;
-                }
-                $documentManager->remove($jobArchive);
-                ++$countProcessed;
-            }
-            $documentManager->flush();
+            $countProcessed += $this->resetJobsByCriterion($criterion, 100, $i);
         }
 
+        return $countProcessed;
+    }
+
+    private function resetJobsByCriterion($criterion, $limit, $offset) {
+        $documentManager = $this->getDocumentManager();
+        $className = $this->getRepository()->getClassName();
+        $archiveDocumentName = $this->getArchiveDocumentName();
+        $archiveRepository = $documentManager->getRepository($archiveDocumentName);
+
+        $metadata = $documentManager->getClassMetadata($className);
+        $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
+        $idColumn = $metadata->getIdentifier()[0] ?? 'id';
+        $results = $archiveRepository->findBy($criterion, [$idColumn => 'ASC'], $limit, $offset);
+        $countProcessed = 0;
+
+        foreach ($results as $jobArchive) {
+            /** @var Job $job */
+            $job = new $className();
+            Util::copy($jobArchive, $job);
+            $job->setStatus(Job::STATUS_NEW);
+            $job->setLocked(null);
+            $job->setLockedAt(null);
+            $job->setUpdatedAt(new \DateTime());
+
+            // Mongo has no transactions, so there is a chance for duplicates if persisting happens
+            //  but things crash on or before remove.
+            try {
+                $documentManager->persist($job);
+            } catch (\Exception $e) {
+                // @Todo - output or return a warning?
+                continue;
+            }
+            $documentManager->remove($jobArchive);
+            ++$countProcessed;
+        }
+        $documentManager->flush();
         return $countProcessed;
     }
 
@@ -308,21 +320,15 @@ class JobManager implements JobManagerInterface
 
     public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
     {
-        $this->getDocumentManager()->remove($job);
-        $this->getDocumentManager()->flush();
+        $documentManager = $this->getDocumentManager();
+        $documentManager->remove($job);
+        $documentManager->flush();
     }
 
     public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
     {
-        $className = $this->getArchiveDocumentName();
-        $jobArchive = new $className();
-        Util::copy($job, $jobArchive);
-
-        $metadata = $this->documentManager->getClassMetadata($this->getArchiveDocumentName());
-        $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
-        $this->documentManager->persist($jobArchive);
-        $this->documentManager->remove($job);
-        $this->documentManager->flush();
+        $this->getDocumentManager()->persist($job);
+        $this->deleteJob($job); // Should cause job to be archived
     }
 
     public function save(\Dtc\QueueBundle\Model\Job $job)

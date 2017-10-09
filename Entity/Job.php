@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Dtc\GridBundle\Annotation as Grid;
 
 /**
  * @ORM\Entity
@@ -10,6 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
  *                  @ORM\Index(name="job_priority_idx", columns={"priority","when_at"}),
  *                  @ORM\Index(name="job_when_idx", columns={"when_at","locked"}),
  *                  @ORM\Index(name="job_status_idx", columns={"status","locked","when_at"})})
+ * @Grid\Grid(actions={@Grid\ShowAction(), @Grid\DeleteAction()})
  */
 class Job extends BaseJob
 {

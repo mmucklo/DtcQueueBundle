@@ -3,9 +3,10 @@
 namespace Dtc\QueueBundle\Document;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
-use Dtc\GridBundle\Annotation\GridColumn;
+use Dtc\GridBundle\Annotation as Grid;
 
 /**
+ * @Grid\Grid(actions={@Grid\ShowAction()})
  * @ODM\Document(db="queue", collection="job_archive")
  */
 class JobArchive extends BaseJob
@@ -34,13 +35,13 @@ class JobArchive extends BaseJob
     /**
      * When the job finished.
      *
-     * @GridColumn()
+     * @Grid\Column()
      * @ODM\Field(type="date", nullable=true)
      */
     protected $finishedAt;
 
     /**
-     * @GridColumn()
+     * @Grid\Column()
      * @ODM\Field(type="float")
      */
     protected $elapsed;

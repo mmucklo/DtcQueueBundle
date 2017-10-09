@@ -1,8 +1,8 @@
 {% extends "DtcGridBundle:Page:datatables.html.twig" %}
 
 {% block grid %}
-    <h3>Live Jobs</h3>
+    <h3>{{ dtc_queue_grid_label1 }}</h3>
     {{ dtc_grid.render | raw }}
-    <h3>Archived Jobs</h3>
+    <h3>{{ dtc_queue_grid_label2 }}</h3>
     {{ archive_grid.render | raw }}
 {% endblock %}

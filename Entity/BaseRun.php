@@ -3,20 +3,20 @@
 namespace Dtc\QueueBundle\Entity;
 
 use Dtc\QueueBundle\Model\Run;
-use Dtc\GridBundle\Annotation\GridColumn;
+use Dtc\GridBundle\Annotation as Grid;
 use Doctrine\ORM\Mapping as ORM;
 
 abstract class BaseRun extends Run
 {
     /**
-     * @GridColumn()
+     * @Grid\Column()
      * @ORM\Column(type="bigint")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
     protected $id;
     /**
-     * @GridColumn()
+     * @Grid\Column(sortable=true)
      * @ORM\Column(type="datetime", nullable=true)
      */
     protected $startedAt;
@@ -24,36 +24,42 @@ abstract class BaseRun extends Run
      * @ORM\Column(type="datetime", nullable=true)
      */
     protected $endedAt;
+
     /**
-     * @GridColumn()
+     * @ORM\Column(type="float", nullable=true)
+     */
+    protected $elapsed;
+
+    /**
+     * @Grid\Column()
      * @ORM\Column(type="integer", nullable=true)
      */
     protected $duration; // How long to run for in seconds
 
     /**
-     * @GridColumn()
+     * @Grid\Column(sortable=true)
      * @ORM\Column(type="datetime", nullable=true)
      */
     protected $lastHeartbeatAt;
 
     /**
-     * @GridColumn()
+     * @Grid\Column()
      * @ORM\Column(type="integer", nullable=true)
      */
     protected $maxCount;
     /**
-     * @GridColumn()
+     * @Grid\Column()
      * @ORM\Column(type="integer")
      */
     protected $processed = 0; // Number of jobs processed
 
     /**
-     * @GridColumn()
+     * @Grid\Column(sortable=true)
      * @ORM\Column(type="string", nullable=true)
      */
     protected $hostname;
     /**
-     * @GridColumn()
+     * @Grid\Column()
      * @ORM\Column(type="integer", nullable=true)
      */
     protected $pid;

@@ -29,17 +29,19 @@ class QueueController extends Controller
     /**
      * List jobs in system by default.
      *
-     * @Route("/jobs/")
+     * @Route("/jobs", name="dtc_queue_jobs")
      */
     public function jobsAction()
     {
-        // @TODO throw an error when not supported (such as RabbitMQ / Beanstalkd)
+        $managerType = $this->container->getParameter('dtc_queue.default_manager');
+        if ($managerType !== 'mongodb' && $managerType != 'orm') {
+            throw new \Exception("Unsupported manager type: $managerType");
+        }
+
         $rendererFactory = $this->get('dtc_grid.renderer.factory');
         $renderer = $rendererFactory->create('datatables');
         $className = $this->container->getParameter('dtc_queue.job_class');
         $gridSource = $this->get('dtc_grid.manager.source')->get($className);
-        $gridSource->addColumns([new GridColumn('action', 'Action', null, ['defaultContent' => '<button>Delete</button>', 'data' => null])]);
-
         $renderer->bind($gridSource);
         $params = $renderer->getParams();
 
@@ -50,8 +52,45 @@ class QueueController extends Controller
         $params2 = $renderer2->getParams();
 
         $params['archive_grid'] = $params2['dtc_grid'];
+        $params['dtc_queue_grid_label1'] = 'Live Jobs';
+        $params['dtc_queue_grid_label2'] = 'Archived Jobs';
 
-        return $this->render('@DtcQueue/Queue/jobs.html.twig', $params);
+        return $this->render('@DtcQueue/Queue/grid.html.twig', $params);
+    }
+
+
+    /**
+     * List jobs in system by default.
+     *
+     * @Route("/runs", name="dtc_queue_runs")
+     */
+    public function runsAction()
+    {
+        $managerType = $this->container->getParameter('dtc_queue.default_manager');
+        if ($managerType !== 'mongodb' && $managerType != 'orm') {
+            throw new \Exception("Unsupported manager type: $managerType");
+        }
+
+        $rendererFactory = $this->get('dtc_grid.renderer.factory');
+        $renderer = $rendererFactory->create('datatables');
+        $className = $this->container->getParameter('dtc_queue.run_class');
+        $manager = $this->container->get('dtc_queue.job_manager');
+        $gridSource = $this->get('dtc_grid.manager.source')->get($className);
+        $renderer->bind($gridSource);
+        $params = $renderer->getParams();
+
+        $renderer2 = $rendererFactory->create('datatables');
+        $className = $this->container->getParameter('dtc_queue.run_class_archive');
+        $gridSource = $this->get('dtc_grid.manager.source')->get($className);
+        $renderer2->bind($gridSource);
+        $params2 = $renderer2->getParams();
+
+        $params['archive_grid'] = $params2['dtc_grid'];
+
+        $params['dtc_queue_grid_label1'] = 'Live Runs';
+        $params['dtc_queue_grid_label2'] = 'Archived Runs';
+
+        return $this->render('@DtcQueue/Queue/grid.html.twig', $params);
     }
 
     /**

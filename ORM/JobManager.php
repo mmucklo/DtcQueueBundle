@@ -92,7 +92,6 @@ class JobManager implements JobManagerInterface
 
         $countProcessed = 0;
         for ($i = 0; $i < $count; $i += 100) {
-            $repository = $entityManager->getRepository($archiveEntityName);
             $criterion = ['status' => Job::STATUS_ERROR];
             if ($workerName) {
                 $criterion['workerName'] = $workerName;
@@ -100,27 +99,40 @@ class JobManager implements JobManagerInterface
             if ($method) {
                 $criterion['method'] = $method;
             }
-            $results = $repository->findBy($criterion, null, 100);
-            $entityManager->beginTransaction();
-            foreach ($results as $jobArchive) {
-                $className = $this->getEntityName();
-                $job = new $className();
-                Util::copy($jobArchive, $job);
-                $job->setStatus(Job::STATUS_NEW);
-                $job->setLocked(null);
-                $job->setLockedAt(null);
-                $job->setUpdatedAt(new \DateTime());
-                $metadata = $entityManager->getClassMetadata($this->getEntityName());
-                $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
-                $metadata->setIdGenerator(new AssignedGenerator());
-                $entityManager->remove($jobArchive);
-                $entityManager->persist($job);
-                ++$countProcessed;
-            }
-            $entityManager->commit();
-            $entityManager->flush();
+            $countProcessed += $this->resetJobsByCriterion($criterion, 100, $i);
         }
 
+        return $countProcessed;
+    }
+
+    private function resetJobsByCriterion($criterion, $limit, $offset) {
+        $entityManager = $this->getEntityManager();
+        $archiveEntityName = $this->getArchiveEntityName();
+        $className = $this->getRepository()->getClassName();
+
+        $metadata = $entityManager->getClassMetadata($className);
+        $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
+        $idColumn = $metadata->getIdentifier()[0] ?? 'id';
+
+        $archiveRepository = $entityManager->getRepository($archiveEntityName);
+        $metadata->setIdGenerator(new AssignedGenerator());
+        $results = $archiveRepository->findBy($criterion, [$idColumn => 'ASC'], $limit, $offset);
+        $entityManager->beginTransaction();
+        $countProcessed = 0;
+        foreach ($results as $jobArchive) {
+            /** @var Job $job */
+            $job = new $className();
+            Util::copy($jobArchive, $job);
+            $job->setStatus(Job::STATUS_NEW);
+            $job->setLocked(null);
+            $job->setLockedAt(null);
+            $job->setUpdatedAt(new \DateTime());
+            $entityManager->remove($jobArchive);
+            $entityManager->persist($job);
+            ++$countProcessed;
+        }
+        $entityManager->commit();
+        $entityManager->flush();
         return $countProcessed;
     }
 
@@ -312,6 +324,9 @@ class JobManager implements JobManagerInterface
 
             return $job;
         }
+        else {
+            $entityManager->rollback();
+        }
 
         return null;
     }
@@ -321,22 +336,15 @@ class JobManager implements JobManagerInterface
         if (!$job instanceof Job) {
             throw new \Exception("Job must be instance of Dtc\\QueuBundle\\Entity\\Job, instead it's ".get_class($job));
         }
-        $this->entityManager->remove($job);
-        $this->entityManager->flush();
+        $entityManager = $this->getEntityManager();
+        $entityManager->remove($job);
+        $entityManager->flush();
     }
 
     public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
     {
-        $className = $this->getArchiveEntityName();
-        $jobArchive = new $className();
-        Util::copy($job, $jobArchive);
-
-        $metadata = $this->entityManager->getClassMetadata($this->getArchiveEntityName());
-        $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
-        $metadata->setIdGenerator(new AssignedGenerator());
-        $this->entityManager->persist($jobArchive);
-        $this->entityManager->remove($job);
-        $this->entityManager->flush();
+        $this->getEntityManager()->persist($job);
+        $this->deleteJob($job);
     }
 
     public function save(\Dtc\QueueBundle\Model\Job $job)
