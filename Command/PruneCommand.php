@@ -15,7 +15,7 @@ class PruneCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
-        ->setName('dtc:queue_worker:prune')
+        ->setName('dtc:queue:prune')
         ->setDescription('Prune job with error status')
         ->addArgument('type', InputArgument::REQUIRED, '<error|expired|old> Prune erroneous, expired, or old jobs')
             ->addOption('older', null, InputOption::VALUE_REQUIRED, self::OLDER_MESSAGE);

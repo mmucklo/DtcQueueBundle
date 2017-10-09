@@ -33,19 +33,6 @@ class RunArchive extends BaseRun
     protected $duration; // How long to run for in seconds
 
     /**
-     * @ODM\Index(unique=false, order="asc")
-     * @ODM\Field(type="date")
-     */
-    protected $createdAt;
-
-    /**
-     * @Grid\Column()
-     * @ODM\Index(unique=false, order="asc")
-     * @ODM\Field(type="date")
-     */
-    protected $updatedAt;
-
-    /**
      * @ODM\Field(type="int", nullable=true)
      */
     protected $maxCount;

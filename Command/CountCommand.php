@@ -11,7 +11,7 @@ class CountCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
-            ->setName('dtc:queue_worker:count')
+            ->setName('dtc:queue:count')
             ->setDescription('Display job queue status.')
         ;
     }

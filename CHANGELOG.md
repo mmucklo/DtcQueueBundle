@@ -22,3 +22,8 @@ doctrine_mongodb:
    * RunCommand:
        * Added new options:
            * 
+           
+       * Renamed command namespace:
+           * Old: dtc:queue_worker:*
+           * New: dtc:queue:*
+           

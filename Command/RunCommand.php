@@ -36,7 +36,7 @@ class RunCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
-            ->setName('dtc:queue_worker:run')
+            ->setName('dtc:queue:run')
             ->setDefinition(
                 array(
                     new InputArgument('worker_name', InputArgument::OPTIONAL, 'Name of worker', null),

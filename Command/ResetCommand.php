@@ -13,7 +13,7 @@ class ResetCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
-            ->setName('dtc:queue_worker:reset')
+            ->setName('dtc:queue:reset')
             ->setDefinition(
                 array(
                     new InputArgument('worker_name', InputArgument::OPTIONAL, 'Name of worker', null),
