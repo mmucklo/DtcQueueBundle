@@ -77,7 +77,10 @@ class JobManagerTest extends BaseJobManagerTest
 
         $jobInQueue = self::$jobManager->getJob();
         $this->assertNotNull($jobInQueue, 'There should be a job.');
-        $this->assertEquals($job->getId(), $jobInQueue->getId(),
-            'Job id returned by manager should be the same');
+        $this->assertEquals(
+            $job->getId(),
+            $jobInQueue->getId(),
+            'Job id returned by manager should be the same'
+        );
     }
 }

@@ -24,8 +24,11 @@ abstract class BaseJobManagerTest extends TestCase
 
         $jobInQueue = self::$jobManager->getJob();
         $this->assertNotNull($jobInQueue, 'There should be a job.');
-        $this->assertEquals($job->getId(), $jobInQueue->getId(),
-                'Job id returned by manager should be the same');
+        $this->assertEquals(
+            $job->getId(),
+            $jobInQueue->getId(),
+                'Job id returned by manager should be the same'
+        );
         self::$jobManager->deleteJob($job);
     }
 
@@ -60,16 +63,25 @@ abstract class BaseJobManagerTest extends TestCase
 
         $jobInQueue = self::$jobManager->getJob();
         $this->assertNotNull($jobInQueue, 'There should be a job.');
-        $this->assertEquals($secondJob->getId(), $jobInQueue->getId(),
-                'Second job id should be returned - lower number unload first');
+        $this->assertEquals(
+            $secondJob->getId(),
+            $jobInQueue->getId(),
+                'Second job id should be returned - lower number unload first'
+        );
 
         $jobInQueue = self::$jobManager->getJob();
-        $this->assertEquals($thirdJob->getId(), $jobInQueue->getId(),
-                'Third job id should be returned - lower number unload first');
+        $this->assertEquals(
+            $thirdJob->getId(),
+            $jobInQueue->getId(),
+                'Third job id should be returned - lower number unload first'
+        );
 
         $jobInQueue = self::$jobManager->getJob();
-        $this->assertEquals($firstJob->getId(), $jobInQueue->getId(),
-                'First job id should be returned - lower number unload first');
+        $this->assertEquals(
+            $firstJob->getId(),
+            $jobInQueue->getId(),
+                'First job id should be returned - lower number unload first'
+        );
     }
 
     public function testGetJobByWorker()
@@ -79,8 +91,11 @@ abstract class BaseJobManagerTest extends TestCase
         $this->assertNotNull($job->getId(), 'Job id should be generated');
 
         $jobInQueue = self::$jobManager->getJob(self::$worker->getName());
-        $this->assertEquals($job->getId(), $jobInQueue->getId(),
-                'Job id returned by manager should be the same');
+        $this->assertEquals(
+            $job->getId(),
+            $jobInQueue->getId(),
+                'Job id returned by manager should be the same'
+        );
     }
 
     /**

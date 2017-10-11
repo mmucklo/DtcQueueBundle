@@ -89,7 +89,8 @@ class JobManager implements JobManagerInterface
         return $countProcessed;
     }
 
-    private function resetJobsByCriterion($criterion, $limit, $offset) {
+    private function resetJobsByCriterion($criterion, $limit, $offset)
+    {
         $documentManager = $this->getDocumentManager();
         $className = $this->getRepository()->getClassName();
         $archiveDocumentName = $this->getArchiveDocumentName();
@@ -122,6 +123,7 @@ class JobManager implements JobManagerInterface
             ++$countProcessed;
         }
         $documentManager->flush();
+
         return $countProcessed;
     }
 
@@ -299,8 +301,10 @@ class JobManager implements JobManagerInterface
         // Filter
         $date = new \DateTime();
         $qb
-            ->addAnd($qb->expr()->addOr($qb->expr()->field('whenAt')->equals(null), $qb->expr()->field('whenAt')->lte($date)),
-                $qb->expr()->addOr($qb->expr()->field('expiresAt')->equals(null), $qb->expr()->field('expiresAt')->gt($date)))
+            ->addAnd(
+                $qb->expr()->addOr($qb->expr()->field('whenAt')->equals(null), $qb->expr()->field('whenAt')->lte($date)),
+                $qb->expr()->addOr($qb->expr()->field('expiresAt')->equals(null), $qb->expr()->field('expiresAt')->gt($date))
+            )
             ->field('status')->equals(Job::STATUS_NEW)
             ->field('locked')->equals(null);
 

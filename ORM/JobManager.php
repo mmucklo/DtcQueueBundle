@@ -105,7 +105,8 @@ class JobManager implements JobManagerInterface
         return $countProcessed;
     }
 
-    private function resetJobsByCriterion($criterion, $limit, $offset) {
+    private function resetJobsByCriterion($criterion, $limit, $offset)
+    {
         $entityManager = $this->getEntityManager();
         $archiveEntityName = $this->getArchiveEntityName();
         $className = $this->getRepository()->getClassName();
@@ -133,6 +134,7 @@ class JobManager implements JobManagerInterface
         }
         $entityManager->commit();
         $entityManager->flush();
+
         return $countProcessed;
     }
 
@@ -192,8 +194,10 @@ class JobManager implements JobManagerInterface
         $where = 'where';
         if ($workerName) {
             if ($method) {
-                $qb->where($qb->expr()->andX($qb->expr()->eq('j.workerName', ':workerName'),
-                                             $qb->expr()->eq('j.method', ':method')))
+                $qb->where($qb->expr()->andX(
+                    $qb->expr()->eq('j.workerName', ':workerName'),
+                                             $qb->expr()->eq('j.method', ':method')
+                ))
                     ->setParameter(':method', $method);
             } else {
                 $qb->where('j.workerName = :workerName');
@@ -208,10 +212,14 @@ class JobManager implements JobManagerInterface
         $dateTime = new \DateTime();
         // Filter
         $qb
-            ->$where($qb->expr()->orX($qb->expr()->isNull('j.whenAt'),
-                                        $qb->expr()->lte('j.whenAt', ':whenAt')))
-            ->andWhere($qb->expr()->orX($qb->expr()->isNull('j.expiresAt'),
-                $qb->expr()->gt('j.expiresAt', ':expiresAt')))
+            ->$where($qb->expr()->orX(
+                $qb->expr()->isNull('j.whenAt'),
+                                        $qb->expr()->lte('j.whenAt', ':whenAt')
+            ))
+            ->andWhere($qb->expr()->orX(
+                $qb->expr()->isNull('j.expiresAt'),
+                $qb->expr()->gt('j.expiresAt', ':expiresAt')
+            ))
             ->andWhere('j.locked is NULL')
             ->setParameter(':whenAt', $dateTime)
             ->setParameter(':expiresAt', $dateTime);
@@ -282,10 +290,14 @@ class JobManager implements JobManagerInterface
             ->select('j')
             ->where('j.status = :status')->setParameter(':status', Job::STATUS_NEW)
             ->andWhere('j.locked is NULL')
-            ->andWhere($qb->expr()->orX($qb->expr()->isNull('j.whenAt'),
-                        $qb->expr()->lte('j.whenAt', ':whenAt')))
-            ->andWhere($qb->expr()->orX($qb->expr()->isNull('j.expiresAt'),
-                        $qb->expr()->gt('j.expiresAt', ':expiresAt')))
+            ->andWhere($qb->expr()->orX(
+                $qb->expr()->isNull('j.whenAt'),
+                        $qb->expr()->lte('j.whenAt', ':whenAt')
+            ))
+            ->andWhere($qb->expr()->orX(
+                $qb->expr()->isNull('j.expiresAt'),
+                        $qb->expr()->gt('j.expiresAt', ':expiresAt')
+            ))
             ->setParameter(':whenAt', $dateTime)
             ->setParameter(':expiresAt', $dateTime);
 
@@ -323,8 +335,7 @@ class JobManager implements JobManagerInterface
             $entityManager->flush();
 
             return $job;
-        }
-        else {
+        } else {
             $entityManager->rollback();
         }
 

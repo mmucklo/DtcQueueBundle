@@ -83,7 +83,8 @@ class WorkerCompilerPass implements CompilerPassInterface
         }
     }
 
-    public function setupDoctrineManagers(ContainerBuilder $container) {
+    public function setupDoctrineManagers(ContainerBuilder $container)
+    {
         $documentManager = $container->getParameter('dtc_queue.document_manager');
 
         $odmManager = "doctrine_mongodb.odm.{$documentManager}_document_manager";
@@ -265,7 +266,6 @@ class WorkerCompilerPass implements CompilerPassInterface
 
         return $runArchiveClass;
     }
-
 
     /**
      * Determines the job class based on the queue manager type.

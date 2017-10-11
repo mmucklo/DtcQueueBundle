@@ -49,18 +49,22 @@ class WorkerManager
         return $this->workers;
     }
 
-    public function setLoggingFunc(callable $callable) {
+    public function setLoggingFunc(callable $callable)
+    {
         $this->logFunc = $callable;
     }
 
-    public function log($level, $msg, array $context = []) {
+    public function log($level, $msg, array $context = [])
+    {
         if ($this->logFunc) {
             call_user_func_array($this->logFunc, [$level, $msg, $context]);
+
             return;
         }
 
         if ($this->logger) {
             $this->logger->$level($msg, $context);
+
             return;
         }
     }
@@ -97,7 +101,7 @@ class WorkerManager
         };
         try {
             $worker = $this->getWorker($job->getWorkerName());
-            $this->log('debug',"Start: {$job->getClassName()}->{$job->getMethod()}", $job->getArgs());
+            $this->log('debug', "Start: {$job->getClassName()}->{$job->getMethod()}", $job->getArgs());
             $job->setStartedAt(new \DateTime());
             call_user_func_array(array($worker, $job->getMethod()), $job->getArgs());
 
@@ -115,8 +119,8 @@ class WorkerManager
         $job->setFinishedAt(new \DateTime());
         $job->setElapsed($elapsed);
 
-        $this->log('debug',"Finished: {$job->getClassName()}->{$job->getMethod()} in {$elapsed} micro-seconds");
-        $this->log('debug',"Save job history: {$job->getId()}");
+        $this->log('debug', "Finished: {$job->getClassName()}->{$job->getMethod()} in {$elapsed} micro-seconds");
+        $this->log('debug', "Save job history: {$job->getId()}");
 
         $this->jobManager->saveHistory($job);
         $this->eventDispatcher->dispatch(Event::POST_JOB, $event);

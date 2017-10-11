@@ -17,21 +17,24 @@ class RemoveListener
     /** @var JobManagerInterface */
     private $jobManager;
 
-    public function setJobManager(JobManagerInterface $jobManager) {
+    public function setJobManager(JobManagerInterface $jobManager)
+    {
         $this->jobManager = $jobManager;
     }
 
-    public function preRemove(LifecycleEventArgs $eventArgs) {
+    public function preRemove(LifecycleEventArgs $eventArgs)
+    {
         $object = $eventArgs->getObject();
         $objectManager = $eventArgs->getObjectManager();
 
         if ($object instanceof Job) {
-            /** @var DocumentManager $objectManager */
+            /* @var DocumentManager $objectManager */
             $this->removeDocument($object, $objectManager);
         }
     }
 
-    private function removeDocument(Job $object, DocumentManager $documentManager) {
+    private function removeDocument(Job $object, DocumentManager $documentManager)
+    {
         /** @var JobManager $jobManager */
         $jobManager = $this->jobManager;
         $className = $jobManager->getArchiveDocumentName();
@@ -43,7 +46,8 @@ class RemoveListener
         $documentManager->persist($jobArchive);
     }
 
-    private function removeEntity(\Dtc\QueueBundle\Entity\Job $object, EntityManager $entityManager) {
+    private function removeEntity(\Dtc\QueueBundle\Entity\Job $object, EntityManager $entityManager)
+    {
         /** @var \Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = $this->jobManager;
         $className = $jobManager->getArchiveEntityName();
@@ -54,6 +58,5 @@ class RemoveListener
         $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
         $metadata->setIdGenerator(new AssignedGenerator());
         $entityManager->persist($jobArchive);
-
     }
 }

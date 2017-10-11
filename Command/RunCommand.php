@@ -41,18 +41,47 @@ class RunCommand extends ContainerAwareCommand
                 array(
                     new InputArgument('worker_name', InputArgument::OPTIONAL, 'Name of worker', null),
                     new InputArgument('method', InputArgument::OPTIONAL, 'DI method of worker', null),
-                    new InputOption('id', 'i', InputOption::VALUE_REQUIRED,
-                        'Id of Job to run', null),
-                    new InputOption('max_count', 'm', InputOption::VALUE_REQUIRED,
-                        'Maximum number of jobs to work on before exiting', null),
-                    new InputOption('duration', 'd', InputOption::VALUE_REQUIRED,
-                        'Duration to run for in seconds', null),
-                    new InputOption('timeout', 't', InputOption::VALUE_REQUIRED,
-                        'Process timeout in seconds (hard exit of process regardless)', 3600),
-                    new InputOption('nano_sleep', 's', InputOption::VALUE_REQUIRED,
-                        'If using duration, this is the time to sleep when there\'s no jobs in nanoseconds', 500000000),
-                    new InputOption('logger', 'l', InputOption::VALUE_REQUIRED,
-                        'Log using the logger service specified, or output to console if null (or an invalid logger service id) is passed in')
+                    new InputOption(
+                        'id',
+                        'i',
+                        InputOption::VALUE_REQUIRED,
+                        'Id of Job to run',
+                        null
+                    ),
+                    new InputOption(
+                        'max_count',
+                        'm',
+                        InputOption::VALUE_REQUIRED,
+                        'Maximum number of jobs to work on before exiting',
+                        null
+                    ),
+                    new InputOption(
+                        'duration',
+                        'd',
+                        InputOption::VALUE_REQUIRED,
+                        'Duration to run for in seconds',
+                        null
+                    ),
+                    new InputOption(
+                        'timeout',
+                        't',
+                        InputOption::VALUE_REQUIRED,
+                        'Process timeout in seconds (hard exit of process regardless)',
+                        3600
+                    ),
+                    new InputOption(
+                        'nano_sleep',
+                        's',
+                        InputOption::VALUE_REQUIRED,
+                        'If using duration, this is the time to sleep when there\'s no jobs in nanoseconds',
+                        500000000
+                    ),
+                    new InputOption(
+                        'logger',
+                        'l',
+                        InputOption::VALUE_REQUIRED,
+                        'Log using the logger service specified, or output to console if null (or an invalid logger service id) is passed in'
+                    ),
                 )
             )
             ->setDescription('Start up a job in queue');
@@ -66,7 +95,7 @@ class RunCommand extends ContainerAwareCommand
 
         $job = $jobManager->getRepository()->find($jobId);
         if (!$job) {
-            $this->log('error',"Job id is not found: {$jobId}");
+            $this->log('error', "Job id is not found: {$jobId}");
 
             return;
         }
@@ -93,18 +122,21 @@ class RunCommand extends ContainerAwareCommand
         return intval($var);
     }
 
-    public function log($level, $msg, array $context = []) {
+    public function log($level, $msg, array $context = [])
+    {
         if ($this->logger) {
             $this->logger->$level($msg, $context);
+
             return;
         }
 
         $date = new \DateTime();
-        $this->output->writeln("[$level] [" . $date->format('c') . '] ' . $msg);
+        $this->output->writeln("[$level] [".$date->format('c').'] '.$msg);
         if ($context) {
             $this->output->writeln(print_r($context, true));
         }
     }
+
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $start = microtime(true);
@@ -127,7 +159,7 @@ class RunCommand extends ContainerAwareCommand
         $processTimeout = $this->validateIntNull('timeout', $processTimeout, 32);
         $nanoSleep = $this->validateIntNull('nano_sleep', $nanoSleep, 63);
 
-        if ($maxCount === null && $duration === null) {
+        if (null === $maxCount && null === $duration) {
             $maxCount = 1;
         }
         // Check to see if there are other instances
@@ -136,10 +168,12 @@ class RunCommand extends ContainerAwareCommand
         if ($jobId = $input->getOption('id')) {
             return $this->runJobById($jobId);   // Run a single job
         }
+
         return $this->runLoop($start, $workerName, $methodName, $nanoSleep, $maxCount, $duration);
     }
 
-    protected function runLoop($start, $workerName, $methodName, $nanoSleep, $maxCount, $duration) {
+    protected function runLoop($start, $workerName, $methodName, $nanoSleep, $maxCount, $duration)
+    {
         $container = $this->getContainer();
         $workerManager = $container->get('dtc_queue.worker_manager');
         $workerManager->setLoggingFunc([$this, 'log']);
@@ -175,29 +209,31 @@ class RunCommand extends ContainerAwareCommand
                     ++$currentJob;
                 } else {
                     if (!$noMoreJobsToRun) {
-                        $this->log('info', 'No more jobs to run (' . ($currentJob - 1) . ' processed so far).');
+                        $this->log('info', 'No more jobs to run ('.($currentJob - 1).' processed so far).');
                         $noMoreJobsToRun = true;
                     }
                     if ($maxCount && !$duration) {
                         // time to finish
                         $this->end($start);
+
                         return 0;
                     }
                     $nanoSleepTime = function_exists('random_int') ? random_int(0, $nanoSleep) : mt_rand(0, $nanoSleep);
                     time_nanosleep(0, $nanoSleepTime); // 500ms ??
                 }
-            } while (($maxCount === null || $currentJob <= $maxCount) && ($duration === null || (new \DateTime()) < $endTime));
+            } while ((null === $maxCount || $currentJob <= $maxCount) && (null === $duration || (new \DateTime()) < $endTime));
         } catch (\Exception $e) {
             // Uncaught error: possibly with QueueBundle itself
             $this->log('critical', $e->getMessage(), $e->getTrace());
         }
         $this->end($start);
+
         return 0;
     }
 
-
     /**
-     * Sets up the runManager (document / entity persister) if appropriate
+     * Sets up the runManager (document / entity persister) if appropriate.
+     *
      * @param $maxCount
      * @param $duration
      */
@@ -205,10 +241,9 @@ class RunCommand extends ContainerAwareCommand
     {
         $container = $this->getContainer();
         $defaultManager = $container->getParameter('dtc_queue.default_manager');
-        if ($defaultManager == 'mongodb' && $container->has('dtc_queue.document_manager')) {
+        if ('mongodb' == $defaultManager && $container->has('dtc_queue.document_manager')) {
             $this->runManager = $container->get('dtc_queue.document_manager');
-        }
-        else if ($defaultManager == 'orm' && $container->has('dtc_queue.entity_manager')) {
+        } elseif ('orm' == $defaultManager && $container->has('dtc_queue.entity_manager')) {
             $this->runManager = $container->get('dtc_queue.entity_manager');
         }
 
@@ -248,7 +283,7 @@ class RunCommand extends ContainerAwareCommand
             $this->runManager->remove($this->run);
             $this->runManager->flush();
         }
-        $this->log('info', 'Ended with ' . $this->run->getProcessed() . ' jobs processed over ' . strval($this->run->getElapsed()) . ' seconds.');
+        $this->log('info', 'Ended with '.$this->run->getProcessed().' jobs processed over '.strval($this->run->getElapsed()).' seconds.');
     }
 
     protected function reportJob(Job $job)

@@ -2,7 +2,6 @@
 
 namespace Dtc\QueueBundle\Controller;
 
-use Dtc\GridBundle\Grid\Column\GridColumn;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -34,7 +33,7 @@ class QueueController extends Controller
     public function jobsAction()
     {
         $managerType = $this->container->getParameter('dtc_queue.default_manager');
-        if ($managerType !== 'mongodb' && $managerType != 'orm') {
+        if ('mongodb' !== $managerType && 'orm' != $managerType) {
             throw new \Exception("Unsupported manager type: $managerType");
         }
 
@@ -58,7 +57,6 @@ class QueueController extends Controller
         return $this->render('@DtcQueue/Queue/grid.html.twig', $params);
     }
 
-
     /**
      * List jobs in system by default.
      *
@@ -67,7 +65,7 @@ class QueueController extends Controller
     public function runsAction()
     {
         $managerType = $this->container->getParameter('dtc_queue.default_manager');
-        if ($managerType !== 'mongodb' && $managerType != 'orm') {
+        if ('mongodb' !== $managerType && 'orm' != $managerType) {
             throw new \Exception("Unsupported manager type: $managerType");
         }
 
