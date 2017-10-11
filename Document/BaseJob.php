@@ -76,6 +76,7 @@ abstract class BaseJob extends Job
     /**
      * @Grid\Column()
      * @ODM\Field(type="date", nullable=true)
+     * @ODM\AlsoLoad(name="when")
      * @ODM\Index(unique=false, order="asc")
      */
     protected $whenAt;
