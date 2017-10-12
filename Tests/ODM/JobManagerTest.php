@@ -38,13 +38,13 @@ class JobManagerTest extends BaseJobManagerTest
         $config->setHydratorDir('/tmp/dtcqueuetest/generate/hydrators');
         $config->setHydratorNamespace('Hydrators');
 
-        $classPath = __DIR__.'../../Documents';
+        $classPath = __DIR__.'../../Document';
         $config->setMetadataDriverImpl(AnnotationDriver::create($classPath));
 
         self::$dm = DocumentManager::create(new Connection(getenv('MONGODB_HOST')), $config);
 
-        $documentName = 'Dtc\QueueBundle\Documents\Job';
-        $archiveDocumentName = 'Dtc\QueueBundle\Documents\JobArchive';
+        $documentName = 'Dtc\QueueBundle\Document\Job';
+        $archiveDocumentName = 'Dtc\QueueBundle\Document\JobArchive';
         $sm = self::$dm->getSchemaManager();
 
         $sm->dropDocumentCollection($documentName);
