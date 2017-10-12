@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Tests\ODM;
 
+use Doctrine\Common\Annotations\AnnotationRegistry;
 use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\ODM\JobManager;
@@ -29,6 +30,11 @@ class JobManagerTest extends BaseJobManagerTest
             mkdir('/tmp/dtcqueuetest/generate/hydrators', 0777, true);
         }
         AnnotationDriver::registerAnnotationClasses();
+        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Grid.php');
+        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/ShowAction.php');
+        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/DeleteAction.php');
+        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Column.php');
+        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Action.php');
 
         // Set up database delete here??
         $config = new Configuration();
