@@ -26,6 +26,7 @@ before_script:
   - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then composer require "symfony/framework-bundle:3.3.6" --ignore-platform-reqs; fi
   - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then composer require "symfony/stopwatch:3.3.6" --ignore-platform-reqs; fi
   - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then composer require "symfony/process:3.3.6" --ignore-platform-reqs; fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.1" ]]; then (echo "extension=mongodb.so" > /home/travis/.phpenv/versions/7.1.10/etc/conf.d/mongodb.ini); fi
   - composer install
 
 script: BEANSTALKD_HOST=localhost MONGODB_HOST=localhost RABBIT_MQ_HOST=localhost MYSQL_HOST=localhost MYSQL_USER=root MYSQL_DATABASE=queue_test bin/phpunit --coverage-text
