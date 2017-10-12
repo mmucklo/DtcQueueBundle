@@ -113,7 +113,8 @@ class JobManager implements JobManagerInterface
 
         $metadata = $entityManager->getClassMetadata($className);
         $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
-        $idColumn = $metadata->getIdentifier()[0] ?? 'id';
+        $identifierData = $metadata->getIdentifier();
+        $idColumn = isset($identifierData[0]) ? $identifierData : 'id';
 
         $archiveRepository = $entityManager->getRepository($archiveEntityName);
         $metadata->setIdGenerator(new AssignedGenerator());

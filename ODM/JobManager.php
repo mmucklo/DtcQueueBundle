@@ -98,7 +98,8 @@ class JobManager implements JobManagerInterface
 
         $metadata = $documentManager->getClassMetadata($className);
         $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
-        $idColumn = $metadata->getIdentifier()[0] ?? 'id';
+        $identifierData = $metadata->getIdentifier();
+        $idColumn = isset($identifierData[0]) ? $identifierData : 'id';
         $results = $archiveRepository->findBy($criterion, [$idColumn => 'ASC'], $limit, $offset);
         $countProcessed = 0;
 
