@@ -8,12 +8,13 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Id\AssignedGenerator;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\QueryBuilder;
+use Dtc\QueueBundle\Doctrine\JobResetTrait;
 use Dtc\QueueBundle\Entity\Job;
 use Dtc\QueueBundle\Model\JobManagerInterface;
-use Dtc\QueueBundle\Util\Util;
 
 class JobManager implements JobManagerInterface
 {
+    use JobResetTrait;
     protected $entityManager;
     protected $entityName;
     protected $archiveEntityName;
@@ -99,42 +100,21 @@ class JobManager implements JobManagerInterface
             if ($method) {
                 $criterion['method'] = $method;
             }
-            $countProcessed += $this->resetJobsByCriterion($criterion, 100, $i);
+            $entityManager->beginTransaction();
+            $countProcessed += $this->resetJobsByCriterion($entityManager,
+                $this->getEntityName(),
+                $this->getArchiveEntityName(),
+                function ($metadata) {
+                    /** @var ClassMetadata $metadata */
+                    $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
+                    $metadata->setIdGenerator(new AssignedGenerator());
+                },
+                $criterion,
+                100,
+                $i);
+            $entityManager->commit();
+            $entityManager->flush();
         }
-
-        return $countProcessed;
-    }
-
-    private function resetJobsByCriterion($criterion, $limit, $offset)
-    {
-        $entityManager = $this->getEntityManager();
-        $archiveEntityName = $this->getArchiveEntityName();
-        $className = $this->getRepository()->getClassName();
-
-        $metadata = $entityManager->getClassMetadata($className);
-        $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
-        $identifierData = $metadata->getIdentifier();
-        $idColumn = isset($identifierData[0]) ? $identifierData : 'id';
-
-        $archiveRepository = $entityManager->getRepository($archiveEntityName);
-        $metadata->setIdGenerator(new AssignedGenerator());
-        $results = $archiveRepository->findBy($criterion, [$idColumn => 'ASC'], $limit, $offset);
-        $entityManager->beginTransaction();
-        $countProcessed = 0;
-        foreach ($results as $jobArchive) {
-            /** @var Job $job */
-            $job = new $className();
-            Util::copy($jobArchive, $job);
-            $job->setStatus(Job::STATUS_NEW);
-            $job->setLocked(null);
-            $job->setLockedAt(null);
-            $job->setUpdatedAt(new \DateTime());
-            $entityManager->remove($jobArchive);
-            $entityManager->persist($job);
-            ++$countProcessed;
-        }
-        $entityManager->commit();
-        $entityManager->flush();
 
         return $countProcessed;
     }

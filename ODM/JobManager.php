@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\ODM;
 
 use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
+use Dtc\QueueBundle\Doctrine\JobResetTrait;
 use Dtc\QueueBundle\Model\JobManagerInterface;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Doctrine\ODM\MongoDB\DocumentManager;
@@ -11,6 +12,7 @@ use Dtc\QueueBundle\Util\Util;
 
 class JobManager implements JobManagerInterface
 {
+    use JobResetTrait;
     protected $documentManager;
     protected $documentName;
     protected $archiveDocumentName;
@@ -83,47 +85,17 @@ class JobManager implements JobManagerInterface
             if ($method) {
                 $criterion['method'] = $method;
             }
-            $countProcessed += $this->resetJobsByCriterion($criterion, 100, $i);
+            $countProcessed += $this->resetJobsByCriterion(
+                $documentManager,
+                $this->getDocumentName(),
+                $this->getArchiveDocumentName(),
+                function ($metadata) {
+                    /** @var ClassMetadata $metadata */
+                    $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
+                },
+                $criterion, 100, $i);
+            $documentManager->flush();
         }
-
-        return $countProcessed;
-    }
-
-    private function resetJobsByCriterion($criterion, $limit, $offset)
-    {
-        $documentManager = $this->getDocumentManager();
-        $className = $this->getRepository()->getClassName();
-        $archiveDocumentName = $this->getArchiveDocumentName();
-        $archiveRepository = $documentManager->getRepository($archiveDocumentName);
-
-        $metadata = $documentManager->getClassMetadata($className);
-        $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
-        $identifierData = $metadata->getIdentifier();
-        $idColumn = isset($identifierData[0]) ? $identifierData : 'id';
-        $results = $archiveRepository->findBy($criterion, [$idColumn => 'ASC'], $limit, $offset);
-        $countProcessed = 0;
-
-        foreach ($results as $jobArchive) {
-            /** @var Job $job */
-            $job = new $className();
-            Util::copy($jobArchive, $job);
-            $job->setStatus(Job::STATUS_NEW);
-            $job->setLocked(null);
-            $job->setLockedAt(null);
-            $job->setUpdatedAt(new \DateTime());
-
-            // Mongo has no transactions, so there is a chance for duplicates if persisting happens
-            //  but things crash on or before remove.
-            try {
-                $documentManager->persist($job);
-            } catch (\Exception $e) {
-                // @Todo - output or return a warning?
-                continue;
-            }
-            $documentManager->remove($jobArchive);
-            ++$countProcessed;
-        }
-        $documentManager->flush();
 
         return $countProcessed;
     }

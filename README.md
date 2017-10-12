@@ -53,6 +53,11 @@ Then add the bundle to AppKernel.php:
 	                    dir: Document/
 	                    type: annotation
 
+(Optional Admin)
+
+    
+
+
 Usage
 -----
 
