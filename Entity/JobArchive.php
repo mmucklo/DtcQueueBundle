@@ -7,7 +7,8 @@ use Dtc\GridBundle\Annotation as Grid;
 
 /**
  * @ORM\Entity
- * @ORM\Table(name="job_archive",indexes={
+ * @ORM\Table(name="dtc_queue_job_archive",indexes={
+ *                  @ORM\Index(name="job_archive_status_idx", columns={"status"}),
  *                  @ORM\Index(name="job_archive_updated_at_idx", columns={"updated_at"})})
  * @Grid\Grid(actions={@Grid\ShowAction()})
  */

@@ -7,7 +7,7 @@ use Dtc\GridBundle\Annotation as Grid;
 
 /**
  * @ORM\Entity
- * @ORM\Table(name="run", indexes={@ORM\Index(name="run_last_heart_beat", columns={"last_heartbeat_at"})})
+ * @ORM\Table(name="dtc_queue_run", indexes={@ORM\Index(name="run_last_heart_beat", columns={"last_heartbeat_at"})})
  * @Grid\Grid(actions={@Grid\ShowAction(), @Grid\DeleteAction()})
  */
 class Run extends BaseRun

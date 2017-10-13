@@ -3,9 +3,7 @@
 namespace Dtc\QueueBundle\Doctrine;
 
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
-use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Id\AssignedGenerator;
 use Dtc\QueueBundle\Document\Job;
 use Dtc\QueueBundle\Model\JobManagerInterface;
@@ -24,39 +22,29 @@ class RemoveListener
 
     public function preRemove(LifecycleEventArgs $eventArgs)
     {
+        echo "preRemove\n\n";
         $object = $eventArgs->getObject();
         $objectManager = $eventArgs->getObjectManager();
+        $jobManager = $this->jobManager;
 
         if ($object instanceof Job) {
-            /* @var DocumentManager $objectManager */
-            $this->removeDocument($object, $objectManager);
+            /** @var JobManager $jobManager */
+            $className = $jobManager->getArchiveDocumentName();
+            /** @var ClassMetadata $metadata */
+            $metadata = $objectManager->getClassMetadata($className);
+            $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
         }
-    }
+        else {
+            /** @var \Dtc\QueueBundle\ORM\JobManager $jobManager */
+            $className = $jobManager->getArchiveEntityName();
+            /** @var \Doctrine\ORM\Mapping\ClassMetadata $metadata */
+            $metadata = $objectManager->getClassMetadata($className);
+            $metadata->setIdGeneratorType(\Doctrine\ORM\Mapping\ClassMetadata::GENERATOR_TYPE_NONE);
+            $metadata->setIdGenerator(new AssignedGenerator());
+        }
 
-    private function removeDocument(Job $object, DocumentManager $documentManager)
-    {
-        /** @var JobManager $jobManager */
-        $jobManager = $this->jobManager;
-        $className = $jobManager->getArchiveDocumentName();
         $jobArchive = new $className();
         Util::copy($object, $jobArchive);
-
-        $metadata = $documentManager->getClassMetadata($className);
-        $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
-        $documentManager->persist($jobArchive);
-    }
-
-    private function removeEntity(\Dtc\QueueBundle\Entity\Job $object, EntityManager $entityManager)
-    {
-        /** @var \Dtc\QueueBundle\ORM\JobManager $jobManager */
-        $jobManager = $this->jobManager;
-        $className = $jobManager->getArchiveEntityName();
-        $jobArchive = new $className();
-        Util::copy($object, $jobArchive);
-
-        $metadata = $entityManager->getClassMetadata($className);
-        $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
-        $metadata->setIdGenerator(new AssignedGenerator());
-        $entityManager->persist($jobArchive);
+        $objectManager->persist($jobArchive);
     }
 }

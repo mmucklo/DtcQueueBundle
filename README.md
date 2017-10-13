@@ -6,18 +6,20 @@ DtcQueueBundle
 
 > Allow symfony developers to create background job as easily as: `$worker->later()->process(1,2,3)`
 
-This bundle provides a way to queue long running jobs that should be
-run in backend.
+__2.0 release:__ many changes see [UPGRADING-2.0.md](UPGRADING-2.0.md)
 
-- Turn any long running code into background task with a few lines
+This bundle provides a way to easily create queued background jobs
+
+- Background tasks with just a few lines of code
 - Add workers to your application with very little effort
+- Turn any code into background task with a few lines
 - Atomic operation for jobs
 - Logs errors from worker
 - Command to run and debug jobs from console
 - Works with GridBundle to provide queue management
 
-Supports
---------
+Supported Queues
+----------------
 
 - MongoDB via Doctrine-ODM
 - Mysql / Doctrine 2 supported databases via Doctrine-ORM
@@ -33,6 +35,7 @@ Install via composer:
 
 Then add the bundle to AppKernel.php:
 
+```php
     class AppKernel extends Kernel
     {
         public function registerBundles()
@@ -42,9 +45,12 @@ Then add the bundle to AppKernel.php:
                         new \Dtc\GridBundle\DtcGridBundle(),
                         new \Dtc\QueueBundle\DtcQueueBundle(),
    // ...
-   
-(If using MongoDB) Add MongoDB ODM setting for Job Document.
+```
 
+MongoDB Setup:
+  * Add MongoDB ODM setting for Job Document.
+
+```yaml
 	doctrine_mongodb:
 	    document_managers:
 	        default:
@@ -52,11 +58,31 @@ Then add the bundle to AppKernel.php:
 	                DtcQueueBundle:
 	                    dir: Document/
 	                    type: annotation
+```
+ORM Setup:
+
+```yaml
+dtc_queue:
+    default_manager: orm
+```
+
+   * You'll need to create the schemas in your database by using one of:
+      * bin/console doctrine:schema:update --dump-sql
+      * bin/console doctrine:schema:update --force
+      * Docrtrine Migrations (requires [DoctrineMigrationsBundle](https://github.com/doctrine/DoctrineMigrationsBundle) to be installed):
+         * bin/console doctrine:migrations:diff
+            * (you may want to review the file created to make sure only the 4 DtcQueueBundle tables are getting created - job, job_archive, run, run_archive)
+         * then:
+            * bin/console doctrine:migrations:migrate
 
 (Optional Admin)
 
-    
+Add this to your app/config/routing.yml file:
 
+```yaml
+dtc_queue:
+    resource: '@DtcQueueBundle/Resources/config/routing.yml'
+```
 
 Usage
 -----
@@ -102,24 +128,33 @@ Create a worker class that will work on the background job.
 Create a DI service for the job, and tag it as a background worker.
 
 XML:
+```xml
 	<service id="fibonacci_worker" class="FibonacciWorker">
 	    <tag name="dtc_queue.worker" />
 	</service>
+```
 	
 YAML:
 
-	fibonacci_worker:
-	    class: FibonacciWorker
+```yaml
+	AppBundle\Worker\FibonacciWorker:
 	    tags:
 	        - { name: "dtc_queue.worker" }
+```
 
 Create a background job.
 
-	//$fibonacciWorker->later()->fibonacci(20);
-	//$fibonacciWorker->later()->fibonacciFile(20);
-	//$fibonacciWorker->batchLater()->fibonacci(20); // Batch up runs into a single run
+```php
+	$fibonacciWorker->later()->fibonacci(20);
+	$fibonacciWorker->later()->fibonacciFile(20);
+	$fibonacciWorker->batchLater()->fibonacci(20); // Batch up runs into a single run
 	$fibonacciWorker->later(90)->fibonacci(20); // Run 90 seconds later
+```
 
+```bash
+    bin/console dtc_queue:
+
+```
 
 Running jobs
 ------------

@@ -7,7 +7,7 @@ use Dtc\GridBundle\Annotation as Grid;
 
 /**
  * @Grid\Grid(actions={@Grid\ShowAction()})
- * @ODM\Document(db="queue", collection="job_archive")
+ * @ODM\Document(db="dtc_queue", collection="job_archive")
  */
 class JobArchive extends BaseJob
 {

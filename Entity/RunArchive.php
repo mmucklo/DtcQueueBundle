@@ -7,7 +7,7 @@ use Dtc\GridBundle\Annotation as Grid;
 
 /**
  * @ORM\Entity
- * @ORM\Table(name="run_archive")
+ * @ORM\Table(name="dtc_queue_run_archive")
  * @Grid\Grid(actions={@Grid\ShowAction()})
  */
 class RunArchive extends BaseRun
