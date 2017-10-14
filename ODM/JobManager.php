@@ -51,7 +51,7 @@ class JobManager extends BaseJobManager
      */
     public function pruneErroneousJobs($workerName = null, $method = null)
     {
-        return $this->pruneJobs($workerName, $method, $this->getArchiveObjectName(), function ($qb) {
+        return $this->pruneJobs($workerName, $method, $this->getArchiveObjectName(), function($qb) {
             /* @var Builder $qb */
             return $qb->field('status')->equals(BaseJob::STATUS_ERROR);
         });
@@ -99,7 +99,7 @@ class JobManager extends BaseJobManager
      */
     public function pruneExpiredJobs($workerName = null, $method = null)
     {
-        return $this->pruneJobs($workerName, $method, $this->getObjectName(), function ($qb) {
+        return $this->pruneJobs($workerName, $method, $this->getObjectName(), function($qb) {
             /* @var Builder $qb */
             return $qb->field('expiresAt')->lte(new \DateTime());
         });
