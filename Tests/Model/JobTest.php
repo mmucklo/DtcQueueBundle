@@ -21,14 +21,15 @@ class JobTest extends TestCase
 
         try {
             $job->setArgs(array($job));
-            $this->fail('Invalid job argument passed');
+            self::fail('Invalid job argument passed');
         } catch (\Exception $e) {
         }
 
         try {
             $job->setArgs(array(1, array($job)));
-            $this->fail('Invalid job argument passed');
+            self::fail('Invalid job argument passed');
         } catch (\Exception $e) {
+            self::assertTrue(true);
         }
     }
 
@@ -89,8 +90,9 @@ class JobTest extends TestCase
 
         try {
             $job->invalidFunctionCall();
-            $this->fail('invalid chain, should fail');
+            self::fail('invalid chain, should fail');
         } catch (\Exception $e) {
+            self::assertTrue(true);
         }
     }
 }

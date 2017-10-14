@@ -35,7 +35,7 @@ class WorkerManagerTest extends TestCase
 
         try {
             $this->workerManager->addWorker($this->worker);
-            $this->fail('Should not be able to add duplicate worker');
+            self::fail('Should not be able to add duplicate worker');
         } catch (\Exception $e) {
         }
     }

@@ -18,10 +18,7 @@ abstract class BaseJobManagerTest extends TestCase
 
     public function testSaveJob()
     {
-        $job = new self::$jobClass(self::$worker, false, null);
-        $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
-
+        $job = $this->getJob();
         $jobInQueue = self::$jobManager->getJob();
         $this->assertNotNull($jobInQueue, 'There should be a job.');
         $this->assertEquals(
@@ -32,12 +29,18 @@ abstract class BaseJobManagerTest extends TestCase
         self::$jobManager->deleteJob($job);
     }
 
-    public function testGetJobByWorker()
+    protected function getJob()
     {
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
         $this->assertNotNull($job->getId(), 'Job id should be generated');
 
+        return $job;
+    }
+
+    public function testGetJobByWorker()
+    {
+        $job = $this->getJob();
         $jobInQueue = self::$jobManager->getJob(self::$worker->getName());
         $this->assertEquals(
             $job->getId(),
