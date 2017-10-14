@@ -144,41 +144,49 @@ YAML:
 	        - { name: "dtc_queue.worker" }
 ```
 
-Create a background job.
+#### Create a job
 
 ```php
-	$fibonacciWorker->later()->fibonacci(20);
-	$fibonacciWorker->later()->fibonacciFile(20);
-	$fibonacciWorker->batchLater()->fibonacci(20); // Batch up runs into a single run
-	$fibonacciWorker->later(90)->fibonacci(20); // Run 90 seconds later
+$fibonacciWorker->later()->fibonacci(20);
+$fibonacciWorker->later()->fibonacciFile(20);
+$fibonacciWorker->batchLater()->fibonacci(20); // Batch up runs into a single run
+$fibonacciWorker->later(90)->fibonacci(20); // Run 90 seconds later
 ```
 
 ```bash
-    bin/console dtc_queue:
-
+bin/console dtc:queue:create fibonacci fibonacci 20
 ```
 
 Running jobs
 ------------
 It's recommended that you background the following console commands
 
-    bin/console dtc:queue:run -d 120
-    # the -d parameter is a tunable seconds during which to process jobs
-    #  For example you could put this command into cron or a cron-like system to run periodically
+```bash
+bin/console dtc:queue:run -d 120
+# the -d parameter is a tunable seconds during which to process jobs
+#  For example you could put this command into cron or a cron-like system to run periodically
+#
+# There are a number of other parameters that could be passed to dtc:queue:run run this for a full list:
+bin/console dtc:queue:run --help
     
-    # If you're running a MongoDB or ORM based job store:
-    #
-    bin/console dtc:queue:prune old --older 1m
-    # deletes jobs older than one month from the Archive table
-    #
-    #  You can tune 1m to a smaller interval such as 10d (10 days)
-    #  if you have too many jobs flowing through the system.
-   
+# If you're running a MongoDB or ORM based job store, run this periodically:
+#
+bin/console dtc:queue:prune old --older 1m
+# (deletes jobs older than one month from the Archive table)
+
+
+# You can tune 1m to a smaller interval such as 10d (10 days) or even 1800s (1/2 hour)
+#  if you have too many jobs flowing through the system.   
+```
 
 For debugging
 
-	bin/console dtc:queue_worker:count
-	bin/console dtc:queue_worker:run --id={jobId}
+```bash
+bin/console dtc:queue:count # some status about the queue if available (ODM/ORM only)
+bin/console dtc:queue:reset # resets errored and/or stalled jobs
+bin/console dtc:queue:prune --help # lists other prune commands
+bin/console dtc:queue:run --id={jobId}
+```
 
 (jobId could be obtained from mongodb / or your database, if using an ORM / ODM solution)
 

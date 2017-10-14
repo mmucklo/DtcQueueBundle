@@ -45,7 +45,7 @@ class StaticJobManager implements JobManagerInterface
     public function getJobCount($workerName = null, $methodName = null)
     {
         if ($workerName && isset($this->jobs[$workerName])) {
-            return $this->jobs[$workerName];
+            return count($this->jobs[$workerName]);
         }
 
         $total = 0;
@@ -53,7 +53,7 @@ class StaticJobManager implements JobManagerInterface
             $total += count($this->jobs[$jobWorkerName]);
         }
 
-        return count($this->jobs[$workerName]);
+        return array_sum(array_map(function ($jobs) { return count($jobs); }, $this->jobs));
     }
 
     public function getStatus()
