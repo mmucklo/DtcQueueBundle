@@ -31,6 +31,9 @@ class JobManager extends BaseJobManager
         return $query->count();
     }
 
+    /**
+     * @param string $objectName
+     */
     public function stopIdGenerator($objectName)
     {
         $objectManager = $this->getObjectManager();
@@ -40,6 +43,10 @@ class JobManager extends BaseJobManager
         $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
     }
 
+    /**
+     * @param string $workerName
+     * @param string $method
+     */
     public function pruneErroneousJobs($workerName = null, $method = null)
     {
         /** @var DocumentManager $objectManager */
@@ -67,6 +74,8 @@ class JobManager extends BaseJobManager
 
     /**
      * Prunes expired jobs.
+     * @param string $workerName
+     * @param string $method
      */
     public function pruneExpiredJobs($workerName = null, $method = null)
     {
@@ -148,6 +157,7 @@ class JobManager extends BaseJobManager
 
     /**
      * Get Status Jobs.
+     * @param string $documentName
      */
     protected function getStatusByDocument($documentName)
     {

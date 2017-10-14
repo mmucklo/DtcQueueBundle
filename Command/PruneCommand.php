@@ -64,7 +64,7 @@ class PruneCommand extends ContainerAwareCommand
     }
 
     /**
-     * @param array           $matches
+     * @param string[]           $matches
      * @param OutputInterface $output
      *
      * @return int

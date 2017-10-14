@@ -136,6 +136,9 @@ abstract class BaseJobManagerTest extends TestCase
         }
     }
 
+    /**
+     * @param string $method
+     */
     protected function expectingException($method)
     {
         try {
@@ -156,7 +159,7 @@ abstract class BaseJobManagerTest extends TestCase
 
         $start = microtime(true);
         $jobsTotal = 100; // have to trim this down as Travis is slow.
-        self::$jobManager->enableSorting = false;    // Ignore priority
+        self::$jobManager->enableSorting = false; // Ignore priority
 
         for ($i = 0; $i < $jobsTotal; ++$i) {
             $startLater = microtime(true);

@@ -29,11 +29,26 @@ class JobManager extends AbstractJobManager
         $this->pid = getmypid();
     }
 
+    /**
+     * @param string $exchange
+     * @param string $type
+     * @param boolean $passive
+     * @param boolean $durable
+     * @param boolean $autoDelete
+     */
     public function setExchangeArgs($exchange, $type, $passive, $durable, $autoDelete)
     {
         $this->exchangeArgs = func_get_args();
     }
 
+    /**
+     * @param string $queue
+     * @param boolean $passive
+     * @param boolean $durable
+     * @param boolean $exclusive
+     * @param boolean $autoDelete
+     * @param integer $maxPriority
+     */
     public function setQueueArgs($queue, $passive, $durable, $exclusive, $autoDelete, $maxPriority)
     {
         $arguments = func_get_args();
@@ -106,6 +121,9 @@ class JobManager extends AbstractJobManager
         return $job;
     }
 
+    /**
+     * @param string $workerName
+     */
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
         if ($methodName) {
