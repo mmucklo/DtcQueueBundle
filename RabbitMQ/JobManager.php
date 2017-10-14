@@ -82,7 +82,7 @@ class JobManager extends AbstractJobManager
         if (empty($this->queueArgs)) {
             throw new \Exception(__METHOD__.': queue args need to be set via setQueueArgs(...)');
         }
-        if (emtpy($this->exchangeArgs)) {
+        if (empty($this->exchangeArgs)) {
             throw new \Exception(__METHOD__.': exchange args need to be set via setExchangeArgs(...)');
         }
 
