@@ -169,9 +169,10 @@ bin/console dtc:queue:run -d 120
 # There are a number of other parameters that could be passed to dtc:queue:run run this for a full list:
 bin/console dtc:queue:run --help
     
-# If you're running a MongoDB or ORM based job store, run this periodically:
+# If you're running a MongoDB or ORM based job store, run these periodically:
 #
 bin/console dtc:queue:prune old --older 1m
+bin/console dtc:queue:prune stalled
 # (deletes jobs older than one month from the Archive table)
 
 
@@ -293,6 +294,7 @@ Rename the Database or Table Name
 2) Change the parameters on the class appropriately
 
 ```php
+<?php
 namespace AppBundle\Entity; // Or whatever
 
 use Dtc\QueueBundle\Entity\Job as BaseJob;
@@ -312,6 +314,7 @@ class Job extends BaseJob {
 ```
 
 ```php
+<?php
 namespace AppBundle\Document
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
@@ -334,12 +337,9 @@ class Job extends BaseJob
 # config.yml
 # ...
 dtc_queue:
-    class: AppBundle\Entity\Job
-    class_archive: AppBundle\Entity\JobArchive
+    class_job: AppBundle\Entity\Job
+    class_job_archive: AppBundle\Entity\JobArchive
 ```
-
-
-
 
 
 Job Event Subscriber
@@ -348,51 +348,54 @@ Job Event Subscriber
 It's useful to listen to event in a long running script to clear doctrine manger or send email about status of a job. To
 add a job event subscriber, create a new service with tag: dtc_queue.event_subscriber:
 
-    services:
-        voices.queue.listener.clear_manager:
-            class: ClearManagerSubscriber
-            arguments:
-                - '@service_container'
-            tags:
-                - { name: dtc_queue.event_subscriber, connection: default }
+```yaml
+services:
+    voices.queue.listener.clear_manager:
+        class: ClearManagerSubscriber
+        arguments:
+            - '@service_container'
+        tags:
+            - { name: dtc_queue.event_subscriber, connection: default }
+```
 
 ClearManagerSubscriber.php
 
-    <?php
-    use Dtc\QueueBundle\EventDispatcher\Event;
-    use Dtc\QueueBundle\EventDispatcher\EventSubscriberInterface;
-    use Symfony\Component\DependencyInjection\ContainerInterface;
+```php
+<?php
+use Dtc\QueueBundle\EventDispatcher\Event;
+use Dtc\QueueBundle\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
-    class ClearManagerSubscriber
-        implements EventSubscriberInterface
+class ClearManagerSubscriber
+    implements EventSubscriberInterface
+{
+    private $container;
+    public function __construct(ContainerInterface $container) {
+        $this->container = $container;
+    }
+
+    public function onPostJob(Event $event)
     {
-        private $container;
-        public function __construct(ContainerInterface $container) {
-            $this->container = $container;
-        }
+        $managerIds = [
+            'doctrine.odm.mongodb.document_manager',
+            'doctrine.orm.default_entity_manager',
+            'doctrine.orm.content_entity_manager'
+        ];
 
-        public function onPostJob(Event $event)
-        {
-            $managerIds = [
-                'doctrine.odm.mongodb.document_manager',
-                'doctrine.orm.default_entity_manager',
-                'doctrine.orm.content_entity_manager'
-            ];
-
-            foreach ($managerIds as $id) {
-                $manager = $this->container->get($id);
-                $manager->clear();
-            }
-        }
-
-        public static function getSubscribedEvents()
-        {
-            return array(
-                Event::POST_JOB => 'onPostJob',
-            );
+        foreach ($managerIds as $id) {
+            $manager = $this->container->get($id);
+            $manager->clear();
         }
     }
 
+    public static function getSubscribedEvents()
+    {
+        return array(
+            Event::POST_JOB => 'onPostJob',
+        );
+    }
+}
+```
 
 Running as upstart service:
 ---------------------------
@@ -401,17 +404,19 @@ Running as upstart service:
  and garbage collection: to deal with out of memory issues, run 20 jobs at
  a time. (Or a manageable job size)
 
-	# /etc/init/queue.conf
+```bash
+# /etc/init/queue.conf
 
-	author "David Tee"
-	description "Queue worker service, run 20 jobs at a time, process timeout of 3600"
+author "David Tee"
+description "Queue worker service, run 20 jobs at a time, process timeout of 3600"
 
-	respawn
-	start on startup
+respawn
+start on startup
 
-	script
-	        /{path to}/console dtc:queue_worker:run -t 20 -v -to 3600>> /var/logs/queue.log 2>&1
-	end script
+script
+        /{path to}/console dtc:queue:run --max_count 20 -v -t 3600>> /var/logs/queue.log 2>&1
+end script
+```
 
 2. Reload config: sudo initctl reload-configuration
 3. Start the script: sudo start queue
@@ -421,25 +426,66 @@ Admin
 
 You can register admin routes to see queue status. In your routing.yml file, add the following:
 
-	queue:
-	    resource: "@DtcQueueBundle/Controller/QueueController.php"
-	    prefix:  /queue/
-	    type: annotation
+```yaml
+dtc_queue:
+    resource: '@DtcQueueBundle/Resources/config/routing.yml'
+```
 
 Testing
 -------
 
-You can run unittest by typing `phpunit` in source folder. If you want to run
+You can run unittest by typing `bin/phpunit` in source folder. If you want to run
 integration testing with Mongodb, you need to set up Mongodb server on
 localhost and run:
 
-	phpunit Tests/Document/JobManagerTest.php
+```bash
+bin/phpunit Tests/Document/JobManagerTest.php
+```
 
 If you want to run Beanstalkd integration testing, you need to run a local
 empty instance of beanstalkd for testing.
 
-	sudo service beanstalkd restart; phpunit Tests/BeanStalkd/JobManagerTest.php
+```bash
+sudo service beanstalkd restart; BEANSTALD_HOST=localhost bin/phpunit Tests/BeanStalkd/JobManagerTest.php
+```
 
+Full Configuration
+==================
+```yaml
+dtc_queue:
+    document_manager: default
+    entity_manager: default
+    default_manager: mongodb
+    class_job: ~
+    class_job_archive: ~
+    class_run: ~
+    class_run_archive: ~
+    beanstalkd:
+        host: ~
+        tube: ~
+    rabbit_mq:
+        host: ~
+        port: ~
+        user: ~
+        password: ~
+        vhost: "/"
+        ssl: false
+        options: ~
+        ssl_options: ~
+        queue_args:
+            queue: dtc_queue
+            passive: false
+            durable: true
+            exclusive: false
+            auto_delete: false
+            max_priority: 255
+       exchange_args:
+            exchange: dtc_queue_exchange
+            type: direct
+            passive: false
+            durable: true
+            auto_delete: false
+```
 
 License
 -------

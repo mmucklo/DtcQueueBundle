@@ -98,7 +98,6 @@ class RunCommand extends ContainerAwareCommand
             return;
         }
 
-        $this->
         $job = $workerManager->runJob($job);
         $this->reportJob($job);
         $this->run->setProcessed(1);
@@ -160,6 +159,11 @@ class RunCommand extends ContainerAwareCommand
         $duration = $this->validateIntNull('duration', $duration, 32);
         $processTimeout = $this->validateIntNull('timeout', $processTimeout, 32);
         $nanoSleep = $this->validateIntNull('nano_sleep', $nanoSleep, 63);
+
+        if (null !== $duration && null !== $processTimeout && $duration >= $processTimeout) {
+            $this->log('info', "duration ($duration) >= to process timeout ($processTimeout), so doubling process timeout to: ".(2 * $processTimeout));
+            $processTimeout *= 2;
+        }
 
         if (null === $maxCount && null === $duration) {
             $maxCount = 1;
@@ -242,7 +246,7 @@ class RunCommand extends ContainerAwareCommand
     protected function runStart($start, $maxCount = null, $duration = null)
     {
         $container = $this->getContainer();
-        $this->runClass = $container->getParameter('dtc_queue.run_class');
+        $this->runClass = $container->getParameter('dtc_queue.class_run');
         $defaultManager = $container->getParameter('dtc_queue.default_manager');
         if ('mongodb' == $defaultManager && $container->has('dtc_queue.document_manager')) {
             $this->runManager = $container->get('dtc_queue.document_manager');

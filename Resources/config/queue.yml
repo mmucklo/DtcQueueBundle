@@ -9,15 +9,15 @@ services:
         class: Dtc\QueueBundle\ODM\JobManager
         arguments:
             - '@dtc_queue.document_manager'
-            - '%dtc_queue.job_class%'
-            - '%dtc_queue.job_class_archive%'
-            - '%dtc_queue.run_class%'
-            - '%dtc_queue.run_class_archive%'
+            - '%dtc_queue.class_job%'
+            - '%dtc_queue.class_job_archive%'
+            - '%dtc_queue.class_run%'
+            - '%dtc_queue.class_run_archive%'
 
     dtc_queue.job_manager.beanstalkd:
         class: Dtc\QueueBundle\Beanstalkd\JobManager
         arguments:
-            - '%dtc_queue.job_class%'
+            - '%dtc_queue.class_job%'
 
     dtc_queue.job_manager.rabbit_mq:
         class: Dtc\QueueBundle\RabbitMQ\JobManager
@@ -26,10 +26,10 @@ services:
         class: Dtc\QueueBundle\ORM\JobManager
         arguments:
             - '@dtc_queue.entity_manager'
-            - '%dtc_queue.job_class%'
-            - '%dtc_queue.job_class_archive%'
-            - '%dtc_queue.run_class%'
-            - '%dtc_queue.run_class_archive%'
+            - '%dtc_queue.class_job%'
+            - '%dtc_queue.class_job_archive%'
+            - '%dtc_queue.class_run%'
+            - '%dtc_queue.class_run_archive%'
 
     dtc_queue.worker_manager:
         class: Dtc\QueueBundle\Model\WorkerManager

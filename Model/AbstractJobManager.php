@@ -10,6 +10,16 @@ abstract class AbstractJobManager implements JobManagerInterface
 
     abstract public function saveHistory(Job $job);
 
+    public function resetStalledJobs($workerName = null, $method = null)
+    {
+        throw new \Exception('Unsupported');
+    }
+
+    public function pruneStalledJobs($workerName = null, $method = null)
+    {
+        throw new \Exception('Unsupported');
+    }
+
     public function resetErroneousJobs($workerName = null, $methodName = null)
     {
         throw new \Exception('Unsupported');

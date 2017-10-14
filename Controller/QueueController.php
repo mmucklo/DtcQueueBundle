@@ -39,13 +39,13 @@ class QueueController extends Controller
 
         $rendererFactory = $this->get('dtc_grid.renderer.factory');
         $renderer = $rendererFactory->create('datatables');
-        $className = $this->container->getParameter('dtc_queue.job_class');
+        $className = $this->container->getParameter('dtc_queue.class_job');
         $gridSource = $this->get('dtc_grid.manager.source')->get($className);
         $renderer->bind($gridSource);
         $params = $renderer->getParams();
 
         $renderer2 = $rendererFactory->create('datatables');
-        $className = $this->container->getParameter('dtc_queue.job_class_archive');
+        $className = $this->container->getParameter('dtc_queue.class_job_archive');
         $gridSource = $this->get('dtc_grid.manager.source')->get($className);
         $renderer2->bind($gridSource);
         $params2 = $renderer2->getParams();
@@ -71,14 +71,14 @@ class QueueController extends Controller
 
         $rendererFactory = $this->get('dtc_grid.renderer.factory');
         $renderer = $rendererFactory->create('datatables');
-        $className = $this->container->getParameter('dtc_queue.run_class');
+        $className = $this->container->getParameter('dtc_queue.class_run');
         $manager = $this->container->get('dtc_queue.job_manager');
         $gridSource = $this->get('dtc_grid.manager.source')->get($className);
         $renderer->bind($gridSource);
         $params = $renderer->getParams();
 
         $renderer2 = $rendererFactory->create('datatables');
-        $className = $this->container->getParameter('dtc_queue.run_class_archive');
+        $className = $this->container->getParameter('dtc_queue.class_run_archive');
         $gridSource = $this->get('dtc_grid.manager.source')->get($className);
         $renderer2->bind($gridSource);
         $params2 = $renderer2->getParams();

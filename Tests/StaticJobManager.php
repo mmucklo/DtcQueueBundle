@@ -2,15 +2,15 @@
 
 namespace Dtc\QueueBundle\Tests;
 
+use Dtc\QueueBundle\Model\AbstractJobManager;
 use Dtc\QueueBundle\Model\Job;
-use Dtc\QueueBundle\Model\JobManagerInterface;
 
 /**
  * @author David Tee
  *
  *	Created for Unitesting purposes.
  */
-class StaticJobManager implements JobManagerInterface
+class StaticJobManager extends AbstractJobManager
 {
     private $jobs;
     private $uniqeId;
@@ -20,26 +20,6 @@ class StaticJobManager implements JobManagerInterface
     {
         $this->jobs = array();
         $this->uniqeId = 1;
-    }
-
-    public function resetErroneousJobs($workerName = null, $methodName = null)
-    {
-        return null;
-    }
-
-    public function pruneErroneousJobs($workerName = null, $methodName = null)
-    {
-        return null;
-    }
-
-    public function pruneArchivedJobs(\DateTime $olderThan)
-    {
-        return 0;
-    }
-
-    public function pruneExpiredJobs($workerName = null, $methodName = null)
-    {
-        return 0;
     }
 
     public function getJobCount($workerName = null, $methodName = null)

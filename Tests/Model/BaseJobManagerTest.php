@@ -27,7 +27,7 @@ abstract class BaseJobManagerTest extends TestCase
         $this->assertEquals(
             $job->getId(),
             $jobInQueue->getId(),
-                'Job id returned by manager should be the same'
+            'Job id returned by manager should be the same'
         );
         self::$jobManager->deleteJob($job);
     }
@@ -68,21 +68,21 @@ abstract class BaseJobManagerTest extends TestCase
         $this->assertEquals(
             $secondJob->getId(),
             $jobInQueue->getId(),
-                'Second job id should be returned - lower number unload first'
+            'Second job id should be returned - lower number unload first'
         );
 
         $jobInQueue = self::$jobManager->getJob();
         $this->assertEquals(
             $thirdJob->getId(),
             $jobInQueue->getId(),
-                'Third job id should be returned - lower number unload first'
+            'Third job id should be returned - lower number unload first'
         );
 
         $jobInQueue = self::$jobManager->getJob();
         $this->assertEquals(
             $firstJob->getId(),
             $jobInQueue->getId(),
-                'First job id should be returned - lower number unload first'
+            'First job id should be returned - lower number unload first'
         );
     }
 
@@ -96,8 +96,54 @@ abstract class BaseJobManagerTest extends TestCase
         $this->assertEquals(
             $job->getId(),
             $jobInQueue->getId(),
-                'Job id returned by manager should be the same'
+            'Job id returned by manager should be the same'
         );
+    }
+
+    public function testResetErroneousJobs()
+    {
+        $this->expectingException('resetErroneousJobs');
+    }
+
+    public function testResetStalledJobs()
+    {
+        $this->expectingException('resetStalledJobs');
+    }
+
+    public function testPruneStalledJobs()
+    {
+        $this->expectingException('pruneStalledJobs');
+    }
+
+    public function testPruneErroneousJobs()
+    {
+        $this->expectingException('pruneErroneousJobs');
+    }
+
+    public function testPruneExpiredJobs()
+    {
+        $this->expectingException('pruneExpiredJobs');
+    }
+
+    public function testPruneArchivedJobs()
+    {
+        try {
+            $time = time() - 86400;
+            self::$jobManager->pruneArchivedJobs(new \DateTime("@$time"));
+            self::fail('Expected Exception');
+        } catch (\Exception $exception) {
+            self::assertTrue(true);
+        }
+    }
+
+    protected function expectingException($method)
+    {
+        try {
+            self::$jobManager->$method();
+            self::fail('Expected Exception');
+        } catch (\Exception $exception) {
+            self::assertTrue(true);
+        }
     }
 
     /**

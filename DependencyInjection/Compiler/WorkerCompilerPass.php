@@ -36,10 +36,10 @@ class WorkerCompilerPass implements CompilerPassInterface
 
         $jobClass = $this->getJobClass($container);
         $jobClassArchive = $this->getJobClassArchive($container);
-        $container->setParameter('dtc_queue.job_class', $jobClass);
-        $container->setParameter('dtc_queue.job_class_archive', $jobClassArchive);
-        $container->setParameter('dtc_queue.run_class', $this->getRunClass($container));
-        $container->setParameter('dtc_queue.run_class_archive', $this->getRunArchiveClass($container));
+        $container->setParameter('dtc_queue.class_job', $jobClass);
+        $container->setParameter('dtc_queue.class_job_archive', $jobClassArchive);
+        $container->setParameter('dtc_queue.class_run', $this->getRunClass($container));
+        $container->setParameter('dtc_queue.class_run_archive', $this->getRunArchiveClass($container));
         // Add each worker to workerManager, make sure each worker has instance to work
         foreach ($container->findTaggedServiceIds('dtc_queue.worker') as $id => $attributes) {
             $worker = $container->getDefinition($id);
@@ -199,7 +199,7 @@ class WorkerCompilerPass implements CompilerPassInterface
      */
     public function getJobClass(ContainerBuilder $container)
     {
-        $jobClass = $container->getParameter('dtc_queue.job_class');
+        $jobClass = $container->getParameter('dtc_queue.class_job');
         if (!$jobClass) {
             switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
                 case 'mongodb':
@@ -233,7 +233,7 @@ class WorkerCompilerPass implements CompilerPassInterface
 
     public function getRunClass(ContainerBuilder $container)
     {
-        $runClass = $container->hasParameter('dtc_queue.run_class') ? $container->getParameter('dtc_queue.run_class') : null;
+        $runClass = $container->hasParameter('dtc_queue.class_run') ? $container->getParameter('dtc_queue.class_run') : null;
         if (!$runClass) {
             switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
                 case 'mongodb':
@@ -263,7 +263,7 @@ class WorkerCompilerPass implements CompilerPassInterface
 
     public function getRunArchiveClass(ContainerBuilder $container)
     {
-        $runArchiveClass = $container->hasParameter('dtc_queue.run_class_archive') ? $container->getParameter('dtc_queue.run_class_archive') : null;
+        $runArchiveClass = $container->hasParameter('dtc_queue.class_run_archive') ? $container->getParameter('dtc_queue.class_run_archive') : null;
         if (!$runArchiveClass) {
             switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
                 case 'mongodb':
@@ -302,7 +302,7 @@ class WorkerCompilerPass implements CompilerPassInterface
      */
     public function getJobClassArchive(ContainerBuilder $container)
     {
-        $jobArchiveClass = $container->getParameter('dtc_queue.job_class_archive');
+        $jobArchiveClass = $container->getParameter('dtc_queue.class_job_archive');
         if (!$jobArchiveClass) {
             switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
                 case 'mongodb':

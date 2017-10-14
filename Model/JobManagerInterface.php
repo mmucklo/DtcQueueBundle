@@ -27,6 +27,10 @@ interface JobManagerInterface
 
     public function saveHistory(Job $job);
 
+    public function resetStalledJobs($workerName = null, $method = null);
+
+    public function pruneStalledJobs($workerName = null, $method = null);
+
     /**
      * Removes archived jobs older than $olderThan.
      *
