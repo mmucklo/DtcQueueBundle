@@ -3,6 +3,7 @@ DtcQueueBundle
 
 [![Build Status](https://secure.travis-ci.org/mmucklo/DtcQueueBundle.png?branch=master)](http://travis-ci.org/mmucklo/DtcQueueBundle)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/mmucklo/DtcQueueBundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/mmucklo/DtcQueueBundle/?branch=master)
+[![Code Coverage](https://scrutinizer-ci.com/g/mmucklo/DtcQueueBundle/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/mmucklo/DtcQueueBundle/?branch=master)
 
 > Allow symfony developers to create background job as easily as: `$worker->later()->process(1,2,3)`
 
