@@ -19,7 +19,7 @@ class JobTest extends TestCase
     public function testToFromMessage() {
         $worker = new FibonacciWorker();
         $job = new Job($worker, false, null);
-        $job->setArgs([1,2,3]);
+        $job->setArgs([1, 2, 3]);
         $job->setMethod('asdf');
         $job->setPriority(1234);
         $job->setId(1432);
@@ -37,7 +37,7 @@ class JobTest extends TestCase
 
         $worker = new FibonacciWorker();
         $job = new Job($worker, false, null);
-        $job->setArgs([1,2,3]);
+        $job->setArgs([1, 2, 3]);
         $job->setMethod('asdf');
         $job->setPriority(1234);
         $job->setId(4213);
