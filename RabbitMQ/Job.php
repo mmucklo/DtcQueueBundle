@@ -30,7 +30,7 @@ class Job extends \Dtc\QueueBundle\Model\Job
         $arr = array(
             'args' => $this->getArgs(),
             'id' => $this->getId(),
-            'expiresAt' => ($expiresAt = $this->getExpiresAt()) ? $expiresAt->getTimestamp() : null,
+            'expiresAt' => ($expiresAt = $this->getExpiresAt()) ? $expiresAt->format('U.u') : null,
             'method' => $this->getMethod(),
             'worker' => $this->getWorkerName(),
         );
@@ -50,8 +50,7 @@ class Job extends \Dtc\QueueBundle\Model\Job
         $this->setWorkerName($arr['worker']);
         $expiresAt = $arr['expiresAt'];
         if ($expiresAt) {
-            $dateTime = new \DateTime();
-            $dateTime->setTimestamp(intval($expiresAt));
+            $dateTime = \DateTime::createFromFormat('U.u', $expiresAt);
             $this->setExpiresAt($dateTime);
         }
     }

@@ -39,7 +39,7 @@ class Util
         }
         foreach ($publicVars as $property) {
             $propertyName = $property->getName();
-            if ($reflection2->hasPropery($propertyName) && $reflection2->getProperty($propertyName)->isPublic()) {
+            if ($reflection2->hasProperty($propertyName) && $reflection2->getProperty($propertyName)->isPublic()) {
                 $obj2->$propertyName = $obj1->$propertyName;
             }
         }
