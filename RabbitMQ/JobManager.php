@@ -38,7 +38,7 @@ class JobManager extends AbstractJobManager
      */
     public function setExchangeArgs($exchange, $type, $passive, $durable, $autoDelete)
     {
-        $this->exchangeArgs = func_get_args();
+        $this->exchangeArgs = [$exchange, $type, $passive, $durable, $autoDelete];
     }
 
     /**
@@ -51,8 +51,7 @@ class JobManager extends AbstractJobManager
      */
     public function setQueueArgs($queue, $passive, $durable, $exclusive, $autoDelete, $maxPriority)
     {
-        $arguments = func_get_args();
-        array_pop($arguments); // Pop off max priority
+        $arguments = [$queue, $passive, $durable, $exclusive, $autoDelete];
 
         $this->queueArgs = $arguments;
         if (!ctype_digit(strval($maxPriority))) {
