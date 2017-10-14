@@ -46,7 +46,8 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $this->failureTest($time, 'later');
     }
 
-    public function batchLaterTest($method) {
+    public function batchLaterTest($method)
+    {
         $time = null;
         $job = $this->worker->$method()->fibonacci(20);
         self::assertJob($job, $time, 'fibonacci');
