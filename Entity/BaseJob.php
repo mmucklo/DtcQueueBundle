@@ -3,10 +3,9 @@
 namespace Dtc\QueueBundle\Entity;
 
 use Dtc\GridBundle\Annotation as Grid;
-use Dtc\QueueBundle\Model\Job;
 use Doctrine\ORM\Mapping as ORM;
 
-abstract class BaseJob extends Job
+abstract class BaseJob extends \Dtc\QueueBundle\Model\Job
 {
     /**
      * @Grid\Column()

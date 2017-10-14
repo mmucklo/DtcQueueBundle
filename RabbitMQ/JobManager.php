@@ -32,9 +32,9 @@ class JobManager extends AbstractJobManager
     /**
      * @param string $exchange
      * @param string $type
-     * @param boolean $passive
-     * @param boolean $durable
-     * @param boolean $autoDelete
+     * @param bool   $passive
+     * @param bool   $durable
+     * @param bool   $autoDelete
      */
     public function setExchangeArgs($exchange, $type, $passive, $durable, $autoDelete)
     {
@@ -43,11 +43,11 @@ class JobManager extends AbstractJobManager
 
     /**
      * @param string $queue
-     * @param boolean $passive
-     * @param boolean $durable
-     * @param boolean $exclusive
-     * @param boolean $autoDelete
-     * @param integer $maxPriority
+     * @param bool   $passive
+     * @param bool   $durable
+     * @param bool   $exclusive
+     * @param bool   $autoDelete
+     * @param int    $maxPriority
      */
     public function setQueueArgs($queue, $passive, $durable, $exclusive, $autoDelete, $maxPriority)
     {

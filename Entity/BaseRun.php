@@ -2,11 +2,10 @@
 
 namespace Dtc\QueueBundle\Entity;
 
-use Dtc\QueueBundle\Model\Run;
 use Dtc\GridBundle\Annotation as Grid;
 use Doctrine\ORM\Mapping as ORM;
 
-abstract class BaseRun extends Run
+abstract class BaseRun extends \Dtc\QueueBundle\Model\Run
 {
     /**
      * @Grid\Column()

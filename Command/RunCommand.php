@@ -84,7 +84,7 @@ class RunCommand extends ContainerAwareCommand
     }
 
     /**
-     * @param double $start
+     * @param float $start
      */
     protected function runJobById($start, $jobId)
     {
@@ -111,7 +111,7 @@ class RunCommand extends ContainerAwareCommand
 
     /**
      * @param string $varName
-     * @param integer $pow
+     * @param int    $pow
      */
     private function validateIntNull($varName, $var, $pow)
     {
@@ -142,7 +142,7 @@ class RunCommand extends ContainerAwareCommand
 
         $date = new \DateTime();
         $this->output->write("[$level] [".$date->format('c').'] '.$msg);
-        if ($context) {
+        if (!empty($context)) {
             $this->output->write(print_r($context, true));
         }
         $this->output->writeln('');
@@ -155,10 +155,10 @@ class RunCommand extends ContainerAwareCommand
         $container = $this->getContainer();
         $workerName = $input->getArgument('worker_name');
         $methodName = $input->getArgument('method');
-        $maxCount = $input->getOption('max_count', null);
-        $duration = $input->getOption('duration', null);
-        $processTimeout = $input->getOption('timeout', 3600);
-        $nanoSleep = $input->getOption('nano_sleep', 500000000);
+        $maxCount = $input->getOption('max_count');
+        $duration = $input->getOption('duration');
+        $processTimeout = $input->getOption('timeout');
+        $nanoSleep = $input->getOption('nano_sleep');
         $loggerService = $input->getOption('logger');
 
         if ($container->has($loggerService)) {
@@ -178,6 +178,19 @@ class RunCommand extends ContainerAwareCommand
         if (null === $maxCount && null === $duration) {
             $maxCount = 1;
         }
+
+        if (0 === $maxCount) {
+            $this->log('error', 'max_count set to 0');
+
+            return 1;
+        }
+
+        if (0 === $duration) {
+            $this->log('error', 'duration set to 0');
+
+            return 1;
+        }
+
         // Check to see if there are other instances
         set_time_limit($processTimeout); // Set timeout on the process
 
@@ -189,10 +202,10 @@ class RunCommand extends ContainerAwareCommand
     }
 
     /**
-     * @param double $start
-     * @param null|integer $nanoSleep
-     * @param null|integer $maxCount
-     * @param null|integer $duration
+     * @param float    $start
+     * @param null|int $nanoSleep
+     * @param null|int $maxCount
+     * @param null|int $duration
      */
     protected function runLoop($start, $workerName, $methodName, $nanoSleep, $maxCount, $duration)
     {
@@ -204,7 +217,7 @@ class RunCommand extends ContainerAwareCommand
             $this->log('info', 'Staring up a new job...');
 
             $endTime = null;
-            if ($duration) {
+            if (null !== $duration) {
                 $interval = new \DateInterval("PT${duration}S");
                 $endTime = $this->run->getStartedAt()->add($interval);
             }
@@ -234,14 +247,14 @@ class RunCommand extends ContainerAwareCommand
                         $this->log('info', 'No more jobs to run ('.($currentJob - 1).' processed so far).');
                         $noMoreJobsToRun = true;
                     }
-                    if ($maxCount && !$duration) {
+                    if (null !== $maxCount && null == $duration) {
                         // time to finish
                         $this->runStop($start);
 
                         return 0;
                     }
                     $nanoSleepTime = function_exists('random_int') ? random_int(0, $nanoSleep) : mt_rand(0, $nanoSleep);
-                    time_nanosleep(0, $nanoSleepTime); // 500ms ??
+                    time_nanosleep(0, $nanoSleepTime);
                 }
             } while ((null === $maxCount || $currentJob <= $maxCount) && (null === $duration || (new \DateTime()) < $endTime));
         } catch (\Exception $e) {
@@ -277,7 +290,6 @@ class RunCommand extends ContainerAwareCommand
         if (null !== $maxCount) {
             $this->run->setMaxCount($maxCount);
         }
-        $timeEnd = null;
         if (null !== $duration) {
             $this->run->setDuration($duration);
         }
@@ -294,7 +306,9 @@ class RunCommand extends ContainerAwareCommand
     {
         $end = microtime(true);
         $endTime = \DateTime::createFromFormat('U.u', $end);
-        $this->run->setEndedAt($endTime);
+        if ($endTime) {
+            $this->run->setEndedAt($endTime);
+        }
         $this->run->setElapsed($end - $start);
         if ($this->runManager) {
             $this->runManager->remove($this->run);

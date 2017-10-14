@@ -4,9 +4,8 @@ namespace Dtc\QueueBundle\Document;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 use Dtc\GridBundle\Annotation as Grid;
-use Dtc\QueueBundle\Model\Run;
 
-abstract class BaseRun extends Run
+abstract class BaseRun extends \Dtc\QueueBundle\Model\Run
 {
     /**
      * @Grid\Column(sortable=true)

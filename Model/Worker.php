@@ -41,9 +41,9 @@ abstract class Worker
     }
 
     /**
-     * @param integer|null $time
-     * @param bool $batch
-     * @param integer|null $priority
+     * @param int|null $time
+     * @param bool     $batch
+     * @param int|null $priority
      */
     public function at($time = null, $batch = false, $priority = null)
     {
@@ -62,7 +62,7 @@ abstract class Worker
     }
 
     /**
-     * @param integer|null $priority
+     * @param int|null $priority
      */
     public function later($delay = 0, $priority = null)
     {
@@ -73,7 +73,7 @@ abstract class Worker
     }
 
     /**
-     * @param integer|null $priority
+     * @param int|null $priority
      */
     public function batchLater($delay = 0, $priority = null)
     {
@@ -84,8 +84,8 @@ abstract class Worker
     }
 
     /**
-     * @param integer|null $time
-     * @param integer|null $priority
+     * @param int|null $time
+     * @param int|null $priority
      */
     public function batchAt($time = null, $priority = null)
     {

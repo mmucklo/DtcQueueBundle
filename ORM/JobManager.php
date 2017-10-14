@@ -34,12 +34,12 @@ class JobManager extends BaseJobManager
             ->from($objectName, 'a')
             ->where('a.status = :status');
 
-        if ($workerName) {
+        if (null !== $workerName) {
             $qb->andWhere('a.workerName = :workerName')
                 ->setParameter(':workerName', $workerName);
         }
 
-        if ($method) {
+        if (null !== $method) {
             $qb->andWhere('a.method = :method')
                 ->setParameter(':method', $workerName);
         }
@@ -67,11 +67,11 @@ class JobManager extends BaseJobManager
             ->where('j.status = :status')
             ->setParameter(':status', Job::STATUS_ERROR);
 
-        if ($workerName) {
+        if (null !== $workerName) {
             $qb->andWhere('j.workerName = :workerName')->setParameter(':workerName', $workerName);
         }
 
-        if ($method) {
+        if (null !== $method) {
             $qb->andWhere('j.method = :method')->setParameter(':method', $method);
         }
 
@@ -93,11 +93,11 @@ class JobManager extends BaseJobManager
             ->where('j.expiresAt <= :expiresAt')
             ->setParameter(':expiresAt', new \DateTime());
 
-        if ($workerName) {
+        if (null !== $workerName) {
             $qb->andWhere('j.workerName = :workerName')->setParameter(':workerName', $workerName);
         }
 
-        if ($method) {
+        if (null !== $method) {
             $qb->andWhere('j.method = :method')->setParameter(':method', $method);
         }
 

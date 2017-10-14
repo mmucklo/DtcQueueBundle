@@ -60,7 +60,7 @@ class JobManagerTest extends BaseJobManagerTest
     {
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
+        self::assertNotNull($job->getId(), 'Job id should be generated');
 
         try {
             self::$jobManager->deleteJob($job);
@@ -74,11 +74,11 @@ class JobManagerTest extends BaseJobManagerTest
     {
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
+        self::assertNotNull($job->getId(), 'Job id should be generated');
 
         $jobInQueue = self::$jobManager->getJob();
-        $this->assertNotNull($jobInQueue, 'There should be a job.');
-        $this->assertEquals(
+        self::assertNotNull($jobInQueue, 'There should be a job.');
+        self::assertEquals(
             $job->getId(),
             $jobInQueue->getId(),
             'Job id returned by manager should be the same'

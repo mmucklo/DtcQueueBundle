@@ -32,6 +32,26 @@ class QueueController extends Controller
      */
     public function jobsAction()
     {
+        $class1 = $this->container->getParameter('dtc_queue.class_job');
+        $class2 = $this->container->getParameter('dtc_queue.class_job_archive');
+        $label1 = 'Live Jobs';
+        $label2 = 'Archived Jobs';
+
+        return $this->renderDualGrid($class1, $class2, $label1, $label2);
+    }
+
+    /**
+     * @param string $class1
+     * @param string $class2
+     * @param string $label1
+     * @param string $label2
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     *
+     * @throws \Exception
+     */
+    protected function renderDualGrid($class1, $class2, $label1, $label2)
+    {
         $managerType = $this->container->getParameter('dtc_queue.default_manager');
         if ('mongodb' !== $managerType && 'orm' != $managerType) {
             throw new \Exception("Unsupported manager type: $managerType");
@@ -39,20 +59,19 @@ class QueueController extends Controller
 
         $rendererFactory = $this->get('dtc_grid.renderer.factory');
         $renderer = $rendererFactory->create('datatables');
-        $className = $this->container->getParameter('dtc_queue.class_job');
-        $gridSource = $this->get('dtc_grid.manager.source')->get($className);
+        $gridSource = $this->get('dtc_grid.manager.source')->get($class1);
         $renderer->bind($gridSource);
         $params = $renderer->getParams();
 
         $renderer2 = $rendererFactory->create('datatables');
-        $className = $this->container->getParameter('dtc_queue.class_job_archive');
-        $gridSource = $this->get('dtc_grid.manager.source')->get($className);
+        $gridSource = $this->get('dtc_grid.manager.source')->get($class2);
         $renderer2->bind($gridSource);
         $params2 = $renderer2->getParams();
 
         $params['archive_grid'] = $params2['dtc_grid'];
-        $params['dtc_queue_grid_label1'] = 'Live Jobs';
-        $params['dtc_queue_grid_label2'] = 'Archived Jobs';
+
+        $params['dtc_queue_grid_label1'] = $label1;
+        $params['dtc_queue_grid_label2'] = $label2;
 
         return $this->render('@DtcQueue/Queue/grid.html.twig', $params);
     }
@@ -64,31 +83,12 @@ class QueueController extends Controller
      */
     public function runsAction()
     {
-        $managerType = $this->container->getParameter('dtc_queue.default_manager');
-        if ('mongodb' !== $managerType && 'orm' != $managerType) {
-            throw new \Exception("Unsupported manager type: $managerType");
-        }
+        $class1 = $this->container->getParameter('dtc_queue.class_run');
+        $class2 = $this->container->getParameter('dtc_queue.class_run_archive');
+        $label1 = 'Live Runs';
+        $label2 = 'Archived Runs';
 
-        $rendererFactory = $this->get('dtc_grid.renderer.factory');
-        $renderer = $rendererFactory->create('datatables');
-        $className = $this->container->getParameter('dtc_queue.class_run');
-        $manager = $this->container->get('dtc_queue.job_manager');
-        $gridSource = $this->get('dtc_grid.manager.source')->get($className);
-        $renderer->bind($gridSource);
-        $params = $renderer->getParams();
-
-        $renderer2 = $rendererFactory->create('datatables');
-        $className = $this->container->getParameter('dtc_queue.class_run_archive');
-        $gridSource = $this->get('dtc_grid.manager.source')->get($className);
-        $renderer2->bind($gridSource);
-        $params2 = $renderer2->getParams();
-
-        $params['archive_grid'] = $params2['dtc_grid'];
-
-        $params['dtc_queue_grid_label1'] = 'Live Runs';
-        $params['dtc_queue_grid_label2'] = 'Archived Runs';
-
-        return $this->render('@DtcQueue/Queue/grid.html.twig', $params);
+        return $this->renderDualGrid($class1, $class2, $label1, $label2);
     }
 
     /**

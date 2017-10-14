@@ -18,11 +18,11 @@ class JobManager extends BaseJobManager
             ->find()
             ->field('status')->equals($status);
 
-        if ($workerName) {
+        if (null !== $workerName) {
             $qb->field('workerName')->equals($workerName);
         }
 
-        if ($method) {
+        if (null !== $method) {
             $qb->field('method')->equals($method);
         }
 
@@ -56,11 +56,11 @@ class JobManager extends BaseJobManager
             ->remove()
             ->field('status')->equals(Job::STATUS_ERROR);
 
-        if ($workerName) {
+        if (null !== $workerName) {
             $qb->field('workerName')->equals($workerName);
         }
 
-        if ($method) {
+        if (null !== $method) {
             $qb->field('method')->equals($method);
         }
         $query = $qb->getQuery();
@@ -74,6 +74,7 @@ class JobManager extends BaseJobManager
 
     /**
      * Prunes expired jobs.
+     *
      * @param string $workerName
      * @param string $method
      */
@@ -86,11 +87,11 @@ class JobManager extends BaseJobManager
             ->remove()
             ->field('expiresAt')->lte(new \DateTime());
 
-        if ($workerName) {
+        if (null !== $workerName) {
             $qb->field('workerName')->equals($workerName);
         }
 
-        if ($method) {
+        if (null !== $method) {
             $qb->field('method')->equals($method);
         }
 
@@ -134,11 +135,11 @@ class JobManager extends BaseJobManager
         $qb
             ->find();
 
-        if ($workerName) {
+        if (null !== $workerName) {
             $qb->field('workerName')->equals($workerName);
         }
 
-        if ($method) {
+        if (null !== $method) {
             $qb->field('method')->equals($method);
         }
 
@@ -157,6 +158,7 @@ class JobManager extends BaseJobManager
 
     /**
      * Get Status Jobs.
+     *
      * @param string $documentName
      */
     protected function getStatusByDocument($documentName)
@@ -244,11 +246,11 @@ class JobManager extends BaseJobManager
             ->findAndUpdate()
             ->returnNew();
 
-        if ($workerName) {
+        if (null !== $workerName) {
             $qb->field('workerName')->equals($workerName);
         }
 
-        if ($methodName) {
+        if (null !== $methodName) {
             $qb->field('method')->equals($methodName);
         }
 

@@ -303,7 +303,7 @@ class Job
     }
 
     /**
-     * @param \DateTime $finishedAt
+     * @param \DateTime|null $finishedAt
      */
     public function setFinishedAt($finishedAt)
     {

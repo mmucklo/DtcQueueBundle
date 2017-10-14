@@ -9,7 +9,6 @@ use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Id\AssignedGenerator;
 use Dtc\QueueBundle\Model\Job;
-use Dtc\QueueBundle\Model\JobManagerInterface;
 use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\Util\Util;
@@ -17,7 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class RemoveListener
 {
-    /** @var JobManagerInterface */
+    /** @var ContainerInterface */
     private $container;
 
     public function __construct(ContainerInterface $container)

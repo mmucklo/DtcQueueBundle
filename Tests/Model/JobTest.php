@@ -82,10 +82,10 @@ class JobTest extends TestCase
         $worker->setJobManager($jobManager);
 
         $job = new Job($worker, false, null);
-        $this->assertNull($job->getId(), 'Job id should be null');
+        self::assertNull($job->getId(), 'Job id should be null');
 
         $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
+        self::assertNotNull($job->getId(), 'Job id should be generated');
 
         try {
             $job->invalidFunctionCall();

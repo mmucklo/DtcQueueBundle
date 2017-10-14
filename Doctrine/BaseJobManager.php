@@ -4,6 +4,8 @@ namespace Dtc\QueueBundle\Doctrine;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Persistence\ObjectRepository;
+use Doctrine\ODM\MongoDB\DocumentRepository;
+use Doctrine\ORM\EntityRepository;
 use Dtc\QueueBundle\Model\AbstractJobManager;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\Run;
@@ -133,12 +135,13 @@ abstract class BaseJobManager extends AbstractJobManager
 
         $objectManager = $this->getObjectManager();
         $runRepository = $objectManager->getRepository($this->runClass);
+        /** @var EntityRepository|DocumentRepository $runArchiveRepository */
         $runArchiveRepository = $objectManager->getRepository($this->runArchiveClass);
         $repository = $this->getRepository();
 
         for ($i = 0; $i < $count; $i += static::FETCH_COUNT) {
             $runningJobs = $repository->findBy($criterion);
-            if ($runningJobs) {
+            if (!empty($runningJobs)) {
                 foreach ($runningJobs as $job) {
                     /** Job $job */
                     if (null !== $runId = $job->getRunId()) {
@@ -265,8 +268,8 @@ abstract class BaseJobManager extends AbstractJobManager
     abstract protected function stopIdGenerator($objectName);
 
     /**
-     * @param integer $limit
-     * @param integer $offset
+     * @param int $limit
+     * @param int $offset
      */
     private function resetJobsByCriterion(
         $criterion,

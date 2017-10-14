@@ -53,7 +53,6 @@ class PruneCommand extends ContainerAwareCommand
                 }
 
                 return $this->pruneOldJobs($matches, $output);
-                break;
             default:
                 $output->writeln("<error>Unknown type $type.</error>");
 
@@ -64,7 +63,7 @@ class PruneCommand extends ContainerAwareCommand
     }
 
     /**
-     * @param string[]           $matches
+     * @param string[]        $matches
      * @param OutputInterface $output
      *
      * @return int

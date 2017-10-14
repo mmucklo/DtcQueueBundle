@@ -77,7 +77,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
+        self::assertNotNull($job->getId(), 'Job id should be generated');
         $job->setStatus(Job::STATUS_RUNNING);
         $job->setLocked(true);
         $time = time();
@@ -228,7 +228,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
+        self::assertNotNull($job->getId(), 'Job id should be generated');
         $job->setStatus(Job::STATUS_RUNNING);
         $job->setLocked(true);
         $time = time();
@@ -293,7 +293,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
+        self::assertNotNull($job->getId(), 'Job id should be generated');
         $job->setStatus(Job::STATUS_RUNNING);
         $job->setLocked(true);
         $time = time();
@@ -334,7 +334,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
+        self::assertNotNull($job->getId(), 'Job id should be generated');
         $job->setStatus(Job::STATUS_RUNNING);
         $job->setLocked(true);
         $time = time();
@@ -382,7 +382,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
+        self::assertNotNull($job->getId(), 'Job id should be generated');
         $time = time() - 1;
         $date = new \DateTime("@$time");
         $job->setExpiresAt($date);
@@ -398,7 +398,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
+        self::assertNotNull($job->getId(), 'Job id should be generated');
         $time = time() - 1;
         $date = new \DateTime("@$time");
         $job->setExpiresAt($date);
@@ -407,7 +407,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
+        self::assertNotNull($job->getId(), 'Job id should be generated');
         $time = time() - 1;
         $date = new \DateTime("@$time");
         $job->setExpiresAt($date);
@@ -419,7 +419,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
+        self::assertNotNull($job->getId(), 'Job id should be generated');
         $time = time() - 1;
         $date = new \DateTime("@$time");
         $job->setExpiresAt($date);
@@ -428,7 +428,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
+        self::assertNotNull($job->getId(), 'Job id should be generated');
         $time = time() - 1;
         $date = new \DateTime("@$time");
         $job->setExpiresAt($date);
@@ -440,7 +440,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
+        self::assertNotNull($job->getId(), 'Job id should be generated');
         $time = time() - 1;
         $date = new \DateTime("@$time");
         $job->setExpiresAt($date);
@@ -449,7 +449,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
+        self::assertNotNull($job->getId(), 'Job id should be generated');
         $time = time() - 1;
         $date = new \DateTime("@$time");
         $job->setExpiresAt($date);
@@ -461,7 +461,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
+        self::assertNotNull($job->getId(), 'Job id should be generated');
         $time = time() - 1;
         $date = new \DateTime("@$time");
         $job->setExpiresAt($date);
@@ -470,7 +470,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
+        self::assertNotNull($job->getId(), 'Job id should be generated');
         $time = time() - 1;
         $date = new \DateTime("@$time");
         $job->setExpiresAt($date);
