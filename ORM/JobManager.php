@@ -57,15 +57,33 @@ class JobManager extends BaseJobManager
     /**
      * @param string $workerName
      * @param string $method
+     *
+     * @return int Count of jobs pruned
      */
     public function pruneErroneousJobs($workerName = null, $method = null)
     {
+        return $this->pruneJobs($workerName, $method, $this->getArchiveObjectName(), function ($qb) {
+            /* @var QueryBuilder $qb */
+            $qb->where('j.status = :status')
+                ->setParameter(':status', Job::STATUS_ERROR);
+        });
+    }
+
+    /**
+     * Prunes jobs according to a condition function.
+     *
+     * @param null $workerName
+     * @param null $method
+     * @param $conditionFunc
+     *
+     * @return int Count of jobs pruned
+     */
+    protected function pruneJobs($workerName = null, $method = null, $objectName, $conditionFunc)
+    {
         /** @var EntityManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $qb = $objectManager->createQueryBuilder()->delete($this->getArchiveObjectName(), 'j');
-        $qb = $qb
-            ->where('j.status = :status')
-            ->setParameter(':status', Job::STATUS_ERROR);
+        $qb = $objectManager->createQueryBuilder()->delete($objectName, 'j');
+        $conditionFunc($qb);
 
         if (null !== $workerName) {
             $qb->andWhere('j.workerName = :workerName')->setParameter(':workerName', $workerName);
@@ -77,33 +95,22 @@ class JobManager extends BaseJobManager
 
         $query = $qb->getQuery();
 
-        return $query->execute();
+        return intval($query->execute());
     }
 
     /**
      * @param string $workerName
      * @param string $method
+     *
+     * @return int Count of jobs pruned
      */
     public function pruneExpiredJobs($workerName = null, $method = null)
     {
-        /** @var EntityManager $objectManager */
-        $objectManager = $this->getObjectManager();
-        $qb = $objectManager->createQueryBuilder()->delete($this->getObjectName(), 'j');
-        $qb = $qb
-            ->where('j.expiresAt <= :expiresAt')
-            ->setParameter(':expiresAt', new \DateTime());
-
-        if (null !== $workerName) {
-            $qb->andWhere('j.workerName = :workerName')->setParameter(':workerName', $workerName);
-        }
-
-        if (null !== $method) {
-            $qb->andWhere('j.method = :method')->setParameter(':method', $method);
-        }
-
-        $query = $qb->getQuery();
-
-        return $query->execute();
+        return $this->pruneJobs($workerName, $method, $this->getObjectName(), function ($qb) {
+            /* @var QueryBuilder $qb */
+            $qb->where('j.expiresAt <= :expiresAt')
+                ->setParameter(':expiresAt', new \DateTime());
+        });
     }
 
     /**
@@ -129,7 +136,7 @@ class JobManager extends BaseJobManager
     {
         /** @var EntityManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $qb = $objectManager->createQueryBuilder('j');
+        $qb = $objectManager->createQueryBuilder();
 
         $qb = $qb->select('count(j)')->from($this->getObjectName(), 'j');
 

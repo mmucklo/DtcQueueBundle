@@ -27,13 +27,8 @@ class Job extends \Dtc\QueueBundle\Model\Job
      */
     public function toMessage()
     {
-        $arr = array(
-            'args' => $this->getArgs(),
-            'id' => $this->getId(),
-            'expiresAt' => ($expiresAt = $this->getExpiresAt()) ? $expiresAt->format('U.u') : null,
-            'method' => $this->getMethod(),
-            'worker' => $this->getWorkerName(),
-        );
+        $arr = $this->toMessageArray();
+        $arr['id'] = $this->getId();
 
         return json_encode($arr);
     }
@@ -44,15 +39,10 @@ class Job extends \Dtc\QueueBundle\Model\Job
     public function fromMessage($message)
     {
         $arr = json_decode($message, true);
-        $this->setArgs($arr['args']);
-        $this->setId($arr['id']);
-        $this->setMethod($arr['method']);
-        $this->setWorkerName($arr['worker']);
-        $expiresAt = $arr['expiresAt'];
-        if ($expiresAt) {
-            $dateTime = \DateTime::createFromFormat('U.u', $expiresAt);
-            if ($dateTime) {
-                $this->setExpiresAt($dateTime);
+        if (is_array($arr)) {
+            $this->fromMessageArray($arr);
+            if (isset($arr['id'])) {
+                $this->setId($arr['id']);
             }
         }
     }

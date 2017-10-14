@@ -12,7 +12,7 @@ class ClearManagerSubscriber implements EventSubscriberInterface
 
     public function __construct(ContainerInterface $container)
     {
-        $this->container;
+        $this->container = $container;
     }
 
     public function onPostJob(Event $event)

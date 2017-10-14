@@ -473,19 +473,22 @@ class Job
         $this->runId = $runId;
     }
 
-    /**
-     * @return string A json_encoded version of a queueable version of the object
-     */
-    public function toMessage()
+    protected function toMessageArray()
     {
-        $arr = array(
+        return array(
             'worker' => $this->getWorkerName(),
             'args' => $this->getArgs(),
             'method' => $this->getMethod(),
             'expiresAt' => ($expiresAt = $this->getExpiresAt()) ? $expiresAt->format('U.u') : null,
         );
+    }
 
-        return json_encode($arr);
+    /**
+     * @return string A json_encoded version of a queueable version of the object
+     */
+    public function toMessage()
+    {
+        return json_encode($this->toMessageArray());
     }
 
     /**
@@ -494,15 +497,29 @@ class Job
     public function fromMessage($message)
     {
         $arr = json_decode($message, true);
-        $this->setWorkerName($arr['worker']);
-        $this->setArgs($arr['args']);
-        $this->setMethod($arr['method']);
-        $expiresAt = $arr['expiresAt'];
+        if (is_array($arr)) {
+            $this->fromMessageArray($arr);
+        }
+    }
 
-        if ($expiresAt) {
-            $dateTime = \DateTime::createFromFormat('U.u', $expiresAt);
-            if ($dateTime) {
-                $this->setExpiresAt($dateTime);
+    protected function fromMessageArray(array $arr)
+    {
+        if (isset($arr['worker'])) {
+            $this->setWorkerName($arr['worker']);
+        }
+        if (isset($arr['args'])) {
+            $this->setArgs($arr['args']);
+        }
+        if (isset($arr['method'])) {
+            $this->setMethod($arr['method']);
+        }
+        if (isset($arr['expiresAt'])) {
+            $expiresAt = $arr['expiresAt'];
+            if ($expiresAt) {
+                $dateTime = \DateTime::createFromFormat('U.u', $expiresAt);
+                if ($dateTime) {
+                    $this->setExpiresAt($dateTime);
+                }
             }
         }
     }

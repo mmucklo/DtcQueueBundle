@@ -62,25 +62,29 @@ abstract class Worker
     }
 
     /**
+     * @param int      $delay    Amount of time to delay
      * @param int|null $priority
      */
     public function later($delay = 0, $priority = null)
     {
-        $job = $this->at(time() + $delay, false, $priority);
+        return $this->batchOrLaterDelay($delay, false, $priority);
+    }
+
+    public function batchOrLaterDelay($delay = 0, $batch = false, $priority = null)
+    {
+        $job = $this->at(time() + $delay, $batch, $priority);
         $job->setDelay($delay);
 
         return $job;
     }
 
     /**
+     * @param int      $delay    Amount of time to delay
      * @param int|null $priority
      */
     public function batchLater($delay = 0, $priority = null)
     {
-        $job = $this->at($delay, true, $priority);
-        $job->setDelay($delay);
-
-        return $job;
+        return $this->batchOrLaterDelay($delay, true, $priority);
     }
 
     /**

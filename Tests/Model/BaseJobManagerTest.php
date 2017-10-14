@@ -32,6 +32,20 @@ abstract class BaseJobManagerTest extends TestCase
         self::$jobManager->deleteJob($job);
     }
 
+    public function testGetJobByWorker()
+    {
+        $job = new self::$jobClass(self::$worker, false, null);
+        $job->fibonacci(1);
+        $this->assertNotNull($job->getId(), 'Job id should be generated');
+
+        $jobInQueue = self::$jobManager->getJob(self::$worker->getName());
+        $this->assertEquals(
+            $job->getId(),
+            $jobInQueue->getId(),
+            'Job id returned by manager should be the same'
+        );
+    }
+
     public function testDeleteJob()
     {
         $job = new self::$jobClass(self::$worker, false, null);
@@ -83,20 +97,6 @@ abstract class BaseJobManagerTest extends TestCase
             $firstJob->getId(),
             $jobInQueue->getId(),
             'First job id should be returned - lower number unload first'
-        );
-    }
-
-    public function testGetJobByWorker()
-    {
-        $job = new self::$jobClass(self::$worker, false, null);
-        $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
-
-        $jobInQueue = self::$jobManager->getJob(self::$worker->getName());
-        $this->assertEquals(
-            $job->getId(),
-            $jobInQueue->getId(),
-            'Job id returned by manager should be the same'
         );
     }
 

@@ -30,7 +30,7 @@ class RemoveListener
         $objectManager = $eventArgs->getObjectManager();
 
         if ($object instanceof \Dtc\QueueBundle\Model\Job) {
-            $this->processJob($object, $objectManager);
+            $this->processJob($object);
         } elseif ($object instanceof Run) {
             $this->processRun($object, $objectManager);
         }
@@ -56,7 +56,7 @@ class RemoveListener
         $objectManager->persist($runArchive);
     }
 
-    public function processJob(\Dtc\QueueBundle\Model\Job $object, ObjectManager $objectManager)
+    public function processJob(\Dtc\QueueBundle\Model\Job $object)
     {
         $jobManager = $this->container->get('dtc_queue.job_manager');
 
