@@ -526,7 +526,6 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $jobArchive = $jobArchiveRepository->find($job->getId());
         self::assertNotNull($jobArchive);
-        $time = time() - 86401;
         $jobArchive->setUpdatedAt(new \DateTime("@$time"));
         $objectManager->persist($jobArchive);
         $objectManager->flush();
