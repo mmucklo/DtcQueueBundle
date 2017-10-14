@@ -42,31 +42,25 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
 
     public function testLater()
     {
+        $this->batchLaterTest('later');
+        $this->failureTest($time, 'later');
+    }
+
+    public function batchLaterTest($method) {
         $time = null;
-        $job = $this->worker->later()->fibonacci(20);
+        $job = $this->worker->$method()->fibonacci(20);
         self::assertJob($job, $time, 'fibonacci');
         self::assertFalse($job->getBatch(), 'Should not be batching');
 
-        // Test later with priority
+        // Test with priority
         $priority = 1024;
-        $job = $this->worker->later(0, $priority)->fibonacci(20);
+        $job = $this->worker->$method(0, $priority)->fibonacci(20);
         self::assertJob($job, $time, 'fibonacci', $priority);
-
-        $this->failureTest($time, 'later');
     }
 
     public function testBatchLater()
     {
-        $time = null;
-        $job = $this->worker->batchLater()->fibonacci(20);
-        self::assertJob($job, $time, 'fibonacci');
-        self::assertTrue($job->getBatch(), 'Should be batching');
-
-        // Test batchLater with priority
-        $priority = 1024;
-        $job = $this->worker->batchLater(0, $priority)->fibonacci(20);
-        self::assertJob($job, $time, 'fibonacci', $priority);
-
+        $this->batchLaterTest('batchLater');
         $this->failureTest($time, 'batchLater');
     }
 
