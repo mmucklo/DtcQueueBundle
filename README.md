@@ -33,18 +33,22 @@ Install via composer:
 
     composer require mmucklo/queue-bundle
 
-Then add the bundle to AppKernel.php:
+Then add the bundle to __AppKernel.php__:
 
 ```php
-    class AppKernel extends Kernel
+<?php
+
+//...
+
+class AppKernel extends Kernel
+{
+    public function registerBundles()
     {
-        public function registerBundles()
-        {
-            $bundles = [
-                        //...
-                        new \Dtc\GridBundle\DtcGridBundle(),
-                        new \Dtc\QueueBundle\DtcQueueBundle(),
-   // ...
+        $bundles = [
+                    //...
+                    new \Dtc\GridBundle\DtcGridBundle(),
+                    new \Dtc\QueueBundle\DtcQueueBundle(),
+// ...
 ```
 
 MongoDB Setup:
@@ -91,41 +95,43 @@ Usage
 
 Create a worker class that will work on the background job.
 
-	class FibonacciWorker
-	    extends \Dtc\QueueBundle\Model\Worker
-	{
-	    private $filename;
-	    public function __construct() {
-	        $this->filename = '/tmp/fib-result.txt';
-	        $this->jobClass = 'Dtc\QueueBundle\Model\Job';
-	    }
+```php
+<?php
+class FibonacciWorker
+    extends \Dtc\QueueBundle\Model\Worker
+{
+    private $filename;
+    public function __construct() {
+        $this->filename = '/tmp/fib-result.txt';
+        $this->jobClass = 'Dtc\QueueBundle\Model\Job';
+    }
 
-	    public function fibonacciFile($n) {
-	        $feb = $this->fibonacci($n);
-	        file_put_contents($this->filename, "{$n}: {$feb}");
-	    }
+    public function fibonacciFile($n) {
+        $feb = $this->fibonacci($n);
+        file_put_contents($this->filename, "{$n}: {$feb}");
+    }
 
 
-	    public function fibonacci($n)
-	    {
-	        if($n == 0)
-	            return 0; //F0
-	        elseif ($n == 1)
-	            return 1; //F1
-	        else
-	            return $this->fibonacci($n - 1) + $this->fibonacci($n - 2);
-	    }
+    public function fibonacci($n)
+    {
+        if($n == 0)
+            return 0; //F0
+        elseif ($n == 1)
+            return 1; //F1
+        else
+            return $this->fibonacci($n - 1) + $this->fibonacci($n - 2);
+    }
 
-	    public function getName() {
-	        return 'fibonacci';
-	    }
+    public function getName() {
+        return 'fibonacci';
+    }
 
-	    public function getFilename()
-	    {
-	        return $this->filename;
-	    }
-	}
-
+    public function getFilename()
+    {
+        return $this->filename;
+    }
+}
+```
 
 Create a DI service for the job, and tag it as a background worker.
 
@@ -195,101 +201,113 @@ MongoDB Customization
 ---------------------
 Change the document manager
 
-// config.yml
-
-    dtc_queue:
-        document_manager: [default|something_else]
-        
+__config.yml:__
+```yaml
+dtc_queue:
+    document_manager: [default|something_else]
+```        
 
 Mysql (ORM) Configuration
 -------------------------
 
-    dtc_queue:
-        default_manager: orm
+__config.yml:__
+```yaml
+dtc_queue:
+    default_manager: orm
+```
 
 Change the entity manager
 
-// config.yml
-
+```yaml
     dtc_queue:
         entity_manager: [default|something_else]
-        
+```        
 
 NOTE: You may need to add DtcQueueBundle to your mappings section in config.yml if auto_mapping is not enabled
-   
-    doctrine:
+ 
+```yaml
+doctrine:
+   #...
+   orm:
        #...
-       orm:
-           #...
-           mappings:
-               DtcQueueBundle: ~
+       mappings:
+           DtcQueueBundle: ~
+```
 
 Beanstalk Configuration
 ------------------------
 
-// config.yml
-
-    dtc_queue:
-        beanstalkd:
-            host: beanstalkd
-            tube: some-tube-name [optional]
-        default_manager: beanstalkd
+__config.yml:__
+```yaml
+dtc_queue:
+    beanstalkd:
+        host: beanstalkd
+        tube: some-tube-name [optional]
+    default_manager: beanstalkd
+```
 
 RabbitMQ Configuration
 ----------------------
 
-// config.yml
-
-    dtc_queue:
-        default_manager: rabbit_mq
-        rabbit_mq:
-            host: rabbitmq
-            port: 5672
-            user: guest
-            password: guest
-            vhost: "/" [optional defaults to "/"]
-            ssl: [optional defaults to false - toggles to use AMQPSSLConnection]
-            options: [optional options to pass to AMQPStreamConnection or AMQPSSLConnection]
-            ssl_options: [optional extra ssl options to pass to AMQPSSLConnection]
-            queue_args: [optional]
-                queue: [optional queue name]
-                passive: [optional defaults to false]
-                durable: [optional defaults to true]
-                exlusive: [optional defaults to false]
-                auto_delete: [optional defaults to false]
-            exchange_args: [optional]
-                exchange: [optional queue name]
-                type: [optional defaults to "direct"]
-                passive: [optional defaults to false]
-                durable: [optional defaults to true]
-                auto_delete: [optional defaults to false]
+__config.yml:__
+```yaml
+dtc_queue:
+    default_manager: rabbit_mq
+    rabbit_mq:
+        host: rabbitmq
+        port: 5672
+        user: guest
+        password: guest
+        vhost: "/" [optional defaults to "/"]
+        ssl: [optional defaults to false - toggles to use AMQPSSLConnection]
+        options: [optional options to pass to AMQPStreamConnection or AMQPSSLConnection]
+        ssl_options: [optional extra ssl options to pass to AMQPSSLConnection]
+        queue_args: [optional]
+            queue: [optional queue name]
+            passive: [optional defaults to false]
+            durable: [optional defaults to true]
+            exlusive: [optional defaults to false]
+            auto_delete: [optional defaults to false]
+        exchange_args: [optional]
+            exchange: [optional queue name]
+            type: [optional defaults to "direct"]
+            passive: [optional defaults to false]
+            durable: [optional defaults to true]
+            auto_delete: [optional defaults to false]
+```
 
 Custom Jobs and Managers
 ------------------------
 
-// config.yml
+__config.yml:__
 
-    dtc_queue:
-         class: Some\Job\ClassName [optional]
-         default_manager: some_name [optional]
-        # (create your own manager service and name or alias it:
-        #   dtc_queue.job_manager.<some_name> and put
-        #   <some_name> in the default_manager field above)
- 
+```yaml
+dtc_queue:
+    class_job: Some\Job\ClassName [optional]
+    default_manager: some_name [optional]
+    # (create your own manager service and name or alias it:
+    #   dtc_queue.job_manager.<some_name> and put
+    #   <some_name> in the default_manager field above)
+```
+
 Rename the Database or Table Name
 ---------------------------------
 
 1) Extend the following:
 
-    Dtc\QueueBundle\Document\Job
-    Dtc\QueueBundle\Document\JobArchive
-    
-            or
-    
-    Dtc\QueueBundle\Entity\Job
-    Dtc\QueueBundle\Entity\JobArchive
+```
+Dtc\QueueBundle\Document\Job
+Dtc\QueueBundle\Document\JobArchive
+```    
 
-    (Depending on whether you're using Mongo or an ORM)
+   __or__
+
+```   
+Dtc\QueueBundle\Entity\Job
+Dtc\QueueBundle\Entity\JobArchive
+```
+
+(Depending on whether you're using MongoDB or an ORM)
         
 2) Change the parameters on the class appropriately
 
