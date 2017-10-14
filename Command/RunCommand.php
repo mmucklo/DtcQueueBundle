@@ -242,14 +242,13 @@ class RunCommand extends ContainerAwareCommand
     protected function runStart($start, $maxCount = null, $duration = null)
     {
         $container = $this->getContainer();
+        $this->runClass = $container->getParameter('dtc_queue.run_class');
         $defaultManager = $container->getParameter('dtc_queue.default_manager');
         if ('mongodb' == $defaultManager && $container->has('dtc_queue.document_manager')) {
             $this->runManager = $container->get('dtc_queue.document_manager');
         } elseif ('orm' == $defaultManager && $container->has('dtc_queue.entity_manager')) {
             $this->runManager = $container->get('dtc_queue.entity_manager');
         }
-
-        $this->runClass = $container->getParameter('dtc_queue.run_class');
 
         $this->run = new $this->runClass();
         $startDate = \DateTime::createFromFormat('U.u', $start);

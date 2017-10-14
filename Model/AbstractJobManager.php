@@ -34,4 +34,14 @@ abstract class AbstractJobManager implements JobManagerInterface
     {
         throw new \Exception('Unsupported');
     }
+
+    public function pruneExpiredJobs($workerName = null, $methodName = null)
+    {
+        throw new \Exception('Unsupported');
+    }
+
+    public function pruneArchivedJobs(\DateTime $olderThan)
+    {
+        throw new \Exception('Unsupported');
+    }
 }

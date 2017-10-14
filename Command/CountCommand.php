@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Command;
 
+use Dtc\QueueBundle\Beanstalkd\JobManager;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -19,6 +20,12 @@ class CountCommand extends ContainerAwareCommand
     {
         $container = $this->getContainer();
         $jobManager = $container->get('dtc_queue.job_manager');
+        if ($jobManager instanceof JobManager) {
+            print_r($jobManager->getStats());
+
+            return 0;
+        }
+
         $count = $jobManager->getJobCount();
 
         $format = '%-50s %8s %8s %8s %8s';

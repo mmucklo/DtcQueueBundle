@@ -44,6 +44,8 @@ class DtcQueueExtension extends Extension
         $container->setParameter('dtc_queue.entity_manager', $config['entity_manager']);
         $container->setParameter('dtc_queue.job_class', isset($config['class']) ? $config['class'] : null);
         $container->setParameter('dtc_queue.job_class_archive', isset($config['class_archive']) ? $config['class_archive'] : null);
+        $container->setParameter('dtc_queue.run_class', isset($config['run_class']) ? $config['run_class'] : null);
+        $container->setParameter('dtc_queue.run_class_archive', isset($config['run_class_archive']) ? $config['run_class_archive'] : null);
 
         // Load Grid if Dtc\GridBundle Bundle is registered
         $yamlLoader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));

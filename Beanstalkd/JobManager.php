@@ -104,18 +104,8 @@ class JobManager extends AbstractJobManager
         }
     }
 
-    public function pruneExpiredJobs($workerName = null, $methodName = null)
-    {
-        throw new \Exception('Not Supported');
-    }
-
     public function getStats()
     {
         return $this->beanstalkd->stats();
-    }
-
-    public function pruneArchivedJobs(\DateTime $olderThan)
-    {
-        throw new \Exception('Not Supported');
     }
 }

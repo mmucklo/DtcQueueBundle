@@ -136,11 +136,6 @@ class JobManager extends AbstractJobManager
         return null;
     }
 
-    public function pruneExpiredJobs($workerName = null, $methodName = null)
-    {
-        throw new \Exception('Not Supported');
-    }
-
     // Save History get called upon completion of the job
     public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
     {
@@ -151,11 +146,6 @@ class JobManager extends AbstractJobManager
         $this->channel->basic_ack($deliveryTag);
 
         return;
-    }
-
-    public function pruneArchivedJobs(\DateTime $olderThan)
-    {
-        throw new \Exception('Not Supported');
     }
 
     public function __destruct()

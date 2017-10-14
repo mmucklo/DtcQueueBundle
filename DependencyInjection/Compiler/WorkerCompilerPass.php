@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\DependencyInjection\Compiler;
 
 use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\Run;
 use Pheanstalk\Pheanstalk;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -222,19 +223,28 @@ class WorkerCompilerPass implements CompilerPassInterface
             throw new \Exception("Can't find Job class $jobClass");
         }
 
+        $test = new $jobClass();
+        if (!$test instanceof Job) {
+            throw new \Exception("$jobClass must be instance of (or derived from) Dtc\\QueueBundle\\Model\\Job");
+        }
+
         return $jobClass;
     }
 
     public function getRunClass(ContainerBuilder $container)
     {
-        $runClass = null;
-        switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
-            case 'mongodb':
-                $runClass = 'Dtc\\QueueBundle\\Document\\Run';
-                break;
-            case 'orm':
-                $runClass = 'Dtc\\QueueBundle\\Entity\\Run';
-                break;
+        $runClass = $container->hasParameter('dtc_queue.run_class') ? $container->getParameter('dtc_queue.run_class') : null;
+        if (!$runClass) {
+            switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
+                case 'mongodb':
+                    $runClass = 'Dtc\\QueueBundle\\Document\\Run';
+                    break;
+                case 'orm':
+                    $runClass = 'Dtc\\QueueBundle\\Entity\\Run';
+                    break;
+                default:
+                    $runClass = 'Dtc\\QueueBundle\\Model\\Run';
+            }
         }
 
         if (isset($runClass)) {
@@ -243,25 +253,39 @@ class WorkerCompilerPass implements CompilerPassInterface
             }
         }
 
+        $test = new $runClass();
+        if (!$test instanceof Run) {
+            throw new \Exception("$runClass must be instance of (or derived from) Dtc\\QueueBundle\\Model\\Run");
+        }
+
         return $runClass;
     }
 
     public function getRunArchiveClass(ContainerBuilder $container)
     {
-        $runArchiveClass = null;
-        switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
-            case 'mongodb':
-                $runArchiveClass = 'Dtc\\QueueBundle\\Document\\RunArchive';
-                break;
-            case 'orm':
-                $runArchiveClass = 'Dtc\\QueueBundle\\Entity\\RunArchive';
-                break;
+        $runArchiveClass = $container->hasParameter('dtc_queue.run_class_archive') ? $container->getParameter('dtc_queue.run_class_archive') : null;
+        if (!$runArchiveClass) {
+            switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
+                case 'mongodb':
+                    $runArchiveClass = 'Dtc\\QueueBundle\\Document\\RunArchive';
+                    break;
+                case 'orm':
+                    $runArchiveClass = 'Dtc\\QueueBundle\\Entity\\RunArchive';
+                    break;
+                default:
+                    $runArchiveClass = 'Dtc\\QueueBundle\\Model\\Run';
+            }
         }
 
         if (isset($runArchiveClass)) {
             if (!class_exists($runArchiveClass)) {
                 throw new \Exception("Can't find RunArchive class $runArchiveClass");
             }
+        }
+
+        $test = new $runArchiveClass();
+        if (!$test instanceof Run) {
+            throw new \Exception("$runArchiveClass must be instance of (or derived from) Dtc\\QueueBundle\\Model\\Run");
         }
 
         return $runArchiveClass;
@@ -292,6 +316,13 @@ class WorkerCompilerPass implements CompilerPassInterface
 
         if ($jobArchiveClass && !class_exists($jobArchiveClass)) {
             throw new \Exception("Can't find JobArchive class $jobArchiveClass");
+        }
+
+        if ($jobArchiveClass) {
+            $test = new $jobArchiveClass();
+            if (!$test instanceof Job) {
+                throw new \Exception("$jobArchiveClass must be instance of (or derived from) Dtc\\QueueBundle\\Model\\Job");
+            }
         }
 
         return $jobArchiveClass;
