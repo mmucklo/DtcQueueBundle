@@ -162,8 +162,9 @@ Running jobs
 ------------
 It's recommended that you background the following console commands
 
-    bin/console dtc:queue:run -t 100
-    # the -t parameter is a tunable number of jobs to process for that run
+    bin/console dtc:queue:run -d 120
+    # the -d parameter is a tunable seconds during which to process jobs
+    #  For example you could put this command into cron or a cron-like system to run periodically
     
     # If you're running a MongoDB or ORM based job store:
     #
@@ -174,12 +175,12 @@ It's recommended that you background the following console commands
     #  if you have too many jobs flowing through the system.
    
 
-To Debug message queue status.
+For debugging
 
 	bin/console dtc:queue_worker:count
 	bin/console dtc:queue_worker:run --id={jobId}
 
-jobId could be obtained from mongodb.
+(jobId could be obtained from mongodb / or your database, if using an ORM / ODM solution)
 
 MongoDB Customization
 ---------------------

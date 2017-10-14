@@ -37,7 +37,7 @@ class StaticJobManager implements JobManagerInterface
         return 0;
     }
 
-    public function pruneExpiredJobs()
+    public function pruneExpiredJobs($workerName = null, $methodName = null)
     {
         return 0;
     }
