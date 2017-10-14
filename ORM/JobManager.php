@@ -63,7 +63,7 @@ class JobManager extends BaseJobManager
      */
     public function pruneErroneousJobs($workerName = null, $method = null)
     {
-        return $this->pruneJobs($workerName, $method, $this->getArchiveObjectName(), function ($qb) {
+        return $this->pruneJobs($workerName, $method, $this->getArchiveObjectName(), function($qb) {
             /* @var QueryBuilder $qb */
             $qb->where('j.status = :status')
                 ->setParameter(':status', BaseJob::STATUS_ERROR);
@@ -75,7 +75,8 @@ class JobManager extends BaseJobManager
      *
      * @param string|null $workerName
      * @param string|null $method
-     * @param $conditionFunc
+     * @param \Closure $conditionFunc
+     * @param string $objectName
      *
      * @return int Count of jobs pruned
      */
@@ -107,7 +108,7 @@ class JobManager extends BaseJobManager
      */
     public function pruneExpiredJobs($workerName = null, $method = null)
     {
-        return $this->pruneJobs($workerName, $method, $this->getObjectName(), function ($qb) {
+        return $this->pruneJobs($workerName, $method, $this->getObjectName(), function($qb) {
             /* @var QueryBuilder $qb */
             $qb->where('j.expiresAt <= :expiresAt')
                 ->setParameter(':expiresAt', new \DateTime());
