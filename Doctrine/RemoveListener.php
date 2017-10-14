@@ -74,7 +74,7 @@ class RemoveListener
             Util::copy($object, $jobArchive);
             if (Job::STATUS_RUNNING === $jobArchive->getStatus()) {
                 $jobArchive->setStatus(Job::STATUS_ERROR);
-                $jobArchive->setMessage("stalled");
+                $jobArchive->setMessage('stalled');
             }
             $jobArchive->setUpdatedAt(new \DateTime());
             $objectManager->persist($jobArchive);

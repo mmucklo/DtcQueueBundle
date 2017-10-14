@@ -75,7 +75,9 @@ dtc_queue:
          * then:
             * bin/console doctrine:migrations:migrate
 
-(Optional Admin)
+####Optional Admin
+
+NOTE: _this only applies to __Doctrine__ (ORM/ODM) based queues._
 
 Add this to your app/config/routing.yml file:
 
@@ -160,12 +162,12 @@ Running jobs
 ------------
 It's recommended that you background the following console commands
 
-    bin/console dtc:queue_worker:run -t 100
+    bin/console dtc:queue:run -t 100
     # the -t parameter is a tunable number of jobs to process for that run
     
     # If you're running a MongoDB or ORM based job store:
     #
-    bin/console dtc:queue_worker:prune old --older 1m
+    bin/console dtc:queue:prune old --older 1m
     # deletes jobs older than one month from the Archive table
     #
     #  You can tune 1m to a smaller interval such as 10d (10 days)

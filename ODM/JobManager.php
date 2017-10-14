@@ -184,6 +184,7 @@ class JobManager extends BaseJobManager
         $allStatus = array(
             Job::STATUS_ERROR => 0,
             Job::STATUS_NEW => 0,
+            Job::STATUS_RUNNING => 0,
             Job::STATUS_SUCCESS => 0,
         );
 

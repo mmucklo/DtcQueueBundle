@@ -185,21 +185,18 @@ class JobManager extends BaseJobManager
     {
         /** @var EntityManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $result1 = $objectManager->getRepository($entityName)->createQueryBuilder('j')->select('j.workerName, j.status, count(j) as c')
-            ->where('j.status = :status1')
-            ->orWhere('j.status = :status2')
-            ->orWhere('j.status = :status3')
-            ->setParameter(':status1', Job::STATUS_ERROR)
-            ->setParameter(':status2', Job::STATUS_NEW)
-            ->setParameter(':status3', Job::STATUS_SUCCESS)
-            ->groupBy('j.workerName, j.status')->getQuery()->getArrayResult();
+        $result1 = $objectManager->getRepository($entityName)->createQueryBuilder('j')->select('j.workerName, j.method, j.status, count(j) as c')
+            ->groupBy('j.workerName, j.method, j.status')->getQuery()->getArrayResult();
 
         foreach ($result1 as $item) {
-            if (isset($result[$item['workerName']][$item['status']])) {
-                $result[$item['workerName']][$item['status']] += $item['c'];
-            } else {
-                $result[$item['workerName']][$item['status']] = $item['c'];
+            $method = $item['workerName'].'->'.$item['method'];
+            if (!isset($result[$method])) {
+                $result[$method] = [Job::STATUS_NEW => 0,
+                                    Job::STATUS_RUNNING => 0,
+                                    Job::STATUS_SUCCESS => 0,
+                                    Job::STATUS_ERROR => 0, ];
             }
+            $result[$method][$item['status']] += intval($item['c']);
         }
     }
 

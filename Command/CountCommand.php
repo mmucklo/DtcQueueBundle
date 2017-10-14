@@ -21,13 +21,13 @@ class CountCommand extends ContainerAwareCommand
         $jobManager = $container->get('dtc_queue.job_manager');
         $count = $jobManager->getJobCount();
 
-        $format = '%-50s %8s %8s %8s';
+        $format = '%-50s %8s %8s %8s %8s';
         $status = $jobManager->getStatus();
-        $msg = sprintf($format, 'Job name', 'Success', 'New', 'Error');
+        $msg = sprintf($format, 'Job name', 'Success', 'New', 'Running', 'Error');
         $output->writeln($msg);
 
         foreach ($status as $func => $info) {
-            $msg = sprintf($format, $func, $info['success'], $info['new'], $info['error']);
+            $msg = sprintf($format, $func, $info['success'], $info['new'], $info['running'], $info['error']);
             $output->writeln($msg);
         }
 
