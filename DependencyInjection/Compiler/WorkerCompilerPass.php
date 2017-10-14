@@ -132,59 +132,64 @@ class WorkerCompilerPass implements CompilerPassInterface
             } else {
                 if ($container->hasParameter('dtc_queue.rabbit_mq.options')) {
                     $options = $container->getParameter('dtc_queue.rabbit_mq.options');
-                    if (isset($options['insist'])) {
-                        $arguments[] = $options['insist'];
-                    } else {
-                        $arguments[] = false;
-                    }
-                    if (isset($options['login_method'])) {
-                        $arguments[] = $options['login_method'];
-                    } else {
-                        $arguments[] = 'AMQPLAIN';
-                    }
-                    if (isset($options['login_response'])) {
-                        $arguments[] = $options['login_response'];
-                    } else {
-                        $arguments[] = null;
-                    }
-                    if (isset($options['locale'])) {
-                        $arguments[] = $options['locale'];
-                    } else {
-                        $arguments[] = 'en_US';
-                    }
-                    if (isset($options['connection_timeout'])) {
-                        $arguments[] = $options['connection_timeout'];
-                    } else {
-                        $arguments[] = 3.0;
-                    }
-                    if (isset($options['read_write_timeout'])) {
-                        $arguments[] = $options['read_write_timeout'];
-                    } else {
-                        $arguments[] = 3.0;
-                    }
-                    if (isset($options['context'])) {
-                        $arguments[] = $options['context'];
-                    } else {
-                        $arguments[] = null;
-                    }
-                    if (isset($options['keepalive'])) {
-                        $arguments[] = $options['keepalive'];
-                    } else {
-                        $arguments[] = false;
-                    }
-                    if (isset($options['heartbeat'])) {
-                        $arguments[] = $options['heartbeat'];
-                    } else {
-                        $arguments[] = 0;
-                    }
+                    $this->setRabbitMqOptions($arguments, $options);
                 }
             }
+
             $definition = new Definition($class, $arguments);
             $container->setDefinition('dtc_queue.rabbit_mq', $definition);
             $definition = $container->getDefinition('dtc_queue.job_manager.rabbit_mq');
             $definition->addMethodCall('setAMQPConnection', [new Reference('dtc_queue.rabbit_mq')]);
             $definition->addMethodCall('setQueueArgs', array_values($rabbitMqConfig['queue_args']));
             $definition->addMethodCall('setExchangeArgs', array_values($rabbitMqConfig['exchange_args']));
+        }
+    }
+
+    public function setRabbitMqOptions(array &$arguments, array $options) {
+        if (isset($options['insist'])) {
+            $arguments[] = $options['insist'];
+        } else {
+            $arguments[] = false;
+        }
+        if (isset($options['login_method'])) {
+            $arguments[] = $options['login_method'];
+        } else {
+            $arguments[] = 'AMQPLAIN';
+        }
+        if (isset($options['login_response'])) {
+            $arguments[] = $options['login_response'];
+        } else {
+            $arguments[] = null;
+        }
+        if (isset($options['locale'])) {
+            $arguments[] = $options['locale'];
+        } else {
+            $arguments[] = 'en_US';
+        }
+        if (isset($options['connection_timeout'])) {
+            $arguments[] = $options['connection_timeout'];
+        } else {
+            $arguments[] = 3.0;
+        }
+        if (isset($options['read_write_timeout'])) {
+            $arguments[] = $options['read_write_timeout'];
+        } else {
+            $arguments[] = 3.0;
+        }
+        if (isset($options['context'])) {
+            $arguments[] = $options['context'];
+        } else {
+            $arguments[] = null;
+        }
+        if (isset($options['keepalive'])) {
+            $arguments[] = $options['keepalive'];
+        } else {
+            $arguments[] = false;
+        }
+        if (isset($options['heartbeat'])) {
+            $arguments[] = $options['heartbeat'];
+        } else {
+            $arguments[] = 0;
         }
     }
 
