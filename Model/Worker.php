@@ -53,6 +53,9 @@ abstract class Worker
         return new $this->jobClass($this, $batch, $priority, $dateTime);
     }
 
+    /**
+     * @param integer $priority
+     */
     public function later($delay = 0, $priority = null)
     {
         $job = $this->at(time() + $delay, false, $priority);
@@ -61,6 +64,9 @@ abstract class Worker
         return $job;
     }
 
+    /**
+     * @param integer $priority
+     */
     public function batchLater($delay = 0, $priority = null)
     {
         $job = $this->at($delay, true, $priority);
@@ -69,6 +75,10 @@ abstract class Worker
         return $job;
     }
 
+    /**
+     * @param integer $time
+     * @param integer $priority
+     */
     public function batchAt($time = null, $priority = null)
     {
         return $this->at($time, true, $priority);
