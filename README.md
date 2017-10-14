@@ -55,13 +55,13 @@ MongoDB Setup:
   * Add MongoDB ODM setting for Job Document.
 
 ```yaml
-	doctrine_mongodb:
-	    document_managers:
-	        default:
-	            mappings:
-	                DtcQueueBundle:
-	                    dir: Document/
-	                    type: annotation
+doctrine_mongodb:
+    document_managers:
+        default:
+            mappings:
+                DtcQueueBundle:
+                    dir: Document/
+                    type: annotation
 ```
 ORM Setup:
 
@@ -137,6 +137,7 @@ Create a DI service for the job, and tag it as a background worker.
 
 XML:
 ```xml
+<services>
 	<service id="fibonacci_worker" class="FibonacciWorker">
 	    <tag name="dtc_queue.worker" />
 	</service>
@@ -145,6 +146,7 @@ XML:
 YAML:
 
 ```yaml
+services:
 	AppBundle\Worker\FibonacciWorker:
 	    tags:
 	        - { name: "dtc_queue.worker" }
