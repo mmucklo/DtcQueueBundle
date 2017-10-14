@@ -16,10 +16,11 @@
     "require": {
         "php": ">=5.6",
         "dstuecken/php7ify": ">=1.1",
-    	"mmucklo/grid-bundle": ">=1.0.11",
+    	"mmucklo/grid-bundle": ">=3.0.0",
         "sensio/generator-bundle": "2.*|3.*|4.*",
         "symfony/framework-bundle": "2.*|3.*|4.*",
-        "sensio/framework-extra-bundle": "2.*|3.*|4.*"
+        "sensio/framework-extra-bundle": "2.*|3.*|4.*",
+        "cocur/background-process": ">=0.7"
     },
     "require-dev": {
         "doctrine/orm": "^2.4",
@@ -27,10 +28,10 @@
         "doctrine/cache": "<1.7",
         "doctrine/collections": "<1.5",
         "doctrine/common": "<2.8",
-	"doctrine/dbal": "<2.6",
+        "doctrine/dbal": "<2.6",
         "doctrine/mongodb-odm": "^1.1",
-	"pda/pheanstalk": "^3.1",
-	"php-amqplib/php-amqplib": "^2.6",
+        "pda/pheanstalk": "^3.1",
+        "php-amqplib/php-amqplib": "^2.6",
         "friendsofphp/php-cs-fixer": "dev-master",
         "phpunit/phpunit": "^5.7.0",
         "phpunit/php-code-coverage": "^4.0"

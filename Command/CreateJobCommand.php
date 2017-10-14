@@ -13,7 +13,7 @@ class CreateJobCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
-            ->setName('dtc:queue_worker:create_job')
+            ->setName('dtc:queue:create_job')
             ->addArgument('worker_name', InputArgument::REQUIRED, 'Name of worker', null)
             ->addArgument('method', InputArgument::REQUIRED, 'Method of worker to invoke', null)
             ->addArgument('args', InputArgument::IS_ARRAY, 'Argument(s) for invoking worker method')
@@ -44,7 +44,7 @@ class CreateJobCommand extends ContainerAwareCommand
         $job = new $jobClass($worker, $batch, $priority, $when);
         $job->setMethod($methodName);
         $job->setArgs($args);
-
+        $job->setLocked(null);
         $job->setCreatedAt($when);
         $job->setUpdatedAt($when);
 

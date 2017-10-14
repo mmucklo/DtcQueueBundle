@@ -19,8 +19,6 @@ class QueueController extends Controller
     {
         $params = array();
         $jobManager = $this->get('dtc_queue.job_manager');
-        $workerName = null;
-        $methodName = null;
 
         $params['status'] = $jobManager->getStatus();
 
@@ -30,29 +28,78 @@ class QueueController extends Controller
     /**
      * List jobs in system by default.
      *
-     * @Route("/jobs/")
-     * @Template()
+     * @Route("/jobs", name="dtc_queue_jobs")
      */
     public function jobsAction()
     {
-        $renderer = $this->get('grid.renderer.jq_table_grid');
+        $managerType = $this->container->getParameter('dtc_queue.default_manager');
+        if ('mongodb' !== $managerType && 'orm' != $managerType) {
+            throw new \Exception("Unsupported manager type: $managerType");
+        }
 
-        $gridSource = $this->get('dtc_queue.grid.source.job');
+        $rendererFactory = $this->get('dtc_grid.renderer.factory');
+        $renderer = $rendererFactory->create('datatables');
+        $className = $this->container->getParameter('dtc_queue.class_job');
+        $gridSource = $this->get('dtc_grid.manager.source')->get($className);
         $renderer->bind($gridSource);
+        $params = $renderer->getParams();
 
-        return array('grid' => $renderer);
+        $renderer2 = $rendererFactory->create('datatables');
+        $className = $this->container->getParameter('dtc_queue.class_job_archive');
+        $gridSource = $this->get('dtc_grid.manager.source')->get($className);
+        $renderer2->bind($gridSource);
+        $params2 = $renderer2->getParams();
+
+        $params['archive_grid'] = $params2['dtc_grid'];
+        $params['dtc_queue_grid_label1'] = 'Live Jobs';
+        $params['dtc_queue_grid_label2'] = 'Archived Jobs';
+
+        return $this->render('@DtcQueue/Queue/grid.html.twig', $params);
+    }
+
+    /**
+     * List jobs in system by default.
+     *
+     * @Route("/runs", name="dtc_queue_runs")
+     */
+    public function runsAction()
+    {
+        $managerType = $this->container->getParameter('dtc_queue.default_manager');
+        if ('mongodb' !== $managerType && 'orm' != $managerType) {
+            throw new \Exception("Unsupported manager type: $managerType");
+        }
+
+        $rendererFactory = $this->get('dtc_grid.renderer.factory');
+        $renderer = $rendererFactory->create('datatables');
+        $className = $this->container->getParameter('dtc_queue.class_run');
+        $manager = $this->container->get('dtc_queue.job_manager');
+        $gridSource = $this->get('dtc_grid.manager.source')->get($className);
+        $renderer->bind($gridSource);
+        $params = $renderer->getParams();
+
+        $renderer2 = $rendererFactory->create('datatables');
+        $className = $this->container->getParameter('dtc_queue.class_run_archive');
+        $gridSource = $this->get('dtc_grid.manager.source')->get($className);
+        $renderer2->bind($gridSource);
+        $params2 = $renderer2->getParams();
+
+        $params['archive_grid'] = $params2['dtc_grid'];
+
+        $params['dtc_queue_grid_label1'] = 'Live Runs';
+        $params['dtc_queue_grid_label2'] = 'Archived Runs';
+
+        return $this->render('@DtcQueue/Queue/grid.html.twig', $params);
     }
 
     /**
      * List registered workers in the system.
      *
-     * @Route("/jobs/")
+     * @Route("/workers/")
      * @Template()
      */
     public function workersAction()
     {
         $params = array();
-        //   ve('testing one two...');
 
         return $params;
     }

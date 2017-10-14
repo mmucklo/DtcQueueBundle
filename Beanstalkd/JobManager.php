@@ -2,11 +2,11 @@
 
 namespace Dtc\QueueBundle\Beanstalkd;
 
+use Dtc\QueueBundle\Model\AbstractJobManager;
 use Dtc\QueueBundle\Model\Job as BaseJob;
-use Dtc\QueueBundle\Model\JobManagerInterface;
 use Pheanstalk\Pheanstalk;
 
-class JobManager implements JobManagerInterface
+class JobManager extends AbstractJobManager
 {
     const DEFAULT_RESERVE_TIMEOUT = 5; // seconds
 
@@ -35,39 +35,58 @@ class JobManager implements JobManagerInterface
     public function save(\Dtc\QueueBundle\Model\Job $job)
     {
         /** @var Job $job */
-        $arguments = [$job->toMessage(), $job->getPriority(), $job->getDelay(), $job->getTtr()];
+        $message = $job->toMessage();
+        $arguments = [$message, $job->getPriority(), $job->getDelay(), $job->getTtr()];
         $method = 'put';
         if ($this->tube) {
             array_unshift($arguments, $this->tube);
             $method .= 'InTube';
         }
-        var_dump(get_class($this->beanstalkd));
-        var_dump($method);
         $jobId = call_user_func_array([$this->beanstalkd, $method], $arguments);
         $job->setId($jobId);
+
+        // Ideally we should get this from beanstalk, but to save the roundtrip time, we do this here
+        $job->setBeanJob($this->getBeanJob($jobId, $message));
 
         return $job;
     }
 
-    public function getJob($workerName = null, $methodName = null, $prioritize = true)
+    public function getBeanJob($jobId, $data)
+    {
+        return new \Pheanstalk\Job($jobId, $data);
+    }
+
+    public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
         if ($methodName) {
             throw new \Exception('Unsupported');
         }
 
-        $beanJob = $this->beanstalkd;
+        $beanstalkd = $this->beanstalkd;
         if ($this->tube) {
-            $beanJob = $beanJob->watch($this->tube);
+            $beanstalkd = $this->beanstalkd->watch($this->tube);
         }
 
-        $beanJob = $beanJob->reserve($this->reserveTimeout);
-        if ($beanJob) {
-            $job = new Job();
-            $job->fromMessage($beanJob->getData());
-            $job->setId($beanJob->getId());
+        $expiredJob = false;
 
-            return $job;
-        }
+        do {
+            $beanJob = $beanstalkd->reserve($this->reserveTimeout);
+            if ($beanJob) {
+                $job = new Job();
+                $job->fromMessage($beanJob->getData());
+                $job->setId($beanJob->getId());
+                $job->setRunId($runId);
+
+                if (($expiresAt = $job->getExpiresAt()) && $expiresAt->getTimestamp() < time()) {
+                    $expiredJob = true;
+                    $this->beanstalkd->delete($beanJob);
+                    continue;
+                }
+                $job->setBeanJob($beanJob);
+
+                return $job;
+            }
+        } while ($expiredJob);
     }
 
     public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
@@ -79,48 +98,14 @@ class JobManager implements JobManagerInterface
     // Save History get called upon completion of the job
     public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
     {
-        if ($job->getStatus() === BaseJob::STATUS_SUCCESS) {
+        if (BaseJob::STATUS_SUCCESS === $job->getStatus()) {
             $this->beanstalkd
                 ->delete($job);
         }
-
-        // @Todo Need a strategy for buried jobs, if any?
-//        else {
-//            $this->beanstalkd
-//                ->bury($job);
-//        }
-    }
-
-    public function getJobCount($workerName = null, $methodName = null)
-    {
-        if ($methodName) {
-            throw new \Exception('Unsupported');
-        }
-
-        if ($workerName) {
-            throw new \Exception('Unsupported');
-        }
-
-        // @Todo - use statistics
     }
 
     public function getStats()
     {
         return $this->beanstalkd->stats();
-    }
-
-    public function resetErroneousJobs($workerName = null, $methodName = null)
-    {
-        throw new \Exception('Unsupported');
-    }
-
-    public function pruneErroneousJobs($workerName = null, $methodName = null)
-    {
-        throw new \Exception('Unsupported');
-    }
-
-    public function getStatus()
-    {
-        throw new \Exception('Unsupported');
     }
 }

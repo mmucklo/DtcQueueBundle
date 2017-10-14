@@ -113,21 +113,33 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $this->assertNotEmpty($job->getId(), 'Job should have an id');
 
         if ($time && $time > 0) {
-            $this->assertEquals($time, $job->getWhen()->getTimestamp(),
-                    'Job start time should equals');
+            $this->assertEquals(
+                $time,
+                $job->getWhenAt()->getTimestamp(),
+                    'Job start time should equals'
+            );
         }
 
         if ($priority) {
-            $this->assertEquals($priority, $job->getPriority(),
-                    'Priority should be the same.');
+            $this->assertEquals(
+                $priority,
+                $job->getPriority(),
+                    'Priority should be the same.'
+            );
         } else {
             $this->assertNull($job->getPriority(), 'Priority should be null');
         }
 
-        $this->assertEquals($this->worker->getName(), $job->getWorkerName(),
-                'Worker should be the same');
-        $this->assertEquals($method, $job->getMethod(),
-                'Worker method should be the same');
+        $this->assertEquals(
+            $this->worker->getName(),
+            $job->getWorkerName(),
+                'Worker should be the same'
+        );
+        $this->assertEquals(
+            $method,
+            $job->getMethod(),
+                'Worker method should be the same'
+        );
 
         // Make sure param gets saved
         $this->assertContains(20, $job->getArgs());

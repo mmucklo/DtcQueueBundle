@@ -5,12 +5,28 @@ php:
   - 7.0
   - 7.1
 
-services: mongodb
+services:
+  - mongodb
+  - rabbitmq
+  - mysql
 
+
+# beanstalkd setup from https://github.com/assaf/ironium/blob/220c112fd92ffea144b954ae4697c6b5cabe7016/.travis.yml
+# (MIT Licensed - see LICENSE for MIT License information, Copyright (c) 2014 Assaf Arkin)
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install -y beanstalkd
+  - echo "START=yes" | sudo tee -a /etc/default/beanstalkd > /dev/null
+  - sudo service beanstalkd restart
+  - mysql -e 'CREATE DATABASE queue_test;'
 before_script:
   - composer self-update
-  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then extension="mongo"; echo "yes" | pecl install mongo; else extension="mongodb"; pecl install mongodb; fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then extension="mongo"; echo "yes" | pecl install mongo; else extension="mongodb"; (pecl install mongodb || true); fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.1" ]]; then (echo "extension=mongodb.so" > /home/travis/.phpenv/versions/7.1.10/etc/conf.d/mongodb.ini); fi
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then composer require "alcaeus/mongo-php-adapter" --ignore-platform-reqs; fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then composer require "symfony/framework-bundle:3.3.6" --ignore-platform-reqs; fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then composer require "symfony/stopwatch:3.3.6" --ignore-platform-reqs; fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then composer require "symfony/process:3.3.6" --ignore-platform-reqs; fi
   - composer install
 
-script: bin/phpunit --coverage-text
+script: BEANSTALKD_HOST=localhost MONGODB_HOST=localhost RABBIT_MQ_HOST=localhost MYSQL_HOST=localhost MYSQL_USER=root MYSQL_DATABASE=queue_test bin/phpunit --coverage-text

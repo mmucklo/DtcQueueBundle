@@ -2,9 +2,9 @@
 
 namespace Dtc\QueueBundle\Tests\Model;
 
-use Dtc\QueueBundle\Model\Job;
+use PHPUnit\Framework\TestCase;
 
-class BaseJobManagerTest extends \PHPUnit_Framework_TestCase
+abstract class BaseJobManagerTest extends TestCase
 {
     public static $worker;
     public static $jobClass;
@@ -24,8 +24,12 @@ class BaseJobManagerTest extends \PHPUnit_Framework_TestCase
 
         $jobInQueue = self::$jobManager->getJob();
         $this->assertNotNull($jobInQueue, 'There should be a job.');
-        $this->assertEquals($job->getId(), $jobInQueue->getId(),
-                'Job id returned by manager should be the same');
+        $this->assertEquals(
+            $job->getId(),
+            $jobInQueue->getId(),
+            'Job id returned by manager should be the same'
+        );
+        self::$jobManager->deleteJob($job);
     }
 
     public function testDeleteJob()
@@ -38,6 +42,8 @@ class BaseJobManagerTest extends \PHPUnit_Framework_TestCase
 
         $nextJob = self::$jobManager->getJob();
         $this->assertNull($nextJob, "Shouldn't be any jobs left in queue");
+
+        return $job;
     }
 
     /**
@@ -59,16 +65,25 @@ class BaseJobManagerTest extends \PHPUnit_Framework_TestCase
 
         $jobInQueue = self::$jobManager->getJob();
         $this->assertNotNull($jobInQueue, 'There should be a job.');
-        $this->assertEquals($secondJob->getId(), $jobInQueue->getId(),
-                'Second job id should be returned - lower number unload first');
+        $this->assertEquals(
+            $secondJob->getId(),
+            $jobInQueue->getId(),
+            'Second job id should be returned - lower number unload first'
+        );
 
         $jobInQueue = self::$jobManager->getJob();
-        $this->assertEquals($thirdJob->getId(), $jobInQueue->getId(),
-                'Third job id should be returned - lower number unload first');
+        $this->assertEquals(
+            $thirdJob->getId(),
+            $jobInQueue->getId(),
+            'Third job id should be returned - lower number unload first'
+        );
 
         $jobInQueue = self::$jobManager->getJob();
-        $this->assertEquals($firstJob->getId(), $jobInQueue->getId(),
-                'First job id should be returned - lower number unload first');
+        $this->assertEquals(
+            $firstJob->getId(),
+            $jobInQueue->getId(),
+            'First job id should be returned - lower number unload first'
+        );
     }
 
     public function testGetJobByWorker()
@@ -78,26 +93,103 @@ class BaseJobManagerTest extends \PHPUnit_Framework_TestCase
         $this->assertNotNull($job->getId(), 'Job id should be generated');
 
         $jobInQueue = self::$jobManager->getJob(self::$worker->getName());
-        $this->assertEquals($job->getId(), $jobInQueue->getId(),
-                'Job id returned by manager should be the same');
+        $this->assertEquals(
+            $job->getId(),
+            $jobInQueue->getId(),
+            'Job id returned by manager should be the same'
+        );
     }
 
+    public function testResetErroneousJobs()
+    {
+        $this->expectingException('resetErroneousJobs');
+    }
+
+    public function testResetStalledJobs()
+    {
+        $this->expectingException('resetStalledJobs');
+    }
+
+    public function testPruneStalledJobs()
+    {
+        $this->expectingException('pruneStalledJobs');
+    }
+
+    public function testPruneErroneousJobs()
+    {
+        $this->expectingException('pruneErroneousJobs');
+    }
+
+    public function testPruneExpiredJobs()
+    {
+        $this->expectingException('pruneExpiredJobs');
+    }
+
+    public function testPruneArchivedJobs()
+    {
+        try {
+            $time = time() - 86400;
+            self::$jobManager->pruneArchivedJobs(new \DateTime("@$time"));
+            self::fail('Expected Exception');
+        } catch (\Exception $exception) {
+            self::assertTrue(true);
+        }
+    }
+
+    protected function expectingException($method)
+    {
+        try {
+            self::$jobManager->$method();
+            self::fail('Expected Exception');
+        } catch (\Exception $exception) {
+            self::assertTrue(true);
+        }
+    }
+
+    /**
+     * @outputBuffering disabled
+     */
     public function testPerformance()
     {
+        echo "\n".static::class.": Testing Performance\n";
+        flush();
+
         $start = microtime(true);
-        $jobsTotal = 1000;
+        $jobsTotal = 100; // have to trim this down as Travis is slow.
         self::$jobManager->enableSorting = false;    // Ignore priority
 
         for ($i = 0; $i < $jobsTotal; ++$i) {
+            $startLater = microtime(true);
             self::$worker->later()->fibonacci(1);
+            echo "set $i: ".(microtime(true) - $startLater)."\n";
+            try {
+                $count = self::$jobManager->getJobCount();
+                self::assertEquals($i + 1, $count);
+                echo "\n$count Jobs found\n";
+            } catch (\Exception $e) {
+                if ('Unsupported' !== $e->getMessage()) {
+                    throw $e;
+                }
+            }
         }
 
         $total = microtime(true) - $start;
         echo "\nTotal of {$jobsTotal} jobs enqueued in {$total} seconds\n";
 
+        try {
+            $count = self::$jobManager->getJobCount();
+            echo "\n$count Jobs found\n";
+        } catch (\Exception $e) {
+            if ('Unsupported' !== $e->getMessage()) {
+                throw $e;
+            }
+        }
         $start = microtime(true);
         for ($i = 0; $i < $jobsTotal; ++$i) {
+            $startTime = microtime(true);
             $job = self::$jobManager->getJob();
+            echo "Job {$job->getId()}\n";
+            echo "get $i: ".(microtime(true) - $startTime)."\n";
         }
         $total = microtime(true) - $start;
         echo "Total of {$jobsTotal} jobs dequeued in {$total} seconds\n";

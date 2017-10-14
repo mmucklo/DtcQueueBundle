@@ -2,15 +2,15 @@
 
 namespace Dtc\QueueBundle\Tests;
 
+use Dtc\QueueBundle\Model\AbstractJobManager;
 use Dtc\QueueBundle\Model\Job;
-use Dtc\QueueBundle\Model\JobManagerInterface;
 
 /**
  * @author David Tee
  *
  *	Created for Unitesting purposes.
  */
-class StaticJobManager implements JobManagerInterface
+class StaticJobManager extends AbstractJobManager
 {
     private $jobs;
     private $uniqeId;
@@ -22,20 +22,10 @@ class StaticJobManager implements JobManagerInterface
         $this->uniqeId = 1;
     }
 
-    public function resetErroneousJobs($workerName = null, $methodName = null)
-    {
-        return null;
-    }
-
-    public function pruneErroneousJobs($workerName = null, $methodName = null)
-    {
-        return null;
-    }
-
     public function getJobCount($workerName = null, $methodName = null)
     {
         if ($workerName && isset($this->jobs[$workerName])) {
-            return $this->jobs[$workerName];
+            return count($this->jobs[$workerName]);
         }
 
         $total = 0;
@@ -43,7 +33,7 @@ class StaticJobManager implements JobManagerInterface
             $total += count($this->jobs[$jobWorkerName]);
         }
 
-        return count($this->jobs[$workerName]);
+        return array_sum(array_map(function ($jobs) { return count($jobs); }, $this->jobs));
     }
 
     public function getStatus()
@@ -56,7 +46,7 @@ class StaticJobManager implements JobManagerInterface
         unset($this->jobs[$job->getWorkerName()][$job->getId()]);
     }
 
-    public function getJob($workerName = null, $methodName = null, $prioritize = true)
+    public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
         if ($workerName && isset($this->jobs[$workerName])) {
             return array_pop($this->jobs[$workerName]);

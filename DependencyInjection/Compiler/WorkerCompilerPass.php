@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\DependencyInjection\Compiler;
 
 use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\Run;
 use Pheanstalk\Pheanstalk;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -34,7 +35,11 @@ class WorkerCompilerPass implements CompilerPassInterface
         $jobManagerRef = array(new Reference('dtc_queue.job_manager'));
 
         $jobClass = $this->getJobClass($container);
-
+        $jobClassArchive = $this->getJobClassArchive($container);
+        $container->setParameter('dtc_queue.class_job', $jobClass);
+        $container->setParameter('dtc_queue.class_job_archive', $jobClassArchive);
+        $container->setParameter('dtc_queue.class_run', $this->getRunClass($container));
+        $container->setParameter('dtc_queue.class_run_archive', $this->getRunArchiveClass($container));
         // Add each worker to workerManager, make sure each worker has instance to work
         foreach ($container->findTaggedServiceIds('dtc_queue.worker') as $id => $attributes) {
             $worker = $container->getDefinition($id);
@@ -58,6 +63,7 @@ class WorkerCompilerPass implements CompilerPassInterface
             $eventSubscriber = $container->getDefinition($id);
             $eventDispatcher->addMethodCall('addSubscriber', [$eventSubscriber]);
         }
+        $this->setupDoctrineManagers($container);
     }
 
     /**
@@ -75,6 +81,23 @@ class WorkerCompilerPass implements CompilerPassInterface
             if ($container->hasParameter('dtc_queue.beanstalkd.tube')) {
                 $definition->addMethodCall('setTube', [$container->getParameter('dtc_queue.beanstalkd.tube')]);
             }
+        }
+    }
+
+    public function setupDoctrineManagers(ContainerBuilder $container)
+    {
+        $documentManager = $container->getParameter('dtc_queue.document_manager');
+
+        $odmManager = "doctrine_mongodb.odm.{$documentManager}_document_manager";
+        if ($container->has($odmManager)) {
+            $container->setAlias('dtc_queue.document_manager', $odmManager);
+        }
+
+        $entityManager = $container->getParameter('dtc_queue.entity_manager');
+
+        $ormManager = "doctrine.orm.{$entityManager}_entity_manager";
+        if ($container->has($ormManager)) {
+            $container->setAlias('dtc_queue.entity_manager', $ormManager);
         }
     }
 
@@ -166,7 +189,7 @@ class WorkerCompilerPass implements CompilerPassInterface
     }
 
     /**
-     * Determines the job class based on teh queue manager type.
+     * Determines the job class based on the queue manager type.
      *
      * @param ContainerBuilder $container
      *
@@ -176,20 +199,23 @@ class WorkerCompilerPass implements CompilerPassInterface
      */
     public function getJobClass(ContainerBuilder $container)
     {
-        $jobClass = $container->getParameter('dtc_queue.job_class');
+        $jobClass = $container->getParameter('dtc_queue.class_job');
         if (!$jobClass) {
             switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
                 case 'mongodb':
-                    $jobClass = 'Dtc\\QueueBundle\\Documents\\Job';
+                    $jobClass = 'Dtc\\QueueBundle\\Document\\Job';
                     break;
                 case 'beanstalkd':
                     $jobClass = 'Dtc\\QueueBundle\\Beanstalkd\\Job';
                     break;
                 case 'rabbit_mq':
-                    $jobClass = 'Dtc\\QueueBundle\\Model\\Job';
+                    $jobClass = 'Dtc\\QueueBundle\\RabbitMQ\\Job';
+                    break;
+                case 'orm':
+                    $jobClass = 'Dtc\\QueueBundle\\Entity\\Job';
                     break;
                 default:
-                    throw new \Exception("Unknown type $defaultType - please specify a Job class in the 'class' configuration parameter");
+                    throw new \Exception("Unknown default_manager type $defaultType - please specify a Job class in the 'class' configuration parameter");
             }
         }
 
@@ -197,6 +223,108 @@ class WorkerCompilerPass implements CompilerPassInterface
             throw new \Exception("Can't find Job class $jobClass");
         }
 
+        $test = new $jobClass();
+        if (!$test instanceof Job) {
+            throw new \Exception("$jobClass must be instance of (or derived from) Dtc\\QueueBundle\\Model\\Job");
+        }
+
         return $jobClass;
+    }
+
+    public function getRunClass(ContainerBuilder $container)
+    {
+        $runClass = $container->hasParameter('dtc_queue.class_run') ? $container->getParameter('dtc_queue.class_run') : null;
+        if (!$runClass) {
+            switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
+                case 'mongodb':
+                    $runClass = 'Dtc\\QueueBundle\\Document\\Run';
+                    break;
+                case 'orm':
+                    $runClass = 'Dtc\\QueueBundle\\Entity\\Run';
+                    break;
+                default:
+                    $runClass = 'Dtc\\QueueBundle\\Model\\Run';
+            }
+        }
+
+        if (isset($runClass)) {
+            if (!class_exists($runClass)) {
+                throw new \Exception("Can't find Run class $runClass");
+            }
+        }
+
+        $test = new $runClass();
+        if (!$test instanceof Run) {
+            throw new \Exception("$runClass must be instance of (or derived from) Dtc\\QueueBundle\\Model\\Run");
+        }
+
+        return $runClass;
+    }
+
+    public function getRunArchiveClass(ContainerBuilder $container)
+    {
+        $runArchiveClass = $container->hasParameter('dtc_queue.class_run_archive') ? $container->getParameter('dtc_queue.class_run_archive') : null;
+        if (!$runArchiveClass) {
+            switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
+                case 'mongodb':
+                    $runArchiveClass = 'Dtc\\QueueBundle\\Document\\RunArchive';
+                    break;
+                case 'orm':
+                    $runArchiveClass = 'Dtc\\QueueBundle\\Entity\\RunArchive';
+                    break;
+                default:
+                    $runArchiveClass = 'Dtc\\QueueBundle\\Model\\Run';
+            }
+        }
+
+        if (isset($runArchiveClass)) {
+            if (!class_exists($runArchiveClass)) {
+                throw new \Exception("Can't find RunArchive class $runArchiveClass");
+            }
+        }
+
+        $test = new $runArchiveClass();
+        if (!$test instanceof Run) {
+            throw new \Exception("$runArchiveClass must be instance of (or derived from) Dtc\\QueueBundle\\Model\\Run");
+        }
+
+        return $runArchiveClass;
+    }
+
+    /**
+     * Determines the job class based on the queue manager type.
+     *
+     * @param ContainerBuilder $container
+     *
+     * @return mixed|string
+     *
+     * @throws \Exception
+     */
+    public function getJobClassArchive(ContainerBuilder $container)
+    {
+        $jobArchiveClass = $container->getParameter('dtc_queue.class_job_archive');
+        if (!$jobArchiveClass) {
+            switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
+                case 'mongodb':
+                    $jobArchiveClass = 'Dtc\\QueueBundle\\Document\\JobArchive';
+                    break;
+                case 'orm':
+                    $jobArchiveClass = 'Dtc\\QueueBundle\\Entity\\JobArchive';
+                    break;
+            }
+        }
+
+        if ($jobArchiveClass && !class_exists($jobArchiveClass)) {
+            throw new \Exception("Can't find JobArchive class $jobArchiveClass");
+        }
+
+        if ($jobArchiveClass) {
+            $test = new $jobArchiveClass();
+            if (!$test instanceof Job) {
+                throw new \Exception("$jobArchiveClass must be instance of (or derived from) Dtc\\QueueBundle\\Model\\Job");
+            }
+        }
+
+        return $jobArchiveClass;
     }
 }

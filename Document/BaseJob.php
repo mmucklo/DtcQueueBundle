@@ -1,39 +1,39 @@
 <?php
 
-namespace Dtc\QueueBundle\Documents;
+namespace Dtc\QueueBundle\Document;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
-use Dtc\QueueBundle\Model\Job as BaseJob;
+use Dtc\GridBundle\Annotation as Grid;
+use Dtc\QueueBundle\Model\Job;
 
-/**
- * @ODM\Document(db="queue", collection="job")
- * @ODM\Index(keys={"className"="asc"})
- */
-class Job extends BaseJob
+abstract class BaseJob extends Job
 {
     /**
+     * @Grid\Column()
      * @ODM\Id
      */
     protected $id;
 
     /**
+     * @Grid\Column()
      * @ODM\Field(type="string", name="worker_name")
-     * @ODM\Index(unique=false, order="asc")
      */
     protected $workerName;
 
     /**
+     * @Grid\Column()
      * @ODM\Field(type="string", name="class_name")
      */
     protected $className;
 
     /**
+     * @Grid\Column()
      * @ODM\Field(type="string")
-     * @ODM\Index(unique=false, order="asc")
      */
     protected $method;
 
     /**
+     * @Grid\Column()
      * @ODM\Field(type="string")
      * @ODM\Index(unique=false, order="asc")
      */
@@ -45,22 +45,24 @@ class Job extends BaseJob
     protected $args;
 
     /**
-     * @ODM\Field(type="boolean")
+     * @ODM\Field(type="boolean", nullable=true)
      */
     protected $batch;
 
     /**
-     * @ODM\Field(type="boolean")
+     * @Grid\Column()
+     * @ODM\Field(type="boolean", nullable=true)
      */
     protected $locked;
 
     /**
-     * @ODM\Field(type="date")
+     * @ODM\Field(type="date", nullable=true)
      */
     protected $lockedAt;
 
     /**
-     * @ODM\Field(type="int")
+     * @Grid\Column()
+     * @ODM\Field(type="int", nullable=true)
      * @ODM\Index(unique=false, order="asc")
      */
     protected $priority;
@@ -71,32 +73,41 @@ class Job extends BaseJob
     protected $crcHash;
 
     /**
-     * @ODM\Field(type="date")
+     * @Grid\Column()
+     * @ODM\Field(type="date", nullable=true)
+     * @ODM\AlsoLoad(name="when")
      * @ODM\Index(unique=false, order="asc")
      */
-    protected $when;
+    protected $whenAt;
+
+    /**
+     * @Grid\Column()
+     * @ODM\Field(type="date", nullable=true)
+     */
+    protected $expiresAt;
 
     /**
      * When the job started.
      *
-     * @ODM\Field(type="date")
+     * @Grid\Column()
+     * @ODM\Field(type="date", nullable=true)
      */
     protected $startedAt;
 
     /**
      * When the job finished.
      *
-     * @ODM\Field(type="date")
+     * @ODM\Field(type="date", nullable=true)
      */
     protected $finishedAt;
 
     /**
-     * @ODM\Field(type="float")
+     * @ODM\Field(type="float", nullable=true)
      */
     protected $elapsed;
 
     /**
-     * @ODM\Field(type="string")
+     * @ODM\Field(type="string", nullable=true)
      */
     protected $message;
 
@@ -109,4 +120,14 @@ class Job extends BaseJob
      * @ODM\Field(type="date")
      */
     protected $updatedAt;
+
+    /**
+     * @ODM\Field(type="int", nullable=true)
+     */
+    protected $maxDuration;
+
+    /**
+     * @ODM\Field(type="object_id", nullable=true)
+     */
+    protected $runId;
 }

@@ -50,8 +50,11 @@ class WorkerManagerTest extends TestCase
         $job = $this->workerManager->run();
 
         $this->assertNotNull($job, 'Job object should not be null');
-        $this->assertEquals(Job::STATUS_SUCCESS, $job->getStatus(),
-                'Worker run should be successful');
+        $this->assertEquals(
+            Job::STATUS_SUCCESS,
+            $job->getStatus(),
+                'Worker run should be successful'
+        );
     }
 
     public function testErrorRun()
@@ -64,8 +67,11 @@ class WorkerManagerTest extends TestCase
         $job = $this->workerManager->run();
 
         $this->assertNotNull($job, 'Job object should not be null');
-        $this->assertEquals(Job::STATUS_ERROR, $job->getStatus(),
-                'Worker run should be not successful');
+        $this->assertEquals(
+            Job::STATUS_ERROR,
+            $job->getStatus(),
+                'Worker run should be not successful'
+        );
         $this->assertNotEmpty($job->getMessage(), 'Error message should not be empty');
     }
 
@@ -77,10 +83,16 @@ class WorkerManagerTest extends TestCase
         $job = $this->worker->later()->fibonacciFile(20);
         $job = $this->workerManager->runJob($job);
 
-        $this->assertEquals(Job::STATUS_SUCCESS, $job->getStatus(),
-                'Worker run should be successful');
+        $this->assertEquals(
+            Job::STATUS_SUCCESS,
+            $job->getStatus(),
+                'Worker run should be successful'
+        );
 
-        $this->assertEquals('20: 6765', file_get_contents($this->worker->getFilename()),
-                'Result of fibonacciFile() must match');
+        $this->assertEquals(
+            '20: 6765',
+            file_get_contents($this->worker->getFilename()),
+                'Result of fibonacciFile() must match'
+        );
     }
 }

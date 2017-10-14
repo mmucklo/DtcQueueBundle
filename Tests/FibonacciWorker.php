@@ -22,10 +22,10 @@ class FibonacciWorker extends Worker
 
     public function fibonacci($n)
     {
-        if ($n == 0) {
+        if (0 == $n) {
             return 0;
         } //F0
-        elseif ($n == 1) {
+        elseif (1 == $n) {
             return 1;
         } //F1
         else {
