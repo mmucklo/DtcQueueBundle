@@ -31,6 +31,39 @@ class Job
     protected $maxDuration;
     protected $elapsed;
     protected $runId;
+    protected $worker;
+
+    public function __construct(Worker $worker = null, $batch = false, $priority = 10, \DateTime $whenAt = null)
+    {
+        $this->worker = $worker;
+        if ($worker) {
+            $this->jobManager = $worker->getJobManager();
+            $this->className = get_class($worker);
+            $this->workerName = $worker->getName();
+        }
+
+        $this->whenAt = $whenAt;
+        $this->batch = $batch ? true : false;
+        $this->priority = $priority;
+        $this->status = self::STATUS_NEW;
+    }
+
+    public function __call($method, $args)
+    {
+        $this->method = $method;
+        $this->setArgs($args);
+        $this->createdAt = new \DateTime();
+        $this->updatedAt = new \DateTime();
+
+        // Make sure the method exists - job should not be created
+        if (!method_exists($this->worker, $method)) {
+            throw new \Exception("{$this->className}->{$method}() does not exist");
+        }
+
+        $this->jobManager->save($this);
+
+        return $this;
+    }
 
     /**
      * @var JobManagerInterface
@@ -150,7 +183,7 @@ class Job
     }
 
     /**
-     * @return
+     * @return mixed
      */
     public function getArgs()
     {
@@ -376,40 +409,6 @@ class Job
         $this->jobManager = $jobManager;
     }
 
-    protected $worker;
-
-    public function __construct(Worker $worker = null, $batch = false, $priority = 10, \DateTime $whenAt = null)
-    {
-        $this->worker = $worker;
-        if ($worker) {
-            $this->jobManager = $worker->getJobManager();
-            $this->className = get_class($worker);
-            $this->workerName = $worker->getName();
-        }
-
-        $this->whenAt = $whenAt;
-        $this->batch = $batch ? true : false;
-        $this->priority = $priority;
-        $this->status = self::STATUS_NEW;
-    }
-
-    public function __call($method, $args)
-    {
-        $this->method = $method;
-        $this->setArgs($args);
-        $this->createdAt = new \DateTime();
-        $this->updatedAt = new \DateTime();
-
-        // Make sure the method exists - job should not be created
-        if (!method_exists($this->worker, $method)) {
-            throw new \Exception("{$this->className}->{$method}() does not exist");
-        }
-
-        $this->jobManager->save($this);
-
-        return $this;
-    }
-
     /**
      * @return int
      */
@@ -502,7 +501,9 @@ class Job
 
         if ($expiresAt) {
             $dateTime = \DateTime::createFromFormat('U.u', $expiresAt);
-            $this->setExpiresAt($dateTime);
+            if ($dateTime) {
+                $this->setExpiresAt($dateTime);
+            }
         }
     }
 }

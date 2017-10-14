@@ -51,7 +51,9 @@ class Job extends \Dtc\QueueBundle\Model\Job
         $expiresAt = $arr['expiresAt'];
         if ($expiresAt) {
             $dateTime = \DateTime::createFromFormat('U.u', $expiresAt);
-            $this->setExpiresAt($dateTime);
+            if ($dateTime) {
+                $this->setExpiresAt($dateTime);
+            }
         }
     }
 }

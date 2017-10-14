@@ -37,10 +37,11 @@ class JobTest extends TestCase
         $this->runGetterSetterTests('\Dtc\QueueBundle\Model\Job');
     }
 
-    public function testToFromMessage() {
+    public function testToFromMessage()
+    {
         $worker = new FibonacciWorker();
         $job = new Job($worker, false, null);
-        $job->setArgs([1,2,3]);
+        $job->setArgs([1, 2, 3]);
         $job->setMethod('asdf');
         $job->setPriority(1234);
         $message = $job->toMessage();
@@ -56,7 +57,7 @@ class JobTest extends TestCase
 
         $worker = new FibonacciWorker();
         $job = new Job($worker, false, null);
-        $job->setArgs([1,2,3]);
+        $job->setArgs([1, 2, 3]);
         $job->setMethod('asdf');
         $job->setPriority(1234);
         $date = new \DateTime();
