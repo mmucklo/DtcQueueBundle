@@ -32,7 +32,12 @@ class JobManagerTest extends BaseJobManagerTest
         if (!is_dir('/tmp/dtcqueuetest/generate/hydrators')) {
             mkdir('/tmp/dtcqueuetest/generate/hydrators', 0777, true);
         }
-        AnnotationDriver::registerAnnotationClasses();
+
+        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/doctrine/mongodb-odm/lib/Doctrine/ODM/MongoDB/Mapping/Annotations/Document.php');
+        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/doctrine/mongodb-odm/lib/Doctrine/ODM/MongoDB/Mapping/Annotations/Id.php');
+        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/doctrine/mongodb-odm/lib/Doctrine/ODM/MongoDB/Mapping/Annotations/Field.php');
+        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/doctrine/mongodb-odm/lib/Doctrine/ODM/MongoDB/Mapping/Annotations/Index.php');
+        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/doctrine/mongodb-odm/lib/Doctrine/ODM/MongoDB/Mapping/Annotations/AlsoLoad.php');
         AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Grid.php');
         AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/ShowAction.php');
         AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/DeleteAction.php');

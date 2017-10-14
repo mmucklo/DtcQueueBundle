@@ -80,10 +80,10 @@ class JobManager extends AbstractJobManager
 
     public function setupChannel()
     {
-        if (!$this->queueArgs) {
+        if (empty($this->queueArgs)) {
             throw new \Exception(__METHOD__.': queue args need to be set via setQueueArgs(...)');
         }
-        if (!$this->exchangeArgs) {
+        if (emtpy($this->exchangeArgs)) {
             throw new \Exception(__METHOD__.': exchange args need to be set via setExchangeArgs(...)');
         }
 

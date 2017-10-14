@@ -24,7 +24,7 @@ class Util
         $methods = $reflection1->getMethods(\ReflectionMethod::IS_PUBLIC);
         $publicVars = $reflection1->getProperties(\ReflectionProperty::IS_PUBLIC);
         foreach ($methods as $method) {
-            $methodName = $method->getName();
+            $methodName = $method->name;
             if (0 === strpos($methodName, 'get')) {
                 $getMethod = $methodName;
                 $setMethod = $methodName;

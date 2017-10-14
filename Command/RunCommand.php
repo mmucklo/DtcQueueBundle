@@ -247,7 +247,7 @@ class RunCommand extends ContainerAwareCommand
                         $this->log('info', 'No more jobs to run ('.($currentJob - 1).' processed so far).');
                         $noMoreJobsToRun = true;
                     }
-                    if (null !== $maxCount && null == $duration) {
+                    if (null !== $maxCount && null === $duration) {
                         // time to finish
                         $this->runStop($start);
 

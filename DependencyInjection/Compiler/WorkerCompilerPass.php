@@ -132,7 +132,8 @@ class WorkerCompilerPass implements CompilerPassInterface
             } else {
                 if ($container->hasParameter('dtc_queue.rabbit_mq.options')) {
                     $options = $container->getParameter('dtc_queue.rabbit_mq.options');
-                    $this->setRabbitMqOptions($arguments, $options);
+                    $this->setRabbitMqOptionsPt1($arguments, $options);
+                    $this->setRabbitMqOptionsPt2($arguments, $options);
                 }
             }
 
@@ -145,7 +146,8 @@ class WorkerCompilerPass implements CompilerPassInterface
         }
     }
 
-    public function setRabbitMqOptions(array &$arguments, array $options) {
+    public function setRabbitMqOptionsPt1(array &$arguments, array $options)
+    {
         if (isset($options['insist'])) {
             $arguments[] = $options['insist'];
         } else {
@@ -166,6 +168,10 @@ class WorkerCompilerPass implements CompilerPassInterface
         } else {
             $arguments[] = 'en_US';
         }
+    }
+
+    public function setRabbitMqOptionsPt2(array &$arguments, array $options)
+    {
         if (isset($options['connection_timeout'])) {
             $arguments[] = $options['connection_timeout'];
         } else {

@@ -52,14 +52,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $job = $this->worker->later(0, $priority)->fibonacci(20);
         self::assertJob($job, $time, 'fibonacci', $priority);
 
-        // Test job with object
-        try {
-            $object = new \stdClass();
-            $this->worker->later($time)->fibonacci($object);
-            self::fail('Exception should be thrown.');
-        } catch (\Exception $e) {
-            self::assertTrue(true);
-        }
+        $this->failureTest($time, 'later');
     }
 
     public function testBatchLater()
@@ -74,10 +67,14 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $job = $this->worker->batchLater(0, $priority)->fibonacci(20);
         self::assertJob($job, $time, 'fibonacci', $priority);
 
+        $this->failureTest($time, 'batchLater');
+    }
+
+    protected function failureTest($method, $time) {
         // Test job with object
         try {
             $object = new \stdClass();
-            $this->worker->batchLater($time)->fibonacci($object);
+            $this->worker->$method($time)->fibonacci($object);
             self::fail('Exception should be thrown.');
         } catch (\Exception $e) {
             self::assertTrue(true);
@@ -96,14 +93,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $job = $this->worker->batchAt($time, $priority)->fibonacci(20);
         self::assertJob($job, $time, 'fibonacci', $priority);
 
-        // Test job with object
-        try {
-            $object = new \stdClass();
-            $this->worker->batchAt($time)->fibonacci($object);
-            self::fail('Exception should be thrown.');
-        } catch (\Exception $e) {
-            self::assertTrue(true);
-        }
+        $this->failureTest($time, 'batchAt');
     }
 
     /**
@@ -115,7 +105,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
     {
         self::assertNotEmpty($job->getId(), 'Job should have an id');
 
-        if ($time && $time > 0) {
+        if ($time !== null && $time > 0) {
             self::assertEquals(
                 $time,
                 $job->getWhenAt()->getTimestamp(),
@@ -123,7 +113,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
             );
         }
 
-        if ($priority) {
+        if ($priority !== null) {
             self::assertEquals(
                 $priority,
                 $job->getPriority(),

@@ -37,6 +37,4 @@ interface JobManagerInterface
      * @param \DateTime $olderThan
      */
     public function pruneArchivedJobs(\DateTime $olderThan);
-
-    //public function deleteJobById($jobId);
 }
