@@ -42,6 +42,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
 
     public function testLater()
     {
+        $time = null;
         $this->batchLaterTest('later');
         $this->failureTest($time, 'later');
     }
@@ -61,11 +62,12 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
 
     public function testBatchLater()
     {
+        $time = null;
         $this->batchLaterTest('batchLater');
         $this->failureTest($time, 'batchLater');
     }
 
-    protected function failureTest($method, $time)
+    protected function failureTest($time, $method)
     {
         // Test job with object
         try {

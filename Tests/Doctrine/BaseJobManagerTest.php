@@ -135,7 +135,10 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
     public function testPruneErroneousJobs()
     {
-        $job = parent::testDeleteJob();
+        $job = new self::$jobClass(self::$worker, false, null);
+        $job->fibonacci(1);
+        self::$jobManager->deleteJob($job);
+
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
         $archiveObjectName = $jobManager->getArchiveObjectName();
