@@ -7,7 +7,7 @@ class Job extends \Dtc\QueueBundle\Model\Job
     protected $deliveryTag;
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getDeliveryTag()
     {
