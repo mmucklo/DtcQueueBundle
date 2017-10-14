@@ -8,7 +8,7 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Id\AssignedGenerator;
-use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\Util\Util;
@@ -71,8 +71,8 @@ class RemoveListener
 
             $jobArchive = new $className();
             Util::copy($object, $jobArchive);
-            if (Job::STATUS_RUNNING === $jobArchive->getStatus()) {
-                $jobArchive->setStatus(Job::STATUS_ERROR);
+            if (BaseJob::STATUS_RUNNING === $jobArchive->getStatus()) {
+                $jobArchive->setStatus(BaseJob::STATUS_ERROR);
                 $jobArchive->setMessage('stalled');
             }
             $jobArchive->setUpdatedAt(new \DateTime());

@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\QueryBuilder;
 use Dtc\QueueBundle\Doctrine\BaseJobManager;
 use Dtc\QueueBundle\Entity\Job;
+use Dtc\QueueBundle\Model\BaseJob;
 
 class JobManager extends BaseJobManager
 {
@@ -65,7 +66,7 @@ class JobManager extends BaseJobManager
         return $this->pruneJobs($workerName, $method, $this->getArchiveObjectName(), function ($qb) {
             /* @var QueryBuilder $qb */
             $qb->where('j.status = :status')
-                ->setParameter(':status', Job::STATUS_ERROR);
+                ->setParameter(':status', BaseJob::STATUS_ERROR);
         });
     }
 
@@ -209,10 +210,10 @@ class JobManager extends BaseJobManager
         foreach ($result1 as $item) {
             $method = $item['workerName'].'->'.$item['method'];
             if (!isset($result[$method])) {
-                $result[$method] = [Job::STATUS_NEW => 0,
-                                    Job::STATUS_RUNNING => 0,
-                                    Job::STATUS_SUCCESS => 0,
-                                    Job::STATUS_ERROR => 0, ];
+                $result[$method] = [BaseJob::STATUS_NEW => 0,
+                    BaseJob::STATUS_RUNNING => 0,
+                    BaseJob::STATUS_SUCCESS => 0,
+                    BaseJob::STATUS_ERROR => 0, ];
             }
             $result[$method][$item['status']] += intval($item['c']);
         }
@@ -243,7 +244,7 @@ class JobManager extends BaseJobManager
         $dateTime = new \DateTime();
         $qb
             ->select('j')
-            ->where('j.status = :status')->setParameter(':status', Job::STATUS_NEW)
+            ->where('j.status = :status')->setParameter(':status', BaseJob::STATUS_NEW)
             ->andWhere('j.locked is NULL')
             ->andWhere($qb->expr()->orX(
                 $qb->expr()->isNull('j.whenAt'),
@@ -286,7 +287,7 @@ class JobManager extends BaseJobManager
             }
             $job->setLocked(true);
             $job->setLockedAt(new \DateTime());
-            $job->setStatus(Job::STATUS_RUNNING);
+            $job->setStatus(BaseJob::STATUS_RUNNING);
             $job->setRunId($runId);
             $objectManager->commit();
             $objectManager->flush();

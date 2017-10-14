@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Command;
 
 use Doctrine\Common\Persistence\ObjectManager;
+use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\Run;
 use Psr\Log\LoggerInterface;
@@ -319,7 +320,7 @@ class RunCommand extends ContainerAwareCommand
 
     protected function reportJob(Job $job)
     {
-        if (Job::STATUS_ERROR == $job->getStatus()) {
+        if (BaseJob::STATUS_ERROR == $job->getStatus()) {
             $message = "Error with job id: {$job->getId()}\n".$job->getMessage();
             $this->log('error', $message);
         }

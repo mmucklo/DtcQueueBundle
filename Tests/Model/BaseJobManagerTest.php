@@ -20,8 +20,8 @@ abstract class BaseJobManagerTest extends TestCase
     {
         $job = $this->getJob();
         $jobInQueue = self::$jobManager->getJob();
-        $this->assertNotNull($jobInQueue, 'There should be a job.');
-        $this->assertEquals(
+        self::assertNotNull($jobInQueue, 'There should be a job.');
+        self::assertEquals(
             $job->getId(),
             $jobInQueue->getId(),
             'Job id returned by manager should be the same'
@@ -33,7 +33,7 @@ abstract class BaseJobManagerTest extends TestCase
     {
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
+        self::assertNotNull($job->getId(), 'Job id should be generated');
 
         return $job;
     }
@@ -42,7 +42,7 @@ abstract class BaseJobManagerTest extends TestCase
     {
         $job = $this->getJob();
         $jobInQueue = self::$jobManager->getJob(self::$worker->getName());
-        $this->assertEquals(
+        self::assertEquals(
             $job->getId(),
             $jobInQueue->getId(),
             'Job id returned by manager should be the same'
@@ -53,12 +53,12 @@ abstract class BaseJobManagerTest extends TestCase
     {
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
-        $this->assertNotNull($job->getId(), 'Job id should be generated');
+        self::assertNotNull($job->getId(), 'Job id should be generated');
 
         self::$jobManager->deleteJob($job);
 
         $nextJob = self::$jobManager->getJob();
-        $this->assertNull($nextJob, "Shouldn't be any jobs left in queue");
+        self::assertNull($nextJob, "Shouldn't be any jobs left in queue");
 
         return $job;
     }
@@ -70,33 +70,33 @@ abstract class BaseJobManagerTest extends TestCase
     {
         $firstJob = new self::$jobClass(self::$worker, false, 12);
         $firstJob->fibonacci(1);
-        $this->assertNotNull($firstJob->getId(), 'Job id should be generated');
+        self::assertNotNull($firstJob->getId(), 'Job id should be generated');
 
         $secondJob = new self::$jobClass(self::$worker, false, 1);
         $secondJob->fibonacci(1);
-        $this->assertNotNull($secondJob->getId(), 'Job id should be generated');
+        self::assertNotNull($secondJob->getId(), 'Job id should be generated');
 
         $thirdJob = new self::$jobClass(self::$worker, false, 5);
         $thirdJob->fibonacci(1);
-        $this->assertNotNull($thirdJob->getId(), 'Job id should be generated');
+        self::assertNotNull($thirdJob->getId(), 'Job id should be generated');
 
         $jobInQueue = self::$jobManager->getJob();
-        $this->assertNotNull($jobInQueue, 'There should be a job.');
-        $this->assertEquals(
+        self::assertNotNull($jobInQueue, 'There should be a job.');
+        self::assertEquals(
             $secondJob->getId(),
             $jobInQueue->getId(),
             'Second job id should be returned - lower number unload first'
         );
 
         $jobInQueue = self::$jobManager->getJob();
-        $this->assertEquals(
+        self::assertEquals(
             $thirdJob->getId(),
             $jobInQueue->getId(),
             'Third job id should be returned - lower number unload first'
         );
 
         $jobInQueue = self::$jobManager->getJob();
-        $this->assertEquals(
+        self::assertEquals(
             $firstJob->getId(),
             $jobInQueue->getId(),
             'First job id should be returned - lower number unload first'
@@ -200,9 +200,9 @@ abstract class BaseJobManagerTest extends TestCase
         }
         $total = microtime(true) - $start;
         echo "Total of {$jobsTotal} jobs dequeued in {$total} seconds\n";
-        $this->assertNotNull($job, 'The last job in queue...');
+        self::assertNotNull($job, 'The last job in queue...');
 
         $nextJob = self::$jobManager->getJob();
-        $this->assertNull($nextJob, "Shouldn't be any jobs left in queue");
+        self::assertNull($nextJob, "Shouldn't be any jobs left in queue");
     }
 }

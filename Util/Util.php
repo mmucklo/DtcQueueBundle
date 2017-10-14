@@ -20,27 +20,41 @@ class Util
         }
         $reflection1 = new \ReflectionObject($obj1);
         $reflection2 = new \ReflectionObject($obj2);
+        self::copyMethods($obj1, $obj2, $reflection1, $reflection2);
+        self::copyProperties($obj1, $obj2, $reflection1, $reflection2);
+    }
 
-        $methods = $reflection1->getMethods(\ReflectionMethod::IS_PUBLIC);
+    private static function copyProperties($obj1, $obj2, \ReflectionObject $reflection1, \ReflectionObject $reflection2)
+    {
         $publicVars = $reflection1->getProperties(\ReflectionProperty::IS_PUBLIC);
+        foreach ($publicVars as $property) {
+            $propertyName = $property->getName();
+            if ($reflection2->hasProperty($propertyName) && $reflection2->getProperty($propertyName)->isPublic()) {
+                $obj2->$propertyName = $obj1->$propertyName;
+            }
+        }
+    }
+
+    private static function copyMethods($obj1, $obj2, \ReflectionObject $reflection1, \ReflectionObject $reflection2)
+    {
+        $methods = $reflection1->getMethods(\ReflectionMethod::IS_PUBLIC);
         foreach ($methods as $method) {
             $methodName = $method->name;
             if (0 === strpos($methodName, 'get')) {
                 $getMethod = $methodName;
                 $setMethod = $methodName;
                 $setMethod[0] = 's';
-                if ($reflection2->hasMethod($setMethod)) {
-                    $value = $obj1->$getMethod();
-                    if (null !== $value) {
-                        $obj2->$setMethod($value);
-                    }
-                }
+                self::copyMethod($obj1, $obj2, $getMethod, $setMethod, $reflection2);
             }
         }
-        foreach ($publicVars as $property) {
-            $propertyName = $property->getName();
-            if ($reflection2->hasProperty($propertyName) && $reflection2->getProperty($propertyName)->isPublic()) {
-                $obj2->$propertyName = $obj1->$propertyName;
+    }
+
+    private static function copyMethod($obj1, $obj2, $getMethod, $setMethod, \ReflectionObject $reflection2)
+    {
+        if ($reflection2->hasMethod($setMethod)) {
+            $value = $obj1->$getMethod();
+            if (null !== $value) {
+                $obj2->$setMethod($value);
             }
         }
     }

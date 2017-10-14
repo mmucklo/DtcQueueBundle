@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Tests\Model;
 
+use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\StaticJobManager;
@@ -51,7 +52,7 @@ class WorkerManagerTest extends TestCase
 
         self::assertNotNull($job, 'Job object should not be null');
         self::assertEquals(
-            Job::STATUS_SUCCESS,
+            BaseJob::STATUS_SUCCESS,
             $job->getStatus(),
                 'Worker run should be successful'
         );
@@ -68,7 +69,7 @@ class WorkerManagerTest extends TestCase
 
         self::assertNotNull($job, 'Job object should not be null');
         self::assertEquals(
-            Job::STATUS_ERROR,
+            BaseJob::STATUS_ERROR,
             $job->getStatus(),
                 'Worker run should be not successful'
         );
@@ -84,7 +85,7 @@ class WorkerManagerTest extends TestCase
         $job = $this->workerManager->runJob($job);
 
         self::assertEquals(
-            Job::STATUS_SUCCESS,
+            BaseJob::STATUS_SUCCESS,
             $job->getStatus(),
                 'Worker run should be successful'
         );

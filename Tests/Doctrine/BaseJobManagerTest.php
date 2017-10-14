@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Tests\Doctrine;
 
 use Dtc\QueueBundle\Doctrine\BaseJobManager;
+use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest as BaseBaseJobManagerTest;
 use Dtc\QueueBundle\ODM\JobManager;
@@ -43,7 +44,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertNotNull($result);
         self::assertEquals($id, $result->getId());
 
-        $result->setStatus(Job::STATUS_ERROR);
+        $result->setStatus(BaseJob::STATUS_ERROR);
         $result->setLocked(true);
         $result->setLockedAt(new \DateTime());
         $result->setFinishedAt(new \DateTime());
@@ -59,7 +60,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $job = $repository->find($id);
 
         self::assertNotNull($job);
-        self::assertEquals(Job::STATUS_NEW, $job->getStatus());
+        self::assertEquals(BaseJob::STATUS_NEW, $job->getStatus());
         self::assertNull($job->getLockedAt());
         self::assertNull($job->getFinishedAt());
         self::assertNull($job->getElapsed());
@@ -78,7 +79,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
-        $job->setStatus(Job::STATUS_RUNNING);
+        $job->setStatus(BaseJob::STATUS_RUNNING);
         $job->setLocked(true);
         $time = time();
         $date = new \DateTime("@$time");
@@ -122,7 +123,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $job = $jobManager->getRepository()->find($id);
 
         self::assertNotNull($job);
-        self::assertEquals(Job::STATUS_NEW, $job->getStatus());
+        self::assertEquals(BaseJob::STATUS_NEW, $job->getStatus());
         self::assertNull($job->getLockedAt());
         self::assertNull($job->getFinishedAt());
         self::assertNull($job->getElapsed());
@@ -151,7 +152,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertNotNull($result);
         self::assertEquals($id, $result->getId());
 
-        $result->setStatus(Job::STATUS_ERROR);
+        $result->setStatus(BaseJob::STATUS_ERROR);
         $result->setLocked(true);
         $result->setLockedAt(new \DateTime());
         $result->setFinishedAt(new \DateTime());
@@ -190,7 +191,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertNotNull($result);
         self::assertEquals($id, $result->getId());
 
-        $result->setStatus(Job::STATUS_ERROR);
+        $result->setStatus(BaseJob::STATUS_ERROR);
         $result->setLocked(true);
         $result->setLockedAt(new \DateTime());
         $result->setFinishedAt(new \DateTime());
@@ -212,7 +213,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertNotNull($result);
         self::assertEquals($id, $result->getId());
 
-        $result->setStatus(Job::STATUS_ERROR);
+        $result->setStatus(BaseJob::STATUS_ERROR);
         $result->setLocked(true);
         $result->setLockedAt(new \DateTime());
         $result->setFinishedAt(new \DateTime());
@@ -232,7 +233,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
-        $job->setStatus(Job::STATUS_RUNNING);
+        $job->setStatus(BaseJob::STATUS_RUNNING);
         $job->setLocked(true);
         $time = time();
         $date = new \DateTime("@$time");
@@ -285,7 +286,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $archivedJob = $jobManager->getObjectManager()->getRepository($jobManager->getArchiveObjectName())->find($id);
 
         self::assertNotNull($archivedJob);
-        self::assertEquals(Job::STATUS_ERROR, $archivedJob->getStatus());
+        self::assertEquals(BaseJob::STATUS_ERROR, $archivedJob->getStatus());
         $objectManager->remove($archivedJob);
         $objectManager->flush();
 
@@ -297,7 +298,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
-        $job->setStatus(Job::STATUS_RUNNING);
+        $job->setStatus(BaseJob::STATUS_RUNNING);
         $job->setLocked(true);
         $time = time();
         $date = new \DateTime("@$time");
@@ -336,7 +337,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
-        $job->setStatus(Job::STATUS_RUNNING);
+        $job->setStatus(BaseJob::STATUS_RUNNING);
         $job->setLocked(true);
         $time = time();
         $date = new \DateTime("@$time");

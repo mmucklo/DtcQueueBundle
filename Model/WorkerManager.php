@@ -96,7 +96,7 @@ class WorkerManager
             /** @var \Exception $exception */
             $exceptionMessage = get_class($exception)."\n".$exception->getCode().' - '.$exception->getMessage()."\n".$exception->getTraceAsString();
             $this->log('debug', "Failed: {$job->getClassName()}->{$job->getMethod()}");
-            $job->setStatus(Job::STATUS_ERROR);
+            $job->setStatus(BaseJob::STATUS_ERROR);
             $job->setMessage($exceptionMessage);
         };
         try {
@@ -106,7 +106,7 @@ class WorkerManager
             call_user_func_array(array($worker, $job->getMethod()), $job->getArgs());
 
             // Job finshed successfuly... do we remove the job from database?
-            $job->setStatus(Job::STATUS_SUCCESS);
+            $job->setStatus(BaseJob::STATUS_SUCCESS);
             $job->setMessage(null);
         } catch (\Throwable $exception) {
             $handleException($exception);

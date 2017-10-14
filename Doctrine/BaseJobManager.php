@@ -7,6 +7,7 @@ use Doctrine\Common\Persistence\ObjectRepository;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Doctrine\ORM\EntityRepository;
 use Dtc\QueueBundle\Model\AbstractJobManager;
+use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\Util\Util;
@@ -181,7 +182,7 @@ abstract class BaseJobManager extends AbstractJobManager
             for ($j = $i, $max = $i + static::FETCH_COUNT; $j < $max && $j < $count; ++$j) {
                 $job = $stalledJobs[$j];
                 /* Job $job */
-                $job->setStatus(Job::STATUS_NEW);
+                $job->setStatus(BaseJob::STATUS_NEW);
                 $job->setLocked(null);
                 $job->setLockedAt(null);
                 $objectManager->persist($job);
@@ -239,7 +240,7 @@ abstract class BaseJobManager extends AbstractJobManager
 
         if (true === $job->getBatch()) {
             // See if similar job that hasn't run exists
-            $criteria = array('crcHash' => $crcHash, 'status' => Job::STATUS_NEW);
+            $criteria = array('crcHash' => $crcHash, 'status' => BaseJob::STATUS_NEW);
             $oldJob = $this->getRepository()->findOneBy($criteria);
 
             if ($oldJob) {
@@ -294,7 +295,7 @@ abstract class BaseJobManager extends AbstractJobManager
             /** @var Job $job */
             $job = new $className();
             Util::copy($jobArchive, $job);
-            $job->setStatus(Job::STATUS_NEW);
+            $job->setStatus(BaseJob::STATUS_NEW);
             $job->setLocked(null);
             $job->setLockedAt(null);
             $job->setMessage(null);

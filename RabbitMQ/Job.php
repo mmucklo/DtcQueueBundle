@@ -2,7 +2,7 @@
 
 namespace Dtc\QueueBundle\RabbitMQ;
 
-class Job extends \Dtc\QueueBundle\Model\Job
+class Job extends \Dtc\QueueBundle\Model\MessageableJob
 {
     protected $deliveryTag;
 

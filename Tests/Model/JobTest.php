@@ -38,44 +38,6 @@ class JobTest extends TestCase
         $this->runGetterSetterTests('\Dtc\QueueBundle\Model\Job');
     }
 
-    public function testToFromMessage()
-    {
-        $worker = new FibonacciWorker();
-        $job = new Job($worker, false, null);
-        $job->setArgs([1, 2, 3]);
-        $job->setMethod('asdf');
-        $job->setPriority(1234);
-        $message = $job->toMessage();
-
-        $job2 = new Job();
-        $priority2 = $job2->getPriority();
-        $job2->fromMessage($message);
-
-        self::assertEquals($job->getMethod(), $job2->getMethod());
-        self::assertEquals($job->getWorkerName(), $job2->getWorkerName());
-        self::assertEquals($job->getArgs(), $job2->getArgs());
-        self::assertEquals($priority2, $job2->getPriority());
-
-        $worker = new FibonacciWorker();
-        $job = new Job($worker, false, null);
-        $job->setArgs([1, 2, 3]);
-        $job->setMethod('asdf');
-        $job->setPriority(1234);
-        $date = new \DateTime();
-        $job->setExpiresAt($date);
-        $message = $job->toMessage();
-
-        $job2 = new Job();
-        $priority2 = $job2->getPriority();
-        $job2->fromMessage($message);
-
-        self::assertEquals($job->getMethod(), $job2->getMethod());
-        self::assertEquals($job->getWorkerName(), $job2->getWorkerName());
-        self::assertEquals($job->getArgs(), $job2->getArgs());
-        self::assertEquals($priority2, $job2->getPriority());
-        self::assertEquals($job->getExpiresAt(), $job2->getExpiresAt());
-    }
-
     public function testChainJobCall()
     {
         $jobManager = new StaticJobManager();

@@ -7,6 +7,7 @@ use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
 use Dtc\QueueBundle\Doctrine\BaseJobManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Dtc\QueueBundle\Document\Job;
+use Dtc\QueueBundle\Model\BaseJob;
 
 class JobManager extends BaseJobManager
 {
@@ -52,7 +53,7 @@ class JobManager extends BaseJobManager
     {
         return $this->pruneJobs($workerName, $method, $this->getArchiveObjectName(), function ($qb) {
             /* @var Builder $qb */
-            return $qb->field('status')->equals(Job::STATUS_ERROR);
+            return $qb->field('status')->equals(BaseJob::STATUS_ERROR);
         });
     }
 
@@ -194,10 +195,10 @@ class JobManager extends BaseJobManager
         $results = $query->execute();
 
         $allStatus = array(
-            Job::STATUS_ERROR => 0,
-            Job::STATUS_NEW => 0,
-            Job::STATUS_RUNNING => 0,
-            Job::STATUS_SUCCESS => 0,
+            BaseJob::STATUS_ERROR => 0,
+            BaseJob::STATUS_NEW => 0,
+            BaseJob::STATUS_RUNNING => 0,
+            BaseJob::STATUS_SUCCESS => 0,
         );
 
         $status = [];
@@ -267,14 +268,14 @@ class JobManager extends BaseJobManager
                 $qb->expr()->addOr($qb->expr()->field('whenAt')->equals(null), $qb->expr()->field('whenAt')->lte($date)),
                 $qb->expr()->addOr($qb->expr()->field('expiresAt')->equals(null), $qb->expr()->field('expiresAt')->gt($date))
             )
-            ->field('status')->equals(Job::STATUS_NEW)
+            ->field('status')->equals(BaseJob::STATUS_NEW)
             ->field('locked')->equals(null);
 
         // Update
         $qb
             ->field('lockedAt')->set($date) // Set started
             ->field('locked')->set(true)
-            ->field('status')->set(Job::STATUS_RUNNING)
+            ->field('status')->set(BaseJob::STATUS_RUNNING)
             ->field('runId')->set($runId);
 
         $query = $qb->getQuery();
