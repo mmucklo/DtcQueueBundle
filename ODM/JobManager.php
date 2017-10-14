@@ -45,8 +45,8 @@ class JobManager extends BaseJobManager
     }
 
     /**
-     * @param string $workerName
-     * @param string $method
+     * @param string|null $workerName
+     * @param string|null $method
      */
     public function pruneErroneousJobs($workerName = null, $method = null)
     {
@@ -59,8 +59,8 @@ class JobManager extends BaseJobManager
     /**
      * Prunes jobs according to a condition function.
      *
-     * @param null $workerName
-     * @param null $method
+     * @param string|null $workerName
+     * @param string|null $method
      * @param $conditionFunc
      *
      * @return int
@@ -93,8 +93,8 @@ class JobManager extends BaseJobManager
     /**
      * Prunes expired jobs.
      *
-     * @param string $workerName
-     * @param string $method
+     * @param string|null $workerName
+     * @param string|null $method
      */
     public function pruneExpiredJobs($workerName = null, $method = null)
     {

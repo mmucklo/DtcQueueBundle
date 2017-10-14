@@ -55,8 +55,8 @@ class JobManager extends BaseJobManager
     }
 
     /**
-     * @param string $workerName
-     * @param string $method
+     * @param string|null $workerName
+     * @param string|null $method
      *
      * @return int Count of jobs pruned
      */
@@ -72,8 +72,8 @@ class JobManager extends BaseJobManager
     /**
      * Prunes jobs according to a condition function.
      *
-     * @param null $workerName
-     * @param null $method
+     * @param string|null $workerName
+     * @param string|null $method
      * @param $conditionFunc
      *
      * @return int Count of jobs pruned
@@ -99,8 +99,8 @@ class JobManager extends BaseJobManager
     }
 
     /**
-     * @param string $workerName
-     * @param string $method
+     * @param string|null $workerName
+     * @param string|null $method
      *
      * @return int Count of jobs pruned
      */
