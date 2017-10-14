@@ -24,6 +24,9 @@ abstract class Worker
         $this->jobClass = $jobClass;
     }
 
+    /**
+     * @param JobManagerInterface $jobManager
+     */
     public function setJobManager(JobManagerInterface $jobManager)
     {
         $this->jobManager = $jobManager;
@@ -37,6 +40,11 @@ abstract class Worker
         return $this->jobManager;
     }
 
+    /**
+     * @param integer|null $time
+     * @param bool $batch
+     * @param integer|null $priority
+     */
     public function at($time = null, $batch = false, $priority = null)
     {
         if (null === $time) {
@@ -53,6 +61,9 @@ abstract class Worker
         return new $this->jobClass($this, $batch, $priority, $dateTime);
     }
 
+    /**
+     * @param integer|null $priority
+     */
     public function later($delay = 0, $priority = null)
     {
         $job = $this->at(time() + $delay, false, $priority);
@@ -61,6 +72,9 @@ abstract class Worker
         return $job;
     }
 
+    /**
+     * @param integer|null $priority
+     */
     public function batchLater($delay = 0, $priority = null)
     {
         $job = $this->at($delay, true, $priority);
@@ -69,6 +83,10 @@ abstract class Worker
         return $job;
     }
 
+    /**
+     * @param integer|null $time
+     * @param integer|null $priority
+     */
     public function batchAt($time = null, $priority = null)
     {
         return $this->at($time, true, $priority);
