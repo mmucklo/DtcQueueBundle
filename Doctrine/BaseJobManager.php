@@ -22,6 +22,12 @@ abstract class BaseJobManager extends AbstractJobManager
     protected $runClass;
     protected $runArchiveClass;
 
+    /**
+     * @param string $objectName
+     * @param string $archiveObjectName
+     * @param string $runClass
+     * @param string $runArchiveClass
+     */
     public function __construct(ObjectManager $objectManager,
         $objectName,
         $archiveObjectName,
@@ -83,6 +89,9 @@ abstract class BaseJobManager extends AbstractJobManager
         return $this->getObjectManager()->getRepository($this->getObjectName());
     }
 
+    /**
+     * @param string $objectName
+     */
     abstract protected function countJobsByStatus($objectName, $status, $workerName = null, $method = null);
 
     public function resetErroneousJobs($workerName = null, $method = null)
@@ -166,7 +175,7 @@ abstract class BaseJobManager extends AbstractJobManager
 
         $countProcessed = 0;
         for ($i = 0, $count = count($stalledJobs); $i < $count; $i += static::FETCH_COUNT) {
-            for ($j = $i, $max = $i + static::FETCH_COUNT; $j < $max && $j < $count; ++$j ) {
+            for ($j = $i, $max = $i + static::FETCH_COUNT; $j < $max && $j < $count; ++$j) {
                 $job = $stalledJobs[$j];
                 /* Job $job */
                 $job->setStatus(Job::STATUS_NEW);
@@ -181,6 +190,10 @@ abstract class BaseJobManager extends AbstractJobManager
         return $countProcessed;
     }
 
+    /**
+     * @param string $workerName
+     * @param string $method
+     */
     public function pruneStalledJobs($workerName = null, $method = null)
     {
         $stalledJobs = $this->getStalledJobs($workerName, $method);
@@ -188,7 +201,7 @@ abstract class BaseJobManager extends AbstractJobManager
 
         $countProcessed = 0;
         for ($i = 0, $count = count($stalledJobs); $i < $count; $i += static::FETCH_COUNT) {
-            for ($j = $i, $max = $i + static::FETCH_COUNT; $j < $max && $j < $count; ++$j ) {
+            for ($j = $i, $max = $i + static::FETCH_COUNT; $j < $max && $j < $count; ++$j) {
                 $job = $stalledJobs[$j];
                 $objectManager->remove($job);
                 ++$countProcessed;
@@ -246,8 +259,15 @@ abstract class BaseJobManager extends AbstractJobManager
         return $job;
     }
 
+    /**
+     * @param string $objectName
+     */
     abstract protected function stopIdGenerator($objectName);
 
+    /**
+     * @param integer $limit
+     * @param integer $offset
+     */
     private function resetJobsByCriterion(
         $criterion,
         $limit,

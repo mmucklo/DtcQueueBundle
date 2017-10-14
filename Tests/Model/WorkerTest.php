@@ -108,6 +108,11 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         }
     }
 
+    /**
+     * @param integer|null $time
+     * @param string $method
+     * @param integer $priority
+     */
     protected function assertJob(Job $job, $time, $method, $priority = null)
     {
         $this->assertNotEmpty($job->getId(), 'Job should have an id');

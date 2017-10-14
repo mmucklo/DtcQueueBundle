@@ -83,6 +83,9 @@ class RunCommand extends ContainerAwareCommand
             ->setDescription('Start up a job in queue');
     }
 
+    /**
+     * @param double $start
+     */
     protected function runJobById($start, $jobId)
     {
         $this->runStart($start);
@@ -106,6 +109,10 @@ class RunCommand extends ContainerAwareCommand
         return;
     }
 
+    /**
+     * @param string $varName
+     * @param integer $pow
+     */
     private function validateIntNull($varName, $var, $pow)
     {
         if (null === $var) {
@@ -122,6 +129,9 @@ class RunCommand extends ContainerAwareCommand
         return intval($var);
     }
 
+    /**
+     * @param string $level
+     */
     public function log($level, $msg, array $context = [])
     {
         if ($this->logger) {
@@ -172,12 +182,18 @@ class RunCommand extends ContainerAwareCommand
         set_time_limit($processTimeout); // Set timeout on the process
 
         if ($jobId = $input->getOption('id')) {
-            return $this->runJobById($start, $jobId);   // Run a single job
+            return $this->runJobById($start, $jobId); // Run a single job
         }
 
         return $this->runLoop($start, $workerName, $methodName, $nanoSleep, $maxCount, $duration);
     }
 
+    /**
+     * @param double $start
+     * @param null|integer $nanoSleep
+     * @param null|integer $maxCount
+     * @param null|integer $duration
+     */
     protected function runLoop($start, $workerName, $methodName, $nanoSleep, $maxCount, $duration)
     {
         $container = $this->getContainer();

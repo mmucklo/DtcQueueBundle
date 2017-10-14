@@ -54,6 +54,10 @@ class JobManager extends BaseJobManager
         return $count;
     }
 
+    /**
+     * @param string $workerName
+     * @param string $method
+     */
     public function pruneErroneousJobs($workerName = null, $method = null)
     {
         /** @var EntityManager $objectManager */
@@ -76,6 +80,10 @@ class JobManager extends BaseJobManager
         return $query->execute();
     }
 
+    /**
+     * @param string $workerName
+     * @param string $method
+     */
     public function pruneExpiredJobs($workerName = null, $method = null)
     {
         /** @var EntityManager $objectManager */
@@ -130,7 +138,7 @@ class JobManager extends BaseJobManager
             if ($method) {
                 $qb->where($qb->expr()->andX(
                     $qb->expr()->eq('j.workerName', ':workerName'),
-                                             $qb->expr()->eq('j.method', ':method')
+                                                $qb->expr()->eq('j.method', ':method')
                 ))
                     ->setParameter(':method', $method);
             } else {
@@ -181,6 +189,9 @@ class JobManager extends BaseJobManager
         return $finalResult;
     }
 
+    /**
+     * @param string $entityName
+     */
     protected function getStatusByEntityName($entityName, array &$result)
     {
         /** @var EntityManager $objectManager */
@@ -207,7 +218,7 @@ class JobManager extends BaseJobManager
      * @param string $methodName
      * @param bool   $prioritize
      *
-     * @return \Dtc\QueueBundle\Model\Job|null
+     * @return Job|null
      */
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
