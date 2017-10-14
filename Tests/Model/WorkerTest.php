@@ -43,16 +43,20 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
     public function testLater()
     {
         $time = null;
-        $this->batchLaterTest('later');
+        $this->batchLaterTest('later', false);
         $this->failureTest($time, 'later');
     }
 
-    public function batchLaterTest($method)
+    public function batchLaterTest($method, $assert = false)
     {
         $time = null;
         $job = $this->worker->$method()->fibonacci(20);
         self::assertJob($job, $time, 'fibonacci');
-        self::assertFalse($job->getBatch(), 'Should not be batching');
+        if (!$assert) {
+            self::assertFalse($job->getBatch(), 'Should not be batching');
+        } else {
+            self::assertTrue($job->getBatch(), 'Should be batching');
+        }
 
         // Test with priority
         $priority = 1024;
@@ -63,7 +67,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
     public function testBatchLater()
     {
         $time = null;
-        $this->batchLaterTest('batchLater');
+        $this->batchLaterTest('batchLater', true);
         $this->failureTest($time, 'batchLater');
     }
 
