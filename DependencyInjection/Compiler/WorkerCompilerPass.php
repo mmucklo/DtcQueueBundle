@@ -35,11 +35,11 @@ class WorkerCompilerPass implements CompilerPassInterface
         $jobManagerRef = array(new Reference('dtc_queue.job_manager'));
 
         $jobClass = $this->getJobClass($container);
-        $jobClassArchive = $this->getJobClassArchive($container);
+        $jobArchiveClass = $this->getJobClassArchive($container);
         $container->setParameter('dtc_queue.class_job', $jobClass);
-        $container->setParameter('dtc_queue.class_job_archive', $jobClassArchive);
-        $container->setParameter('dtc_queue.class_run', $this->getRunClass($container));
-        $container->setParameter('dtc_queue.class_run_archive', $this->getRunArchiveClass($container));
+        $container->setParameter('dtc_queue.class_job_archive', $jobArchiveClass);
+        $container->setParameter('dtc_queue.class_run', $this->getRunArchiveClass($container, 'run', 'Run'));
+        $container->setParameter('dtc_queue.class_run_archive', $this->getRunArchiveClass($container, 'run_archive', 'RunArchive'));
         // Add each worker to workerManager, make sure each worker has instance to work
         foreach ($container->findTaggedServiceIds('dtc_queue.worker') as $id => $attributes) {
             $worker = $container->getDefinition($id);
@@ -226,7 +226,7 @@ class WorkerCompilerPass implements CompilerPassInterface
                     $jobClass = 'Dtc\\QueueBundle\\Entity\\Job';
                     break;
                 default:
-                    throw new \Exception("Unknown default_manager type $defaultType - please specify a Job class in the 'class' configuration parameter");
+                    throw new \Exception('Unknown default_manager type '.$defaultType.' - please specify a Job class in the \'class\' configuration parameter');
             }
         }
 
@@ -242,46 +242,16 @@ class WorkerCompilerPass implements CompilerPassInterface
         return $jobClass;
     }
 
-    public function getRunClass(ContainerBuilder $container)
+    public function getRunArchiveClass(ContainerBuilder $container, $type, $className)
     {
-        $runClass = $container->hasParameter('dtc_queue.class_run') ? $container->getParameter('dtc_queue.class_run') : null;
-        if (!$runClass) {
-            switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
-                case 'mongodb':
-                    $runClass = 'Dtc\\QueueBundle\\Document\\Run';
-                    break;
-                case 'orm':
-                    $runClass = 'Dtc\\QueueBundle\\Entity\\Run';
-                    break;
-                default:
-                    $runClass = 'Dtc\\QueueBundle\\Model\\Run';
-            }
-        }
-
-        if (isset($runClass)) {
-            if (!class_exists($runClass)) {
-                throw new \Exception("Can't find Run class $runClass");
-            }
-        }
-
-        $test = new $runClass();
-        if (!$test instanceof Run) {
-            throw new \Exception("$runClass must be instance of (or derived from) Dtc\\QueueBundle\\Model\\Run");
-        }
-
-        return $runClass;
-    }
-
-    public function getRunArchiveClass(ContainerBuilder $container)
-    {
-        $runArchiveClass = $container->hasParameter('dtc_queue.class_run_archive') ? $container->getParameter('dtc_queue.class_run_archive') : null;
+        $runArchiveClass = $container->hasParameter('dtc_queue.class_'.$type) ? $container->getParameter('dtc_queue.class_'.$type) : null;
         if (!$runArchiveClass) {
-            switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
+            switch ($container->getParameter('dtc_queue.default_manager')) {
                 case 'mongodb':
-                    $runArchiveClass = 'Dtc\\QueueBundle\\Document\\RunArchive';
+                    $runArchiveClass = 'Dtc\\QueueBundle\\Document\\'.$className;
                     break;
                 case 'orm':
-                    $runArchiveClass = 'Dtc\\QueueBundle\\Entity\\RunArchive';
+                    $runArchiveClass = 'Dtc\\QueueBundle\\Entity\\'.$className;
                     break;
                 default:
                     $runArchiveClass = 'Dtc\\QueueBundle\\Model\\Run';
@@ -290,7 +260,7 @@ class WorkerCompilerPass implements CompilerPassInterface
 
         if (isset($runArchiveClass)) {
             if (!class_exists($runArchiveClass)) {
-                throw new \Exception("Can't find RunArchive class $runArchiveClass");
+                throw new \Exception("Can't find $className class $runArchiveClass");
             }
         }
 
@@ -315,7 +285,7 @@ class WorkerCompilerPass implements CompilerPassInterface
     {
         $jobArchiveClass = $container->getParameter('dtc_queue.class_job_archive');
         if (!$jobArchiveClass) {
-            switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
+            switch ($container->getParameter('dtc_queue.default_manager')) {
                 case 'mongodb':
                     $jobArchiveClass = 'Dtc\\QueueBundle\\Document\\JobArchive';
                     break;
