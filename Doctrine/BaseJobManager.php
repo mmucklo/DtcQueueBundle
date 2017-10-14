@@ -102,10 +102,10 @@ abstract class BaseJobManager extends AbstractJobManager
         $count = $this->countJobsByStatus($this->getArchiveObjectName(), Job::STATUS_ERROR, $workerName, $method);
 
         $criterion = ['status' => Job::STATUS_ERROR];
-        if ($workerName) {
+        if (null !== $workerName) {
             $criterion['workerName'] = $workerName;
         }
-        if ($method) {
+        if (null !== $method) {
             $criterion['method'] = $method;
         }
 
@@ -125,32 +125,44 @@ abstract class BaseJobManager extends AbstractJobManager
         $count = $this->countJobsByStatus($this->getObjectName(), Job::STATUS_RUNNING, $workerName, $method);
 
         $criterion = ['status' => Job::STATUS_RUNNING];
-        if ($workerName) {
+        if (null !== $workerName) {
             $criterion['workerName'] = $workerName;
         }
-        if ($method) {
+        if (null !== $method) {
             $criterion['method'] = $method;
         }
 
-        $runningJobsById = [];
+        $runningJobs = $this->findRunningJobs($criterion, $count);
 
-        $objectManager = $this->getObjectManager();
-        $runRepository = $objectManager->getRepository($this->runClass);
-        /** @var EntityRepository|DocumentRepository $runArchiveRepository */
-        $runArchiveRepository = $objectManager->getRepository($this->runArchiveClass);
+        return $this->extractStalledJobs($runningJobs);
+    }
+
+    protected function findRunningJobs($criterion, $count)
+    {
         $repository = $this->getRepository();
+        $runningJobsById = [];
 
         for ($i = 0; $i < $count; $i += static::FETCH_COUNT) {
             $runningJobs = $repository->findBy($criterion);
             if (!empty($runningJobs)) {
                 foreach ($runningJobs as $job) {
-                    /** Job $job */
+                    /** @var Job $job */
                     if (null !== $runId = $job->getRunId()) {
                         $runningJobsById[$runId][] = $job;
                     }
                 }
             }
         }
+
+        return $runningJobsById;
+    }
+
+    protected function extractStalledJobs(array $runningJobsById)
+    {
+        $objectManager = $this->getObjectManager();
+        $runRepository = $objectManager->getRepository($this->runClass);
+        /** @var EntityRepository|DocumentRepository $runArchiveRepository */
+        $runArchiveRepository = $objectManager->getRepository($this->runArchiveClass);
 
         $stalledJobs = [];
         foreach (array_keys($runningJobsById) as $runId) {
