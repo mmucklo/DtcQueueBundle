@@ -333,8 +333,6 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $objectManager->persist($archivedRun);
         $objectManager->flush();
 
-        $jobManager = self::$jobManager;
-
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
