@@ -8,120 +8,57 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Id\AssignedGenerator;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\QueryBuilder;
-use Dtc\QueueBundle\Doctrine\JobResetTrait;
+use Dtc\QueueBundle\Doctrine\BaseJobManager;
 use Dtc\QueueBundle\Entity\Job;
-use Dtc\QueueBundle\Model\JobManagerInterface;
 
-class JobManager implements JobManagerInterface
+class JobManager extends BaseJobManager
 {
-    use JobResetTrait;
-    protected $entityManager;
-    protected $entityName;
-    protected $archiveEntityName;
-
-    public function __construct(EntityManager $entityManager, $entityName, $archiveEntityName)
+    public function stopIdGenerator($objectName)
     {
-        $this->entityManager = $entityManager;
-        $this->entityName = $entityName;
-        $this->archiveEntityName = $archiveEntityName;
-        if (!$entityName) {
-            throw new \Exception('$entityName is empty');
-        }
-        if (!$archiveEntityName) {
-            throw new \Exception('$archiveEntityName is empty');
-        }
+        $objectManager = $this->getObjectManager();
+        $repository = $objectManager->getRepository($objectName);
+        /** @var ClassMetadata $metadata */
+        $metadata = $objectManager->getClassMetadata($repository->getClassName());
+        $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
+        $metadata->setIdGenerator(new AssignedGenerator());
     }
 
-    /**
-     * @return EntityManager
-     */
-    public function getEntityManager()
+    public function countJobsByStatus($objectName, $status, $workerName = null, $method = null)
     {
-        return $this->entityManager;
-    }
+        /** @var EntityManager $objectManager */
+        $objectManager = $this->getObjectManager();
 
-    /**
-     * @return string
-     */
-    public function getEntityName()
-    {
-        return $this->entityName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getArchiveEntityName()
-    {
-        return $this->archiveEntityName;
-    }
-
-    /**
-     * @return EntityRepository
-     */
-    public function getRepository()
-    {
-        return $this->getEntityManager()->getRepository($this->getEntityName());
-    }
-
-    public function resetErroneousJobs($workerName = null, $method = null)
-    {
-        $archiveEntityName = $this->getArchiveEntityName();
-        $entityManager = $this->getEntityManager();
-        $qb = $entityManager
+        $qb = $objectManager
             ->createQueryBuilder()
-            ->select('count(ja.id)')
-            ->from($archiveEntityName, 'ja')
-            ->where('ja.status = :status');
+            ->select('count(a.id)')
+            ->from($objectName, 'a')
+            ->where('a.status = :status');
 
         if ($workerName) {
-            $qb->andWhere('ja.workerName = :workerName')
+            $qb->andWhere('a.workerName = :workerName')
                 ->setParameter(':workerName', $workerName);
         }
 
         if ($method) {
-            $qb->andWhere('ja.method = :method')
+            $qb->andWhere('a.method = :method')
                 ->setParameter(':method', $workerName);
         }
 
-        $count = $qb->setParameter(':status', Job::STATUS_ERROR)
+        $count = $qb->setParameter(':status', $status)
             ->getQuery()->getSingleScalarResult();
 
         if (!$count) {
             return 0;
         }
 
-        $countProcessed = 0;
-        for ($i = 0; $i < $count; $i += 100) {
-            $criterion = ['status' => Job::STATUS_ERROR];
-            if ($workerName) {
-                $criterion['workerName'] = $workerName;
-            }
-            if ($method) {
-                $criterion['method'] = $method;
-            }
-            $entityManager->beginTransaction();
-            $countProcessed += $this->resetJobsByCriterion($entityManager,
-                $this->getEntityName(),
-                $this->getArchiveEntityName(),
-                function ($metadata) {
-                    /** @var ClassMetadata $metadata */
-                    $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
-                    $metadata->setIdGenerator(new AssignedGenerator());
-                },
-                $criterion,
-                100,
-                $i);
-            $entityManager->commit();
-            $entityManager->flush();
-        }
-
-        return $countProcessed;
+        return $count;
     }
 
     public function pruneErroneousJobs($workerName = null, $method = null)
     {
-        $qb = $this->getEntityManager()->createQueryBuilder()->delete($this->getArchiveEntityName(), 'j');
+        /** @var EntityManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $qb = $objectManager->createQueryBuilder()->delete($this->getArchiveObjectName(), 'j');
         $qb = $qb
             ->where('j.status = :status')
             ->setParameter(':status', Job::STATUS_ERROR);
@@ -139,12 +76,22 @@ class JobManager implements JobManagerInterface
         return $query->execute();
     }
 
-    public function pruneExpiredJobs()
+    public function pruneExpiredJobs($workerName = null, $method = null)
     {
-        $qb = $this->getEntityManager()->createQueryBuilder()->delete($this->getEntityName(), 'j');
+        /** @var EntityManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $qb = $objectManager->createQueryBuilder()->delete($this->getObjectName(), 'j');
         $qb = $qb
             ->where('j.expiresAt <= :expiresAt')
             ->setParameter(':expiresAt', new \DateTime());
+
+        if ($workerName) {
+            $qb->andWhere('j.workerName = :workerName')->setParameter(':workerName', $workerName);
+        }
+
+        if ($method) {
+            $qb->andWhere('j.method = :method')->setParameter(':method', $method);
+        }
 
         $query = $qb->getQuery();
 
@@ -158,7 +105,9 @@ class JobManager implements JobManagerInterface
      */
     public function pruneArchivedJobs(\DateTime $olderThan)
     {
-        $qb = $this->getEntityManager()->createQueryBuilder()->delete($this->getArchiveEntityName(), 'j');
+        /** @var EntityManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $qb = $objectManager->createQueryBuilder()->delete($this->getArchiveObjectName(), 'j');
         $qb = $qb
             ->where('j.updatedAt < :updatedAt')
             ->setParameter(':updatedAt', $olderThan);
@@ -170,7 +119,11 @@ class JobManager implements JobManagerInterface
 
     public function getJobCount($workerName = null, $method = null)
     {
-        $qb = $this->getRepository()->createQueryBuilder('j')->select('count(j)')->from($this->getEntityName(), 'j');
+        /** @var EntityManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $qb = $objectManager->createQueryBuilder('j');
+
+        $qb = $qb->select('count(j)')->from($this->getObjectName(), 'j');
 
         $where = 'where';
         if ($workerName) {
@@ -216,8 +169,8 @@ class JobManager implements JobManagerInterface
     public function getStatus()
     {
         $result = [];
-        $this->getStatusByEntityName($this->getEntityName(), $result);
-        $this->getStatusByEntityName($this->getArchiveEntityName(), $result);
+        $this->getStatusByEntityName($this->getObjectName(), $result);
+        $this->getStatusByEntityName($this->getObjectName(), $result);
 
         $finalResult = [];
         foreach ($result as $key => $item) {
@@ -230,7 +183,9 @@ class JobManager implements JobManagerInterface
 
     protected function getStatusByEntityName($entityName, array &$result)
     {
-        $result1 = $this->getEntityManager()->getRepository($entityName)->createQueryBuilder('j')->select('j.workerName, j.status, count(j) as c')
+        /** @var EntityManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $result1 = $objectManager->getRepository($entityName)->createQueryBuilder('j')->select('j.workerName, j.status, count(j) as c')
             ->where('j.status = :status1')
             ->orWhere('j.status = :status2')
             ->orWhere('j.status = :status3')
@@ -257,15 +212,19 @@ class JobManager implements JobManagerInterface
      *
      * @return \Dtc\QueueBundle\Model\Job|null
      */
-    public function getJob($workerName = null, $methodName = null, $prioritize = true)
+    public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
         $uniqid = uniqid(gethostname().'-'.getmypid(), true);
         $hash = hash('sha256', $uniqid);
 
-        $entityManager = $this->getEntityManager();
-        $entityManager->beginTransaction();
-        $repositoryManager = $this->getRepository();
-        $qb = $repositoryManager->createQueryBuilder('j');
+        /** @var EntityManager $objectManager */
+        $objectManager = $this->getObjectManager();
+
+        $objectManager->beginTransaction();
+
+        /** @var EntityRepository $repository */
+        $repository = $this->getRepository();
+        $qb = $repository->createQueryBuilder('j');
         $dateTime = new \DateTime();
         $qb
             ->select('j')
@@ -312,62 +271,16 @@ class JobManager implements JobManagerInterface
             }
             $job->setLocked(true);
             $job->setLockedAt(new \DateTime());
-            $entityManager->commit();
-            $entityManager->flush();
+            $job->setStatus(Job::STATUS_RUNNING);
+            $job->setRunId($runId);
+            $objectManager->commit();
+            $objectManager->flush();
 
             return $job;
-        } else {
-            $entityManager->rollback();
         }
+
+        $objectManager->rollback();
 
         return null;
-    }
-
-    public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
-    {
-        if (!$job instanceof Job) {
-            throw new \Exception("Job must be instance of Dtc\\QueuBundle\\Entity\\Job, instead it's ".get_class($job));
-        }
-        $entityManager = $this->getEntityManager();
-        $entityManager->remove($job);
-        $entityManager->flush();
-    }
-
-    public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
-    {
-        $this->getEntityManager()->persist($job);
-        $this->deleteJob($job);
-    }
-
-    public function save(\Dtc\QueueBundle\Model\Job $job)
-    {
-        // Generate crc hash for the job
-        $hashValues = array($job->getClassName(), $job->getMethod(), $job->getWorkerName(), $job->getArgs());
-        $crcHash = hash('sha256', serialize($hashValues));
-        $job->setCrcHash($crcHash);
-        $entityManager = $this->getEntityManager();
-
-        if (true === $job->getBatch()) {
-            // See if similar job that hasn't run exists
-            $criteria = array('crcHash' => $crcHash, 'status' => Job::STATUS_NEW);
-            $oldJob = $this->getRepository()->findOneBy($criteria);
-
-            if ($oldJob) {
-                // Old job exists - just override fields Set higher priority
-                $oldJob->setPriority(max($job->getPriority(), $oldJob->getPriority()));
-                $oldJob->setWhenAt(min($job->getWhenAt(), $oldJob->getWhenAt()));
-                $oldJob->setBatch(true);
-                $oldJob->setUpdatedAt(new \DateTime());
-                $entityManager->flush();
-
-                return $oldJob;
-            }
-        }
-
-        // Just save a new job
-        $entityManager->persist($job);
-        $entityManager->flush();
-
-        return $job;
     }
 }

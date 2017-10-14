@@ -15,6 +15,7 @@ use Dtc\GridBundle\Annotation as Grid;
 class JobArchive extends BaseJob
 {
     /**
+     * @Grid\Column(sortable=true)
      * @ORM\Column(type="bigint")
      * @ORM\Id
      */
@@ -33,4 +34,16 @@ class JobArchive extends BaseJob
      * @ORM\Column(type="float", nullable=true)
      */
     protected $elapsed;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    protected $locked;
+
+    /**
+     * When the job started.
+     *
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    protected $startedAt;
 }

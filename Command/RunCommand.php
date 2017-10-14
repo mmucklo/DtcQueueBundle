@@ -5,7 +5,6 @@ namespace Dtc\QueueBundle\Command;
 use Doctrine\Common\Persistence\ObjectManager;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\Run;
-use Dtc\QueueBundle\Util\Util;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
@@ -23,9 +22,6 @@ class RunCommand extends ContainerAwareCommand
 
     /** @var string */
     protected $runClass;
-
-    /** @var string */
-    protected $runArchiveClass;
 
     /** @var OutputInterface */
     protected $output;
@@ -87,8 +83,9 @@ class RunCommand extends ContainerAwareCommand
             ->setDescription('Start up a job in queue');
     }
 
-    protected function runJobById($jobId)
+    protected function runJobById($start, $jobId)
     {
+        $this->runStart($start);
         $container = $this->getContainer();
         $jobManager = $container->get('dtc_queue.job_manager');
         $workerManager = $container->get('dtc_queue.worker_manager');
@@ -96,12 +93,16 @@ class RunCommand extends ContainerAwareCommand
         $job = $jobManager->getRepository()->find($jobId);
         if (!$job) {
             $this->log('error', "Job id is not found: {$jobId}");
+            $this->runStop($start);
 
             return;
         }
 
+        $this->
         $job = $workerManager->runJob($job);
         $this->reportJob($job);
+        $this->run->setProcessed(1);
+        $this->runStop($start);
 
         return;
     }
@@ -131,10 +132,11 @@ class RunCommand extends ContainerAwareCommand
         }
 
         $date = new \DateTime();
-        $this->output->writeln("[$level] [".$date->format('c').'] '.$msg);
+        $this->output->write("[$level] [".$date->format('c').'] '.$msg);
         if ($context) {
-            $this->output->writeln(print_r($context, true));
+            $this->output->write(print_r($context, true));
         }
+        $this->output->writeln('');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -166,7 +168,7 @@ class RunCommand extends ContainerAwareCommand
         set_time_limit($processTimeout); // Set timeout on the process
 
         if ($jobId = $input->getOption('id')) {
-            return $this->runJobById($jobId);   // Run a single job
+            return $this->runJobById($start, $jobId);   // Run a single job
         }
 
         return $this->runLoop($start, $workerName, $methodName, $nanoSleep, $maxCount, $duration);
@@ -197,7 +199,7 @@ class RunCommand extends ContainerAwareCommand
                     $this->runManager->flush();
                 }
 
-                $job = $workerManager->run($workerName, $methodName);
+                $job = $workerManager->run($workerName, $methodName, true, $this->run->getId());
                 if ($job) {
                     $noMoreJobsToRun = false;
                     $this->reportJob($job);
@@ -214,7 +216,7 @@ class RunCommand extends ContainerAwareCommand
                     }
                     if ($maxCount && !$duration) {
                         // time to finish
-                        $this->end($start);
+                        $this->runStop($start);
 
                         return 0;
                     }
@@ -226,7 +228,7 @@ class RunCommand extends ContainerAwareCommand
             // Uncaught error: possibly with QueueBundle itself
             $this->log('critical', $e->getMessage(), $e->getTrace());
         }
-        $this->end($start);
+        $this->runStop($start);
 
         return 0;
     }
@@ -237,7 +239,7 @@ class RunCommand extends ContainerAwareCommand
      * @param $maxCount
      * @param $duration
      */
-    protected function runStart($start, $maxCount, $duration)
+    protected function runStart($start, $maxCount = null, $duration = null)
     {
         $container = $this->getContainer();
         $defaultManager = $container->getParameter('dtc_queue.default_manager');
@@ -248,7 +250,6 @@ class RunCommand extends ContainerAwareCommand
         }
 
         $this->runClass = $container->getParameter('dtc_queue.run_class');
-        $this->runArchiveClass = $container->getParameter('dtc_queue.run_class_archive');
 
         $this->run = new $this->runClass();
         $startDate = \DateTime::createFromFormat('U.u', $start);
@@ -270,20 +271,17 @@ class RunCommand extends ContainerAwareCommand
         }
     }
 
-    protected function end($start)
+    protected function runStop($start)
     {
         $end = microtime(true);
         $endTime = \DateTime::createFromFormat('U.u', $end);
         $this->run->setEndedAt($endTime);
         $this->run->setElapsed($end - $start);
         if ($this->runManager) {
-            $runArchive = new $this->runArchiveClass();
-            Util::copy($this->run, $runArchive);
-            $this->runManager->persist($runArchive);
             $this->runManager->remove($this->run);
             $this->runManager->flush();
         }
-        $this->log('info', 'Ended with '.$this->run->getProcessed().' jobs processed over '.strval($this->run->getElapsed()).' seconds.');
+        $this->log('info', 'Ended with '.$this->run->getProcessed().' job(s) processed over '.strval($this->run->getElapsed()).' seconds.');
     }
 
     protected function reportJob(Job $job)

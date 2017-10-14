@@ -11,6 +11,8 @@ services:
             - '@dtc_queue.document_manager'
             - '%dtc_queue.job_class%'
             - '%dtc_queue.job_class_archive%'
+            - '%dtc_queue.run_class%'
+            - '%dtc_queue.run_class_archive%'
 
     dtc_queue.job_manager.beanstalkd:
         class: Dtc\QueueBundle\Beanstalkd\JobManager
@@ -26,6 +28,8 @@ services:
             - '@dtc_queue.entity_manager'
             - '%dtc_queue.job_class%'
             - '%dtc_queue.job_class_archive%'
+            - '%dtc_queue.run_class%'
+            - '%dtc_queue.run_class_archive%'
 
     dtc_queue.worker_manager:
         class: Dtc\QueueBundle\Model\WorkerManager
@@ -37,8 +41,10 @@ services:
 
     dtc_queue.event_dispatcher:
         class: Dtc\QueueBundle\EventDispatcher\EventDispatcher
-
     dtc_queue.remove_listener:
         class: Dtc\QueueBundle\Doctrine\RemoveListener
+        arguments:
+            - "@service_container"
         tags:
             - { name: doctrine.event_listener, event: preRemove }
+            - { name: doctrine_mongodb.odm.event_listener, event: preRemove }

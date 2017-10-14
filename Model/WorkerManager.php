@@ -76,9 +76,9 @@ class WorkerManager
      *
      * @return null|Job
      */
-    public function run($workerName = null, $methodName = null, $prioritize = true)
+    public function run($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
-        $job = $this->jobManager->getJob($workerName, $methodName, $prioritize);
+        $job = $this->jobManager->getJob($workerName, $methodName, $prioritize, $runId);
         if (!$job) {
             return null; // no job to run
         }
@@ -95,7 +95,7 @@ class WorkerManager
         $handleException = function ($exception) use ($job) {
             /** @var \Exception $exception */
             $exceptionMessage = get_class($exception)."\n".$exception->getCode().' - '.$exception->getMessage()."\n".$exception->getTraceAsString();
-            $this->log('debug', "Failed: {$job->getClassName()}->{$job->getMethod()}\n$exceptionMessage");
+            $this->log('debug', "Failed: {$job->getClassName()}->{$job->getMethod()}");
             $job->setStatus(Job::STATUS_ERROR);
             $job->setMessage($exceptionMessage);
         };

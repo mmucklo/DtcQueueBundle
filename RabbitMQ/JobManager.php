@@ -106,7 +106,7 @@ class JobManager extends AbstractJobManager
         return $job;
     }
 
-    public function getJob($workerName = null, $methodName = null, $prioritize = true)
+    public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
         if ($methodName) {
             throw new \Exception('Unsupported');
@@ -120,6 +120,7 @@ class JobManager extends AbstractJobManager
             if ($message) {
                 $job = new Job();
                 $job->fromMessage($message->body);
+                $job->setRunId($runId);
 
                 if (($expiresAt = $job->getExpiresAt()) && $expiresAt->getTimestamp() < time()) {
                     $expiredJob = true;
@@ -135,7 +136,7 @@ class JobManager extends AbstractJobManager
         return null;
     }
 
-    public function pruneExpiredJobs()
+    public function pruneExpiredJobs($workerName = null, $methodName = null)
     {
         throw new \Exception('Not Supported');
     }

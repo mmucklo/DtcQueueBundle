@@ -3,67 +3,20 @@
 namespace Dtc\QueueBundle\ODM;
 
 use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
-use Dtc\QueueBundle\Doctrine\JobResetTrait;
-use Dtc\QueueBundle\Model\JobManagerInterface;
-use Doctrine\ODM\MongoDB\DocumentRepository;
+use Dtc\QueueBundle\Doctrine\BaseJobManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Dtc\QueueBundle\Document\Job;
-use Dtc\QueueBundle\Util\Util;
 
-class JobManager implements JobManagerInterface
+class JobManager extends BaseJobManager
 {
-    use JobResetTrait;
-    protected $documentManager;
-    protected $documentName;
-    protected $archiveDocumentName;
-
-    public function __construct(DocumentManager $documentManager, $documentName, $archiveDocumentName)
+    public function countJobsByStatus($objectName, $status, $workerName = null, $method = null)
     {
-        $this->documentManager = $documentManager;
-        $this->documentName = $documentName;
-        $this->archiveDocumentName = $archiveDocumentName;
-    }
-
-    /**
-     * @return DocumentManager
-     */
-    public function getDocumentManager()
-    {
-        return $this->documentManager;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDocumentName()
-    {
-        return $this->documentName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getArchiveDocumentName()
-    {
-        return $this->archiveDocumentName;
-    }
-
-    /**
-     * @return DocumentRepository
-     */
-    public function getRepository()
-    {
-        return $this->getDocumentManager()->getRepository($this->getDocumentName());
-    }
-
-    public function resetErroneousJobs($workerName = null, $method = null)
-    {
-        $archiveDocumentName = $this->getArchiveDocumentName();
-        $documentManager = $this->getDocumentManager();
-        $qb = $documentManager->createQueryBuilder($archiveDocumentName);
+        /** @var DocumentManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $qb = $objectManager->createQueryBuilder($objectName);
         $qb
             ->find()
-            ->field('status')->equals(Job::STATUS_ERROR);
+            ->field('status')->equals($status);
 
         if ($workerName) {
             $qb->field('workerName')->equals($workerName);
@@ -74,35 +27,24 @@ class JobManager implements JobManagerInterface
         }
 
         $query = $qb->getQuery();
-        $count = $query->count();
 
-        $countProcessed = 0;
-        for ($i = 0; $i < $count; $i += 100) {
-            $criterion = ['status' => Job::STATUS_ERROR];
-            if ($workerName) {
-                $criterion['workerName'] = $workerName;
-            }
-            if ($method) {
-                $criterion['method'] = $method;
-            }
-            $countProcessed += $this->resetJobsByCriterion(
-                $documentManager,
-                $this->getDocumentName(),
-                $this->getArchiveDocumentName(),
-                function ($metadata) {
-                    /** @var ClassMetadata $metadata */
-                    $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
-                },
-                $criterion, 100, $i);
-            $documentManager->flush();
-        }
+        return $query->count();
+    }
 
-        return $countProcessed;
+    public function stopIdGenerator($objectName)
+    {
+        $objectManager = $this->getObjectManager();
+        $repository = $objectManager->getRepository($objectName);
+        /** @var ClassMetadata $metadata */
+        $metadata = $this->getObjectManager()->getClassMetadata($repository->getClassName());
+        $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
     }
 
     public function pruneErroneousJobs($workerName = null, $method = null)
     {
-        $qb = $this->getDocumentManager()->createQueryBuilder($this->getArchiveDocumentName());
+        /** @var DocumentManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $qb = $objectManager->createQueryBuilder($this->getArchiveObjectName());
         $qb
             ->remove()
             ->field('status')->equals(Job::STATUS_ERROR);
@@ -115,21 +57,41 @@ class JobManager implements JobManagerInterface
             $qb->field('method')->equals($method);
         }
         $query = $qb->getQuery();
-        $query->execute();
+        $result = $query->execute();
+        if (isset($result['n'])) {
+            return $result['n'];
+        }
+
+        return 0;
     }
 
     /**
      * Prunes expired jobs.
      */
-    public function pruneExpiredJobs()
+    public function pruneExpiredJobs($workerName = null, $method = null)
     {
-        $qb = $this->getDocumentManager()->createQueryBuilder($this->getDocumentName());
+        /** @var DocumentManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $qb = $objectManager->createQueryBuilder($this->getObjectName());
         $qb
             ->remove()
             ->field('expiresAt')->lte(new \DateTime());
 
+        if ($workerName) {
+            $qb->field('workerName')->equals($workerName);
+        }
+
+        if ($method) {
+            $qb->field('method')->equals($method);
+        }
+
         $query = $qb->getQuery();
-        $query->execute();
+        $result = $query->execute();
+        if (isset($result['n'])) {
+            return $result['n'];
+        }
+
+        return 0;
     }
 
     /**
@@ -139,20 +101,29 @@ class JobManager implements JobManagerInterface
      */
     public function pruneArchivedJobs(\DateTime $olderThan)
     {
-        $qb = $this->getDocumentManager()->createQueryBuilder($this->getArchiveDocumentName());
+        /** @var DocumentManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $qb = $objectManager->createQueryBuilder($this->getArchiveObjectName());
         $qb
             ->remove()
             ->field('updatedAt')->lt($olderThan);
 
         $query = $qb->getQuery();
-        $query->execute();
+        $result = $query->execute();
+        if (isset($result['n'])) {
+            return $result['n'];
+        }
+
+        return 0;
     }
 
     public function getJobCount($workerName = null, $method = null)
     {
-        $qb = $this->getDocumentManager()->createQueryBuilder($this->getDocumentName());
+        /** @var DocumentManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $qb = $objectManager->createQueryBuilder($this->getObjectName());
         $qb
-        ->find();
+            ->find();
 
         if ($workerName) {
             $qb->field('workerName')->equals($workerName);
@@ -163,9 +134,11 @@ class JobManager implements JobManagerInterface
         }
 
         // Filter
+        $date = new \DateTime();
         $qb
-            ->addOr($qb->expr()->field('whenAt')->equals(null))
-            ->addOr($qb->expr()->field('whenAt')->lte(new \DateTime()))
+            ->addAnd(
+                $qb->expr()->addOr($qb->expr()->field('expiresAt')->equals(null), $qb->expr()->field('expiresAt')->gt($date))
+            )
             ->field('locked')->equals(null);
 
         $query = $qb->getQuery();
@@ -176,7 +149,7 @@ class JobManager implements JobManagerInterface
     /**
      * Get Status Jobs.
      */
-    public function _getStatusByDocument($documentName)
+    protected function getStatusByDocument($documentName)
     {
         // Run a map reduce function get worker and status break down
         $mapFunc = "function() {
@@ -200,9 +173,10 @@ class JobManager implements JobManagerInterface
             }
             return result;
         }';
-
-        $qb = $this->getDocumentManager()->createQueryBuilder($documentName)
-            ->map($mapFunc)
+        /** @var DocumentManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $qb = $objectManager->createQueryBuilder($documentName);
+        $qb->map($mapFunc)
             ->reduce($reduceFunc);
         $query = $qb->getQuery();
         $results = $query->execute();
@@ -224,8 +198,8 @@ class JobManager implements JobManagerInterface
 
     public function getStatus()
     {
-        $result = $this->_getStatusByDocument($this->getDocumentName());
-        $status2 = $this->_getStatusByDocument($this->getArchiveDocumentName());
+        $result = $this->getStatusByDocument($this->getObjectName());
+        $status2 = $this->getStatusByDocument($this->getArchiveObjectName());
         foreach ($status2 as $key => $value) {
             foreach ($value as $k => $v) {
                 $result[$key][$k] += $v;
@@ -250,9 +224,11 @@ class JobManager implements JobManagerInterface
      *
      * @return \Dtc\QueueBundle\Model\Job
      */
-    public function getJob($workerName = null, $methodName = null, $prioritize = true)
+    public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
-        $qb = $this->getDocumentManager()->createQueryBuilder($this->getDocumentName());
+        /** @var DocumentManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $qb = $objectManager->createQueryBuilder($this->getObjectName());
         $qb
             ->findAndUpdate()
             ->returnNew();
@@ -284,59 +260,15 @@ class JobManager implements JobManagerInterface
         // Update
         $qb
             ->field('lockedAt')->set($date) // Set started
-            ->field('locked')->set(true);
+            ->field('locked')->set(true)
+            ->field('status')->set(Job::STATUS_RUNNING)
+            ->field('runId')->set($runId);
 
         //$arr = $qb->getQueryArray();
         $query = $qb->getQuery();
 
         //ve($query->debug());
         $job = $query->execute();
-
-        return $job;
-    }
-
-    public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
-    {
-        $documentManager = $this->getDocumentManager();
-        $documentManager->remove($job);
-        $documentManager->flush();
-    }
-
-    public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
-    {
-        $this->getDocumentManager()->persist($job);
-        $this->deleteJob($job); // Should cause job to be archived
-    }
-
-    public function save(\Dtc\QueueBundle\Model\Job $job)
-    {
-        // Todo: Serialize args
-
-        // Generate crc hash for the job
-        $hashValues = array($job->getClassName(), $job->getMethod(), $job->getWorkerName(), $job->getArgs());
-        $crcHash = hash('sha256', serialize($hashValues));
-        $job->setCrcHash($crcHash);
-
-        if (true === $job->getBatch()) {
-            // See if similar job that hasn't run exists
-            $criteria = array('crcHash' => $crcHash, 'status' => Job::STATUS_NEW);
-            $oldJob = $this->getRepository()->findOneBy($criteria);
-
-            if ($oldJob) {
-                // Old job exists - just override fields Set higher priority
-                $oldJob->setPriority(max($job->getPriority(), $oldJob->getPriority()));
-                $oldJob->setWhenAt(min($job->getWhenAt(), $oldJob->getWhenAt()));
-                $oldJob->setBatch(true);
-                $oldJob->setUpdatedAt(new \DateTime());
-                $this->getDocumentManager()->flush();
-
-                return $oldJob;
-            }
-        }
-
-        // Just save a new job
-        $this->getDocumentManager()->persist($job);
-        $this->getDocumentManager()->flush();
 
         return $job;
     }

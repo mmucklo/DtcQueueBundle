@@ -4,7 +4,7 @@ namespace Dtc\QueueBundle\Model;
 
 abstract class AbstractJobManager implements JobManagerInterface
 {
-    abstract public function getJob($workerName = null, $methodName = null, $prioritize = true);
+    abstract public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null);
 
     abstract public function save(Job $job);
 

@@ -12,11 +12,6 @@ use Dtc\GridBundle\Annotation as Grid;
 class JobArchive extends BaseJob
 {
     /**
-     * @ODM\Field(type="string")
-     */
-    protected $status;
-
-    /**
      * @ODM\Field(type="date")
      * @ODM\Index(unique=false)
      */
@@ -41,8 +36,30 @@ class JobArchive extends BaseJob
     protected $finishedAt;
 
     /**
+     * When the job finished.
+     *
+     * @ODM\Field(type="date", nullable=true)
+     */
+    protected $startedAt;
+
+    /**
+     * @ODM\Field(type="boolean", nullable=true)
+     */
+    protected $locked;
+
+    /**
+     * @ODM\Field(type="date", nullable=true)
+     */
+    protected $lockedAt;
+
+    /**
      * @Grid\Column()
      * @ODM\Field(type="float")
      */
     protected $elapsed;
+
+    /**
+     * @ODM\Field(type="date", nullable=true)
+     */
+    protected $expiresAt;
 }

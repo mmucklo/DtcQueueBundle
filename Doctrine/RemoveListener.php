@@ -3,48 +3,79 @@
 namespace Dtc\QueueBundle\Doctrine;
 
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
+use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Id\AssignedGenerator;
-use Dtc\QueueBundle\Document\Job;
+use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobManagerInterface;
+use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\Util\Util;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class RemoveListener
 {
     /** @var JobManagerInterface */
-    private $jobManager;
+    private $container;
 
-    public function setJobManager(JobManagerInterface $jobManager)
+    public function __construct(ContainerInterface $container)
     {
-        $this->jobManager = $jobManager;
+        $this->container = $container;
     }
 
     public function preRemove(LifecycleEventArgs $eventArgs)
     {
-        echo "preRemove\n\n";
         $object = $eventArgs->getObject();
         $objectManager = $eventArgs->getObjectManager();
-        $jobManager = $this->jobManager;
 
-        if ($object instanceof Job) {
-            /** @var JobManager $jobManager */
-            $className = $jobManager->getArchiveDocumentName();
-            /** @var ClassMetadata $metadata */
-            $metadata = $objectManager->getClassMetadata($className);
-            $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
+        if ($object instanceof \Dtc\QueueBundle\Model\Job) {
+            $this->processJob($object, $objectManager);
+        } elseif ($object instanceof Run) {
+            $this->processRun($object, $objectManager);
         }
-        else {
-            /** @var \Dtc\QueueBundle\ORM\JobManager $jobManager */
-            $className = $jobManager->getArchiveEntityName();
-            /** @var \Doctrine\ORM\Mapping\ClassMetadata $metadata */
-            $metadata = $objectManager->getClassMetadata($className);
+    }
+
+    public function processRun(Run $object, ObjectManager $objectManager)
+    {
+        /** @var BaseJobManager $jobManager */
+        $jobManager = $this->container->get('dtc_queue.job_manager');
+
+        $runArchiveClass = $jobManager->getRunArchiveClass();
+        $runArchive = new $runArchiveClass();
+        Util::copy($object, $runArchive);
+        $metadata = $objectManager->getClassMetadata($runArchiveClass);
+        if ($objectManager instanceof EntityManager) {
+            /* @var \Doctrine\ORM\Mapping\ClassMetadata $metadata */
             $metadata->setIdGeneratorType(\Doctrine\ORM\Mapping\ClassMetadata::GENERATOR_TYPE_NONE);
             $metadata->setIdGenerator(new AssignedGenerator());
+        } elseif ($objectManager instanceof DocumentManager) {
+            /* @var ClassMetadata $metadata */
+            $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
         }
+        $objectManager->persist($runArchive);
+    }
 
-        $jobArchive = new $className();
-        Util::copy($object, $jobArchive);
-        $objectManager->persist($jobArchive);
+    public function processJob(\Dtc\QueueBundle\Model\Job $object, ObjectManager $objectManager)
+    {
+        $jobManager = $this->container->get('dtc_queue.job_manager');
+
+        if ($object instanceof \Dtc\QueueBundle\Document\Job ||
+            $object instanceof \Dtc\QueueBundle\Entity\Job) {
+            /** @var JobManager $jobManager */
+            $archiveObjectName = $jobManager->getArchiveObjectName();
+            $objectManager = $jobManager->getObjectManager();
+            $repository = $objectManager->getRepository($archiveObjectName);
+            $jobManager->stopIdGenerator($jobManager->getArchiveObjectName());
+            $className = $repository->getClassName();
+
+            $jobArchive = new $className();
+            Util::copy($object, $jobArchive);
+            if (Job::STATUS_RUNNING === $jobArchive->getStatus()) {
+                $jobArchive->setStatus(Job::STATUS_ERROR);
+            }
+            $objectManager->persist($jobArchive);
+        }
     }
 }

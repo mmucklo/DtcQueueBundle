@@ -13,13 +13,13 @@ interface JobManagerInterface
      *
      * @return mixed
      */
-    public function pruneExpiredJobs();
+    public function pruneExpiredJobs($workerName = null, $methodName = null);
 
     public function getJobCount($workerName = null, $methodName = null);
 
     public function getStatus();
 
-    public function getJob($workerName = null, $methodName = null, $prioritize = true);
+    public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null);
 
     public function deleteJob(Job $job);
 

@@ -57,7 +57,6 @@ abstract class BaseJob extends Job
     protected $locked;
 
     /**
-     * @Grid\Column(sortable=true)
      * @ORM\Column(type="datetime", nullable=true)
      */
     protected $lockedAt;
@@ -124,6 +123,27 @@ abstract class BaseJob extends Job
      * @ORM\Column(type="integer", nullable=true)
      */
     protected $maxDuration;
+
+    /**
+     * @ORM\Column(type="bigint", nullable=true)
+     */
+    protected $runId;
+
+    /**
+     * @return mixed
+     */
+    public function getRunId()
+    {
+        return $this->runId;
+    }
+
+    /**
+     * @param mixed $runId
+     */
+    public function setRunId($runId)
+    {
+        $this->runId = $runId;
+    }
 
     public function setArgs($args)
     {

@@ -68,10 +68,11 @@ doctrine_mongodb:
    * renamed when to whenAt
    * renamed expires to expiresAt
    * Added new ORM JobManager
+   * For MongoDB and ORM jobs, when the job is retrieved, change status to 'running'.
+       * Fixes a race condition where jobs could be added in batch mode that weren't getting processed due to a stuck 'locked' job that was still in status 'new'
    * Changed routing
        * New routing.yml file to reference
        * New standard routing prefix "/dtc_queue/"
-
 Before:
 ```yaml
 queue:

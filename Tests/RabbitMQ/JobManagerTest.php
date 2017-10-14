@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Tests\RabbitMQ;
 
 use Dtc\QueueBundle\RabbitMQ\JobManager;
+use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 
@@ -33,7 +34,7 @@ class JobManagerTest extends BaseJobManagerTest
         $channel = self::$connection->channel();
         $channel->queue_delete('dtc_queue');
         $channel->close();
-
+        self::$worker = new FibonacciWorker();
         self::$worker->setJobClass($className);
         self::$jobManager->setupChannel();
         $channel = self::$jobManager->getChannel();

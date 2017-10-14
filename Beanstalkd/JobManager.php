@@ -56,7 +56,7 @@ class JobManager extends AbstractJobManager
         return new \Pheanstalk\Job($jobId, $data);
     }
 
-    public function getJob($workerName = null, $methodName = null, $prioritize = true)
+    public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
         if ($methodName) {
             throw new \Exception('Unsupported');
@@ -75,6 +75,7 @@ class JobManager extends AbstractJobManager
                 $job = new Job();
                 $job->fromMessage($beanJob->getData());
                 $job->setId($beanJob->getId());
+                $job->setRunId($runId);
 
                 if (($expiresAt = $job->getExpiresAt()) && $expiresAt->getTimestamp() < time()) {
                     $expiredJob = true;
@@ -90,8 +91,6 @@ class JobManager extends AbstractJobManager
 
     public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
     {
-        $id = $job->getId();
-
         $this->beanstalkd
             ->delete($job);
     }
@@ -105,7 +104,7 @@ class JobManager extends AbstractJobManager
         }
     }
 
-    public function pruneExpiredJobs()
+    public function pruneExpiredJobs($workerName = null, $methodName = null)
     {
         throw new \Exception('Not Supported');
     }

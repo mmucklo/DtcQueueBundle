@@ -3,13 +3,16 @@
 namespace Dtc\QueueBundle\Tests\ODM;
 
 use Doctrine\Common\Annotations\AnnotationRegistry;
-use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest;
+use Dtc\QueueBundle\Doctrine\RemoveListener;
+use Dtc\QueueBundle\Tests\Doctrine\BaseJobManagerTest;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\ODM\JobManager;
 use Doctrine\MongoDB\Connection;
 use Doctrine\ODM\MongoDB\Configuration;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver;
+use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 
 /**
  * @author David
@@ -51,15 +54,29 @@ class JobManagerTest extends BaseJobManagerTest
 
         $documentName = 'Dtc\QueueBundle\Document\Job';
         $archiveDocumentName = 'Dtc\QueueBundle\Document\JobArchive';
+        $runClass = 'Dtc\QueueBundle\Document\Run';
+        $runArchiveClass = 'Dtc\QueueBundle\Document\RunArchive';
         $sm = self::$dm->getSchemaManager();
 
         $sm->dropDocumentCollection($documentName);
+        $sm->dropDocumentCollection($runClass);
+        $sm->dropDocumentCollection($archiveDocumentName);
+        $sm->dropDocumentCollection($runArchiveClass);
         $sm->createDocumentCollection($documentName);
+        $sm->createDocumentCollection($archiveDocumentName);
         $sm->updateDocumentIndexes($documentName);
+        $sm->updateDocumentIndexes($archiveDocumentName);
 
-        self::$jobManager = new JobManager(self::$dm, $documentName, $archiveDocumentName);
+        self::$jobManager = new JobManager(self::$dm, $documentName, $archiveDocumentName, $runClass, $runArchiveClass);
         self::$worker = new FibonacciWorker();
         self::$worker->setJobClass($documentName);
+
+        $parameters = new ParameterBag();
+
+        $container = new Container($parameters);
+        $container->set('dtc_queue.job_manager', self::$jobManager);
+
+        self::$dm->getEventManager()->addEventListener('preRemove', new RemoveListener($container));
 
         parent::setUpBeforeClass();
     }

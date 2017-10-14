@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Tests\ORM;
 
+use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Tools\Setup;
@@ -27,6 +28,12 @@ class JobManagerTest extends BaseJobManagerTest
 
         $config = Setup::createAnnotationMetadataConfiguration(array(__DIR__.'/../..'), true, null, null, false);
 
+        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Grid.php');
+        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/ShowAction.php');
+        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/DeleteAction.php');
+        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Column.php');
+        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Action.php');
+
         $namingStrategy = new UnderscoreNamingStrategy();
         $config->setNamingStrategy($namingStrategy);
         $host = getenv('MYSQL_HOST');
@@ -44,6 +51,9 @@ class JobManagerTest extends BaseJobManagerTest
 
         $entityName = 'Dtc\QueueBundle\Entity\Job';
         $archiveEntityName = 'Dtc\QueueBundle\Entity\JobArchive';
+        $runClass = 'Dtc\QueueBundle\Entity\Run';
+        $runArchiveClass = 'Dtc\QueueBundle\Entity\RunArchive';
+
         $tool = new SchemaTool(self::$entityManager);
         $metadataEntity = [self::$entityManager->getClassMetadata($entityName)];
         $tool->dropSchema($metadataEntity);
@@ -53,7 +63,15 @@ class JobManagerTest extends BaseJobManagerTest
         $tool->dropSchema($metadataEntityArchive);
         $tool->createSchema($metadataEntityArchive);
 
-        self::$jobManager = new JobManager(self::$entityManager, $entityName, $archiveEntityName);
+        $metadataEntityRun = [self::$entityManager->getClassMetadata($runClass)];
+        $tool->dropSchema($metadataEntityRun);
+        $tool->createSchema($metadataEntityRun);
+
+        $metadataEntityRunArchive = [self::$entityManager->getClassMetadata($runArchiveClass)];
+        $tool->dropSchema($metadataEntityRunArchive);
+        $tool->createSchema($metadataEntityRunArchive);
+
+        self::$jobManager = new JobManager(self::$entityManager, $entityName, $archiveEntityName, $runClass, $runArchiveClass);
         self::$worker = new FibonacciWorker();
         self::$worker->setJobClass($entityName);
         parent::setUpBeforeClass();

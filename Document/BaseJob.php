@@ -56,7 +56,6 @@ abstract class BaseJob extends Job
     protected $locked;
 
     /**
-     * @Grid\Column()
      * @ODM\Field(type="date", nullable=true)
      */
     protected $lockedAt;
@@ -126,4 +125,9 @@ abstract class BaseJob extends Job
      * @ODM\Field(type="int", nullable=true)
      */
     protected $maxDuration;
+
+    /**
+     * @ODM\Field(type="object_id", nullable=true)
+     */
+    protected $runId;
 }

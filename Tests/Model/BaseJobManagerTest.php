@@ -42,6 +42,8 @@ abstract class BaseJobManagerTest extends TestCase
 
         $nextJob = self::$jobManager->getJob();
         $this->assertNull($nextJob, "Shouldn't be any jobs left in queue");
+
+        return $job;
     }
 
     /**
@@ -105,6 +107,7 @@ abstract class BaseJobManagerTest extends TestCase
     {
         echo "\n".static::class.": Testing Performance\n";
         flush();
+
         $start = microtime(true);
         $jobsTotal = 100; // have to trim this down as Travis is slow.
         self::$jobManager->enableSorting = false;    // Ignore priority
@@ -113,11 +116,28 @@ abstract class BaseJobManagerTest extends TestCase
             $startLater = microtime(true);
             self::$worker->later()->fibonacci(1);
             echo "set $i: ".(microtime(true) - $startLater)."\n";
+            try {
+                $count = self::$jobManager->getJobCount();
+                self::assertEquals($i + 1, $count);
+            } catch (\Exception $e) {
+                if ('Unsupported' !== $e->getMessage()) {
+                    throw $e;
+                }
+            }
+            echo "\n$count Jobs found\n";
         }
 
         $total = microtime(true) - $start;
         echo "\nTotal of {$jobsTotal} jobs enqueued in {$total} seconds\n";
 
+        try {
+            $count = self::$jobManager->getJobCount();
+            echo "\n$count Jobs found\n";
+        } catch (\Exception $e) {
+            if ('Unsupported' !== $e->getMessage()) {
+                throw $e;
+            }
+        }
         $start = microtime(true);
         for ($i = 0; $i < $jobsTotal; ++$i) {
             $startTime = microtime(true);

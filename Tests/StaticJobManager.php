@@ -66,7 +66,7 @@ class StaticJobManager implements JobManagerInterface
         unset($this->jobs[$job->getWorkerName()][$job->getId()]);
     }
 
-    public function getJob($workerName = null, $methodName = null, $prioritize = true)
+    public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
         if ($workerName && isset($this->jobs[$workerName])) {
             return array_pop($this->jobs[$workerName]);

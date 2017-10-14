@@ -7,7 +7,7 @@ class Job
     const STATUS_SUCCESS = 'success';
     const STATUS_ERROR = 'error';
     const STATUS_NEW = 'new';
-    const STATUS_EXPIRED = 'expired';
+    const STATUS_RUNNING = 'running';
 
     protected $id;
     protected $workerName;
@@ -30,6 +30,7 @@ class Job
     protected $finishedAt;
     protected $maxDuration;
     protected $elapsed;
+    protected $runId;
 
     /**
      * @var JobManagerInterface
@@ -455,6 +456,22 @@ class Job
     public function setElapsed($elapsed)
     {
         $this->elapsed = $elapsed;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRunId()
+    {
+        return $this->runId;
+    }
+
+    /**
+     * @param mixed $runId
+     */
+    public function setRunId($runId)
+    {
+        $this->runId = $runId;
     }
 
     /**
