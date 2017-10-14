@@ -1,4 +1,6 @@
-### 2.0
+### 2.0.1
+   * Update precision for expiresAt for beanstalkd and RabbitMQ
+### 2.0.0
    * Rename of core commands
        * Old: dtc:queue_worker:*
        * New: dtc:queue:*
