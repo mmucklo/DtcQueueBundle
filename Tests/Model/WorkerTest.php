@@ -70,7 +70,8 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $this->failureTest($time, 'batchLater');
     }
 
-    protected function failureTest($method, $time) {
+    protected function failureTest($method, $time)
+    {
         // Test job with object
         try {
             $object = new \stdClass();
@@ -105,7 +106,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
     {
         self::assertNotEmpty($job->getId(), 'Job should have an id');
 
-        if ($time !== null && $time > 0) {
+        if (null !== $time && $time > 0) {
             self::assertEquals(
                 $time,
                 $job->getWhenAt()->getTimestamp(),
@@ -113,7 +114,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
             );
         }
 
-        if ($priority !== null) {
+        if (null !== $priority) {
             self::assertEquals(
                 $priority,
                 $job->getPriority(),

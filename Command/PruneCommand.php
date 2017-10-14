@@ -81,7 +81,7 @@ class PruneCommand extends ContainerAwareCommand
             return 1;
         }
         $olderThan = new \DateTime();
-        if ($modifier === null) {
+        if (null === $modifier) {
             $olderThan->setTimestamp($durationOrTimestamp);
         } else {
             switch ($modifier) {

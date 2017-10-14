@@ -134,8 +134,8 @@ class JobManager extends BaseJobManager
         $qb = $qb->select('count(j)')->from($this->getObjectName(), 'j');
 
         $where = 'where';
-        if ($workerName !== null) {
-            if ($method !== null) {
+        if (null !== $workerName) {
+            if (null !== $method) {
                 $qb->where($qb->expr()->andX(
                     $qb->expr()->eq('j.workerName', ':workerName'),
                                                 $qb->expr()->eq('j.method', ':method')
@@ -146,7 +146,7 @@ class JobManager extends BaseJobManager
             }
             $qb->setParameter(':workerName', $workerName);
             $where = 'andWhere';
-        } elseif ($method !== null) {
+        } elseif (null !== $method) {
             $qb->where('j.method = :method')->setParameter(':method', $method);
             $where = 'andWhere';
         }
@@ -249,12 +249,12 @@ class JobManager extends BaseJobManager
             ->setParameter(':whenAt', $dateTime)
             ->setParameter(':expiresAt', $dateTime);
 
-        if ($workerName !== null) {
+        if (null !== $workerName) {
             $qb->andWhere('j.workerName = :workerName')
                 ->setParameter(':workerName', $workerName);
         }
 
-        if ($methodName !== null) {
+        if (null !== $methodName) {
             $qb->andWhere('j.method = :method')
                 ->setParameter(':method', $methodName);
         }
