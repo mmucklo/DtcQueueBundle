@@ -46,4 +46,25 @@ class JobArchive extends BaseJob
      * @ORM\Column(type="datetime", nullable=true)
      */
     protected $startedAt;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    protected $whenAt;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    protected $priority;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    protected $expiresAt;
+
+    /**
+     * @Grid\Column(sortable=true)
+     * @ORM\Column(type="datetime")
+     */
+    protected $updatedAt;
 }

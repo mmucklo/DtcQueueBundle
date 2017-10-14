@@ -119,12 +119,12 @@ abstract class BaseJobManagerTest extends TestCase
             try {
                 $count = self::$jobManager->getJobCount();
                 self::assertEquals($i + 1, $count);
+                echo "\n$count Jobs found\n";
             } catch (\Exception $e) {
                 if ('Unsupported' !== $e->getMessage()) {
                     throw $e;
                 }
             }
-            echo "\n$count Jobs found\n";
         }
 
         $total = microtime(true) - $start;
