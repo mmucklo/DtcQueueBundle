@@ -148,9 +148,9 @@ YAML:
 
 ```yaml
 services:
-	AppBundle\Worker\FibonacciWorker:
-	    tags:
-	        - { name: "dtc_queue.worker" }
+    AppBundle\Worker\FibonacciWorker:
+        tags:
+            - { name: "dtc_queue.worker" }
 ```
 
 #### Create a job
