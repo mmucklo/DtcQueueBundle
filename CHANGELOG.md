@@ -1,3 +1,7 @@
+### 2.1.1
+   * Upped GridBundle requirement
+   * Refactoring and tests
+   * Updated getStatus method in BaseJobManager's present derived classes with new statuses
 ### 2.1.0
    * Fix bug in pruning of stalled jobs
    * Refactoring of updatedAt and createdAt out of Model\Job
