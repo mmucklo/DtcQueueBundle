@@ -15,6 +15,8 @@ use Dtc\QueueBundle\Model\BaseJob;
 class JobManager extends BaseJobManager
 {
     protected $formerIdGenerators;
+    protected static $saveInsertCalled = null;
+    protected static $resetInsertCalled = null;
 
     public function stopIdGenerator($objectName)
     {
@@ -79,34 +81,44 @@ class JobManager extends BaseJobManager
      */
     public function pruneErroneousJobs($workerName = null, $method = null)
     {
-        return $this->pruneJobs($workerName, $method, $this->getArchiveObjectName(), function ($qb) {
-            /* @var QueryBuilder $qb */
-            $qb->where('j.status = :status')
-                ->setParameter(':status', BaseJob::STATUS_ERROR);
-        });
-    }
-
-    /**
-     * Prunes jobs according to a condition function.
-     *
-     * @param string|null $workerName
-     * @param string|null $method
-     * @param $conditionFunc
-     *
-     * @return int Count of jobs pruned
-     */
-    protected function pruneJobs($workerName = null, $method = null, $objectName, $conditionFunc)
-    {
         /** @var EntityManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $qb = $objectManager->createQueryBuilder()->delete($objectName, 'j');
-        $conditionFunc($qb);
+        $qb = $objectManager->createQueryBuilder()->delete($this->getArchiveObjectName(), 'j');
+        $qb->where('j.status = :status')
+            ->setParameter(':status', BaseJob::STATUS_ERROR);
 
         $this->addWorkerNameCriterion($qb, $workerName, $method);
         $query = $qb->getQuery();
 
         return intval($query->execute());
     }
+
+    protected function resetSaveOk($function) {
+        $objectManager = $this->getObjectManager();
+        $splObjectHash = spl_object_hash($objectManager);
+
+        if ($function === 'save') {
+            $compare = static::$resetInsertCalled;
+        }
+        else {
+            $compare = static::$saveInsertCalled;
+        }
+
+        if ($splObjectHash === $compare)
+        {
+            // Insert SQL is cached...
+            $msg = "Can't call save and reset within the same process cycle (or using the same EntityManager)";
+            throw new \Exception($msg);
+        }
+
+        if ($function === 'save') {
+            static::$saveInsertCalled = spl_object_hash($objectManager);
+        }
+        else {
+            static::$resetInsertCalled = spl_object_hash($objectManager);
+        }
+    }
+
 
     protected function addWorkerNameCriterion(QueryBuilder $queryBuilder, $workerName = null, $method = null)
     {

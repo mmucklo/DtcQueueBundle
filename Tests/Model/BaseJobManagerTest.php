@@ -189,7 +189,6 @@ abstract class BaseJobManagerTest extends TestCase
         $start = microtime(true);
         $job = null;
         for ($i = 0; $i < $jobsTotal; ++$i) {
-            $startTime = microtime(true);
             $job = self::$jobManager->getJob();
         }
         $total = microtime(true) - $start;

@@ -26,8 +26,6 @@ abstract class BaseJobManager extends AbstractJobManager
     protected $archiveObjectName;
     protected $runClass;
     protected $runArchiveClass;
-    protected static $saveInsertCalled = null;
-    protected static $resetInsertCalled = null;
 
     /**
      * @param string $objectName
@@ -219,6 +217,14 @@ abstract class BaseJobManager extends AbstractJobManager
         return $stalledJobs;
     }
 
+    protected function updateMaxStatus(RetryableJob $job, $status, $max = null, $count = 0) {
+        if (null !== $max && $count >= $max) {
+            $job->setStatus($status);
+            return true;
+        }
+        return false;
+    }
+
     public function resetStalledJobs($workerName = null, $method = null)
     {
         $stalledJobs = $this->getStalledJobs($workerName, $method);
@@ -231,13 +237,11 @@ abstract class BaseJobManager extends AbstractJobManager
                 $job = $stalledJobs[$j];
                 /* RetryableJob $job */
                 $job->setStalledCount($job->getStalledCount() + 1);
-                if (null !== ($maxStalled = $job->getMaxStalled()) && $job->getStalledCount() >= $maxStalled) {
-                    $job->setStatus(RetryableJob::STATUS_MAX_STALLED);
+                if ($this->updateMaxStatus($job, RetryableJob::STATUS_MAX_STALLED, $job->getMaxStalled(), $job->getStalledCount())) {
                     $objectManager->remove($job);
                     continue;
                 }
-                if (null !== ($maxRetries = $job->getMaxRetries()) && $job->getRetries() >= $maxRetries) {
-                    $job->setStatus(RetryableJob::STATUS_MAX_RETRIES);
+                else if ($this->updateMaxStatus($job, RetryableJob::STATUS_MAX_RETRIES, $job->getMaxRetries(), $job->getRetries())) {
                     $objectManager->remove($job);
                     continue;
                 }
@@ -272,9 +276,7 @@ abstract class BaseJobManager extends AbstractJobManager
                 $job->setStalledCount($job->getStalledCount() + 1);
                 $job->setStatus(BaseJob::STATUS_ERROR);
                 $job->setMessage('stalled');
-                if (null !== ($maxStalled = $job->getMaxStalled()) && ($job->getStalledCount() >= $job->getMaxStalled())) {
-                    $job->setStatus(RetryableJob::STATUS_MAX_STALLED);
-                }
+                $this->updateMaxStatus($job, RetryableJob::STATUS_MAX_STALLED, $job->getMaxStalled(), $job->getStalledCount());
                 $objectManager->remove($job);
                 ++$countProcessed;
             }
@@ -324,13 +326,7 @@ abstract class BaseJobManager extends AbstractJobManager
         }
 
         // Just save a new job
-        if (!$job->getId() && $objectManager instanceof EntityManager) {
-            if (null !== self::$resetInsertCalled && spl_object_hash($objectManager) === self::$resetInsertCalled) {
-                // Insert SQL is cached...
-                throw new \Exception("Can't call save and reset within the same process cycle");
-            }
-            self::$saveInsertCalled = spl_object_hash($objectManager);
-        }
+        $this->resetSaveOk(__FUNCTION__);
         $objectManager->persist($job);
         $objectManager->flush();
 
@@ -345,23 +341,17 @@ abstract class BaseJobManager extends AbstractJobManager
     abstract protected function restoreIdGenerator($objectName);
 
     /**
+     * @param array $criterion
      * @param int $limit
      * @param int $offset
      */
     private function resetJobsByCriterion(
-        $criterion,
+        array $criterion,
         $limit,
         $offset)
     {
         $objectManager = $this->getObjectManager();
-        if ($objectManager instanceof EntityManager) {
-            if (null !== self::$saveInsertCalled && spl_object_hash($objectManager) === self::$saveInsertCalled) {
-                // Insert SQL is cached...
-                throw new \Exception("Can't call reset and save within the same process cycle");
-            }
-            self::$resetInsertCalled = spl_object_hash($objectManager);
-        }
-
+        $this->resetSaveOk(__FUNCTION__);
         $objectName = $this->getObjectName();
         $archiveObjectName = $this->getArchiveObjectName();
         $jobRepository = $objectManager->getRepository($objectName);
@@ -375,34 +365,44 @@ abstract class BaseJobManager extends AbstractJobManager
         $countProcessed = 0;
 
         foreach ($results as $jobArchive) {
-            /** @var RetryableJob $jobArchive */
-            if (null !== ($maxRetries = $jobArchive->getMaxRetries()) && $jobArchive->getRetries() >= $maxRetries) {
-                $jobArchive->setStatus(RetryableJob::STATUS_MAX_RETRIES);
-                $objectManager->persist($jobArchive);
-                continue;
-            }
-
-            /** @var RetryableJob $job */
-            $job = new $className();
-
-            Util::copy($jobArchive, $job);
-            $job->setStatus(BaseJob::STATUS_NEW);
-            $job->setLocked(null);
-            $job->setLockedAt(null);
-            $job->setMessage(null);
-            $job->setFinishedAt(null);
-            $job->setStartedAt(null);
-            $job->setElapsed(null);
-            $job->setRetries($job->getRetries() + 1);
-
-            $objectManager->persist($job);
-            $objectManager->remove($jobArchive);
-            ++$countProcessed;
+            $this->resetJob($jobArchive, $className, $countProcessed);
         }
         $objectManager->flush();
 
         $this->restoreIdGenerator($objectName);
 
         return $countProcessed;
+    }
+
+    protected function resetSaveOk($function) {}
+
+    /**
+     * @param RetryableJob $jobArchive
+     * @param $className
+     * @param $countProcessed
+     */
+    protected function resetJob(RetryableJob $jobArchive, $className, &$countProcessed) {
+        $objectManager = $this->getObjectManager();
+        if ($this->updateMaxStatus($jobArchive, RetryableJob::STATUS_MAX_RETRIES, $jobArchive->getMaxRetries(), $jobArchive->getRetries())) {
+            $objectManager->persist($jobArchive);
+            return;
+        }
+
+        /** @var RetryableJob $job */
+        $job = new $className();
+
+        Util::copy($jobArchive, $job);
+        $job->setStatus(BaseJob::STATUS_NEW);
+        $job->setLocked(null);
+        $job->setLockedAt(null);
+        $job->setMessage(null);
+        $job->setFinishedAt(null);
+        $job->setStartedAt(null);
+        $job->setElapsed(null);
+        $job->setRetries($job->getRetries() + 1);
+
+        $objectManager->persist($job);
+        $objectManager->remove($jobArchive);
+        ++$countProcessed;
     }
 }

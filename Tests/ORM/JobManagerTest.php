@@ -55,20 +55,22 @@ class JobManagerTest extends BaseJobManagerTest
         $runClass = 'Dtc\QueueBundle\Entity\Run';
         $runArchiveClass = 'Dtc\QueueBundle\Entity\RunArchive';
 
-        $tool = new SchemaTool(self::$objectManager);
-        $metadataEntity = [self::$objectManager->getClassMetadata($entityName)];
+        /** @var EntityManager $objectManager */
+        $objectManager = self::$objectManager;
+        $tool = new SchemaTool($objectManager);
+        $metadataEntity = [$objectManager->getClassMetadata($entityName)];
         $tool->dropSchema($metadataEntity);
         $tool->createSchema($metadataEntity);
 
-        $metadataEntityArchive = [self::$objectManager->getClassMetadata($archiveEntityName)];
+        $metadataEntityArchive = [$objectManager->getClassMetadata($archiveEntityName)];
         $tool->dropSchema($metadataEntityArchive);
         $tool->createSchema($metadataEntityArchive);
 
-        $metadataEntityRun = [self::$objectManager->getClassMetadata($runClass)];
+        $metadataEntityRun = [$objectManager->getClassMetadata($runClass)];
         $tool->dropSchema($metadataEntityRun);
         $tool->createSchema($metadataEntityRun);
 
-        $metadataEntityRunArchive = [self::$objectManager->getClassMetadata($runArchiveClass)];
+        $metadataEntityRunArchive = [$objectManager->getClassMetadata($runArchiveClass)];
         $tool->dropSchema($metadataEntityRunArchive);
         $tool->createSchema($metadataEntityRunArchive);
 

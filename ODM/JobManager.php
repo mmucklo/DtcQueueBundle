@@ -44,28 +44,11 @@ class JobManager extends BaseJobManager
      */
     public function pruneErroneousJobs($workerName = null, $method = null)
     {
-        return $this->pruneJobs($workerName, $method, $this->getArchiveObjectName(), function ($qb) {
-            /* @var Builder $qb */
-            return $qb->field('status')->equals(BaseJob::STATUS_ERROR);
-        });
-    }
-
-    /**
-     * Prunes jobs according to a condition function.
-     *
-     * @param string|null $workerName
-     * @param string|null $method
-     * @param $conditionFunc
-     *
-     * @return int
-     */
-    protected function pruneJobs($workerName = null, $method = null, $objectName, $conditionFunc)
-    {
         /** @var DocumentManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $qb = $objectManager->createQueryBuilder($objectName);
+        $qb = $objectManager->createQueryBuilder($this->getArchiveObjectName());
         $qb = $qb->remove();
-        $qb = $conditionFunc($qb);
+        $qb->field('status')->equals(BaseJob::STATUS_ERROR);
         $this->addWorkerNameCriterion($qb, $workerName, $method);
 
         $query = $qb->getQuery();
@@ -93,7 +76,7 @@ class JobManager extends BaseJobManager
         /** @var DocumentManager $objectManager */
         $objectManager = $this->getObjectManager();
         $qb = $objectManager->createQueryBuilder($this->getObjectName());
-        $qb = $qb->update()->updateMany();
+        $qb = $qb->updateMany();
         $qb->field('expiresAt')->lte(new \DateTime());
         $qb->field('status')->equals(BaseJob::STATUS_NEW);
         $this->addWorkerNameCriterion($qb, $workerName, $method);
