@@ -2,7 +2,6 @@
 
 namespace Dtc\QueueBundle\Tests\Doctrine;
 
-use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ORM\EntityManager;
 use Dtc\QueueBundle\Doctrine\BaseJobManager;
@@ -49,7 +48,6 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::$objectManager->getEventManager()->addEventListener('preUpdate', self::$dtcQueueListener);
         self::$objectManager->getEventManager()->addEventListener('prePersist', self::$dtcQueueListener);
         self::$objectManager->getEventManager()->addEventListener('preRemove', self::$dtcQueueListener);
-
 
         self::$worker = new FibonacciWorker();
 
@@ -141,7 +139,6 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $objectManager->remove($job);
         $objectManager->flush();
     }
-
 
     public function testResetStalledJobs()
     {

@@ -5,7 +5,6 @@ namespace Dtc\QueueBundle\Doctrine;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Persistence\ObjectRepository;
 use Doctrine\ODM\MongoDB\DocumentRepository;
-use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
 use Dtc\QueueBundle\Model\AbstractJobManager;
 use Dtc\QueueBundle\Model\BaseJob;
@@ -217,11 +216,14 @@ abstract class BaseJobManager extends AbstractJobManager
         return $stalledJobs;
     }
 
-    protected function updateMaxStatus(RetryableJob $job, $status, $max = null, $count = 0) {
+    protected function updateMaxStatus(RetryableJob $job, $status, $max = null, $count = 0)
+    {
         if (null !== $max && $count >= $max) {
             $job->setStatus($status);
+
             return true;
         }
+
         return false;
     }
 
@@ -240,8 +242,7 @@ abstract class BaseJobManager extends AbstractJobManager
                 if ($this->updateMaxStatus($job, RetryableJob::STATUS_MAX_STALLED, $job->getMaxStalled(), $job->getStalledCount())) {
                     $objectManager->remove($job);
                     continue;
-                }
-                else if ($this->updateMaxStatus($job, RetryableJob::STATUS_MAX_RETRIES, $job->getMaxRetries(), $job->getRetries())) {
+                } elseif ($this->updateMaxStatus($job, RetryableJob::STATUS_MAX_RETRIES, $job->getMaxRetries(), $job->getRetries())) {
                     $objectManager->remove($job);
                     continue;
                 }
@@ -342,8 +343,8 @@ abstract class BaseJobManager extends AbstractJobManager
 
     /**
      * @param array $criterion
-     * @param int $limit
-     * @param int $offset
+     * @param int   $limit
+     * @param int   $offset
      */
     private function resetJobsByCriterion(
         array $criterion,
@@ -374,17 +375,21 @@ abstract class BaseJobManager extends AbstractJobManager
         return $countProcessed;
     }
 
-    protected function resetSaveOk($function) {}
+    protected function resetSaveOk($function)
+    {
+    }
 
     /**
      * @param RetryableJob $jobArchive
      * @param $className
      * @param $countProcessed
      */
-    protected function resetJob(RetryableJob $jobArchive, $className, &$countProcessed) {
+    protected function resetJob(RetryableJob $jobArchive, $className, &$countProcessed)
+    {
         $objectManager = $this->getObjectManager();
         if ($this->updateMaxStatus($jobArchive, RetryableJob::STATUS_MAX_RETRIES, $jobArchive->getMaxRetries(), $jobArchive->getRetries())) {
             $objectManager->persist($jobArchive);
+
             return;
         }
 

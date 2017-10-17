@@ -93,32 +93,29 @@ class JobManager extends BaseJobManager
         return intval($query->execute());
     }
 
-    protected function resetSaveOk($function) {
+    protected function resetSaveOk($function)
+    {
         $objectManager = $this->getObjectManager();
         $splObjectHash = spl_object_hash($objectManager);
 
-        if ($function === 'save') {
+        if ('save' === $function) {
             $compare = static::$resetInsertCalled;
-        }
-        else {
+        } else {
             $compare = static::$saveInsertCalled;
         }
 
-        if ($splObjectHash === $compare)
-        {
+        if ($splObjectHash === $compare) {
             // Insert SQL is cached...
             $msg = "Can't call save and reset within the same process cycle (or using the same EntityManager)";
             throw new \Exception($msg);
         }
 
-        if ($function === 'save') {
+        if ('save' === $function) {
             static::$saveInsertCalled = spl_object_hash($objectManager);
-        }
-        else {
+        } else {
             static::$resetInsertCalled = spl_object_hash($objectManager);
         }
     }
-
 
     protected function addWorkerNameCriterion(QueryBuilder $queryBuilder, $workerName = null, $method = null)
     {
