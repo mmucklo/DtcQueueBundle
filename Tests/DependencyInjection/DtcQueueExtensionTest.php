@@ -18,16 +18,9 @@ class DtcQueueExtensionTest extends TestCase
         self::assertEquals('dtc_queue', $dtcQueueExtension->getAlias());
     }
 
-    public function tryBadConfigs(array $configs)
+    protected function tryBadConfigs(array $configs)
     {
-        $dtcQueueExtension = new DtcQueueExtension();
-        $containerBuilder = new ContainerBuilder();
-        try {
-            $dtcQueueExtension->load($configs, $containerBuilder);
-            self::fail('should not reach here');
-        } catch (\Exception $exception) {
-            self::assertTrue(true);
-        }
+        return $this->tryConfigs($configs, false);
     }
 
     public function testBeanstalkExtension()
@@ -38,25 +31,30 @@ class DtcQueueExtensionTest extends TestCase
         $this->tryBadConfigs($configs);
 
         $configs = ['config' => ['beanstalkd' => ['host' => 'somehost']]];
-        $containerBuilder = $this->tryGoodConfigs($configs);
+        $containerBuilder = $this->tryConfigs($configs);
         self::assertEquals('somehost', $containerBuilder->getParameter('dtc_queue.beanstalkd.host'));
 
         $configs = ['config' => ['beanstalkd' => ['host' => 'somehost', 'tube' => 'something']]];
-        $containerBuilder = $this->tryGoodConfigs($configs);
+        $containerBuilder = $this->tryConfigs($configs);
 
         self::assertEquals('something', $containerBuilder->getParameter('dtc_queue.beanstalkd.tube'));
         self::assertEquals('somehost', $containerBuilder->getParameter('dtc_queue.beanstalkd.host'));
     }
 
-    protected function tryGoodConfigs(array $configs)
+    protected function tryConfigs(array $configs, $good = true)
     {
         $dtcQueueExtension = new DtcQueueExtension();
         $containerBuilder = new ContainerBuilder();
 
         try {
             $dtcQueueExtension->load($configs, $containerBuilder);
+            if (!$good) {
+                $this->fail('Bad config should not reach here: '.print_r($configs, true));
+            }
         } catch (\Exception $exception) {
-            self::fail($exception->getMessage());
+            if ($good) {
+                self::fail($exception->getMessage());
+            }
         }
         self::assertTrue(true);
 
@@ -69,7 +67,7 @@ class DtcQueueExtensionTest extends TestCase
         $this->tryBadConfigs($configs);
 
         $configs = ['config' => ['rabbit_mq' => ['host' => 'somehost', 'port' => 1234, 'user' => 'auser', 'password' => 'pass']]];
-        $containerBuilder = $this->tryGoodConfigs($configs);
+        $containerBuilder = $this->tryConfigs($configs);
         $this->arrayTest($containerBuilder, 'dtc_queue.rabbit_mq', 'host', 'somehost');
         $this->arrayTest($containerBuilder, 'dtc_queue.rabbit_mq', 'port', 1234);
         $this->arrayTest($containerBuilder, 'dtc_queue.rabbit_mq', 'user', 'auser');
