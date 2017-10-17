@@ -30,6 +30,10 @@ abstract class AbstractJobManager implements JobManagerInterface
         throw new \Exception('Unsupported');
     }
 
+    /**
+     * @return array
+     * @throws \Exception
+     */
     public function getStatus()
     {
         throw new \Exception('Unsupported');

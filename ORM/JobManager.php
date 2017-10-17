@@ -11,6 +11,7 @@ use Doctrine\ORM\QueryBuilder;
 use Dtc\QueueBundle\Doctrine\BaseJobManager;
 use Dtc\QueueBundle\Entity\Job;
 use Dtc\QueueBundle\Model\BaseJob;
+use Dtc\QueueBundle\Model\RetryableJob;
 
 class JobManager extends BaseJobManager
 {
@@ -218,12 +219,19 @@ class JobManager extends BaseJobManager
     {
         $result = [];
         $this->getStatusByEntityName($this->getObjectName(), $result);
-        $this->getStatusByEntityName($this->getObjectName(), $result);
+        $this->getStatusByEntityName($this->getArchiveObjectName(), $result);
 
         $finalResult = [];
         foreach ($result as $key => $item) {
             ksort($item);
-            $finalResult[$key] = $item;
+            foreach ($item as $status => $count) {
+                if (isset($finalResult[$key][$status])) {
+                    $finalResult[$key][$status] += $count;
+                }
+                else {
+                    $finalResult[$key][$status] = $count;
+                }
+            }
         }
 
         return $finalResult;
@@ -244,6 +252,10 @@ class JobManager extends BaseJobManager
             if (!isset($result[$method])) {
                 $result[$method] = [BaseJob::STATUS_NEW => 0,
                     BaseJob::STATUS_RUNNING => 0,
+                    RetryableJob::STATUS_EXPIRED => 0,
+                    RetryableJob::STATUS_MAX_ERROR => 0,
+                    RetryableJob::STATUS_MAX_STALLED => 0,
+                    RetryableJob::STATUS_MAX_RETRIES => 0,
                     BaseJob::STATUS_SUCCESS => 0,
                     BaseJob::STATUS_ERROR => 0, ];
             }

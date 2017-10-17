@@ -7,6 +7,7 @@ use Dtc\QueueBundle\Doctrine\BaseJobManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Dtc\QueueBundle\Document\Job;
 use Dtc\QueueBundle\Model\BaseJob;
+use Dtc\QueueBundle\Model\RetryableJob;
 
 class JobManager extends BaseJobManager
 {
@@ -176,6 +177,10 @@ class JobManager extends BaseJobManager
         $allStatus = array(
             BaseJob::STATUS_ERROR => 0,
             BaseJob::STATUS_NEW => 0,
+            RetryableJob::STATUS_EXPIRED => 0,
+            RetryableJob::STATUS_MAX_ERROR => 0,
+            RetryableJob::STATUS_MAX_RETRIES => 0,
+            RetryableJob::STATUS_MAX_STALLED => 0,
             BaseJob::STATUS_RUNNING => 0,
             BaseJob::STATUS_SUCCESS => 0,
         );

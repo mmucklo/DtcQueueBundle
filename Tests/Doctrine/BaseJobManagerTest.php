@@ -8,6 +8,7 @@ use Dtc\QueueBundle\Doctrine\BaseJobManager;
 use Dtc\QueueBundle\Doctrine\DtcQueueListener;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest as BaseBaseJobManagerTest;
 use Dtc\QueueBundle\ODM\JobManager;
@@ -647,5 +648,38 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         self::$jobManager->getObjectManager()->clear();
         parent::testPerformance();
+    }
+
+    protected function getBaseStatus() {
+        /** @var BaseJobManager $jobManager */
+        $jobManager = self::$jobManager;
+        $status = $jobManager->getStatus();
+        $job = new self::$jobClass(self::$worker, false, null);
+        $job->fibonacci(1);
+        self::assertArrayHasKey('fibonacci->fibonacci', $status);
+        $fibonacciStatus = $status['fibonacci->fibonacci'];
+
+        self::assertArrayHasKey(BaseJob::STATUS_NEW, $fibonacciStatus);
+        self::assertArrayHasKey(BaseJob::STATUS_ERROR, $fibonacciStatus);
+        self::assertArrayHasKey(BaseJob::STATUS_RUNNING, $fibonacciStatus);
+        self::assertArrayHasKey(BaseJob::STATUS_SUCCESS, $fibonacciStatus);
+        self::assertArrayHasKey(RetryableJob::STATUS_MAX_STALLED, $fibonacciStatus);
+        self::assertArrayHasKey(RetryableJob::STATUS_MAX_ERROR, $fibonacciStatus);
+        self::assertArrayHasKey(RetryableJob::STATUS_MAX_RETRIES, $fibonacciStatus);
+        self::assertArrayHasKey(RetryableJob::STATUS_EXPIRED, $fibonacciStatus);
+        return [$job, $status];
+    }
+
+    public function testGetStatus() {
+        list ($job1, $status1) = $this->getBaseStatus();
+        list ($job2, $status2) = $this->getBaseStatus();
+        $fibonacciStatus1 = $status1['fibonacci->fibonacci'];
+        $fibonacciStatus2 = $status2['fibonacci->fibonacci'];
+
+        self::assertEquals($fibonacciStatus1[BaseJob::STATUS_NEW] + 1, $fibonacciStatus2[BaseJob::STATUS_NEW]);
+        $jobManager = self::$jobManager;
+        $objectManager = $jobManager->getObjectManager();
+        $objectManager->remove($job1);
+        $objectManager->remove($job2);
     }
 }
