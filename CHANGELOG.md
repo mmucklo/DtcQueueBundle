@@ -1,3 +1,12 @@
+### 2.1.0
+   * Fix bug in pruning of stalled jobs
+   * Refactoring of updatedAt and createdAt out of Model\Job
+   * Created a new subclass called RetryableJob
+      * Add a max retries
+      * Add a max stalled
+      * Add a max error
+   * Fixed unit tests for ORM
+   * Made job methods chainable
 ### 2.0.1
    * Update precision for expiresAt for beanstalkd and RabbitMQ
    * Fixed a bug with batchLater($delay) - where $delay was interpreted as a unixtimestamp, instead of the seconds to delay

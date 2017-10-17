@@ -5,7 +5,7 @@ namespace Dtc\QueueBundle\Entity;
 use Dtc\GridBundle\Annotation as Grid;
 use Doctrine\ORM\Mapping as ORM;
 
-abstract class BaseJob extends \Dtc\QueueBundle\Model\Job
+abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
 {
     /**
      * @Grid\Column()
@@ -127,6 +127,36 @@ abstract class BaseJob extends \Dtc\QueueBundle\Model\Job
      * @ORM\Column(type="bigint", nullable=true)
      */
     protected $runId;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    protected $stalledCount = 0;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    protected $maxStalled;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    protected $errorCount = 0;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    protected $maxError;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    protected $retries = 0;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    protected $maxRetries;
 
     /**
      * @return mixed

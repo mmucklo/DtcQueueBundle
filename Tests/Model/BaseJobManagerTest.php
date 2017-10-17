@@ -49,12 +49,18 @@ abstract class BaseJobManagerTest extends TestCase
         );
     }
 
-    public function testDeleteJob()
+    protected function getNewJob()
     {
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
 
+        return $job;
+    }
+
+    public function testDeleteJob()
+    {
+        $job = $this->getNewJob();
         self::$jobManager->deleteJob($job);
 
         $nextJob = self::$jobManager->getJob();
@@ -165,18 +171,7 @@ abstract class BaseJobManagerTest extends TestCase
         self::$jobManager->enableSorting = false; // Ignore priority
 
         for ($i = 0; $i < $jobsTotal; ++$i) {
-            $startLater = microtime(true);
             self::$worker->later()->fibonacci(1);
-            echo "set $i: ".(microtime(true) - $startLater)."\n";
-            try {
-                $count = self::$jobManager->getJobCount();
-                self::assertEquals($i + 1, $count);
-                echo "\n$count Jobs found\n";
-            } catch (\Exception $e) {
-                if ('Unsupported' !== $e->getMessage()) {
-                    throw $e;
-                }
-            }
         }
 
         $total = microtime(true) - $start;
@@ -184,19 +179,18 @@ abstract class BaseJobManagerTest extends TestCase
 
         try {
             $count = self::$jobManager->getJobCount();
-            echo "\n$count Jobs found\n";
+            self::assertEquals($jobsTotal, $count);
         } catch (\Exception $e) {
             if ('Unsupported' !== $e->getMessage()) {
                 throw $e;
             }
         }
+
         $start = microtime(true);
         $job = null;
         for ($i = 0; $i < $jobsTotal; ++$i) {
             $startTime = microtime(true);
             $job = self::$jobManager->getJob();
-            echo "Job {$job->getId()}\n";
-            echo "get $i: ".(microtime(true) - $startTime)."\n";
         }
         $total = microtime(true) - $start;
         echo "Total of {$jobsTotal} jobs dequeued in {$total} seconds\n";

@@ -14,14 +14,30 @@ use Dtc\QueueBundle\Model\BaseJob;
 
 class JobManager extends BaseJobManager
 {
+    protected $formerIdGenerators;
+
     public function stopIdGenerator($objectName)
     {
         $objectManager = $this->getObjectManager();
         $repository = $objectManager->getRepository($objectName);
         /** @var ClassMetadata $metadata */
         $metadata = $objectManager->getClassMetadata($repository->getClassName());
+        $this->formerIdGenerators[$objectName]['generator'] = $metadata->idGenerator;
+        $this->formerIdGenerators[$objectName]['type'] = $metadata->generatorType;
         $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
         $metadata->setIdGenerator(new AssignedGenerator());
+    }
+
+    public function restoreIdGenerator($objectName)
+    {
+        $objectManager = $this->getObjectManager();
+        $repository = $objectManager->getRepository($objectName);
+        /** @var ClassMetadata $metadata */
+        $metadata = $objectManager->getClassMetadata($repository->getClassName());
+        $generator = $this->formerIdGenerators[$objectName]['generator'];
+        $type = $this->formerIdGenerators[$objectName]['type'];
+        $metadata->setIdGeneratorType($type);
+        $metadata->setIdGenerator($generator);
     }
 
     public function countJobsByStatus($objectName, $status, $workerName = null, $method = null)
@@ -63,7 +79,7 @@ class JobManager extends BaseJobManager
      */
     public function pruneErroneousJobs($workerName = null, $method = null)
     {
-        return $this->pruneJobs($workerName, $method, $this->getArchiveObjectName(), function($qb) {
+        return $this->pruneJobs($workerName, $method, $this->getArchiveObjectName(), function ($qb) {
             /* @var QueryBuilder $qb */
             $qb->where('j.status = :status')
                 ->setParameter(':status', BaseJob::STATUS_ERROR);
@@ -75,8 +91,7 @@ class JobManager extends BaseJobManager
      *
      * @param string|null $workerName
      * @param string|null $method
-     * @param \Closure $conditionFunc
-     * @param string $objectName
+     * @param $conditionFunc
      *
      * @return int Count of jobs pruned
      */
@@ -87,32 +102,39 @@ class JobManager extends BaseJobManager
         $qb = $objectManager->createQueryBuilder()->delete($objectName, 'j');
         $conditionFunc($qb);
 
-        if (null !== $workerName) {
-            $qb->andWhere('j.workerName = :workerName')->setParameter(':workerName', $workerName);
-        }
-
-        if (null !== $method) {
-            $qb->andWhere('j.method = :method')->setParameter(':method', $method);
-        }
-
+        $this->addWorkerNameCriterion($qb, $workerName, $method);
         $query = $qb->getQuery();
 
         return intval($query->execute());
     }
 
-    /**
-     * @param string|null $workerName
-     * @param string|null $method
-     *
-     * @return int Count of jobs pruned
-     */
-    public function pruneExpiredJobs($workerName = null, $method = null)
+    protected function addWorkerNameCriterion(QueryBuilder $queryBuilder, $workerName = null, $method = null)
     {
-        return $this->pruneJobs($workerName, $method, $this->getObjectName(), function($qb) {
-            /* @var QueryBuilder $qb */
-            $qb->where('j.expiresAt <= :expiresAt')
-                ->setParameter(':expiresAt', new \DateTime());
-        });
+        if (null !== $workerName) {
+            $queryBuilder->andWhere('j.workerName = :workerName')->setParameter(':workerName', $workerName);
+        }
+
+        if (null !== $method) {
+            $queryBuilder->andWhere('j.method = :method')->setParameter(':method', $method);
+        }
+    }
+
+    protected function updateExpired($workerName = null, $method = null)
+    {
+        /** @var EntityManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $qb = $objectManager->createQueryBuilder()->update($this->getObjectName(), 'j');
+        $qb->set('j.status', ':newStatus');
+        $qb->where('j.expiresAt <= :expiresAt')
+            ->setParameter(':expiresAt', new \DateTime());
+        $qb->andWhere('j.status = :status')
+            ->setParameter(':status', BaseJob::STATUS_NEW)
+            ->setParameter(':newStatus', Job::STATUS_EXPIRED);
+
+        $this->addWorkerNameCriterion($qb, $workerName, $method);
+        $query = $qb->getQuery();
+
+        return intval($query->execute());
     }
 
     /**
@@ -258,15 +280,7 @@ class JobManager extends BaseJobManager
             ->setParameter(':whenAt', $dateTime)
             ->setParameter(':expiresAt', $dateTime);
 
-        if (null !== $workerName) {
-            $qb->andWhere('j.workerName = :workerName')
-                ->setParameter(':workerName', $workerName);
-        }
-
-        if (null !== $methodName) {
-            $qb->andWhere('j.method = :method')
-                ->setParameter(':method', $methodName);
-        }
+        $this->addWorkerNameCriterion($qb, $workerName, $methodName);
 
         if ($prioritize) {
             $qb->add('orderBy', 'j.priority ASC, j.whenAt ASC');

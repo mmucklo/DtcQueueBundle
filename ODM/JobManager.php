@@ -3,7 +3,6 @@
 namespace Dtc\QueueBundle\ODM;
 
 use Doctrine\MongoDB\Query\Builder;
-use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
 use Dtc\QueueBundle\Doctrine\BaseJobManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Dtc\QueueBundle\Document\Job;
@@ -20,14 +19,7 @@ class JobManager extends BaseJobManager
             ->find()
             ->field('status')->equals($status);
 
-        if (null !== $workerName) {
-            $qb->field('workerName')->equals($workerName);
-        }
-
-        if (null !== $method) {
-            $qb->field('method')->equals($method);
-        }
-
+        $this->addWorkerNameCriterion($qb, $workerName, $method);
         $query = $qb->getQuery();
 
         return $query->count();
@@ -38,11 +30,12 @@ class JobManager extends BaseJobManager
      */
     public function stopIdGenerator($objectName)
     {
-        $objectManager = $this->getObjectManager();
-        $repository = $objectManager->getRepository($objectName);
-        /** @var ClassMetadata $metadata */
-        $metadata = $this->getObjectManager()->getClassMetadata($repository->getClassName());
-        $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
+        // Not needed for ODM
+    }
+
+    public function restoreIdGenerator($objectName)
+    {
+        // Not needed for ODM
     }
 
     /**
@@ -51,7 +44,7 @@ class JobManager extends BaseJobManager
      */
     public function pruneErroneousJobs($workerName = null, $method = null)
     {
-        return $this->pruneJobs($workerName, $method, $this->getArchiveObjectName(), function($qb) {
+        return $this->pruneJobs($workerName, $method, $this->getArchiveObjectName(), function ($qb) {
             /* @var Builder $qb */
             return $qb->field('status')->equals(BaseJob::STATUS_ERROR);
         });
@@ -73,14 +66,7 @@ class JobManager extends BaseJobManager
         $qb = $objectManager->createQueryBuilder($objectName);
         $qb = $qb->remove();
         $qb = $conditionFunc($qb);
-
-        if (null !== $workerName) {
-            $qb->field('workerName')->equals($workerName);
-        }
-
-        if (null !== $method) {
-            $qb->field('method')->equals($method);
-        }
+        $this->addWorkerNameCriterion($qb, $workerName, $method);
 
         $query = $qb->getQuery();
         $result = $query->execute();
@@ -91,18 +77,34 @@ class JobManager extends BaseJobManager
         return 0;
     }
 
-    /**
-     * Prunes expired jobs.
-     *
-     * @param string|null $workerName
-     * @param string|null $method
-     */
-    public function pruneExpiredJobs($workerName = null, $method = null)
+    protected function addWorkerNameCriterion(Builder $builder, $workerName = null, $method = null)
     {
-        return $this->pruneJobs($workerName, $method, $this->getObjectName(), function($qb) {
-            /* @var Builder $qb */
-            return $qb->field('expiresAt')->lte(new \DateTime());
-        });
+        if (null !== $workerName) {
+            $builder->field('workerName')->equals($workerName);
+        }
+
+        if (null !== $method) {
+            $builder->field('method')->equals($method);
+        }
+    }
+
+    protected function updateExpired($workerName = null, $method = null)
+    {
+        /** @var DocumentManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $qb = $objectManager->createQueryBuilder($this->getObjectName());
+        $qb = $qb->update()->updateMany();
+        $qb->field('expiresAt')->lte(new \DateTime());
+        $qb->field('status')->equals(BaseJob::STATUS_NEW);
+        $this->addWorkerNameCriterion($qb, $workerName, $method);
+        $qb->field('status')->set(\Dtc\QueueBundle\Model\Job::STATUS_EXPIRED);
+        $query = $qb->getQuery();
+        $result = $query->execute();
+        if (isset($result['n'])) {
+            return $result['n'];
+        }
+
+        return 0;
     }
 
     /**
@@ -136,13 +138,7 @@ class JobManager extends BaseJobManager
         $qb
             ->find();
 
-        if (null !== $workerName) {
-            $qb->field('workerName')->equals($workerName);
-        }
-
-        if (null !== $method) {
-            $qb->field('method')->equals($method);
-        }
+        $this->addWorkerNameCriterion($qb, $workerName, $method);
 
         // Filter
         $date = new \DateTime();
@@ -247,14 +243,7 @@ class JobManager extends BaseJobManager
             ->findAndUpdate()
             ->returnNew();
 
-        if (null !== $workerName) {
-            $qb->field('workerName')->equals($workerName);
-        }
-
-        if (null !== $methodName) {
-            $qb->field('method')->equals($methodName);
-        }
-
+        $this->addWorkerNameCriterion($qb, $workerName, $methodName);
         if ($prioritize) {
             $qb->sort('priority', 'asc');
         } else {

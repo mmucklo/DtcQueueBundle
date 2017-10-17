@@ -4,14 +4,14 @@ namespace Dtc\QueueBundle\Model;
 
 class Job extends BaseJob
 {
+    const STATUS_EXPIRED = 'expired';
+
     protected $id;
     protected $message;
     protected $crcHash;
     protected $locked;
     protected $lockedAt;
     protected $expiresAt;
-    protected $createdAt;
-    protected $updatedAt;
     protected $delay;
     protected $startedAt;
     protected $finishedAt;
@@ -23,8 +23,6 @@ class Job extends BaseJob
     {
         $this->method = $method;
         $this->setArgs($args);
-        $this->createdAt = new \DateTime();
-        $this->updatedAt = new \DateTime();
 
         // Make sure the method exists - job should not be created
         if (!method_exists($this->worker, $method)) {
@@ -50,6 +48,8 @@ class Job extends BaseJob
     public function setMessage($message)
     {
         $this->message = $message;
+
+        return $this;
     }
 
     /**
@@ -82,6 +82,8 @@ class Job extends BaseJob
     public function setLocked($locked)
     {
         $this->locked = $locked;
+
+        return $this;
     }
 
     /**
@@ -90,6 +92,8 @@ class Job extends BaseJob
     public function setLockedAt($lockedAt)
     {
         $this->lockedAt = $lockedAt;
+
+        return $this;
     }
 
     /**
@@ -98,6 +102,8 @@ class Job extends BaseJob
     public function setExpiresAt(\DateTime $expiresAt)
     {
         $this->expiresAt = $expiresAt;
+
+        return $this;
     }
 
     /**
@@ -117,27 +123,13 @@ class Job extends BaseJob
     }
 
     /**
-     * @return \DateTime
-     */
-    public function getCreatedAt()
-    {
-        return $this->createdAt;
-    }
-
-    /**
-     * @return \DateTime
-     */
-    public function getUpdatedAt()
-    {
-        return $this->updatedAt;
-    }
-
-    /**
      * @param mixed $id
      */
     public function setId($id)
     {
         $this->id = $id;
+
+        return $this;
     }
 
     /**
@@ -149,11 +141,13 @@ class Job extends BaseJob
     }
 
     /**
-     * @param \DateTime $startedAt
+     * @param \DateTime|null $startedAt
      */
-    public function setStartedAt(\DateTime $startedAt)
+    public function setStartedAt(\DateTime $startedAt = null)
     {
         $this->startedAt = $startedAt;
+
+        return $this;
     }
 
     /**
@@ -170,6 +164,8 @@ class Job extends BaseJob
     public function setFinishedAt($finishedAt)
     {
         $this->finishedAt = $finishedAt;
+
+        return $this;
     }
 
     /**
@@ -186,6 +182,8 @@ class Job extends BaseJob
     public function setMaxDuration($maxDuration)
     {
         $this->maxDuration = $maxDuration;
+
+        return $this;
     }
 
     /**
@@ -194,22 +192,8 @@ class Job extends BaseJob
     public function setCrcHash($crcHash)
     {
         $this->crcHash = $crcHash;
-    }
 
-    /**
-     * @param \DateTime $createdAt
-     */
-    public function setCreatedAt(\DateTime $createdAt)
-    {
-        $this->createdAt = $createdAt;
-    }
-
-    /**
-     * @param \DateTime $updatedAt
-     */
-    public function setUpdatedAt(\DateTime $updatedAt)
-    {
-        $this->updatedAt = $updatedAt;
+        return $this;
     }
 
     /**
@@ -218,6 +202,8 @@ class Job extends BaseJob
     public function setJobManager(JobManagerInterface $jobManager)
     {
         $this->jobManager = $jobManager;
+
+        return $this;
     }
 
     /**
@@ -234,6 +220,8 @@ class Job extends BaseJob
     public function setDelay($delay)
     {
         $this->delay = $delay;
+
+        return $this;
     }
 
     /**
@@ -250,6 +238,8 @@ class Job extends BaseJob
     public function setElapsed($elapsed)
     {
         $this->elapsed = $elapsed;
+
+        return $this;
     }
 
     /**
@@ -266,5 +256,7 @@ class Job extends BaseJob
     public function setRunId($runId)
     {
         $this->runId = $runId;
+
+        return $this;
     }
 }
