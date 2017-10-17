@@ -44,6 +44,8 @@ abstract class BaseJob
     public function setStatus($status)
     {
         $this->status = $status;
+
+        return $this;
     }
 
     /**
@@ -68,6 +70,8 @@ abstract class BaseJob
     public function setWhenAt(\DateTime $whenAt)
     {
         $this->whenAt = $whenAt;
+
+        return $this;
     }
 
     /**
@@ -84,6 +88,8 @@ abstract class BaseJob
     public function setWorker($worker)
     {
         $this->worker = $worker;
+
+        return $this;
     }
 
     /**
@@ -100,6 +106,8 @@ abstract class BaseJob
     public function setBatch($batch)
     {
         $this->batch = $batch;
+
+        return $this;
     }
 
     /**
@@ -120,6 +128,8 @@ abstract class BaseJob
         }
 
         $this->args = $args;
+
+        return $this;
     }
 
     protected function validateArgs($args)
@@ -151,6 +161,8 @@ abstract class BaseJob
     public function setMethod($method)
     {
         $this->method = $method;
+
+        return $this;
     }
 
     /**
@@ -167,6 +179,8 @@ abstract class BaseJob
     public function setPriority($priority)
     {
         $this->priority = $priority;
+
+        return $this;
     }
 
     /**
@@ -175,6 +189,8 @@ abstract class BaseJob
     public function setWorkerName($workerName)
     {
         $this->workerName = $workerName;
+
+        return $this;
     }
 
     /**
@@ -183,6 +199,8 @@ abstract class BaseJob
     public function setClassName($className)
     {
         $this->className = $className;
+
+        return $this;
     }
 
     /**

@@ -3,16 +3,12 @@
 namespace Dtc\QueueBundle\Tests\ODM;
 
 use Doctrine\Common\Annotations\AnnotationRegistry;
-use Dtc\QueueBundle\Doctrine\RemoveListener;
 use Dtc\QueueBundle\Tests\Doctrine\BaseJobManagerTest;
-use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\ODM\JobManager;
 use Doctrine\MongoDB\Connection;
 use Doctrine\ODM\MongoDB\Configuration;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver;
-use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 
 /**
  * @author David
@@ -21,8 +17,6 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
  */
 class JobManagerTest extends BaseJobManagerTest
 {
-    public static $dm;
-
     public static function setUpBeforeClass()
     {
         if (!is_dir('/tmp/dtcqueuetest/generate/proxies')) {
@@ -55,13 +49,13 @@ class JobManagerTest extends BaseJobManagerTest
         $classPath = __DIR__.'../../Document';
         $config->setMetadataDriverImpl(AnnotationDriver::create($classPath));
 
-        self::$dm = DocumentManager::create(new Connection(getenv('MONGODB_HOST')), $config);
+        self::$objectManager = DocumentManager::create(new Connection(getenv('MONGODB_HOST')), $config);
 
         $documentName = 'Dtc\QueueBundle\Document\Job';
         $archiveDocumentName = 'Dtc\QueueBundle\Document\JobArchive';
         $runClass = 'Dtc\QueueBundle\Document\Run';
         $runArchiveClass = 'Dtc\QueueBundle\Document\RunArchive';
-        $sm = self::$dm->getSchemaManager();
+        $sm = self::$objectManager->getSchemaManager();
 
         $sm->dropDocumentCollection($documentName);
         $sm->dropDocumentCollection($runClass);
@@ -72,17 +66,11 @@ class JobManagerTest extends BaseJobManagerTest
         $sm->updateDocumentIndexes($documentName);
         $sm->updateDocumentIndexes($archiveDocumentName);
 
-        self::$jobManager = new JobManager(self::$dm, $documentName, $archiveDocumentName, $runClass, $runArchiveClass);
-        self::$worker = new FibonacciWorker();
-        self::$worker->setJobClass($documentName);
-
-        $parameters = new ParameterBag();
-
-        $container = new Container($parameters);
-        $container->set('dtc_queue.job_manager', self::$jobManager);
-
-        self::$dm->getEventManager()->addEventListener('preRemove', new RemoveListener($container));
-
+        self::$objectName = $documentName;
+        self::$archiveObjectName = $archiveDocumentName;
+        self::$runClass = $runClass;
+        self::$runArchiveClass = $runArchiveClass;
+        self::$jobManagerClass = JobManager::class;
         parent::setUpBeforeClass();
     }
 }

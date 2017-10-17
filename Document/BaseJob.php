@@ -5,7 +5,7 @@ namespace Dtc\QueueBundle\Document;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 use Dtc\GridBundle\Annotation as Grid;
 
-abstract class BaseJob extends \Dtc\QueueBundle\Model\Job
+abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
 {
     /**
      * @Grid\Column()
@@ -129,4 +129,34 @@ abstract class BaseJob extends \Dtc\QueueBundle\Model\Job
      * @ODM\Field(type="object_id", nullable=true)
      */
     protected $runId;
+
+    /**
+     * @ODM\Field(type="int")
+     */
+    protected $stalledCount = 0;
+
+    /**
+     * @ODM\Field(type="int", nullable=true)
+     */
+    protected $maxStalled;
+
+    /**
+     * @ODM\Field(type="int")
+     */
+    protected $errorCount = 0;
+
+    /**
+     * @ODM\Field(type="int", nullable=true)
+     */
+    protected $maxError;
+
+    /**
+     * @ODM\Field(type="int")
+     */
+    protected $retries = 0;
+
+    /**
+     * @ODM\Field(type="int", nullable=true)
+     */
+    protected $maxRetries;
 }

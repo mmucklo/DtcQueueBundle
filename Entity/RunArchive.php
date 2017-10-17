@@ -39,7 +39,7 @@ class RunArchive extends BaseRun
     protected $maxCount;
 
     /**
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(type="datetime", nullable=true)
      */
     protected $lastHeartbeatAt;
 }

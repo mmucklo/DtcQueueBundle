@@ -8,13 +8,13 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Id\AssignedGenerator;
-use Dtc\QueueBundle\Model\BaseJob;
+use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\Util\Util;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class RemoveListener
+class DtcQueueListener
 {
     /** @var ContainerInterface */
     private $container;
@@ -69,14 +69,33 @@ class RemoveListener
             $jobManager->stopIdGenerator($jobManager->getArchiveObjectName());
             $className = $repository->getClassName();
 
+            /** @var RetryableJob $jobArchive */
             $jobArchive = new $className();
             Util::copy($object, $jobArchive);
-            if (BaseJob::STATUS_RUNNING === $jobArchive->getStatus()) {
-                $jobArchive->setStatus(BaseJob::STATUS_ERROR);
-                $jobArchive->setMessage('stalled');
-            }
             $jobArchive->setUpdatedAt(new \DateTime());
             $objectManager->persist($jobArchive);
+        }
+    }
+
+    public function preUpdate(LifecycleEventArgs $eventArgs)
+    {
+        $object = $eventArgs->getObject();
+        if ($object instanceof \Dtc\QueueBundle\Model\RetryableJob) {
+            $dateTime = new \DateTime();
+            $object->setUpdatedAt($dateTime);
+        }
+    }
+
+    public function prePersist(LifecycleEventArgs $eventArgs)
+    {
+        $object = $eventArgs->getObject();
+
+        if ($object instanceof \Dtc\QueueBundle\Model\RetryableJob) {
+            $dateTime = new \DateTime();
+            if (!$object->getCreatedAt()) {
+                $object->setCreatedAt($dateTime);
+            }
+            $object->setUpdatedAt($dateTime);
         }
     }
 }

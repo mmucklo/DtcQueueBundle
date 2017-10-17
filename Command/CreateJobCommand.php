@@ -45,8 +45,6 @@ class CreateJobCommand extends ContainerAwareCommand
         $job->setMethod($methodName);
         $job->setArgs($args);
         $job->setLocked(null);
-        $job->setCreatedAt($when);
-        $job->setUpdatedAt($when);
 
         $jobManager->save($job);
     }

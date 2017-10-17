@@ -6,8 +6,7 @@ use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Tools\Setup;
-use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest;
-use Dtc\QueueBundle\Tests\FibonacciWorker;
+use Dtc\QueueBundle\Tests\Doctrine\BaseJobManagerTest;
 use Dtc\QueueBundle\ORM\JobManager;
 use Doctrine\ORM\EntityManager;
 
@@ -18,9 +17,7 @@ use Doctrine\ORM\EntityManager;
  */
 class JobManagerTest extends BaseJobManagerTest
 {
-    public static $entityManager;
-
-    public static function setUpBeforeClass()
+    public static function createObjectManager()
     {
         if (!is_dir('/tmp/dtcqueuetest/generate/proxies')) {
             mkdir('/tmp/dtcqueuetest/generate/proxies', 0777, true);
@@ -42,38 +39,44 @@ class JobManagerTest extends BaseJobManagerTest
         $password = getenv('MYSQL_PASSWORD');
         $db = getenv('MYSQL_DATABASE');
         $params = ['host' => $host,
-                    'port' => $port,
-                    'user' => $user,
-                    'driver' => 'mysqli',
-                    'password' => $password,
-                    'dbname' => $db, ];
-        self::$entityManager = EntityManager::create($params, $config);
+            'port' => $port,
+            'user' => $user,
+            'driver' => 'mysqli',
+            'password' => $password,
+            'dbname' => $db, ];
+        self::$objectManager = EntityManager::create($params, $config);
+    }
 
+    public static function setUpBeforeClass()
+    {
+        self::createObjectManager();
         $entityName = 'Dtc\QueueBundle\Entity\Job';
         $archiveEntityName = 'Dtc\QueueBundle\Entity\JobArchive';
         $runClass = 'Dtc\QueueBundle\Entity\Run';
         $runArchiveClass = 'Dtc\QueueBundle\Entity\RunArchive';
 
-        $tool = new SchemaTool(self::$entityManager);
-        $metadataEntity = [self::$entityManager->getClassMetadata($entityName)];
+        $tool = new SchemaTool(self::$objectManager);
+        $metadataEntity = [self::$objectManager->getClassMetadata($entityName)];
         $tool->dropSchema($metadataEntity);
         $tool->createSchema($metadataEntity);
 
-        $metadataEntityArchive = [self::$entityManager->getClassMetadata($archiveEntityName)];
+        $metadataEntityArchive = [self::$objectManager->getClassMetadata($archiveEntityName)];
         $tool->dropSchema($metadataEntityArchive);
         $tool->createSchema($metadataEntityArchive);
 
-        $metadataEntityRun = [self::$entityManager->getClassMetadata($runClass)];
+        $metadataEntityRun = [self::$objectManager->getClassMetadata($runClass)];
         $tool->dropSchema($metadataEntityRun);
         $tool->createSchema($metadataEntityRun);
 
-        $metadataEntityRunArchive = [self::$entityManager->getClassMetadata($runArchiveClass)];
+        $metadataEntityRunArchive = [self::$objectManager->getClassMetadata($runArchiveClass)];
         $tool->dropSchema($metadataEntityRunArchive);
         $tool->createSchema($metadataEntityRunArchive);
 
-        self::$jobManager = new JobManager(self::$entityManager, $entityName, $archiveEntityName, $runClass, $runArchiveClass);
-        self::$worker = new FibonacciWorker();
-        self::$worker->setJobClass($entityName);
+        self::$objectName = $entityName;
+        self::$archiveObjectName = $archiveEntityName;
+        self::$runClass = $runClass;
+        self::$runArchiveClass = $runArchiveClass;
+        self::$jobManagerClass = JobManager::class;
         parent::setUpBeforeClass();
     }
 }
