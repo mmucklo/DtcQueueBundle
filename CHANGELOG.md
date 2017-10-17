@@ -6,6 +6,7 @@
       * Add a max stalled
       * Add a max error
    * Fixed unit tests for ORM
+   * Made job methods chainable
 ### 2.0.1
    * Update precision for expiresAt for beanstalkd and RabbitMQ
    * Fixed a bug with batchLater($delay) - where $delay was interpreted as a unixtimestamp, instead of the seconds to delay
