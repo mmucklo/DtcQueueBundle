@@ -52,7 +52,7 @@ class WorkerCompilerPass implements CompilerPassInterface
 
     /**
      * @param ContainerBuilder $container
-     * @param array            $jobManagerRef
+     * @param Reference[]            $jobManagerRef
      * @param string           $jobClass
      */
     protected function setupTaggedServices(ContainerBuilder $container, Definition $definition, array $jobManagerRef, $jobClass)
@@ -142,7 +142,7 @@ class WorkerCompilerPass implements CompilerPassInterface
     /**
      * @param ContainerBuilder $container
      * @param array            $arguments
-     * @param $class
+     * @param string $class
      */
     protected function setupRabbitMQOptions(ContainerBuilder $container, array &$arguments, &$class)
     {
@@ -254,6 +254,10 @@ class WorkerCompilerPass implements CompilerPassInterface
         return $jobClass;
     }
 
+    /**
+     * @param string $type
+     * @param string $className
+     */
     protected function getRunArchiveClass(ContainerBuilder $container, $type, $className)
     {
         $runArchiveClass = $container->hasParameter('dtc_queue.class_'.$type) ? $container->getParameter('dtc_queue.class_'.$type) : null;
@@ -293,7 +297,6 @@ class WorkerCompilerPass implements CompilerPassInterface
     }
 
     /**
-     * @param string|null $jobArchiveClass
      *
      * @throws \Exception
      */
