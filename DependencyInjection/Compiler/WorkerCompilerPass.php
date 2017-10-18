@@ -40,6 +40,23 @@ class WorkerCompilerPass implements CompilerPassInterface
         $container->setParameter('dtc_queue.class_job_archive', $jobArchiveClass);
         $container->setParameter('dtc_queue.class_run', $this->getRunArchiveClass($container, 'run', 'Run'));
         $container->setParameter('dtc_queue.class_run_archive', $this->getRunArchiveClass($container, 'run_archive', 'RunArchive'));
+
+        $this->setupTaggedServices($container, $definition, $jobManagerRef, $jobClass);
+        $eventDispatcher = $container->getDefinition('dtc_queue.event_dispatcher');
+        foreach ($container->findTaggedServiceIds('dtc_queue.event_subscriber') as $id => $attributes) {
+            $eventSubscriber = $container->getDefinition($id);
+            $eventDispatcher->addMethodCall('addSubscriber', [$eventSubscriber]);
+        }
+        $this->setupDoctrineManagers($container);
+    }
+
+    /**
+     * @param ContainerBuilder $container
+     * @param array            $jobManagerRef
+     * @param string           $jobClass
+     */
+    protected function setupTaggedServices(ContainerBuilder $container, Definition $definition, array $jobManagerRef, $jobClass)
+    {
         // Add each worker to workerManager, make sure each worker has instance to work
         foreach ($container->findTaggedServiceIds('dtc_queue.worker') as $id => $attributes) {
             $worker = $container->getDefinition($id);
@@ -57,13 +74,6 @@ class WorkerCompilerPass implements CompilerPassInterface
 
             $definition->addMethodCall('addWorker', array(new Reference($id)));
         }
-
-        $eventDispatcher = $container->getDefinition('dtc_queue.event_dispatcher');
-        foreach ($container->findTaggedServiceIds('dtc_queue.event_subscriber') as $id => $attributes) {
-            $eventSubscriber = $container->getDefinition($id);
-            $eventDispatcher->addMethodCall('addSubscriber', [$eventSubscriber]);
-        }
-        $this->setupDoctrineManagers($container);
     }
 
     /**
@@ -71,7 +81,7 @@ class WorkerCompilerPass implements CompilerPassInterface
      *
      * @param ContainerBuilder $container
      */
-    public function setupBeanstalkd(ContainerBuilder $container)
+    protected function setupBeanstalkd(ContainerBuilder $container)
     {
         if ($container->hasParameter('dtc_queue.beanstalkd.host')) {
             $definition = new Definition('Pheanstalk\\Pheanstalk', [$container->getParameter('dtc_queue.beanstalkd.host')]);
@@ -84,7 +94,7 @@ class WorkerCompilerPass implements CompilerPassInterface
         }
     }
 
-    public function setupDoctrineManagers(ContainerBuilder $container)
+    protected function setupDoctrineManagers(ContainerBuilder $container)
     {
         $documentManager = $container->getParameter('dtc_queue.document_manager');
 
@@ -106,7 +116,7 @@ class WorkerCompilerPass implements CompilerPassInterface
      *
      * @param ContainerBuilder $container
      */
-    public function setupRabbitMQ(ContainerBuilder $container)
+    protected function setupRabbitMQ(ContainerBuilder $container)
     {
         if ($container->hasParameter('dtc_queue.rabbit_mq')) {
             $class = 'PhpAmqpLib\\Connection\\AMQPStreamConnection';
@@ -119,24 +129,7 @@ class WorkerCompilerPass implements CompilerPassInterface
                 $rabbitMqConfig['vhost'],
             ];
 
-            if ($container->hasParameter('dtc_queue.rabbit_mq.ssl') && $container->getParameter('dtc_queue.rabbit_mq.ssl')) {
-                $class = 'PhpAmqpLib\\Connection\\AMQPSSLConnection';
-                if ($container->hasParameter('dtc_queue.rabbit_mq.ssl_options')) {
-                    $arguments[] = $container->getParameter('dtc_queue.rabbit_mq.ssl_options');
-                } else {
-                    $arguments[] = [];
-                }
-                if ($container->hasParameter('dtc_queue.rabbit_mq.options')) {
-                    $arguments[] = $container->getParameter('dtc_queue.rabbit_mq.options');
-                }
-            } else {
-                if ($container->hasParameter('dtc_queue.rabbit_mq.options')) {
-                    $options = $container->getParameter('dtc_queue.rabbit_mq.options');
-                    $this->setRabbitMqOptionsPt1($arguments, $options);
-                    $this->setRabbitMqOptionsPt2($arguments, $options);
-                }
-            }
-
+            $this->setupRabbitMQOptions($container, $arguments, $class);
             $definition = new Definition($class, $arguments);
             $container->setDefinition('dtc_queue.rabbit_mq', $definition);
             $definition = $container->getDefinition('dtc_queue.job_manager.rabbit_mq');
@@ -146,7 +139,33 @@ class WorkerCompilerPass implements CompilerPassInterface
         }
     }
 
-    public function setRabbitMqOptionsPt1(array &$arguments, array $options)
+    /**
+     * @param ContainerBuilder $container
+     * @param array            $arguments
+     * @param $class
+     */
+    protected function setupRabbitMQOptions(ContainerBuilder $container, array &$arguments, &$class)
+    {
+        if ($container->hasParameter('dtc_queue.rabbit_mq.ssl') && $container->getParameter('dtc_queue.rabbit_mq.ssl')) {
+            $class = 'PhpAmqpLib\\Connection\\AMQPSSLConnection';
+            if ($container->hasParameter('dtc_queue.rabbit_mq.ssl_options')) {
+                $arguments[] = $container->getParameter('dtc_queue.rabbit_mq.ssl_options');
+            } else {
+                $arguments[] = [];
+            }
+            if ($container->hasParameter('dtc_queue.rabbit_mq.options')) {
+                $arguments[] = $container->getParameter('dtc_queue.rabbit_mq.options');
+            }
+        } else {
+            if ($container->hasParameter('dtc_queue.rabbit_mq.options')) {
+                $options = $container->getParameter('dtc_queue.rabbit_mq.options');
+                $this->setRabbitMqOptionsPt1($arguments, $options);
+                $this->setRabbitMqOptionsPt2($arguments, $options);
+            }
+        }
+    }
+
+    protected function setRabbitMqOptionsPt1(array &$arguments, array $options)
     {
         if (isset($options['insist'])) {
             $arguments[] = $options['insist'];
@@ -170,7 +189,7 @@ class WorkerCompilerPass implements CompilerPassInterface
         }
     }
 
-    public function setRabbitMqOptionsPt2(array &$arguments, array $options)
+    protected function setRabbitMqOptionsPt2(array &$arguments, array $options)
     {
         if (isset($options['connection_timeout'])) {
             $arguments[] = $options['connection_timeout'];
@@ -208,7 +227,7 @@ class WorkerCompilerPass implements CompilerPassInterface
      *
      * @throws \Exception
      */
-    public function getJobClass(ContainerBuilder $container)
+    protected function getJobClass(ContainerBuilder $container)
     {
         $jobClass = $container->getParameter('dtc_queue.class_job');
         if (!$jobClass) {
@@ -235,7 +254,7 @@ class WorkerCompilerPass implements CompilerPassInterface
         return $jobClass;
     }
 
-    public function getRunArchiveClass(ContainerBuilder $container, $type, $className)
+    protected function getRunArchiveClass(ContainerBuilder $container, $type, $className)
     {
         $runArchiveClass = $container->hasParameter('dtc_queue.class_'.$type) ? $container->getParameter('dtc_queue.class_'.$type) : null;
         if (!$runArchiveClass) {
@@ -301,7 +320,7 @@ class WorkerCompilerPass implements CompilerPassInterface
      *
      * @throws \Exception
      */
-    public function getJobClassArchive(ContainerBuilder $container)
+    protected function getJobClassArchive(ContainerBuilder $container)
     {
         $jobArchiveClass = $container->getParameter('dtc_queue.class_job_archive');
         if (!$jobArchiveClass) {
