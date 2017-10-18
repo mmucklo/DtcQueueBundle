@@ -650,14 +650,15 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         parent::testPerformance();
     }
 
-    protected function getBaseStatus() {
+    protected function getBaseStatus()
+    {
         /** @var BaseJobManager $jobManager */
         $jobManager = self::$jobManager;
-        $status = $jobManager->getStatus();
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
-        self::assertArrayHasKey('fibonacci->fibonacci', $status);
-        $fibonacciStatus = $status['fibonacci->fibonacci'];
+        $status = $jobManager->getStatus();
+        self::assertArrayHasKey('fibonacci->fibonacci()', $status);
+        $fibonacciStatus = $status['fibonacci->fibonacci()'];
 
         self::assertArrayHasKey(BaseJob::STATUS_NEW, $fibonacciStatus);
         self::assertArrayHasKey(BaseJob::STATUS_ERROR, $fibonacciStatus);
@@ -667,14 +668,16 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertArrayHasKey(RetryableJob::STATUS_MAX_ERROR, $fibonacciStatus);
         self::assertArrayHasKey(RetryableJob::STATUS_MAX_RETRIES, $fibonacciStatus);
         self::assertArrayHasKey(RetryableJob::STATUS_EXPIRED, $fibonacciStatus);
+
         return [$job, $status];
     }
 
-    public function testGetStatus() {
-        list ($job1, $status1) = $this->getBaseStatus();
-        list ($job2, $status2) = $this->getBaseStatus();
-        $fibonacciStatus1 = $status1['fibonacci->fibonacci'];
-        $fibonacciStatus2 = $status2['fibonacci->fibonacci'];
+    public function testGetStatus()
+    {
+        list($job1, $status1) = $this->getBaseStatus();
+        list($job2, $status2) = $this->getBaseStatus();
+        $fibonacciStatus1 = $status1['fibonacci->fibonacci()'];
+        $fibonacciStatus2 = $status2['fibonacci->fibonacci()'];
 
         self::assertEquals($fibonacciStatus1[BaseJob::STATUS_NEW] + 1, $fibonacciStatus2[BaseJob::STATUS_NEW]);
         $jobManager = self::$jobManager;

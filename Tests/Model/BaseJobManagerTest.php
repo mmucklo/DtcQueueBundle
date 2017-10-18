@@ -134,8 +134,9 @@ abstract class BaseJobManagerTest extends TestCase
         $this->expectingException('pruneExpiredJobs');
     }
 
-    public function testGetStatus() {
-        $this->expectException('getStatus');
+    public function testGetStatus()
+    {
+        $this->expectingException('getStatus');
     }
 
     public function testPruneArchivedJobs()

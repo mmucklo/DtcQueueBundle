@@ -32,6 +32,7 @@ abstract class AbstractJobManager implements JobManagerInterface
 
     /**
      * @return array
+     *
      * @throws \Exception
      */
     public function getStatus()

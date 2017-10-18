@@ -227,8 +227,7 @@ class JobManager extends BaseJobManager
             foreach ($item as $status => $count) {
                 if (isset($finalResult[$key][$status])) {
                     $finalResult[$key][$status] += $count;
-                }
-                else {
+                } else {
                     $finalResult[$key][$status] = $count;
                 }
             }
@@ -248,7 +247,7 @@ class JobManager extends BaseJobManager
             ->groupBy('j.workerName, j.method, j.status')->getQuery()->getArrayResult();
 
         foreach ($result1 as $item) {
-            $method = $item['workerName'].'->'.$item['method'];
+            $method = $item['workerName'].'->'.$item['method'].'()';
             if (!isset($result[$method])) {
                 $result[$method] = [BaseJob::STATUS_NEW => 0,
                     BaseJob::STATUS_RUNNING => 0,

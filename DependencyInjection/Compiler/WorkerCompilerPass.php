@@ -230,14 +230,7 @@ class WorkerCompilerPass implements CompilerPassInterface
             }
         }
 
-        if (!class_exists($jobClass)) {
-            throw new \Exception("Can't find Job class $jobClass");
-        }
-
-        $test = new $jobClass();
-        if (!$test instanceof Job) {
-            throw new \Exception("$jobClass must be instance of (or derived from) Dtc\\QueueBundle\\Model\\Job");
-        }
+        $this->testJobClass($jobClass);
 
         return $jobClass;
     }
@@ -258,18 +251,45 @@ class WorkerCompilerPass implements CompilerPassInterface
             }
         }
 
-        if (isset($runArchiveClass)) {
-            if (!class_exists($runArchiveClass)) {
-                throw new \Exception("Can't find $className class $runArchiveClass");
-            }
-        }
-
-        $test = new $runArchiveClass();
-        if (!$test instanceof Run) {
-            throw new \Exception("$runArchiveClass must be instance of (or derived from) Dtc\\QueueBundle\\Model\\Run");
-        }
+        $this->testRunClass($runArchiveClass);
 
         return $runArchiveClass;
+    }
+
+    /**
+     * @param string $runClass
+     *
+     * @throws \Exception
+     */
+    protected function testRunClass($runClass)
+    {
+        if (!class_exists($runClass)) {
+            throw new \Exception("Can't find class $runClass");
+        }
+
+        $test = new $runClass();
+        if (!$test instanceof Run) {
+            throw new \Exception("$runClass must be instance of (or derived from) Dtc\\QueueBundle\\Model\\Run");
+        }
+    }
+
+    /**
+     * @param string|null $jobArchiveClass
+     *
+     * @throws \Exception
+     */
+    protected function testJobClass($jobClass)
+    {
+        if ($jobClass) {
+            if (!class_exists($jobClass)) {
+                throw new \Exception("Can't find class $jobClass");
+            }
+
+            $test = new $jobClass();
+            if (!$test instanceof Job) {
+                throw new \Exception("$jobClass must be instance of (or derived from) Dtc\\QueueBundle\\Model\\Job");
+            }
+        }
     }
 
     /**
@@ -294,17 +314,7 @@ class WorkerCompilerPass implements CompilerPassInterface
                     break;
             }
         }
-
-        if ($jobArchiveClass && !class_exists($jobArchiveClass)) {
-            throw new \Exception("Can't find JobArchive class $jobArchiveClass");
-        }
-
-        if ($jobArchiveClass) {
-            $test = new $jobArchiveClass();
-            if (!$test instanceof Job) {
-                throw new \Exception("$jobArchiveClass must be instance of (or derived from) Dtc\\QueueBundle\\Model\\Job");
-            }
-        }
+        $this->testJobClass($jobArchiveClass);
 
         return $jobArchiveClass;
     }
