@@ -217,47 +217,14 @@ class RunCommand extends ContainerAwareCommand
         try {
             $this->log('info', 'Staring up a new job...');
 
-            $endTime = null;
-            if (null !== $duration) {
-                $interval = new \DateInterval("PT${duration}S");
-                $endTime = $this->run->getStartedAt()->add($interval);
-            }
-
+            $endTime = $this->getEndTime($duration);
             $currentJob = 1;
             $noMoreJobsToRun = false;
             do {
-                $this->run->setLastHeartbeatAt(new \DateTime());
-                $this->run->setElapsed(microtime(true) - $start);
-                if ($this->runManager) {
-                    $this->runManager->persist($this->run);
-                    $this->runManager->flush();
-                }
-
+                $this->recordHeartbeat($start);
                 $job = $workerManager->run($workerName, $methodName, true, $this->run->getId());
-                if ($job) {
-                    $noMoreJobsToRun = false;
-                    $this->reportJob($job);
-                    $this->run->setProcessed($currentJob);
-                    if ($this->runManager) {
-                        $this->runManager->persist($this->run);
-                        $this->runManager->flush();
-                    }
-                    ++$currentJob;
-                } else {
-                    if (!$noMoreJobsToRun) {
-                        $this->log('info', 'No more jobs to run ('.($currentJob - 1).' processed so far).');
-                        $noMoreJobsToRun = true;
-                    }
-                    if (null !== $maxCount && null === $duration) {
-                        // time to finish
-                        $this->runStop($start);
-
-                        return 0;
-                    }
-                    $nanoSleepTime = function_exists('random_int') ? random_int(0, $nanoSleep) : mt_rand(0, $nanoSleep);
-                    time_nanosleep(0, $nanoSleepTime);
-                }
-            } while ((null === $maxCount || $currentJob <= $maxCount) && (null === $duration || (new \DateTime()) < $endTime));
+                $this->runCurrentJob($job, $noMoreJobsToRun, $currentJob, $duration, $nanoSleep);
+            } while (!$this->isFinished($maxCount, $duration, $currentJob, $endTime, $noMoreJobsToRun));
         } catch (\Exception $e) {
             // Uncaught error: possibly with QueueBundle itself
             $this->log('critical', $e->getMessage(), $e->getTrace());
@@ -265,6 +232,101 @@ class RunCommand extends ContainerAwareCommand
         $this->runStop($start);
 
         return 0;
+    }
+
+    /**
+     * @param int|null $duration
+     *
+     * @return null|\DateTime
+     */
+    protected function getEndTime($duration)
+    {
+        $endTime = null;
+        if (null !== $duration) {
+            $interval = new \DateInterval("PT${duration}S");
+            $endTime = $this->run->getStartedAt()->add($interval);
+        }
+
+        return $endTime;
+    }
+
+    /**
+     * @param Job      $job
+     * @param bool     $noMoreJobsToRun
+     * @param int      $currentJob
+     * @param int|null $duration
+     * @param int      $nanoSleep
+     */
+    protected function runCurrentJob($job, &$noMoreJobsToRun, &$currentJob, $duration, $nanoSleep)
+    {
+        if ($job) {
+            $noMoreJobsToRun = false;
+            $this->reportJob($job);
+            $this->updateProcessed($currentJob);
+            ++$currentJob;
+        } else {
+            if (!$noMoreJobsToRun) {
+                $this->log('info', 'No more jobs to run ('.($currentJob - 1).' processed so far).');
+                $noMoreJobsToRun = true;
+            }
+            if (null !== $duration) {
+                $nanoSleepTime = function_exists('random_int') ? random_int(0, $nanoSleep) : mt_rand(0, $nanoSleep);
+                time_nanosleep(0, $nanoSleepTime);
+            }
+        }
+    }
+
+    /**
+     * Determine if the run loop is finished.
+     *
+     * @param $maxCount
+     * @param $currentJob
+     * @param $duration
+     * @param $endTime
+     *
+     * @return bool
+     */
+    protected function isFinished($maxCount, $duration, $currentJob, $endTime, $noMoreJobsToRun)
+    {
+        if ((null === $maxCount || $currentJob <= $maxCount)) {
+            if (null === $duration) { // This means that there is a $maxCount as we force one or the other to be not null
+                if ($noMoreJobsToRun) {
+                    return true;
+                }
+
+                return false;
+            }
+            if ((new \DateTime()) < $endTime) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param float $start
+     */
+    protected function recordHeartbeat($start)
+    {
+        $this->run->setLastHeartbeatAt(new \DateTime());
+        $this->run->setElapsed(microtime(true) - $start);
+        if ($this->runManager) {
+            $this->runManager->persist($this->run);
+            $this->runManager->flush();
+        }
+    }
+
+    /**
+     * @param int $count
+     */
+    protected function updateProcessed($count)
+    {
+        $this->run->setProcessed($count);
+        if ($this->runManager) {
+            $this->runManager->persist($this->run);
+            $this->runManager->flush();
+        }
     }
 
     /**
@@ -284,6 +346,16 @@ class RunCommand extends ContainerAwareCommand
             $this->runManager = $container->get('dtc_queue.entity_manager');
         }
 
+        $this->createRun($start, $duration, $maxCount);
+    }
+
+    /**
+     * @param $start
+     * @param $duration
+     * @param $maxCount
+     */
+    protected function createRun($start, $duration, $maxCount)
+    {
         $this->run = new $this->runClass();
         $startDate = \DateTime::createFromFormat('U.u', $start);
         $this->run->setLastHeartbeatAt($startDate);
