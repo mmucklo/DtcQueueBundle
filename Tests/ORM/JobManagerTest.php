@@ -6,6 +6,7 @@ use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Tools\Setup;
+use Dtc\QueueBundle\ODM\RunManager;
 use Dtc\QueueBundle\Tests\Doctrine\BaseJobManagerTest;
 use Dtc\QueueBundle\ORM\JobManager;
 use Doctrine\ORM\EntityManager;
@@ -79,6 +80,7 @@ class JobManagerTest extends BaseJobManagerTest
         self::$runClass = $runClass;
         self::$runArchiveClass = $runArchiveClass;
         self::$jobManagerClass = JobManager::class;
+        self::$runManagerClass = RunManager::class;
         parent::setUpBeforeClass();
     }
 }

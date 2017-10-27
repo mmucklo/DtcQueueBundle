@@ -58,4 +58,24 @@ class Util
             }
         }
     }
+
+    /**
+     * @param string $varName
+     * @param int    $pow
+     */
+    public static function validateIntNull($varName, $var, $pow)
+    {
+        if (null === $var) {
+            return null;
+        }
+        if (!ctype_digit(strval($var))) {
+            throw new \Exception("$varName must be an integer");
+        }
+
+        if (strval(intval($var)) !== strval($var) || $var <= 0 || $var >= pow(2, $pow)) {
+            throw new \Exception("$varName must be an base 10 integer within 2^$pow");
+        }
+
+        return intval($var);
+    }
 }

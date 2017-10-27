@@ -13,4 +13,10 @@ class StaticJobManagerTest extends BaseJobManagerTest
         self::$worker = new FibonacciWorker();
         parent::setUpBeforeClass();
     }
+
+    public function testGetStatus()
+    {
+        $status = self::$jobManager->getStatus();
+        self::assertNull($status);
+    }
 }

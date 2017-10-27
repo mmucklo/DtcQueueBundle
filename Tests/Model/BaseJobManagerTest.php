@@ -141,13 +141,15 @@ abstract class BaseJobManagerTest extends TestCase
 
     public function testPruneArchivedJobs()
     {
+        $failed = false;
         try {
             $time = time() - 86400;
             self::$jobManager->pruneArchivedJobs(new \DateTime("@$time"));
-            self::fail('Expected Exception');
+            $failed = true;
         } catch (\Exception $exception) {
             self::assertTrue(true);
         }
+        self::assertFalse($failed);
     }
 
     /**
@@ -155,12 +157,14 @@ abstract class BaseJobManagerTest extends TestCase
      */
     protected function expectingException($method)
     {
+        $failed = false;
         try {
             self::$jobManager->$method();
-            self::fail('Expected Exception');
+            $failed = true;
         } catch (\Exception $exception) {
             self::assertTrue(true);
         }
+        self::assertFalse($failed);
     }
 
     /**

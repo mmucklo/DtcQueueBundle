@@ -20,8 +20,9 @@ class CountCommand extends ContainerAwareCommand
     {
         $container = $this->getContainer();
         $jobManager = $container->get('dtc_queue.job_manager');
+
         if ($jobManager instanceof JobManager) {
-            print_r($jobManager->getStats());
+            $output->writeln(print_r($jobManager->getStats(), true));
 
             return 0;
         }

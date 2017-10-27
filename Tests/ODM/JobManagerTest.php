@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Tests\ODM;
 
 use Doctrine\Common\Annotations\AnnotationRegistry;
+use Dtc\QueueBundle\ODM\RunManager;
 use Dtc\QueueBundle\Tests\Doctrine\BaseJobManagerTest;
 use Dtc\QueueBundle\ODM\JobManager;
 use Doctrine\MongoDB\Connection;
@@ -12,7 +13,7 @@ use Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver;
 
 /**
  * @author David
- *
+ *lh//hj
  * This test requires local mongodb running
  */
 class JobManagerTest extends BaseJobManagerTest
@@ -71,6 +72,7 @@ class JobManagerTest extends BaseJobManagerTest
         self::$runClass = $runClass;
         self::$runArchiveClass = $runArchiveClass;
         self::$jobManagerClass = JobManager::class;
+        self::$runManagerClass = RunManager::class;
         parent::setUpBeforeClass();
     }
 }

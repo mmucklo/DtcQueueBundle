@@ -17,7 +17,7 @@ class PruneCommand extends ContainerAwareCommand
         $this
         ->setName('dtc:queue:prune')
         ->setDescription('Prune job with error status')
-        ->addArgument('type', InputArgument::REQUIRED, '<stalled|error|expired|old> Prune stalled, erroneous, expired, or old jobs')
+        ->addArgument('type', InputArgument::REQUIRED, '<stalled|error|expired|old|old_runs> Prune stalled, erroneous, expired, or old jobs')
             ->addOption('older', null, InputOption::VALUE_REQUIRED, self::OLDER_MESSAGE);
     }
 
@@ -40,19 +40,20 @@ class PruneCommand extends ContainerAwareCommand
                 $output->writeln("$count Stalled Job(s) pruned");
                 break;
             case 'old':
+            case 'old_runs':
                 $older = $input->getOption('older');
                 if (!$older) {
                     $output->writeln('<error>--older must be specified</error>');
 
                     return 1;
                 }
-                if (!preg_match("/(\d+)([d|m|y|h|i|s]){0,1}/", $older, $matches)) {
+                if (!preg_match("/(\d+)([d|m|y|h|i|s]){0,1}$/", $older, $matches)) {
                     $output->writeln('<error>Wrong format for --older</error>');
 
                     return 1;
                 }
 
-                return $this->pruneOldJobs($matches, $output);
+                return $this->pruneOldJobs($matches, $type, $output);
             default:
                 $output->writeln("<error>Unknown type $type.</error>");
 
@@ -70,7 +71,7 @@ class PruneCommand extends ContainerAwareCommand
      *
      * @throws \Exception
      */
-    protected function pruneOldJobs(array $matches, OutputInterface $output)
+    protected function pruneOldJobs(array $matches, $type, OutputInterface $output)
     {
         $durationOrTimestamp = intval($matches[1]);
         $modifier = isset($matches[2]) ? $matches[2] : null;
@@ -88,7 +89,16 @@ class PruneCommand extends ContainerAwareCommand
             $olderThan->sub($interval);
         }
         $container = $this->getContainer();
-        $count = $container->get('dtc_queue.job_manager')->pruneArchivedJobs($olderThan);
+        switch ($type) {
+            case 'old':
+                $count = $container->get('dtc_queue.job_manager')->pruneArchivedJobs($olderThan);
+                break;
+            case 'old_runs':
+                $count = $container->get('dtc_queue.run_manager')->pruneArchivedRuns($olderThan);
+                break;
+            default:
+                throw new \Exception("Unknown type $type");
+        }
         $output->writeln("$count Archived Job(s) pruned");
 
         return 0;
@@ -108,23 +118,23 @@ class PruneCommand extends ContainerAwareCommand
     {
         switch ($modifier) {
             case 'd':
-                $interval = new \DateInterval("P${$duration}D");
+                $interval = new \DateInterval("P${duration}D");
                 break;
             case 'm':
-                $interval = new \DateInterval("P${$duration}M");
+                $interval = new \DateInterval("P${duration}M");
                 break;
             case 'y':
-                $interval = new \DateInterval("P${$duration}Y");
+                $interval = new \DateInterval("P${duration}Y");
                 break;
             case 'h':
-                $interval = new \DateInterval("PT${$duration}H");
+                $interval = new \DateInterval("PT${duration}H");
                 break;
             case 'i':
                 $seconds = $duration * 60;
                 $interval = new \DateInterval("PT${seconds}S");
                 break;
             case 's':
-                $interval = new \DateInterval("PT${$duration}S");
+                $interval = new \DateInterval("PT${duration}S");
                 break;
             default:
                 throw new \Exception("Unknown duration modifier: $modifier");

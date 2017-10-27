@@ -82,14 +82,19 @@ dtc_queue:
 
 ####Optional Admin
 
-NOTE: _this only applies to __Doctrine__ (ORM/ODM) based queues._
-
 Add this to your app/config/routing.yml file:
 
 ```yaml
 dtc_queue:
     resource: '@DtcQueueBundle/Resources/config/routing.yml'
 ```
+
+__Urls:__
+   * /dtc_queue/jobs
+      * ODM / ORM only
+   * /dtc_queue/runs
+      * ODM / ORM only (or another type of queue with an ODM / ORM run_manager)
+   * /dtc_queue/status
 
 Usage
 -----
@@ -156,10 +161,19 @@ services:
 #### Create a job
 
 ```php
+// Basic Examples
 $fibonacciWorker->later()->fibonacci(20);
 $fibonacciWorker->later()->fibonacciFile(20);
+
+// Batch Example
 $fibonacciWorker->batchLater()->fibonacci(20); // Batch up runs into a single run
+
+// Timed Example
 $fibonacciWorker->later(90)->fibonacci(20); // Run 90 seconds later
+
+// Advanced Usage
+$expireTime = time() + 3600;
+$fibonacciWorker->later()->setExpiresAt(new \DateTime("@$expireTime"))->fibonacci(20); // Must be run within the hour or not at all
 ```
 
 ```bash
@@ -181,6 +195,7 @@ bin/console dtc:queue:run --help
 # If you're running a MongoDB or ORM based job store, run these periodically:
 #
 bin/console dtc:queue:prune old --older 1m
+bin/console dtc:queue:prune old_runs --older 1m
 bin/console dtc:queue:prune stalled
 # (deletes jobs older than one month from the Archive table)
 
@@ -200,18 +215,36 @@ bin/console dtc:queue:run --id={jobId}
 
 (jobId could be obtained from mongodb / or your database, if using an ORM / ODM solution)
 
-MongoDB Customization
----------------------
+Tracking Runs
+-------------
+Each runs can be tracked in a table in an ORM / ODM backed datastore.
+
+Ways to configure:
+__config.yml:__
+```yaml
+dtc_queue:
+    # run_manager defaults to whatever default_manager is set to (which defaults to "odm", i.e. mongodb)
+    #   If you set the default_manager to rabbit_mq, or beanstalkd or something else, you need to set run_manager
+    #   to an ORM / ODM run_manager (or a custom such one) in order to get the runs to save
+    #
+    run_manager: orm # other possible option is "odm" (i.e. mongodb)
+    #
+    # (optionally define your own run manager with id: dtc_queue.run_manager.{some_name} and put {some_name} as the run_manager
+    #  although it's required that you at least inherit from Dtc\QueueBundle\Doctrine\BaseJobManager)    
+```
+
+MongoDB DocumentManager
+------------------------
 Change the document manager
 
 __config.yml:__
 ```yaml
 dtc_queue:
-    document_manager: [default|something_else]
+    document_manager: {something} # default is "default"
 ```        
 
-Mysql (ORM) Configuration
--------------------------
+Mysql / ORM Setup
+-----------------
 
 __config.yml:__
 ```yaml
@@ -219,14 +252,14 @@ dtc_queue:
     default_manager: orm
 ```
 
-Change the entity manager
+__Change the EntityManager:__
 
 ```yaml
-    dtc_queue:
-        entity_manager: [default|something_else]
+dtc_queue:
+    entity_manager: {something} # default is "default"
 ```        
 
-NOTE: You may need to add DtcQueueBundle to your mappings section in config.yml if auto_mapping is not enabled
+__NOTE:__ You may need to add DtcQueueBundle to your mappings section in config.yml if auto_mapping is not enabled
  
 ```yaml
 doctrine:
@@ -336,7 +369,7 @@ class Job extends BaseJob {
 
 ```php
 <?php
-namespace AppBundle\Document
+namespace AppBundle\Document;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 use Dtc\QueueBundle\Document\Job as BaseJob;
@@ -463,8 +496,7 @@ localhost and run:
 bin/phpunit Tests/Document/JobManagerTest.php
 ```
 
-If you want to run Beanstalkd integration testing, you need to run a local
-empty instance of beanstalkd for testing.
+If you want to run Beanstalkd integration testing, you need to run a local, empty instance of beanstalkd for testing.
 
 ```bash
 sudo service beanstalkd restart; BEANSTALD_HOST=localhost bin/phpunit Tests/BeanStalkd/JobManagerTest.php
@@ -476,7 +508,10 @@ Full Configuration
 dtc_queue:
     document_manager: default
     entity_manager: default
-    default_manager: mongodb
+    # default_manager: builtins: orm, odm, beanstalkd, rabbit_mq
+    default_manager: odm
+    # run_manager: can be set to any of the same options as "default_manager"
+    run_manager: ~
     class_job: ~
     class_job_archive: ~
     class_run: ~

@@ -34,11 +34,13 @@ class WorkerManagerTest extends TestCase
         $worker = $this->workerManager->getWorker($this->worker->getName());
         self::assertEquals($this->worker, $worker);
 
+        $failed = false;
         try {
             $this->workerManager->addWorker($this->worker);
-            self::fail('Should not be able to add duplicate worker');
+            $failed = true;
         } catch (\Exception $e) {
         }
+        self::assertFalse($failed);
     }
 
     public function testRun()

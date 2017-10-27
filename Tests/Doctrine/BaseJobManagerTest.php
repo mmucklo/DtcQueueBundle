@@ -32,10 +32,15 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
     protected static $runClass;
     protected static $runArchiveClass;
     protected static $jobManagerClass;
+    protected static $runManagerClass;
+    public static $runManager;
 
     public static function setUpBeforeClass()
     {
         self::$jobManager = new self::$jobManagerClass(self::$objectManager, self::$objectName, self::$archiveObjectName, self::$runClass, self::$runArchiveClass);
+        self::$runManager = new self::$runManagerClass(self::$runClass);
+        self::$runManager->setObjectManager(self::$objectManager);
+        self::$runManager->setRunArchiveClass(self::$runArchiveClass);
 
         /** @var BaseJobManager $jobManager */
         $jobManager = self::$jobManager;
@@ -44,6 +49,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $container = new Container($parameters);
         $container->set('dtc_queue.job_manager', $jobManager);
+        $container->set('dtc_queue.run_manager', self::$runManager);
 
         self::$dtcQueueListener = new DtcQueueListener($container);
         self::$objectManager->getEventManager()->addEventListener('preUpdate', self::$dtcQueueListener);

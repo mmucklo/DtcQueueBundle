@@ -1,3 +1,10 @@
+### 2.2.0
+   * Create a RunManager for tracking Runs
+   * Add a new config parameter run_manager so that a job queue can have a separate store-type for Runs
+   * Unit test commands
+   * Added ability to prune old Run entries
+   * Refactoring of RunCommand and other areas to hopefully improve or at least maintain code quality
+   * Updated README
 ### 2.1.1
    * Upped GridBundle requirement
    * Refactoring and tests

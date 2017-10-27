@@ -11,6 +11,8 @@ use Dtc\QueueBundle\Model\RetryableJob;
 
 class JobManager extends BaseJobManager
 {
+    use CommonTrait;
+
     public function countJobsByStatus($objectName, $status, $workerName = null, $method = null)
     {
         /** @var DocumentManager $objectManager */
@@ -98,20 +100,7 @@ class JobManager extends BaseJobManager
      */
     public function pruneArchivedJobs(\DateTime $olderThan)
     {
-        /** @var DocumentManager $objectManager */
-        $objectManager = $this->getObjectManager();
-        $qb = $objectManager->createQueryBuilder($this->getArchiveObjectName());
-        $qb
-            ->remove()
-            ->field('updatedAt')->lt($olderThan);
-
-        $query = $qb->getQuery();
-        $result = $query->execute();
-        if (isset($result['n'])) {
-            return $result['n'];
-        }
-
-        return 0;
+        return $this->removeOlderThan($this->getObjectManager(), $this->getArchiveObjectName(), 'updatedAt', $olderThan);
     }
 
     public function getJobCount($workerName = null, $method = null)

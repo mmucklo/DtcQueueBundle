@@ -19,13 +19,7 @@ class WorkerCompilerPass implements CompilerPassInterface
             return;
         }
 
-        $defaultManagerType = $container->getParameter('dtc_queue.default_manager');
-        if (!$container->hasDefinition('dtc_queue.job_manager.'.$defaultManagerType)) {
-            throw new \Exception("No job manager found for dtc_queue.job_manager.$defaultManagerType");
-        }
-
-        $alias = new Alias('dtc_queue.job_manager.'.$defaultManagerType);
-        $container->setAlias('dtc_queue.job_manager', $alias);
+        $this->setupAliases($container);
 
         // Setup beanstalkd if configuration is present
         $this->setupBeanstalkd($container);
@@ -38,8 +32,8 @@ class WorkerCompilerPass implements CompilerPassInterface
         $jobArchiveClass = $this->getJobClassArchive($container);
         $container->setParameter('dtc_queue.class_job', $jobClass);
         $container->setParameter('dtc_queue.class_job_archive', $jobArchiveClass);
-        $container->setParameter('dtc_queue.class_run', $this->getRunArchiveClass($container, 'run', 'Run'));
-        $container->setParameter('dtc_queue.class_run_archive', $this->getRunArchiveClass($container, 'run_archive', 'RunArchive'));
+        $container->setParameter('dtc_queue.class_run', $this->getRunClass($container, 'run', 'Run'));
+        $container->setParameter('dtc_queue.class_run_archive', $this->getRunClass($container, 'run_archive', 'RunArchive'));
 
         $this->setupTaggedServices($container, $definition, $jobManagerRef, $jobClass);
         $eventDispatcher = $container->getDefinition('dtc_queue.event_dispatcher');
@@ -48,6 +42,25 @@ class WorkerCompilerPass implements CompilerPassInterface
             $eventDispatcher->addMethodCall('addSubscriber', [$eventSubscriber]);
         }
         $this->setupDoctrineManagers($container);
+    }
+
+    protected function setupAliases(ContainerBuilder $container)
+    {
+        $defaultManagerType = $container->getParameter('dtc_queue.default_manager');
+        if (!$container->hasDefinition('dtc_queue.job_manager.'.$defaultManagerType)) {
+            throw new \Exception("No job manager found for dtc_queue.job_manager.$defaultManagerType");
+        }
+
+        $defaultRunManagerType = $container->getParameter('dtc_queue.run_manager');
+        if (!$container->hasDefinition('dtc_queue.run_manager.'.$defaultRunManagerType)) {
+            throw new \Exception("No run manager found for dtc_queue.run_manager.$defaultRunManagerType");
+        }
+
+        $alias = new Alias('dtc_queue.job_manager.'.$defaultManagerType);
+        $container->setAlias('dtc_queue.job_manager', $alias);
+
+        $alias = new Alias('dtc_queue.run_manager.'.$defaultRunManagerType);
+        $container->setAlias('dtc_queue._manager', $alias);
     }
 
     /**
@@ -232,7 +245,8 @@ class WorkerCompilerPass implements CompilerPassInterface
         $jobClass = $container->getParameter('dtc_queue.class_job');
         if (!$jobClass) {
             switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
-                case 'mongodb':
+                case 'mongodb': // deprecated remove in 4.0
+                case 'odm':
                     $jobClass = 'Dtc\\QueueBundle\\Document\\Job';
                     break;
                 case 'beanstalkd':
@@ -254,12 +268,13 @@ class WorkerCompilerPass implements CompilerPassInterface
         return $jobClass;
     }
 
-    protected function getRunArchiveClass(ContainerBuilder $container, $type, $className)
+    protected function getRunClass(ContainerBuilder $container, $type, $className)
     {
         $runArchiveClass = $container->hasParameter('dtc_queue.class_'.$type) ? $container->getParameter('dtc_queue.class_'.$type) : null;
         if (!$runArchiveClass) {
             switch ($container->getParameter('dtc_queue.default_manager')) {
-                case 'mongodb':
+                case 'mongodb': // deprecated remove in 4.0
+                case 'odm':
                     $runArchiveClass = 'Dtc\\QueueBundle\\Document\\'.$className;
                     break;
                 case 'orm':
@@ -325,7 +340,8 @@ class WorkerCompilerPass implements CompilerPassInterface
         $jobArchiveClass = $container->getParameter('dtc_queue.class_job_archive');
         if (!$jobArchiveClass) {
             switch ($container->getParameter('dtc_queue.default_manager')) {
-                case 'mongodb':
+                case 'mongodb': // deprecated remove in 4.0
+                case 'odm':
                     $jobArchiveClass = 'Dtc\\QueueBundle\\Document\\JobArchive';
                     break;
                 case 'orm':

@@ -19,18 +19,21 @@ class JobTest extends TestCase
         $job->setArgs(array(1));
         $job->setArgs(array(1, array(1, 2)));
 
+        $failed = false;
         try {
             $job->setArgs(array($job));
-            self::fail('Invalid job argument passed');
+            $failed = true;
         } catch (\Exception $e) {
         }
+        self::assertFalse($failed);
 
         try {
             $job->setArgs(array(1, array($job)));
-            self::fail('Invalid job argument passed');
+            $failed = true;
         } catch (\Exception $e) {
             self::assertTrue(true);
         }
+        self::assertFalse($failed);
     }
 
     public function testGettersSetters()
@@ -50,11 +53,13 @@ class JobTest extends TestCase
         $job->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
 
+        $failed = false;
         try {
             $job->invalidFunctionCall();
-            self::fail('invalid chain, should fail');
+            $failed = true;
         } catch (\Exception $e) {
             self::assertTrue(true);
         }
+        self::assertFalse($failed);
     }
 }

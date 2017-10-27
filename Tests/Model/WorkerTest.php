@@ -31,13 +31,15 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         self::assertFalse($job->getBatch(), 'Should not be batching');
 
         // Test job with object
+        $failed = false;
         try {
             $object = new \stdClass();
             $this->worker->at($time)->fibonacci($object);
-            self::fail('Exception should be thrown.');
+            $failed = true;
         } catch (\Exception $e) {
             self::assertTrue(true);
         }
+        self::assertFalse($failed);
     }
 
     public function testLater()

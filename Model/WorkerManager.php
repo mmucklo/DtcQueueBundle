@@ -4,28 +4,34 @@ namespace Dtc\QueueBundle\Model;
 
 use Dtc\QueueBundle\EventDispatcher\Event;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
-use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 
 class WorkerManager
 {
     protected $workers;
     protected $jobManager;
+
+    /** @var LoggerInterface */
     protected $logger;
     protected $eventDispatcher;
     protected $logFunc;
 
-    public function __construct(JobManagerInterface $jobManager, EventDispatcher $eventDispatcher, Logger $logger = null)
+    public function __construct(JobManagerInterface $jobManager, EventDispatcher $eventDispatcher)
     {
         $this->workers = array();
         $this->jobManager = $jobManager;
-        $this->logger = $logger;
         $this->eventDispatcher = $eventDispatcher;
+    }
+
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
     }
 
     public function addWorker(Worker $worker)
     {
         if ($this->logger) {
-            $this->logger->debug("Added worker: {$worker->getName()}");
+            $this->logger->debug(__METHOD__." - Added worker: {$worker->getName()}");
         }
 
         if (isset($this->workers[$worker->getName()])) {
@@ -125,7 +131,7 @@ class WorkerManager
         $job->setFinishedAt(new \DateTime());
         $job->setElapsed($elapsed);
 
-        $this->log('debug', "Finished: {$job->getClassName()}->{$job->getMethod()} in {$elapsed} micro-seconds");
+        $this->log('debug', "Finished: {$job->getClassName()}->{$job->getMethod()} in {$elapsed} seconds");
         $this->log('debug', "Save job history: {$job->getId()}");
 
         $this->jobManager->saveHistory($job);

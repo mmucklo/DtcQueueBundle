@@ -46,17 +46,18 @@ class DtcQueueExtensionTest extends TestCase
         $dtcQueueExtension = new DtcQueueExtension();
         $containerBuilder = new ContainerBuilder();
 
+        $failed = false;
         try {
             $dtcQueueExtension->load($configs, $containerBuilder);
             if (!$good) {
-                $this->fail('Bad config should not reach here: '.print_r($configs, true));
+                $failed = true;
             }
         } catch (\Exception $exception) {
             if ($good) {
                 self::fail($exception->getMessage());
             }
         }
-        self::assertTrue(true);
+        self::assertFalse($failed);
 
         return $containerBuilder;
     }

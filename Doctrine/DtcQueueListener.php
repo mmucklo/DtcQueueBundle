@@ -38,10 +38,10 @@ class DtcQueueListener
 
     public function processRun(Run $object, ObjectManager $objectManager)
     {
-        /** @var BaseJobManager $jobManager */
-        $jobManager = $this->container->get('dtc_queue.job_manager');
+        /** @var BaseRunManager $runManager */
+        $runManager = $this->container->get('dtc_queue.run_manager');
 
-        $runArchiveClass = $jobManager->getRunArchiveClass();
+        $runArchiveClass = $runManager->getRunArchiveClass();
         $runArchive = new $runArchiveClass();
         Util::copy($object, $runArchive);
         $metadata = $objectManager->getClassMetadata($runArchiveClass);
