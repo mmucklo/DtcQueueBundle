@@ -3,7 +3,6 @@
 namespace Dtc\QueueBundle\Command;
 
 use Dtc\QueueBundle\Model\Job;
-use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\Run\Loop;
 use Dtc\QueueBundle\Util\Util;
 use Psr\Log\LoggerInterface;
