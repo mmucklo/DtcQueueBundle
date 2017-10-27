@@ -210,7 +210,7 @@ class Loop
     /**
      * Determine if the run loop is finished.
      *
-     * @param $maxCount
+     * @param null|integer $maxCount
      * @param integer $currentJob
      * @param \DateTime $endTime
      * @param boolean $noMoreJobsToRun
