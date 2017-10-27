@@ -25,7 +25,6 @@ class LoopTest extends TestCase
         $worker->setJobManager($jobManager);
 
         $runClass = \Dtc\QueueBundle\Document\Run::class;
-        $runArchiveClass = \Dtc\QueueBundle\Document\RunArchive::class;
         $runManager = new \Dtc\QueueBundle\Model\RunManager($runClass);
         $loop = new Loop($workerManager, $jobManager, $runManager);
         $job = $worker->later()->fibonacci(1);
