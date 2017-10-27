@@ -145,7 +145,7 @@ class JobManager extends AbstractJobManager
     }
 
     /**
-     * @param $expiredJob
+     * @param boolean $expiredJob
      * @param $runId
      *
      * @return Job|null
