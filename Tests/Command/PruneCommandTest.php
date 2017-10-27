@@ -100,6 +100,7 @@ class PruneCommandTest extends TestCase
         // Test invalid
         $this->runPruneOld();
         $this->runPruneOld('old_runs', 'pruneArchivedRuns');
+        $this->runPruneOld('old_job_timings', 'pruneJobTimings');
     }
 
     public function runPruneOld($type = 'old', $call = 'pruneArchivedJobs')

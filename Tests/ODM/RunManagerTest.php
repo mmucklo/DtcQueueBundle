@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\ODM;
 
+use Dtc\QueueBundle\Document\JobTiming;
 use Dtc\QueueBundle\Tests\ODM\JobManagerTest;
 use PHPUnit\Framework\TestCase;
 
@@ -13,7 +14,7 @@ class RunManagerTest extends TestCase
         $jobManager = JobManagerTest::$jobManager;
         $runClass = \Dtc\QueueBundle\Document\Run::class;
         $runArchiveClass = \Dtc\QueueBundle\Document\RunArchive::class;
-        $runManager = new \Dtc\QueueBundle\ODM\RunManager($runClass);
+        $runManager = new \Dtc\QueueBundle\ODM\RunManager($runClass, JobTiming::class, true);
         $runManager->setRunArchiveClass($runArchiveClass);
         $runManager->setObjectManager($jobManager->getObjectManager());
         $objectManager = $runManager->getObjectManager();

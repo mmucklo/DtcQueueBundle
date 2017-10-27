@@ -195,9 +195,16 @@ bin/console dtc:queue:run --help
 # If you're running a MongoDB or ORM based job store, run these periodically:
 #
 bin/console dtc:queue:prune old --older 1m
-bin/console dtc:queue:prune old_runs --older 1m
-bin/console dtc:queue:prune stalled
 # (deletes jobs older than one month from the Archive table)
+
+# May be needed if jobs stall out
+bin/console dtc:queue:prune stalled
+
+# If you're recording runs
+bin/console dtc:queue:prune old_runs --older 1m
+
+# If you're recording timings
+bin/console dtc:queue:prune old_job_timings --older 1m
 
 
 # You can tune 1m to a smaller interval such as 10d (10 days) or even 1800s (1/2 hour)
@@ -510,12 +517,14 @@ dtc_queue:
     entity_manager: default
     # default_manager: builtins: orm, odm, beanstalkd, rabbit_mq
     default_manager: odm
-    # run_manager: can be set to any of the same options as "default_manager"
+    # run_manager: can be set to any of the same options as "default_manager", defaults to what ever default_manager is set
     run_manager: ~
     class_job: ~
     class_job_archive: ~
     class_run: ~
     class_run_archive: ~
+    # Whether to record job timings in a separate job_timings table / collection (uses same store as run_manager)
+    record_timings: false
     beanstalkd:
         host: ~
         tube: ~

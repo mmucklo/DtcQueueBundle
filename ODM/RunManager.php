@@ -16,4 +16,12 @@ class RunManager extends BaseRunManager
 
         return $this->removeOlderThan($documentManager, $this->getRunArchiveClass(), 'endedAt', $olderThan);
     }
+
+    public function pruneJobTimings(\DateTime $olderThan)
+    {
+        /** @var DocumentManager $documentManager */
+        $documentManager = $this->getObjectManager();
+
+        return $this->removeOlderThan($documentManager, $this->getJobTimingClass(), 'createdAt', $olderThan);
+    }
 }

@@ -12,4 +12,9 @@ class StubRunManager extends RunManager
     {
         return $this->recordArgs(__FUNCTION__, func_get_args());
     }
+
+    public function pruneJobTimings(\DateTime $olderThan)
+    {
+        return $this->recordArgs(__FUNCTION__, func_get_args());
+    }
 }

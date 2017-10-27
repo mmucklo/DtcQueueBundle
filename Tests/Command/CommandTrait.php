@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Tests\Command;
 
+use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Tests\StubJobManager;
 use Dtc\QueueBundle\Tests\StubRunManager;
 use PHPUnit\Framework\TestCase;
@@ -75,12 +76,12 @@ trait CommandTrait
     protected function runStubCommand($className, $params, $call, $expectedResult = 0)
     {
         $managerType = 'job';
-        if (false !== strrpos($call, 'Runs')) {
+        if (false !== strrpos($call, 'Runs') || false !== strrpos($call, 'Timings')) {
             $managerType = 'run';
         }
 
         $jobManager = new StubJobManager();
-        $runManager = new StubRunManager(\Dtc\QueueBundle\Model\Run::class);
+        $runManager = new StubRunManager(\Dtc\QueueBundle\Model\Run::class, JobTiming::class, false);
         $container = new Container();
         $container->set('dtc_queue.job_manager', $jobManager);
         $container->set('dtc_queue.run_manager', $runManager);

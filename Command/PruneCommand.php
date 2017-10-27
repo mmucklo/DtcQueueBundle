@@ -17,7 +17,7 @@ class PruneCommand extends ContainerAwareCommand
         $this
         ->setName('dtc:queue:prune')
         ->setDescription('Prune job with error status')
-        ->addArgument('type', InputArgument::REQUIRED, '<stalled|error|expired|old|old_runs> Prune stalled, erroneous, expired, or old jobs')
+        ->addArgument('type', InputArgument::REQUIRED, '<stalled|error|expired|old|old_runs|old_job_timings> Prune stalled, erroneous, expired, or old jobs')
             ->addOption('older', null, InputOption::VALUE_REQUIRED, self::OLDER_MESSAGE);
     }
 
@@ -39,8 +39,7 @@ class PruneCommand extends ContainerAwareCommand
                 $count = $jobManager->pruneStalledJobs();
                 $output->writeln("$count Stalled Job(s) pruned");
                 break;
-            case 'old':
-            case 'old_runs':
+            default:
                 $older = $input->getOption('older');
                 if (!$older) {
                     $output->writeln('<error>--older must be specified</error>');
@@ -54,10 +53,6 @@ class PruneCommand extends ContainerAwareCommand
                 }
 
                 return $this->pruneOldJobs($matches, $type, $output);
-            default:
-                $output->writeln("<error>Unknown type $type.</error>");
-
-                return 1;
         }
 
         return 0;
@@ -95,6 +90,9 @@ class PruneCommand extends ContainerAwareCommand
                 break;
             case 'old_runs':
                 $count = $container->get('dtc_queue.run_manager')->pruneArchivedRuns($olderThan);
+                break;
+            case 'old_job_timings':
+                $count = $container->get('dtc_queue.run_manager')->pruneJobTimings($olderThan);
                 break;
             default:
                 throw new \Exception("Unknown type $type");

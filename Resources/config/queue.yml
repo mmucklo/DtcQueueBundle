@@ -15,6 +15,8 @@ services:
         class: Dtc\QueueBundle\ODM\RunManager
         arguments:
             - "%dtc_queue.class_run%"
+            - "%dtc_queue.class_job_timing%"
+            - "%dtc_queue.record_timings%"
         calls:
             - ["setObjectManager", ['@dtc_queue.document_manager']]
             - ["setRunArchiveClass", ["%dtc_queue.class_run_archive%"]]
@@ -43,6 +45,8 @@ services:
         class: Dtc\QueueBundle\ORM\RunManager
         arguments:
             - "%dtc_queue.class_run%"
+            - "%dtc_queue.class_job_timing%"
+            - "%dtc_queue.record_timings%"
         calls:
             - ["setObjectManager", ['@dtc_queue.entity_manager']]
             - ["setRunArchiveClass", ["%dtc_queue.class_run_archive%"]]
@@ -54,10 +58,11 @@ services:
         alias: dtc_queue.run_manager_base
 
     dtc_queue.run_manager_base:
-        class: Dtc\QueueBundle\ORM\RunManager
+        class: Dtc\QueueBundle\Model\RunManager
         arguments:
             - "%dtc_queue.class_run%"
-            - "%dtc_queue.class_run_archive%"
+            - "%dtc_queue.class_job_timing%"
+            - "%dtc_queue.record_timings%"
 
     dtc_queue.job_manager.orm:
         class: Dtc\QueueBundle\ORM\JobManager

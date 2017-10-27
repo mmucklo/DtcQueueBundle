@@ -310,6 +310,8 @@ class Loop
      */
     protected function reportJob(Job $job)
     {
+        $this->runManager->recordJobRun($job);
+
         if (BaseJob::STATUS_ERROR == $job->getStatus()) {
             $message = "Error with job id: {$job->getId()}\n".$job->getMessage();
             $this->log('error', $message);

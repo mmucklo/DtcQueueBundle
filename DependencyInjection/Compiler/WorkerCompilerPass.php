@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\DependencyInjection\Compiler;
 
 use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Model\Run;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -27,8 +28,10 @@ class WorkerCompilerPass implements CompilerPassInterface
         $jobArchiveClass = $this->getJobClassArchive($container);
         $container->setParameter('dtc_queue.class_job', $jobClass);
         $container->setParameter('dtc_queue.class_job_archive', $jobArchiveClass);
-        $container->setParameter('dtc_queue.class_run', $this->getRunClass($container, 'run', 'Run'));
-        $container->setParameter('dtc_queue.class_run_archive', $this->getRunClass($container, 'run_archive', 'RunArchive'));
+        $container->setParameter('dtc_queue.class_job_timing', $this->getClass($container, 'job_timing',
+            'JobTimingTest', JobTiming::class));
+        $container->setParameter('dtc_queue.class_run', $this->getClass($container, 'run', 'Run', Run::class));
+        $container->setParameter('dtc_queue.class_run_archive', $this->getClass($container, 'run_archive', 'RunArchive', Run::class));
 
         $this->setupTaggedServices($container, $definition, $jobManagerRef, $jobClass);
         $eventDispatcher = $container->getDefinition('dtc_queue.event_dispatcher');
@@ -138,7 +141,7 @@ class WorkerCompilerPass implements CompilerPassInterface
         return $jobClass;
     }
 
-    protected function getRunClass(ContainerBuilder $container, $type, $className)
+    protected function getClass(ContainerBuilder $container, $type, $className, $baseClass)
     {
         $runClass = $container->hasParameter('dtc_queue.class_'.$type) ? $container->getParameter('dtc_queue.class_'.$type) : null;
         if (!$runClass) {
@@ -151,11 +154,11 @@ class WorkerCompilerPass implements CompilerPassInterface
                     $runClass = 'Dtc\\QueueBundle\\Entity\\'.$className;
                     break;
                 default:
-                    $runClass = Run::class;
+                    $runClass = $baseClass;
             }
         }
 
-        $this->testClass($runClass, Run::class);
+        $this->testClass($runClass, $baseClass);
 
         return $runClass;
     }

@@ -4,6 +4,7 @@ namespace Dtc\QueueBundle\Doctrine;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Persistence\ObjectRepository;
+use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\RunManager;
 
 abstract class BaseRunManager extends RunManager
@@ -52,5 +53,19 @@ abstract class BaseRunManager extends RunManager
     public function setRunArchiveClass($runArchiveClass)
     {
         $this->runArchiveClass = $runArchiveClass;
+    }
+
+    public function recordJobRun(Job $job)
+    {
+        parent::recordJobRun($job);
+
+        $finishedAt = $job->getFinishedAt();
+        if (null === $finishedAt) {
+            $finishedAt = new \DateTime();
+        }
+        $jobTiming = new $this->jobTimingClass();
+        $jobTiming->setFinishedAt($finishedAt);
+        $this->objectManager->persist($jobTiming);
+        $this->objectManager->flush();
     }
 }

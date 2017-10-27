@@ -54,6 +54,7 @@ class JobManagerTest extends BaseJobManagerTest
 
         $documentName = 'Dtc\QueueBundle\Document\Job';
         $archiveDocumentName = 'Dtc\QueueBundle\Document\JobArchive';
+        $jobTimingClass = 'Dtc\QueueBundle\Document\JobTiming';
         $runClass = 'Dtc\QueueBundle\Document\Run';
         $runArchiveClass = 'Dtc\QueueBundle\Document\RunArchive';
         $sm = self::$objectManager->getSchemaManager();
@@ -62,15 +63,23 @@ class JobManagerTest extends BaseJobManagerTest
         $sm->dropDocumentCollection($runClass);
         $sm->dropDocumentCollection($archiveDocumentName);
         $sm->dropDocumentCollection($runArchiveClass);
+        $sm->dropDocumentCollection($jobTimingClass);
         $sm->createDocumentCollection($documentName);
         $sm->createDocumentCollection($archiveDocumentName);
+        $sm->createDocumentCollection($runClass);
+        $sm->createDocumentCollection($runArchiveClass);
+        $sm->createDocumentCollection($jobTimingClass);
         $sm->updateDocumentIndexes($documentName);
         $sm->updateDocumentIndexes($archiveDocumentName);
+        $sm->updateDocumentIndexes($runClass);
+        $sm->updateDocumentIndexes($runArchiveClass);
+        $sm->updateDocumentIndexes($jobTimingClass);
 
         self::$objectName = $documentName;
         self::$archiveObjectName = $archiveDocumentName;
         self::$runClass = $runClass;
         self::$runArchiveClass = $runArchiveClass;
+        self::$jobTimingClass = $jobTimingClass;
         self::$jobManagerClass = JobManager::class;
         self::$runManagerClass = RunManager::class;
         parent::setUpBeforeClass();

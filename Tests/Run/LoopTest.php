@@ -25,7 +25,8 @@ class LoopTest extends TestCase
         $worker->setJobManager($jobManager);
 
         $runClass = \Dtc\QueueBundle\Document\Run::class;
-        $runManager = new \Dtc\QueueBundle\Model\RunManager($runClass);
+        $jobTimingClass = \Dtc\QueueBundle\Document\JobTiming::class;
+        $runManager = new \Dtc\QueueBundle\Model\RunManager($runClass, $jobTimingClass, false);
         $loop = new Loop($workerManager, $jobManager, $runManager);
         $job = $worker->later()->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');

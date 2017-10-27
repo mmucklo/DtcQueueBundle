@@ -31,6 +31,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
     protected static $archiveObjectName;
     protected static $runClass;
     protected static $runArchiveClass;
+    protected static $jobTimingClass;
     protected static $jobManagerClass;
     protected static $runManagerClass;
     public static $runManager;
@@ -38,7 +39,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
     public static function setUpBeforeClass()
     {
         self::$jobManager = new self::$jobManagerClass(self::$objectManager, self::$objectName, self::$archiveObjectName, self::$runClass, self::$runArchiveClass);
-        self::$runManager = new self::$runManagerClass(self::$runClass);
+        self::$runManager = new self::$runManagerClass(self::$runClass, self::$jobTimingClass, true);
         self::$runManager->setObjectManager(self::$objectManager);
         self::$runManager->setRunArchiveClass(self::$runArchiveClass);
 

@@ -55,6 +55,7 @@ class JobManagerTest extends BaseJobManagerTest
         $archiveEntityName = 'Dtc\QueueBundle\Entity\JobArchive';
         $runClass = 'Dtc\QueueBundle\Entity\Run';
         $runArchiveClass = 'Dtc\QueueBundle\Entity\RunArchive';
+        $jobTimingClass = 'Dtc\QueueBundle\Entity\JobTiming';
 
         /** @var EntityManager $objectManager */
         $objectManager = self::$objectManager;
@@ -75,10 +76,15 @@ class JobManagerTest extends BaseJobManagerTest
         $tool->dropSchema($metadataEntityRunArchive);
         $tool->createSchema($metadataEntityRunArchive);
 
+        $metadataJobTiming = [$objectManager->getClassMetadata($jobTimingClass)];
+        $tool->dropSchema($metadataJobTiming);
+        $tool->createSchema($metadataJobTiming);
+
         self::$objectName = $entityName;
         self::$archiveObjectName = $archiveEntityName;
         self::$runClass = $runClass;
         self::$runArchiveClass = $runArchiveClass;
+        self::$jobTimingClass = $jobTimingClass;
         self::$jobManagerClass = JobManager::class;
         self::$runManagerClass = RunManager::class;
         parent::setUpBeforeClass();

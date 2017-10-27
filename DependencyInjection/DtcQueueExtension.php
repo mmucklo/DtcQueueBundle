@@ -37,6 +37,8 @@ class DtcQueueExtension extends Extension
         $container->setParameter('dtc_queue.class_job_archive', isset($config['class_job_archive']) ? $config['class_job_archive'] : null);
         $container->setParameter('dtc_queue.class_run', isset($config['class_run']) ? $config['class_run'] : null);
         $container->setParameter('dtc_queue.class_run_archive', isset($config['class_run_archive']) ? $config['class_run_archive'] : null);
+        $container->setParameter('dtc_queue.class_job_timing', isset($config['class_job_timing']) ? $config['class_job_timing'] : null);
+        $container->setParameter('dtc_queue.record_timings', isset($config['record_timings']) ? $config['record_timings'] : false);
     }
 
     protected function configRabbitMQ(array $config, ContainerBuilder $container)
