@@ -22,7 +22,7 @@ before_install:
 before_script:
   - composer self-update
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then extension="mongo"; echo "yes" | pecl install mongo; else extension="mongodb"; (pecl install mongodb || true); fi
-  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.1" ]]; then (echo "extension=mongodb.so" > /home/travis/.phpenv/versions/7.1.*/etc/conf.d/mongodb.ini); fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.1" ]]; then phpversion=$(php --version | grep "PHP 7.1" | cut -f2 -d' '); (echo "extension=mongodb.so" > /home/travis/.phpenv/versions/$phpversion/etc/conf.d/mongodb.ini); fi
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then composer require "alcaeus/mongo-php-adapter" --ignore-platform-reqs; fi
   - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then composer require "symfony/framework-bundle:3.3.6" --ignore-platform-reqs; fi
   - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then composer require "symfony/stopwatch:3.3.6" --ignore-platform-reqs; fi
