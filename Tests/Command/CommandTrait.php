@@ -59,7 +59,7 @@ trait CommandTrait
      * @param string             $commandClass
      * @param ContainerInterface $container
      * @param array              $params
-     * @param integer $expectedResult
+     * @param int                $expectedResult
      */
     protected function runCommandExpect($commandClass, ContainerInterface $container, array $params, $expectedResult)
     {

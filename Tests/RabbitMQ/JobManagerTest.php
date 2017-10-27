@@ -2,6 +2,8 @@
 
 namespace Dtc\QueueBundle\Tests\RabbitMQ;
 
+use Dtc\QueueBundle\Model\BaseJob;
+use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\RabbitMQ\JobManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest;
@@ -53,6 +55,59 @@ class JobManagerTest extends BaseJobManagerTest
         parent::setUpBeforeClass();
     }
 
+    public function testConstructor()
+    {
+        $test = null;
+        try {
+            $test = new JobManager();
+        } catch (\Exception $exception) {
+            self::fail("shouldn't get here");
+        }
+        self::assertNotNull($test);
+    }
+
+    public function testSetupChannel()
+    {
+        $jobManager = new JobManager();
+        $failed = false;
+        try {
+            $jobManager->setupChannel();
+            $failed = true;
+        } catch (\Exception $exception) {
+            self::assertTrue(true);
+        }
+        self::assertFalse($failed);
+
+        try {
+            $jobManager->setQueueArgs('dtc_queue', false, true, false, false, 'asdf');
+            $failed = true;
+        } catch (\Exception $exception) {
+            self::assertTrue(true);
+        }
+        self::assertFalse($failed);
+
+        try {
+            $jobManager->setQueueArgs('dtc_queue', false, true, false, false, PHP_INT_MAX.''.PHP_INT_MAX.''.PHP_INT_MAX);
+            $failed = true;
+        } catch (\Exception $exception) {
+            self::assertTrue(true);
+        }
+        self::assertFalse($failed);
+
+        $jobManager->setQueueArgs('dtc_queue', false, true, false, false, 255);
+        try {
+            $jobManager->setupChannel();
+            $failed = true;
+        } catch (\Exception $exception) {
+            self::assertTrue(true);
+        }
+        self::assertFalse($failed);
+        $jobManager->setExchangeArgs('dtc_queue_exchange', 'direct', false, true, false);
+        $jobManager->setAMQPConnection(self::$connection);
+        $jobManager->setupChannel();
+        self::assertTrue(true);
+    }
+
     /**
      * RabbitMQ has no ability to delete specific messages off the queue.
      */
@@ -71,11 +126,74 @@ class JobManagerTest extends BaseJobManagerTest
         self::$jobManager->getJob();
     }
 
+    public function testGetJobByWorker()
+    {
+        $failed = false;
+        try {
+            self::$jobManager->getJob(self::$worker->getName());
+            $failed = true;
+        } catch (\Exception $exception) {
+            self::assertTrue(true);
+        }
+        self::assertFalse($failed);
+    }
+
+    public function testExpiredJob()
+    {
+        $job = new self::$jobClass(self::$worker, false, null);
+        $time = time() - 1;
+        $job->setExpiresAt(new \DateTime("@$time"))->fibonacci(1);
+        self::assertNotNull($job->getId(), 'Job id should be generated');
+
+        $jobInQueue = self::$jobManager->getJob();
+        self::assertNull($jobInQueue, 'The job should have been dropped...');
+
+        $job = new self::$jobClass(self::$worker, false, null);
+        $time = time() - 1;
+        $job->setExpiresAt(new \DateTime("@$time"))->fibonacci(1);
+
+        $job = new self::$jobClass(self::$worker, false, null);
+        $time = time() - 1;
+        $job->setExpiresAt(new \DateTime("@$time"))->fibonacci(5);
+
+        $job = new self::$jobClass(self::$worker, false, null);
+        $time = time() - 1;
+        $job->setExpiresAt(new \DateTime("@$time"))->fibonacci(2);
+
+        $job = new self::$jobClass(self::$worker, false, null);
+        $job->fibonacci(1);
+        $jobInQueue = self::$jobManager->getJob();
+        self::assertNotNull($jobInQueue, 'There should be a job.');
+        self::assertEquals(
+            $job->getId(),
+            $jobInQueue->getId(),
+            'Job id returned by manager should be the same'
+        );
+    }
+
     public function testSaveJob()
     {
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
+
+        $failed = false;
+        try {
+            self::$jobManager->getJob('fibonacci');
+            $failed = true;
+        } catch (\Exception $exception) {
+            self::assertTrue(true);
+        }
+        self::assertFalse($failed);
+
+        $failed = false;
+        try {
+            self::$jobManager->getJob(null, 'fibonacci');
+            $failed = true;
+        } catch (\Exception $exception) {
+            self::assertTrue(true);
+        }
+        self::assertFalse($failed);
 
         $jobInQueue = self::$jobManager->getJob();
         self::assertNotNull($jobInQueue, 'There should be a job.');
@@ -84,5 +202,17 @@ class JobManagerTest extends BaseJobManagerTest
             $jobInQueue->getId(),
             'Job id returned by manager should be the same'
         );
+
+        $job->setStatus(BaseJob::STATUS_SUCCESS);
+        $badJob = new Job();
+        $failed = false;
+        try {
+            self::$jobManager->saveHistory($badJob);
+            $failed = true;
+        } catch (\Exception $exception) {
+            self::assertTrue(true);
+        }
+        self::assertFalse($failed);
+        self::$jobManager->saveHistory($jobInQueue);
     }
 }

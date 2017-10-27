@@ -7,8 +7,6 @@ use PHPUnit\Framework\TestCase;
 
 class UtilTest extends TestCase
 {
-    /**
-     */
     public function testValidateIntNull()
     {
         self::assertNull(Util::validateIntNull('something', null, 2));

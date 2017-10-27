@@ -129,30 +129,45 @@ class JobManager extends AbstractJobManager
      */
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
-        if ($methodName) {
+        if (null !== $workerName || null !== $methodName || true !== $prioritize) {
             throw new \Exception('Unsupported');
         }
 
         $this->setupChannel();
 
-        $expiredJob = false;
+        $job = null;
         do {
-            $message = $this->channel->basic_get($this->queueArgs[0]);
-            if ($message) {
-                $job = new Job();
-                $job->fromMessage($message->body);
-                $job->setRunId($runId);
-
-                if (($expiresAt = $job->getExpiresAt()) && $expiresAt->getTimestamp() < time()) {
-                    $expiredJob = true;
-                    $this->channel->basic_nack($message->delivery_info['delivery_tag']);
-                    continue;
-                }
-                $job->setDeliveryTag($message->delivery_info['delivery_tag']);
-
-                return $job;
-            }
+            $expiredJob = false;
+            $job = $this->findJob($expiredJob, $runId);
         } while ($expiredJob);
+
+        return $job;
+    }
+
+    /**
+     * @param $expiredJob
+     * @param $runId
+     *
+     * @return Job|null
+     */
+    protected function findJob(&$expiredJob, $runId)
+    {
+        $message = $this->channel->basic_get($this->queueArgs[0]);
+        if ($message) {
+            $job = new Job();
+            $job->fromMessage($message->body);
+            $job->setRunId($runId);
+
+            if (($expiresAt = $job->getExpiresAt()) && $expiresAt->getTimestamp() < time()) {
+                $expiredJob = true;
+                $this->channel->basic_nack($message->delivery_info['delivery_tag']);
+
+                return null;
+            }
+            $job->setDeliveryTag($message->delivery_info['delivery_tag']);
+
+            return $job;
+        }
 
         return null;
     }
@@ -171,6 +186,8 @@ class JobManager extends AbstractJobManager
 
     public function __destruct()
     {
-        $this->channel->close();
+        if (null !== $this->channel) {
+            $this->channel->close();
+        }
     }
 }
