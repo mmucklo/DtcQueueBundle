@@ -98,6 +98,4 @@ services:
             - "@dtc_queue.run_manager"
         calls:
             - [ "setLogger", ['@?logger'] ]
-            - [ "setObjectManager", ['@?dtc_queue.entity_manager'] ]
-            - [ "setObjectManager", ['@?dtc_queue.document_manager'] ]
         tags: [{ name: monolog.logger, channel: dtc_queue }]

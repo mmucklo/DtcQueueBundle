@@ -5,6 +5,7 @@
    * Added ability to prune old Run entries
    * Refactoring of RunCommand and other areas to hopefully improve or at least maintain code quality
    * Updated README
+   * Fixed issue #15 - should make things work again on Symfony 2
 ### 2.1.1
    * Upped GridBundle requirement
    * Refactoring and tests

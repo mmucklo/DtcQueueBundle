@@ -11,11 +11,17 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\HttpKernel\Kernel;
 
 class RunCommand extends ContainerAwareCommand
 {
     protected function configure()
     {
+        $nanoSleep = null;
+        if (class_exists('Symfony\Component\HttpKernel\Kernel') && Kernel::VERSION_ID >= 30000) {
+            $nanoSleep = 's';
+        }
+
         $this
             ->setName('dtc:queue:run')
             ->setDefinition(
@@ -52,7 +58,7 @@ class RunCommand extends ContainerAwareCommand
                     ),
                     new InputOption(
                         'nano_sleep',
-                        's',
+                        $nanoSleep,
                         InputOption::VALUE_REQUIRED,
                         'If using duration, this is the time to sleep when there\'s no jobs in nanoseconds',
                         500000000

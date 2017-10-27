@@ -42,7 +42,7 @@ class WorkerCompilerPass implements CompilerPassInterface
     protected function setupAliases(ContainerBuilder $container)
     {
         $defaultManagerType = $container->getParameter('dtc_queue.default_manager');
-        if (!$container->hasDefinition('dtc_queue.job_manager.'.$defaultManagerType)) {
+        if (!$container->hasDefinition('dtc_queue.job_manager.'.$defaultManagerType) && !$container->hasAlias('dtc_queue.job_manager.'.$defaultManagerType)) {
             throw new \Exception("No job manager found for dtc_queue.job_manager.$defaultManagerType");
         }
 
@@ -55,7 +55,7 @@ class WorkerCompilerPass implements CompilerPassInterface
         $container->setAlias('dtc_queue.job_manager', $alias);
 
         $alias = new Alias('dtc_queue.run_manager.'.$defaultRunManagerType);
-        $container->setAlias('dtc_queue._manager', $alias);
+        $container->setAlias('dtc_queue.run_manager', $alias);
     }
 
     /**
@@ -170,7 +170,7 @@ class WorkerCompilerPass implements CompilerPassInterface
         }
 
         $test = new $className();
-        if (!$test instanceof Job) {
+        if (!$test instanceof $className) {
             throw new \Exception("$className must be instance of (or derived from) $parent");
         }
     }
