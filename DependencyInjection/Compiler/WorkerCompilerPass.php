@@ -65,7 +65,7 @@ class WorkerCompilerPass implements CompilerPassInterface
 
     /**
      * @param ContainerBuilder $container
-     * @param array            $jobManagerRef
+     * @param Reference[]            $jobManagerRef
      * @param string           $jobClass
      */
     protected function setupTaggedServices(ContainerBuilder $container, Definition $definition, array $jobManagerRef, $jobClass)
@@ -155,7 +155,7 @@ class WorkerCompilerPass implements CompilerPassInterface
     /**
      * @param ContainerBuilder $container
      * @param array            $arguments
-     * @param $class
+     * @param string $class
      */
     protected function setupRabbitMQOptions(ContainerBuilder $container, array &$arguments, &$class)
     {
@@ -308,7 +308,6 @@ class WorkerCompilerPass implements CompilerPassInterface
     }
 
     /**
-     * @param string|null $jobArchiveClass
      *
      * @throws \Exception
      */
