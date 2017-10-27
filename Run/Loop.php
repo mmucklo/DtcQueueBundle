@@ -94,7 +94,7 @@ class Loop
 
     /**
      * @param float    $start
-     * @param null|int $nanoSleep
+     * @param integer $nanoSleep
      * @param null|int $maxCount
      * @param null|int $duration
      */
@@ -124,9 +124,9 @@ class Loop
     }
 
     /**
-     * @param $nanoSleep
-     * @param $maxCount
-     * @param $duration
+     * @param integer $nanoSleep
+     * @param null|integer $maxCount
+     * @param null|integer $duration
      *
      * @throws \Exception
      */
@@ -211,9 +211,10 @@ class Loop
      * Determine if the run loop is finished.
      *
      * @param $maxCount
-     * @param $currentJob
-     * @param int|null       $duration
+     * @param integer|null $currentJob
+     * @param integer|null       $duration
      * @param \DateTime|null $endTime
+     * @param boolean $noMoreJobsToRun
      *
      * @return bool
      */

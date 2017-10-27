@@ -8,8 +8,6 @@ use PHPUnit\Framework\TestCase;
 class UtilTest extends TestCase
 {
     /**
-     * @param string $varName
-     * @param int    $pow
      */
     public function testValidateIntNull()
     {

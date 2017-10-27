@@ -12,7 +12,7 @@ trait CommonTrait
      * @param string        $field
      * @param \DateTime     $olderThan
      *
-     * @return int
+     * @return integer
      */
     protected function removeOlderThan(EntityManager $entityManager, $objectName, $field, \DateTime $olderThan)
     {
