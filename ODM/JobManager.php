@@ -63,6 +63,11 @@ class JobManager extends BaseJobManager
         return 0;
     }
 
+    /**
+     * @param Builder     $builder
+     * @param string|null $workerName
+     * @param string|null $method
+     */
     protected function addWorkerNameCriterion(Builder $builder, $workerName = null, $method = null)
     {
         if (null !== $workerName) {
@@ -74,6 +79,12 @@ class JobManager extends BaseJobManager
         }
     }
 
+    /**
+     * @param null $workerName
+     * @param null $method
+     *
+     * @return int
+     */
     protected function updateExpired($workerName = null, $method = null)
     {
         /** @var DocumentManager $objectManager */
@@ -97,10 +108,14 @@ class JobManager extends BaseJobManager
      * Removes archived jobs older than $olderThan.
      *
      * @param \DateTime $olderThan
+     *                             return int
      */
     public function pruneArchivedJobs(\DateTime $olderThan)
     {
-        return $this->removeOlderThan($this->getObjectManager(), $this->getArchiveObjectName(), 'updatedAt', $olderThan);
+        /** @var DocumentManager $documentManager */
+        $documentManager = $this->getObjectManager();
+
+        return $this->removeOlderThan($documentManager, $this->getArchiveObjectName(), 'updatedAt', $olderThan);
     }
 
     public function getJobCount($workerName = null, $method = null)
@@ -130,6 +145,8 @@ class JobManager extends BaseJobManager
      * Get Status Jobs.
      *
      * @param string $documentName
+     *
+     * @return array
      */
     protected function getStatusByDocument($documentName)
     {

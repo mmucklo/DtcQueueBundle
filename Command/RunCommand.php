@@ -72,7 +72,6 @@ class RunCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $start = microtime(true);
-        $this->output = $output;
         $container = $this->getContainer();
         $loop = $container->get('dtc_queue.run.loop');
         $loop->setOutput($output);

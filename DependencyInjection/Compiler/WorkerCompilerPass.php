@@ -4,7 +4,6 @@ namespace Dtc\QueueBundle\DependencyInjection\Compiler;
 
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\Run;
-use Pheanstalk\Pheanstalk;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -20,10 +19,6 @@ class WorkerCompilerPass implements CompilerPassInterface
         }
 
         $this->setupAliases($container);
-
-        // Setup beanstalkd if configuration is present
-        $this->setupBeanstalkd($container);
-        $this->setupRabbitMQ($container);
 
         $definition = $container->getDefinition('dtc_queue.worker_manager');
         $jobManagerRef = array(new Reference('dtc_queue.job_manager'));
@@ -65,7 +60,7 @@ class WorkerCompilerPass implements CompilerPassInterface
 
     /**
      * @param ContainerBuilder $container
-     * @param Reference[]            $jobManagerRef
+     * @param Reference[]      $jobManagerRef
      * @param string           $jobClass
      */
     protected function setupTaggedServices(ContainerBuilder $container, Definition $definition, array $jobManagerRef, $jobClass)
@@ -89,24 +84,6 @@ class WorkerCompilerPass implements CompilerPassInterface
         }
     }
 
-    /**
-     * Sets up beanstalkd instance if appropriate.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function setupBeanstalkd(ContainerBuilder $container)
-    {
-        if ($container->hasParameter('dtc_queue.beanstalkd.host')) {
-            $definition = new Definition('Pheanstalk\\Pheanstalk', [$container->getParameter('dtc_queue.beanstalkd.host')]);
-            $container->setDefinition('dtc_queue.beanstalkd', $definition);
-            $definition = $container->getDefinition('dtc_queue.job_manager.beanstalkd');
-            $definition->addMethodCall('setBeanstalkd', [new Reference('dtc_queue.beanstalkd')]);
-            if ($container->hasParameter('dtc_queue.beanstalkd.tube')) {
-                $definition->addMethodCall('setTube', [$container->getParameter('dtc_queue.beanstalkd.tube')]);
-            }
-        }
-    }
-
     protected function setupDoctrineManagers(ContainerBuilder $container)
     {
         $documentManager = $container->getParameter('dtc_queue.document_manager');
@@ -121,113 +98,6 @@ class WorkerCompilerPass implements CompilerPassInterface
         $ormManager = "doctrine.orm.{$entityManager}_entity_manager";
         if ($container->has($ormManager)) {
             $container->setAlias('dtc_queue.entity_manager', $ormManager);
-        }
-    }
-
-    /**
-     * Sets up RabbitMQ instance if appropriate.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function setupRabbitMQ(ContainerBuilder $container)
-    {
-        if ($container->hasParameter('dtc_queue.rabbit_mq')) {
-            $class = 'PhpAmqpLib\\Connection\\AMQPStreamConnection';
-            $rabbitMqConfig = $container->getParameter('dtc_queue.rabbit_mq');
-            $arguments = [
-                $rabbitMqConfig['host'],
-                $rabbitMqConfig['port'],
-                $rabbitMqConfig['user'],
-                $rabbitMqConfig['password'],
-                $rabbitMqConfig['vhost'],
-            ];
-
-            $this->setupRabbitMQOptions($container, $arguments, $class);
-            $definition = new Definition($class, $arguments);
-            $container->setDefinition('dtc_queue.rabbit_mq', $definition);
-            $definition = $container->getDefinition('dtc_queue.job_manager.rabbit_mq');
-            $definition->addMethodCall('setAMQPConnection', [new Reference('dtc_queue.rabbit_mq')]);
-            $definition->addMethodCall('setQueueArgs', array_values($rabbitMqConfig['queue_args']));
-            $definition->addMethodCall('setExchangeArgs', array_values($rabbitMqConfig['exchange_args']));
-        }
-    }
-
-    /**
-     * @param ContainerBuilder $container
-     * @param array            $arguments
-     * @param string $class
-     */
-    protected function setupRabbitMQOptions(ContainerBuilder $container, array &$arguments, &$class)
-    {
-        if ($container->hasParameter('dtc_queue.rabbit_mq.ssl') && $container->getParameter('dtc_queue.rabbit_mq.ssl')) {
-            $class = 'PhpAmqpLib\\Connection\\AMQPSSLConnection';
-            if ($container->hasParameter('dtc_queue.rabbit_mq.ssl_options')) {
-                $arguments[] = $container->getParameter('dtc_queue.rabbit_mq.ssl_options');
-            } else {
-                $arguments[] = [];
-            }
-            if ($container->hasParameter('dtc_queue.rabbit_mq.options')) {
-                $arguments[] = $container->getParameter('dtc_queue.rabbit_mq.options');
-            }
-        } else {
-            if ($container->hasParameter('dtc_queue.rabbit_mq.options')) {
-                $options = $container->getParameter('dtc_queue.rabbit_mq.options');
-                $this->setRabbitMqOptionsPt1($arguments, $options);
-                $this->setRabbitMqOptionsPt2($arguments, $options);
-            }
-        }
-    }
-
-    protected function setRabbitMqOptionsPt1(array &$arguments, array $options)
-    {
-        if (isset($options['insist'])) {
-            $arguments[] = $options['insist'];
-        } else {
-            $arguments[] = false;
-        }
-        if (isset($options['login_method'])) {
-            $arguments[] = $options['login_method'];
-        } else {
-            $arguments[] = 'AMQPLAIN';
-        }
-        if (isset($options['login_response'])) {
-            $arguments[] = $options['login_response'];
-        } else {
-            $arguments[] = null;
-        }
-        if (isset($options['locale'])) {
-            $arguments[] = $options['locale'];
-        } else {
-            $arguments[] = 'en_US';
-        }
-    }
-
-    protected function setRabbitMqOptionsPt2(array &$arguments, array $options)
-    {
-        if (isset($options['connection_timeout'])) {
-            $arguments[] = $options['connection_timeout'];
-        } else {
-            $arguments[] = 3.0;
-        }
-        if (isset($options['read_write_timeout'])) {
-            $arguments[] = $options['read_write_timeout'];
-        } else {
-            $arguments[] = 3.0;
-        }
-        if (isset($options['context'])) {
-            $arguments[] = $options['context'];
-        } else {
-            $arguments[] = null;
-        }
-        if (isset($options['keepalive'])) {
-            $arguments[] = $options['keepalive'];
-        } else {
-            $arguments[] = false;
-        }
-        if (isset($options['heartbeat'])) {
-            $arguments[] = $options['heartbeat'];
-        } else {
-            $arguments[] = 0;
         }
     }
 
@@ -263,65 +133,45 @@ class WorkerCompilerPass implements CompilerPassInterface
             }
         }
 
-        $this->testJobClass($jobClass);
+        $this->testClass($jobClass, Job::class);
 
         return $jobClass;
     }
 
     protected function getRunClass(ContainerBuilder $container, $type, $className)
     {
-        $runArchiveClass = $container->hasParameter('dtc_queue.class_'.$type) ? $container->getParameter('dtc_queue.class_'.$type) : null;
-        if (!$runArchiveClass) {
+        $runClass = $container->hasParameter('dtc_queue.class_'.$type) ? $container->getParameter('dtc_queue.class_'.$type) : null;
+        if (!$runClass) {
             switch ($container->getParameter('dtc_queue.default_manager')) {
                 case 'mongodb': // deprecated remove in 4.0
                 case 'odm':
-                    $runArchiveClass = 'Dtc\\QueueBundle\\Document\\'.$className;
+                    $runClass = 'Dtc\\QueueBundle\\Document\\'.$className;
                     break;
                 case 'orm':
-                    $runArchiveClass = 'Dtc\\QueueBundle\\Entity\\'.$className;
+                    $runClass = 'Dtc\\QueueBundle\\Entity\\'.$className;
                     break;
                 default:
-                    $runArchiveClass = 'Dtc\\QueueBundle\\Model\\Run';
+                    $runClass = Run::class;
             }
         }
 
-        $this->testRunClass($runArchiveClass);
+        $this->testClass($runClass, Run::class);
 
-        return $runArchiveClass;
+        return $runClass;
     }
 
     /**
-     * @param string $runClass
-     *
      * @throws \Exception
      */
-    protected function testRunClass($runClass)
+    protected function testClass($className, $parent)
     {
-        if (!class_exists($runClass)) {
-            throw new \Exception("Can't find class $runClass");
+        if (!class_exists($className)) {
+            throw new \Exception("Can't find class $className");
         }
 
-        $test = new $runClass();
-        if (!$test instanceof Run) {
-            throw new \Exception("$runClass must be instance of (or derived from) Dtc\\QueueBundle\\Model\\Run");
-        }
-    }
-
-    /**
-     *
-     * @throws \Exception
-     */
-    protected function testJobClass($jobClass)
-    {
-        if ($jobClass) {
-            if (!class_exists($jobClass)) {
-                throw new \Exception("Can't find class $jobClass");
-            }
-
-            $test = new $jobClass();
-            if (!$test instanceof Job) {
-                throw new \Exception("$jobClass must be instance of (or derived from) Dtc\\QueueBundle\\Model\\Job");
-            }
+        $test = new $className();
+        if (!$test instanceof Job) {
+            throw new \Exception("$className must be instance of (or derived from) $parent");
         }
     }
 
@@ -348,7 +198,9 @@ class WorkerCompilerPass implements CompilerPassInterface
                     break;
             }
         }
-        $this->testJobClass($jobArchiveClass);
+        if (null !== $jobArchiveClass) {
+            $this->testClass($jobArchiveClass, Job::class);
+        }
 
         return $jobArchiveClass;
     }

@@ -49,18 +49,9 @@ abstract class BaseJobManagerTest extends TestCase
         );
     }
 
-    protected function getNewJob()
-    {
-        $job = new self::$jobClass(self::$worker, false, null);
-        $job->fibonacci(1);
-        self::assertNotNull($job->getId(), 'Job id should be generated');
-
-        return $job;
-    }
-
     public function testDeleteJob()
     {
-        $job = $this->getNewJob();
+        $job = $this->getJob();
         self::$jobManager->deleteJob($job);
 
         $nextJob = self::$jobManager->getJob();

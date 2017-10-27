@@ -66,6 +66,7 @@ class JobManagerTest extends BaseJobManagerTest
             self::$jobManager->deleteJob($job);
             $this->fail('expected exception');
         } catch (\Exception $e) {
+            self::assertTrue(true);
         }
         self::$jobManager->getJob();
     }

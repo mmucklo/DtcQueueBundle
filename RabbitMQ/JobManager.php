@@ -109,6 +109,10 @@ class JobManager extends AbstractJobManager
             throw new \Exception('This queue does not support priorities');
         }
 
+        if (!$job instanceof Job) {
+            throw new \Exception('Job needs to be instance of '.Job::class);
+        }
+
         $msg = new AMQPMessage($job->toMessage());
 
         if ($this->maxPriority) {

@@ -5,7 +5,6 @@ namespace Dtc\QueueBundle\Tests\Run;
 use Dtc\QueueBundle\Beanstalkd\Job;
 use Dtc\QueueBundle\Model\WorkerManager;
 use Dtc\QueueBundle\ODM\JobManager;
-use Dtc\QueueBundle\ODM\RunManager;
 use Dtc\QueueBundle\Run\Loop;
 use Dtc\QueueBundle\Tests\Beanstalkd\JobManagerTest;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
@@ -27,7 +26,7 @@ class LoopTest extends TestCase
 
         $runClass = \Dtc\QueueBundle\Document\Run::class;
         $runArchiveClass = \Dtc\QueueBundle\Document\RunArchive::class;
-        $runManager = new \Dtc\QueueBundle\Model\RunManager($runClass, $runArchiveClass);
+        $runManager = new \Dtc\QueueBundle\Model\RunManager($runClass);
         $loop = new Loop($workerManager, $jobManager, $runManager);
         $job = $worker->later()->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
@@ -88,9 +87,7 @@ class LoopTest extends TestCase
         $workerManager->addWorker($worker);
         $worker->setJobManager($jobManager);
 
-        $runClass = \Dtc\QueueBundle\Document\Run::class;
-        $runManager = new RunManager($runClass);
-        $runManager->setObjectManager($jobManager->getObjectManager());
+        $runManager = \Dtc\QueueBundle\Tests\ODM\JobManagerTest::$runManager;
         $loop = new Loop($workerManager, $jobManager, $runManager);
         $job = $worker->later()->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
@@ -116,6 +113,7 @@ class LoopTest extends TestCase
         self::assertEquals(1, $loop->getRun()->getProcessed());
 
         $documentManager = $jobManager->getObjectManager();
+        print_r($jobManager->getRunArchiveClass());
         $runArchiveRepository = $documentManager->getRepository($jobManager->getRunArchiveClass());
         self::assertNotNull($runArchiveRepository->find($id1));
         self::assertNotNull($runArchiveRepository->find($id2));
@@ -138,12 +136,12 @@ class LoopTest extends TestCase
         self::assertNotNull($loop->getRun());
         self::assertEquals(0, $loop->getRun()->getProcessed());
 
-        $timeStart = time();
-        $result = $loop->runLoop($start, null, null, null, 1);
+        $timeStart = microtime(true);
+        $result = $loop->runLoop($timeStart, null, null, null, 2);
         self::assertEquals(0, $result);
         self::assertNotNull($loop->getRun());
         self::assertEquals(0, $loop->getRun()->getProcessed());
-        $total = time() - $timeStart;
-        self::assertGreaterThanOrEqual(1, $total);
+        $total = time() - intval($timeStart);
+        self::assertGreaterThanOrEqual(2, $total);
     }
 }

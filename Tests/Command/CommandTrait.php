@@ -50,6 +50,7 @@ trait CommandTrait
             $command->run($input, $output);
             $failed = true;
         } catch (\Exception $exception) {
+            TestCase::assertTrue(true);
         }
         TestCase::assertFalse($failed);
     }

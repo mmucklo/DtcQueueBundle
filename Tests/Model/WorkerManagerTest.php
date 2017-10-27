@@ -39,6 +39,7 @@ class WorkerManagerTest extends TestCase
             $this->workerManager->addWorker($this->worker);
             $failed = true;
         } catch (\Exception $e) {
+            self::assertTrue(true);
         }
         self::assertFalse($failed);
     }

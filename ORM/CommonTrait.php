@@ -7,10 +7,10 @@ use Doctrine\ORM\EntityManager;
 trait CommonTrait
 {
     /**
-     * @param \Doctrine\ODM\MongoDB\DocumentManager $documentManager
-     * @param string                                $objectName
-     * @param string                                $field
-     * @param \DateTime                             $olderThan
+     * @param EntityManager $entityManager
+     * @param string        $objectName
+     * @param string        $field
+     * @param \DateTime     $olderThan
      *
      * @return int
      */

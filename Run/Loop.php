@@ -165,7 +165,7 @@ class Loop
     }
 
     /**
-     * @param Job      $job
+     * @param Job|null $job
      * @param bool     $noMoreJobsToRun
      * @param int      $currentJob
      * @param int|null $duration
@@ -173,7 +173,7 @@ class Loop
      */
     protected function runCurrentJob($job, &$noMoreJobsToRun, &$currentJob, $duration, $nanoSleep)
     {
-        if ($job) {
+        if (null !== $job) {
             $noMoreJobsToRun = false;
             $this->reportJob($job);
             $this->updateProcessed($currentJob);
@@ -212,8 +212,8 @@ class Loop
      *
      * @param $maxCount
      * @param $currentJob
-     * @param int|null  $duration
-     * @param \DateTime $endTime
+     * @param int|null       $duration
+     * @param \DateTime|null $endTime
      *
      * @return bool
      */
@@ -243,9 +243,14 @@ class Loop
     {
         $this->run->setLastHeartbeatAt(new \DateTime());
         $this->run->setElapsed(microtime(true) - $start);
+        $this->persistRun();
+    }
+
+    protected function persistRun($action = 'persist')
+    {
         if ($this->runManager instanceof BaseRunManager) {
             $objectManager = $this->runManager->getObjectManager();
-            $objectManager->persist($this->run);
+            $objectManager->$action($this->run);
             $objectManager->flush();
         }
     }
@@ -256,11 +261,7 @@ class Loop
     protected function updateProcessed($count)
     {
         $this->run->setProcessed($count);
-        if ($this->runManager instanceof BaseRunManager) {
-            $objectManager = $this->runManager->getObjectManager();
-            $objectManager->persist($this->run);
-            $objectManager->flush();
-        }
+        $this->persistRun();
     }
 
     /**
@@ -286,11 +287,7 @@ class Loop
         $this->run->setHostname(gethostname());
         $this->run->setPid(getmypid());
         $this->run->setProcessed(0);
-        if ($this->runManager instanceof BaseRunManager) {
-            $objectManager = $this->runManager->getObjectManager();
-            $objectManager->persist($this->run);
-            $objectManager->flush();
-        }
+        $this->persistRun();
     }
 
     /**
@@ -304,11 +301,7 @@ class Loop
             $this->run->setEndedAt($endedTime);
         }
         $this->run->setElapsed($end - $start);
-        if ($this->runManager instanceof BaseRunManager) {
-            $objectManager = $this->runManager->getObjectManager();
-            $objectManager->remove($this->run);
-            $objectManager->flush();
-        }
+        $this->persistRun('remove');
         $this->log('info', 'Ended with '.$this->run->getProcessed().' job(s) processed over '.strval($this->run->getElapsed()).' seconds.');
     }
 

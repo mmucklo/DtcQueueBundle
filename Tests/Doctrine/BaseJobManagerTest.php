@@ -76,7 +76,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $jobManager = self::$jobManager;
 
         /** @var Job $job */
-        $job = $this->getNewJob();
+        $job = $this->getJob();
         $id = $job->getId();
         $jobManager->deleteJob($job);
 
@@ -98,7 +98,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $jobManager = self::$jobManager;
 
         /** @var Job $job */
-        $job = $this->getNewJob();
+        $job = $this->getJob();
         $id = $job->getId();
         $jobManager->deleteJob($job);
 

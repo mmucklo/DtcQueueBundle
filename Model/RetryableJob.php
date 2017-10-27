@@ -86,7 +86,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
     }
 
     /**
-     * @param int $erroredCount
+     * @param int $errorCount
      *
      * @return RetryableJob
      */
