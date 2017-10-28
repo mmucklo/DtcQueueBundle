@@ -118,7 +118,7 @@ class WorkerCompilerPass implements CompilerPassInterface
         $jobClass = $container->getParameter('dtc_queue.class_job');
         if (!$jobClass) {
             switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
-                case 'mongodb': // deprecated remove in 4.0
+                case 'mongodb': // deprecated remove in 3.0
                 case 'odm':
                     $jobClass = 'Dtc\\QueueBundle\\Document\\Job';
                     break;
@@ -146,7 +146,7 @@ class WorkerCompilerPass implements CompilerPassInterface
         $runClass = $container->hasParameter('dtc_queue.class_'.$type) ? $container->getParameter('dtc_queue.class_'.$type) : null;
         if (!$runClass) {
             switch ($container->getParameter('dtc_queue.default_manager')) {
-                case 'mongodb': // deprecated remove in 4.0
+                case 'mongodb': // deprecated remove in 3.0
                 case 'odm':
                     $runClass = 'Dtc\\QueueBundle\\Document\\'.$className;
                     break;

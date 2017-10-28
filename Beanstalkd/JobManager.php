@@ -56,6 +56,16 @@ class JobManager extends AbstractJobManager
         return new \Pheanstalk\Job($jobId, $data);
     }
 
+    /**
+     * @param string|null     $workerName
+     * @param string|null     $methodName
+     * @param bool            $prioritize
+     * @param int|string|null $runId
+     *
+     * @return Job|null
+     *
+     * @throws \Exception
+     */
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
         if ($methodName) {
@@ -67,26 +77,43 @@ class JobManager extends AbstractJobManager
             $beanstalkd = $this->beanstalkd->watch($this->tube);
         }
 
-        $expiredJob = false;
-
+        $job = null;
         do {
-            $beanJob = $beanstalkd->reserve($this->reserveTimeout);
-            if ($beanJob) {
-                $job = new Job();
-                $job->fromMessage($beanJob->getData());
-                $job->setId($beanJob->getId());
-                $job->setRunId($runId);
-
-                if (($expiresAt = $job->getExpiresAt()) && $expiresAt->getTimestamp() < time()) {
-                    $expiredJob = true;
-                    $this->beanstalkd->delete($beanJob);
-                    continue;
-                }
-                $job->setBeanJob($beanJob);
-
-                return $job;
-            }
+            $expiredJob = false;
+            $job = $this->findJob($beanstalkd, $expiredJob, $runId);
         } while ($expiredJob);
+
+        return $job;
+    }
+
+    /**
+     * @param Pheanstalk      $beanstalkd
+     * @param bool            $expiredJob
+     * @param int|string|null $runId
+     *
+     * @return Job|null
+     */
+    protected function findJob(Pheanstalk $beanstalkd, &$expiredJob, $runId)
+    {
+        $beanJob = $beanstalkd->reserve($this->reserveTimeout);
+        if ($beanJob) {
+            $job = new Job();
+            $job->fromMessage($beanJob->getData());
+            $job->setId($beanJob->getId());
+            $job->setRunId($runId);
+
+            if (($expiresAt = $job->getExpiresAt()) && $expiresAt->getTimestamp() < time()) {
+                $expiredJob = true;
+                $beanstalkd->delete($beanJob);
+
+                return null;
+            }
+            $job->setBeanJob($beanJob);
+
+            return $job;
+        }
+
+        return null;
     }
 
     public function deleteJob(\Dtc\QueueBundle\Model\Job $job)

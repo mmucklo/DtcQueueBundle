@@ -39,19 +39,20 @@ class RabbitMQCompilerPass implements CompilerPassInterface
      */
     protected function setupRabbitMQOptions(ContainerBuilder $container, array &$arguments, &$class)
     {
-        if ($container->hasParameter('dtc_queue.rabbit_mq.ssl') && $container->getParameter('dtc_queue.rabbit_mq.ssl')) {
+        $rabbitMqConfig = $container->getParameter('dtc_queue.rabbit_mq');
+        if (isset($rabbitMqConfig['ssl']) && $rabbitMqConfig['ssl']) {
             $class = 'PhpAmqpLib\\Connection\\AMQPSSLConnection';
-            if ($container->hasParameter('dtc_queue.rabbit_mq.ssl_options')) {
-                $arguments[] = $container->getParameter('dtc_queue.rabbit_mq.ssl_options');
+            if (!empty($rabbitMqConfig['ssl_options'])) {
+                $arguments[] = $rabbitMqConfig['ssl_options'];
             } else {
                 $arguments[] = [];
             }
-            if ($container->hasParameter('dtc_queue.rabbit_mq.options')) {
-                $arguments[] = $container->getParameter('dtc_queue.rabbit_mq.options');
+            if (!empty($rabbitMqConfig['options'])) {
+                $arguments[] = $rabbitMqConfig['options'];
             }
         } else {
-            if ($container->hasParameter('dtc_queue.rabbit_mq.options')) {
-                $options = $container->getParameter('dtc_queue.rabbit_mq.options');
+            if (!empty($rabbitMqConfig['options'])) {
+                $options = $rabbitMqConfig['options'];
                 $this->setRabbitMqOptionsPt1($arguments, $options);
                 $this->setRabbitMqOptionsPt2($arguments, $options);
             }

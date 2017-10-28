@@ -98,30 +98,78 @@ class JobManager extends AbstractJobManager
         }
     }
 
+    /**
+     * @param \Dtc\QueueBundle\Model\Job $job
+     *
+     * @return \Dtc\QueueBundle\Model\Job
+     *
+     * @throws \Exception
+     */
     public function save(\Dtc\QueueBundle\Model\Job $job)
     {
+        if (!$job instanceof Job) {
+            throw new \Exception('Must be derived from '.Job::class);
+        }
+
         $this->setupChannel();
+
+        $this->validateSaveable($job);
+        $this->setJobId($job);
+
+        $msg = new AMQPMessage($job->toMessage());
+        $this->setMsgPriority($msg, $job);
+
+        $this->channel->basic_publish($msg, $this->exchangeArgs[0]);
+
+        return $job;
+    }
+
+    /**
+     * Attach a unique id to a job since RabbitMQ will not.
+     *
+     * @param \Dtc\QueueBundle\Model\Job $job
+     */
+    protected function setJobId(\Dtc\QueueBundle\Model\Job $job)
+    {
         if (!$job->getId()) {
             $job->setId(uniqid($this->hostname.'-'.$this->pid, true));
         }
+    }
 
-        if (null !== ($priority = $job->getPriority()) && !$this->maxPriority) {
+    /**
+     * Sets the priority of the AMQPMessage.
+     *
+     * @param AMQPMessage                $msg
+     * @param \Dtc\QueueBundle\Model\Job $job
+     */
+    protected function setMsgPriority(AMQPMessage $msg, \Dtc\QueueBundle\Model\Job $job)
+    {
+        if ($this->maxPriority) {
+            $priority = $job->getPriority();
+            if ($priority > $this->maxPriority) {
+                throw new \Exception('Priority must be lower than '.$this->maxPriority);
+            }
+
+            $priority = null === $priority ? 0 : $this->maxPriority - $priority;
+
+            $msg->set('priority', $priority);
+        }
+    }
+
+    /**
+     * @param \Dtc\QueueBundle\Model\Job $job
+     *
+     * @throws \Exception
+     */
+    protected function validateSaveable(\Dtc\QueueBundle\Model\Job $job)
+    {
+        if (null !== $job->getPriority() && !$this->maxPriority) {
             throw new \Exception('This queue does not support priorities');
         }
 
         if (!$job instanceof Job) {
             throw new \Exception('Job needs to be instance of '.Job::class);
         }
-
-        $msg = new AMQPMessage($job->toMessage());
-
-        if ($this->maxPriority) {
-            $priority = null === $priority ? 0 : $this->maxPriority - $priority;
-            $msg->set('priority', $priority);
-        }
-        $this->channel->basic_publish($msg, $this->exchangeArgs[0]);
-
-        return $job;
     }
 
     /**

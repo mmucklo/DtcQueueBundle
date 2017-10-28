@@ -173,6 +173,34 @@ class JobManagerTest extends BaseJobManagerTest
 
     public function testSaveJob()
     {
+        // Make sure a job proper type
+        $failed = false;
+        try {
+            $job = new Job();
+            self::$jobManager->save($job);
+            $failed = true;
+        } catch (\Exception $exception) {
+            self::assertTrue(true);
+        }
+        self::assertFalse($failed);
+
+        $job = new self::$jobClass(self::$worker, false, null);
+        try {
+            $job->setPriority(256)->fibonacci(1);
+            $failed = true;
+        } catch (\Exception $exception) {
+            self::assertTrue(true);
+        }
+        self::assertFalse($failed);
+
+        $job = new self::$jobClass(self::$worker, false, null);
+        $job->setPriority(100)->fibonacci(1);
+        self::assertNotNull($job->getId(), 'Job id should be generated');
+
+        $jobInQueue = self::$jobManager->getJob();
+        self::assertNotNull($jobInQueue, 'There should be a job.');
+        self::$jobManager->saveHistory($jobInQueue);
+
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');

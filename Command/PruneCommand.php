@@ -60,6 +60,7 @@ class PruneCommand extends ContainerAwareCommand
 
     /**
      * @param string[]        $matches
+     * @param string          $type
      * @param OutputInterface $output
      *
      * @return int
@@ -83,6 +84,21 @@ class PruneCommand extends ContainerAwareCommand
             $interval = $this->getInterval($modifier, $durationOrTimestamp);
             $olderThan->sub($interval);
         }
+
+        return $this->pruneOlderThan($type, $olderThan, $output);
+    }
+
+    /**
+     * @param string          $type
+     * @param \DateTime       $olderThan
+     * @param OutputInterface $output
+     *
+     * @return int
+     *
+     * @throws \Exception
+     */
+    protected function pruneOlderThan($type, \DateTime $olderThan, OutputInterface $output)
+    {
         $container = $this->getContainer();
         switch ($type) {
             case 'old':
