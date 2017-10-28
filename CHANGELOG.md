@@ -1,5 +1,8 @@
 ### 2.3.0
    * Added a new JobTiming entity/document to separately track timing information for each run
+   * Fix a bug in beanstalkd and rabbitmq JobManager classes where expired jobs could cause a loop
+   * Added more unit tests
+   * Fixed a few bugs with rabbitmq configuration options that weren't able to be passed through
 ### 2.2.0
    * Create a RunManager for tracking Runs
    * Add a new config parameter run_manager so that a job queue can have a separate store-type for Runs
