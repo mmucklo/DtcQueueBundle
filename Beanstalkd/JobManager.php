@@ -68,7 +68,10 @@ class JobManager extends AbstractJobManager
      */
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
-        if ($methodName) {
+        if (null !== $methodName) {
+            throw new \Exception('Unsupported');
+        }
+        if (null !== $workerName) {
             throw new \Exception('Unsupported');
         }
 
@@ -77,7 +80,6 @@ class JobManager extends AbstractJobManager
             $beanstalkd = $this->beanstalkd->watch($this->tube);
         }
 
-        $job = null;
         do {
             $expiredJob = false;
             $job = $this->findJob($beanstalkd, $expiredJob, $runId);

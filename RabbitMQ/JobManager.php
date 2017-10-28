@@ -183,7 +183,6 @@ class JobManager extends AbstractJobManager
 
         $this->setupChannel();
 
-        $job = null;
         do {
             $expiredJob = false;
             $job = $this->findJob($expiredJob, $runId);
