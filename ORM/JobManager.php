@@ -119,6 +119,10 @@ class JobManager extends BaseJobManager
         }
     }
 
+    /**
+     * @param string $workerName
+     * @param string $method
+     */
     protected function addWorkerNameCriterion(QueryBuilder $queryBuilder, $workerName = null, $method = null)
     {
         if (null !== $workerName) {
