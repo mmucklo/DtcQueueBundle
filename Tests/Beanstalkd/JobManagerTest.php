@@ -42,4 +42,16 @@ class JobManagerTest extends BaseJobManagerTest
         }
         parent::setUpBeforeClass();
     }
+
+    public function testGetJobByWorker()
+    {
+        $failed = false;
+        try {
+            self::$jobManager->getJob(self::$worker->getName());
+            $failed = true;
+        } catch (\Exception $exception) {
+            self::assertTrue(true);
+        }
+        self::assertFalse($failed);
+    }
 }
