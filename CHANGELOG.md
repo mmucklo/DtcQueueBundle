@@ -1,3 +1,5 @@
+### 2.3.2
+   * Add initial testing for WorkerCompilerPass
 ### 2.3.1
    * Fix bug with JobTiming class
 ### 2.3.0
