@@ -11,7 +11,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 
-class BeanstalkdCompilerPassTest extends TestCase
+class WorkerCompilerPassTest extends TestCase
 {
     public function testProcess()
     {

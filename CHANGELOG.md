@@ -1,3 +1,5 @@
+### 2.3.3
+   * Fix build
 ### 2.3.2
    * Add initial testing for WorkerCompilerPass
 ### 2.3.1
