@@ -29,7 +29,7 @@ class WorkerCompilerPass implements CompilerPassInterface
         $container->setParameter('dtc_queue.class_job', $jobClass);
         $container->setParameter('dtc_queue.class_job_archive', $jobArchiveClass);
         $container->setParameter('dtc_queue.class_job_timing', $this->getClass($container, 'job_timing',
-            'JobTimingTest', JobTiming::class));
+            'JobTiming', JobTiming::class));
         $container->setParameter('dtc_queue.class_run', $this->getClass($container, 'run', 'Run', Run::class));
         $container->setParameter('dtc_queue.class_run_archive', $this->getClass($container, 'run_archive', 'RunArchive', Run::class));
 
