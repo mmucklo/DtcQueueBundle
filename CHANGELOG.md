@@ -1,3 +1,5 @@
+### 2.3.1
+   * Fix bug with JobTiming class
 ### 2.3.0
    * Added a new JobTiming entity/document to separately track timing information for each run
    * Fix a bug in beanstalkd and rabbitmq JobManager classes where expired jobs could cause a loop
