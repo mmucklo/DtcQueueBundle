@@ -57,7 +57,7 @@ class RunManager
     }
 
     /**
-     * @returnnull|string
+     * @return null|string
      */
     public function getJobTimingClass()
     {
