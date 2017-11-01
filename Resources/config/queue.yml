@@ -32,6 +32,9 @@ services:
             - '%dtc_queue.class_job_archive%'
             - '%dtc_queue.class_run%'
             - '%dtc_queue.class_run_archive%'
+        calls:
+            - ["setMaxPriority", ['%dtc_queue.priority_max']]
+            - ["setPriorityDirection", ['%dtc_queue.priority_direction%']]
 
     dtc_queue.job_manager.beanstalkd:
         class: Dtc\QueueBundle\Beanstalkd\JobManager
@@ -40,6 +43,9 @@ services:
 
     dtc_queue.job_manager.rabbit_mq:
         class: Dtc\QueueBundle\RabbitMQ\JobManager
+        calls:
+            - ["setMaxPriority", ['%dtc_queue.priority_max']]
+            - ["setPriorityDirection", ['%dtc_queue.priority_direction%']]
 
     dtc_queue.run_manager.orm:
         class: Dtc\QueueBundle\ORM\RunManager
@@ -72,6 +78,9 @@ services:
             - '%dtc_queue.class_job_archive%'
             - '%dtc_queue.class_run%'
             - '%dtc_queue.class_run_archive%'
+        calls:
+            - ["setMaxPriority", ['%dtc_queue.priority_max']]
+            - ["setPriorityDirection", ['%dtc_queue.priority_direction%']]
 
     dtc_queue.worker_manager:
         class: Dtc\QueueBundle\Model\WorkerManager

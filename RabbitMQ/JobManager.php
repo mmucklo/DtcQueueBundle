@@ -2,12 +2,12 @@
 
 namespace Dtc\QueueBundle\RabbitMQ;
 
-use Dtc\QueueBundle\Model\AbstractJobManager;
+use Dtc\QueueBundle\Model\PriorityJobManager;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AbstractConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
-class JobManager extends AbstractJobManager
+class JobManager extends PriorityJobManager
 {
     /** @var AMQPChannel */
     protected $channel;
@@ -21,7 +21,6 @@ class JobManager extends AbstractJobManager
 
     protected $hostname;
     protected $pid;
-    protected $maxPriority;
 
     public function __construct()
     {
@@ -49,18 +48,17 @@ class JobManager extends AbstractJobManager
      * @param bool   $autoDelete
      * @param int    $maxPriority
      */
-    public function setQueueArgs($queue, $passive, $durable, $exclusive, $autoDelete, $maxPriority)
+    public function setQueueArgs($queue, $passive, $durable, $exclusive, $autoDelete)
     {
         $arguments = [$queue, $passive, $durable, $exclusive, $autoDelete];
 
         $this->queueArgs = $arguments;
-        if (!ctype_digit(strval($maxPriority))) {
-            throw new \Exception('Max Priority needs to be a non-negative integer');
+        if (!ctype_digit(strval($this->maxPriority))) {
+            throw new \Exception('Max Priority ('.$this->maxPriority.') needs to be a non-negative integer');
         }
-        if (strval(intval($maxPriority)) !== strval($maxPriority)) {
+        if (strval(intval($this->maxPriority)) !== strval($this->maxPriority)) {
             throw new \Exception('Priority is higher than '.PHP_INT_MAX);
         }
-        $this->maxPriority = $maxPriority;
     }
 
     public function setAMQPConnection(AbstractConnection $connection)
@@ -105,7 +103,7 @@ class JobManager extends AbstractJobManager
      *
      * @throws \Exception
      */
-    public function save(\Dtc\QueueBundle\Model\Job $job)
+    public function prioritySave(\Dtc\QueueBundle\Model\Job $job)
     {
         if (!$job instanceof Job) {
             throw new \Exception('Must be derived from '.Job::class);
@@ -144,16 +142,20 @@ class JobManager extends AbstractJobManager
      */
     protected function setMsgPriority(AMQPMessage $msg, \Dtc\QueueBundle\Model\Job $job)
     {
-        if ($this->maxPriority) {
+        if (null !== $this->maxPriority) {
             $priority = $job->getPriority();
-            if ($priority > $this->maxPriority) {
-                throw new \Exception('Priority must be lower than '.$this->maxPriority);
-            }
-
-            $priority = null === $priority ? 0 : $this->maxPriority - $priority;
-
             $msg->set('priority', $priority);
         }
+    }
+
+    protected function calculatePriority($priority)
+    {
+        $priority = parent::calculatePriority($priority);
+        if (null === $priority) {
+            return 0;
+        }
+
+        return $priority;
     }
 
     /**
@@ -163,7 +165,7 @@ class JobManager extends AbstractJobManager
      */
     protected function validateSaveable(\Dtc\QueueBundle\Model\Job $job)
     {
-        if (null !== $job->getPriority() && !$this->maxPriority) {
+        if (null !== $job->getPriority() && null === $this->maxPriority) {
             throw new \Exception('This queue does not support priorities');
         }
 

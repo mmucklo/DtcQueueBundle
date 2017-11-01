@@ -23,6 +23,8 @@ class DtcQueueExtension extends Extension
         $container->setParameter('dtc_queue.document_manager', $config['document_manager']);
         $container->setParameter('dtc_queue.entity_manager', $config['entity_manager']);
         $container->setParameter('dtc_queue.run_manager', isset($config['run_manager']) ? $config['run_manager'] : $config['default_manager']);
+        $container->setParameter('dtc_queue.priority_max', $config['priority_max']);
+        $container->setParameter('dtc_queue.priority_direction', $config['priority_direction']);
         $this->configClasses($config, $container);
 
         // Load Grid if Dtc\GridBundle Bundle is registered
@@ -49,6 +51,7 @@ class DtcQueueExtension extends Extension
                     throw new \Exception('dtc_queue: rabbit_mq must have '.$value.' in config.yml');
                 }
             }
+            $config['rabbit_mq']['queue_args']['max_priority'] = $config['priority_max'];
             $container->setParameter('dtc_queue.rabbit_mq', $config['rabbit_mq']);
         }
     }

@@ -1,3 +1,7 @@
+### 2.4.0
+   * Fix bug with bad annotation
+   * Fix priorities - now there's a max priority and priority direction setting in configuration
+   * Added tests for Priorities for ODM / ORM, plus RabbitMQ
 ### 2.3.3
    * Fix build
 ### 2.3.2

@@ -239,7 +239,7 @@ class JobManager extends BaseJobManager
 
         $this->addWorkerNameCriterion($qb, $workerName, $methodName);
         if ($prioritize) {
-            $qb->sort('priority', 'asc');
+            $qb->sort('priority', 'desc');
         } else {
             $qb->sort('whenAt', 'asc');
         }

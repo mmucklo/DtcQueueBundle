@@ -6,14 +6,14 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Persistence\ObjectRepository;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Doctrine\ORM\EntityRepository;
-use Dtc\QueueBundle\Model\AbstractJobManager;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\PriorityJobManager;
 use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\Util\Util;
 
-abstract class BaseJobManager extends AbstractJobManager
+abstract class BaseJobManager extends PriorityJobManager
 {
     /** Number of jobs to prune / reset / gather at a time */
     const FETCH_COUNT = 100;
@@ -299,7 +299,7 @@ abstract class BaseJobManager extends AbstractJobManager
         $this->deleteJob($job); // Should cause job to be archived
     }
 
-    public function save(\Dtc\QueueBundle\Model\Job $job)
+    public function prioritySave(\Dtc\QueueBundle\Model\Job $job)
     {
         // Todo: Serialize args
 
@@ -316,7 +316,7 @@ abstract class BaseJobManager extends AbstractJobManager
 
             if ($oldJob) {
                 // Old job exists - just override fields Set higher priority
-                $oldJob->setPriority(max($job->getPriority(), $oldJob->getPriority()));
+                $oldJob->setPriority($this->findHigherPriority($job->getPriority(), $oldJob->getPriority()));
                 $oldJob->setWhenAt(min($job->getWhenAt(), $oldJob->getWhenAt()));
                 $oldJob->setBatch(true);
                 $objectManager->persist($oldJob);

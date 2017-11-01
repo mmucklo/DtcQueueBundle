@@ -75,8 +75,7 @@ dtc_queue:
       * bin/console doctrine:schema:update --dump-sql
       * bin/console doctrine:schema:update --force
       * Docrtrine Migrations (requires [DoctrineMigrationsBundle](https://github.com/doctrine/DoctrineMigrationsBundle) to be installed):
-         * bin/console doctrine:migrations:diff
-            * (you may want to review the file created to make sure only the 4 DtcQueueBundle tables are getting created - job, job_archive, run, run_archive)
+         * bin/console doctrine:migrations:diff --filter-expression=/dtc_/
          * then:
             * bin/console doctrine:migrations:migrate
 
@@ -87,6 +86,8 @@ Add this to your app/config/routing.yml file:
 ```yaml
 dtc_queue:
     resource: '@DtcQueueBundle/Resources/config/routing.yml'
+dtc_grid:
+    resource: '@DtcGridBundle/Resources/config/routing.yml'
 ```
 
 __Urls:__
@@ -525,6 +526,12 @@ dtc_queue:
     class_run_archive: ~
     # Whether to record job timings in a separate job_timings table / collection (uses same store as run_manager)
     record_timings: false
+    # 255 is the recommended max for RabbitMQ, although Mongo/ORM could be set to INT_MAX for their platform
+    priority_max: 255
+    # desc means 1 is high priority, asc means 1 is the low prioirty
+    #  In the queue and database, priorities will always be stored in asc, however (so as to sort null as the lowest)
+    #   This is just for how setPriority() and the priority argument of such function as later() works
+    priority_direction: desc
     beanstalkd:
         host: ~
         tube: ~
@@ -543,7 +550,6 @@ dtc_queue:
             durable: true
             exclusive: false
             auto_delete: false
-            max_priority: 255
        exchange_args:
             exchange: dtc_queue_exchange
             type: direct

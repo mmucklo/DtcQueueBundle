@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\DependencyInjection;
 
+use Dtc\QueueBundle\Model\PriorityJobManager;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -47,6 +48,9 @@ class Configuration implements ConfigurationInterface
                 ->end()
                 ->booleanNode('record_timings')->defaultFalse()
                 ->end()
+                ->integerNode('priority_max')->defaultValue(255)
+                ->end()
+                ->enumNode('priority_direction')->values([PriorityJobManager::PRIORITY_ASC, PriorityJobManager::PRIORITY_DESC])->defaultValue(PriorityJobManager::PRIORITY_DESC)->end()
                 ->arrayNode('beanstalkd')
                     ->children()
                         ->scalarNode('host')->end()
@@ -71,7 +75,6 @@ class Configuration implements ConfigurationInterface
                                 ->booleanNode('durable')->defaultTrue()->end()
                                 ->booleanNode('exclusive')->defaultFalse()->end()
                                 ->booleanNode('auto_delete')->defaultFalse()->end()
-                                ->integerNode('max_priority')->defaultValue(255)->end()
                             ->end()
                         ->end()
                         ->arrayNode('exchange_args')

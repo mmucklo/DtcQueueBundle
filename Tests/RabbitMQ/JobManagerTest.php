@@ -7,6 +7,7 @@ use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\RabbitMQ\JobManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest;
+use Dtc\QueueBundle\Tests\Model\PriorityTestTrait;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 
 /**
@@ -16,6 +17,7 @@ use PhpAmqpLib\Connection\AMQPStreamConnection;
  */
 class JobManagerTest extends BaseJobManagerTest
 {
+    use PriorityTestTrait;
     public static $connection;
 
     public static function setUpBeforeClass()
@@ -31,6 +33,7 @@ class JobManagerTest extends BaseJobManagerTest
 
         self::$jobManager = new JobManager();
         self::$jobManager->setAMQPConnection(self::$connection);
+        self::$jobManager->setMaxPriority(255);
         self::$jobManager->setQueueArgs('dtc_queue', false, true, false, false, 255);
         self::$jobManager->setExchangeArgs('dtc_queue_exchange', 'direct', false, true, false);
         $channel = self::$connection->channel();
@@ -79,22 +82,24 @@ class JobManagerTest extends BaseJobManagerTest
         self::assertFalse($failed);
 
         try {
-            $jobManager->setQueueArgs('dtc_queue', false, true, false, false, 'asdf');
+            $jobManager->setQueueArgs('dtc_queue', false, true, false, false);
             $failed = true;
         } catch (\Exception $exception) {
             self::assertTrue(true);
         }
         self::assertFalse($failed);
 
+        $jobManager->setMaxPriority('asdf');
         try {
-            $jobManager->setQueueArgs('dtc_queue', false, true, false, false, PHP_INT_MAX.''.PHP_INT_MAX.''.PHP_INT_MAX);
+            $jobManager->setQueueArgs('dtc_queue', false, true, false, false);
             $failed = true;
         } catch (\Exception $exception) {
             self::assertTrue(true);
         }
         self::assertFalse($failed);
 
-        $jobManager->setQueueArgs('dtc_queue', false, true, false, false, 255);
+        $jobManager->setMaxPriority(255);
+        $jobManager->setQueueArgs('dtc_queue', false, true, false, false);
         try {
             $jobManager->setupChannel();
             $failed = true;

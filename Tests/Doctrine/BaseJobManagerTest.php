@@ -8,6 +8,7 @@ use Dtc\QueueBundle\Doctrine\BaseJobManager;
 use Dtc\QueueBundle\Doctrine\DtcQueueListener;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Tests\Model\PriorityTestTrait;
 use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest as BaseBaseJobManagerTest;
@@ -23,6 +24,8 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
  */
 abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 {
+    use PriorityTestTrait;
+
     protected static $dtcQueueListener;
 
     /** @var DocumentManager|EntityManager */
@@ -39,9 +42,16 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
     public static function setUpBeforeClass()
     {
         self::$jobManager = new self::$jobManagerClass(self::$objectManager, self::$objectName, self::$archiveObjectName, self::$runClass, self::$runArchiveClass);
+        self::$jobManager->setMaxPriority(255);
         self::$runManager = new self::$runManagerClass(self::$runClass, self::$jobTimingClass, true);
         self::$runManager->setObjectManager(self::$objectManager);
         self::$runManager->setRunArchiveClass(self::$runArchiveClass);
+
+        self::assertEquals(255, self::$jobManager->getMaxPriority());
+        self::assertEquals(JobManager::PRIORITY_DESC, self::$jobManager->getPriorityDirection());
+        self::$jobManager->setPriorityDirection(JobManager::PRIORITY_ASC);
+        self::assertEquals(JobManager::PRIORITY_ASC, self::$jobManager->getPriorityDirection());
+        self::$jobManager->setPriorityDirection(JobManager::PRIORITY_DESC);
 
         /** @var BaseJobManager $jobManager */
         $jobManager = self::$jobManager;
