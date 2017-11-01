@@ -46,7 +46,6 @@ class JobManager extends PriorityJobManager
      * @param bool   $durable
      * @param bool   $exclusive
      * @param bool   $autoDelete
-     * @param int    $maxPriority
      */
     public function setQueueArgs($queue, $passive, $durable, $exclusive, $autoDelete)
     {
