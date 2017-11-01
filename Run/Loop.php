@@ -50,7 +50,7 @@ class Loop
     /**
      * @return int
      */
-    public function getProcessTimeout(): int
+    public function getProcessTimeout()
     {
         return $this->processTimeout;
     }
