@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\ODM;
 
+use Doctrine\MongoDB\Query\Builder;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Dtc\QueueBundle\Doctrine\BaseRunManager;
 
@@ -9,19 +10,17 @@ class RunManager extends BaseRunManager
 {
     use CommonTrait;
 
-    public function pruneArchivedRuns(\DateTime $olderThan)
+    protected function getOldLiveRuns()
     {
-        /** @var DocumentManager $documentManager */
-        $documentManager = $this->getObjectManager();
+        /** @var DocumentManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        /** @var Builder $queryBuilder */
+        $queryBuilder = $objectManager->createQueryBuilder($this->getRunClass());
+        $queryBuilder->find();
+        $time = time() - 86400;
+        $date = new \DateTime("@$time");
+        $queryBuilder->field('lastHeartbeatAt')->lt($date);
 
-        return $this->removeOlderThan($documentManager, $this->getRunArchiveClass(), 'endedAt', $olderThan);
-    }
-
-    public function pruneJobTimings(\DateTime $olderThan)
-    {
-        /** @var DocumentManager $documentManager */
-        $documentManager = $this->getObjectManager();
-
-        return $this->removeOlderThan($documentManager, $this->getJobTimingClass(), 'createdAt', $olderThan);
+        return $queryBuilder->getQuery()->toArray();
     }
 }

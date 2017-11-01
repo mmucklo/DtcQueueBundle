@@ -8,6 +8,11 @@ class StubRunManager extends RunManager
 {
     use RecordingTrait;
 
+    public function pruneStalledRuns()
+    {
+        return $this->recordArgs(__FUNCTION__, func_get_args());
+    }
+
     public function pruneArchivedRuns(\DateTime $olderThan)
     {
         return $this->recordArgs(__FUNCTION__, func_get_args());

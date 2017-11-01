@@ -42,4 +42,9 @@ class RunArchive extends BaseRun
      * @ORM\Column(type="datetime", nullable=true)
      */
     protected $lastHeartbeatAt;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    protected $processTimeout;
 }

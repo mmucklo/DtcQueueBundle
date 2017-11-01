@@ -19,6 +19,7 @@ class Run
     protected $processed; // Number of jobs processed
     protected $hostname;
     protected $pid;
+    protected $processTimeout;
 
     /**
      * @return mixed
@@ -178,5 +179,21 @@ class Run
     public function setElapsed($elapsed)
     {
         $this->elapsed = $elapsed;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getProcessTimeout()
+    {
+        return $this->processTimeout;
+    }
+
+    /**
+     * @param mixed $processTimeout
+     */
+    public function setProcessTimeout($processTimeout)
+    {
+        $this->processTimeout = $processTimeout;
     }
 }

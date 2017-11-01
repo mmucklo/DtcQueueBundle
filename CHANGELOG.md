@@ -1,3 +1,6 @@
+### 2.5.0
+   * Fix bug with archiving of Runs
+   * Add a prune for stalled runs
 ### 2.4.0
    * Fix bug with bad annotation
    * Fix priorities - now there's a max priority and priority direction setting in configuration

@@ -56,6 +56,11 @@ class RunManager
         throw new \Exception('not supported');
     }
 
+    public function pruneStalledRuns()
+    {
+        throw new \Exception('not supported');
+    }
+
     /**
      * @return null|string
      */

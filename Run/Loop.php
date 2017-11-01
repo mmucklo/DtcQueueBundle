@@ -34,6 +34,9 @@ class Loop
     /** @var RunManager */
     protected $runManager;
 
+    /** @var int */
+    protected $processTimeout;
+
     public function __construct(
         WorkerManager $workerManager,
         JobManagerInterface $jobManager,
@@ -42,6 +45,22 @@ class Loop
         $this->workerManager = $workerManager;
         $this->jobManager = $jobManager;
         $this->runManager = $runManager;
+    }
+
+    /**
+     * @return int
+     */
+    public function getProcessTimeout(): int
+    {
+        return $this->processTimeout;
+    }
+
+    /**
+     * @param int $processTimeout
+     */
+    public function setProcessTimeout(int $processTimeout)
+    {
+        $this->processTimeout = $processTimeout;
     }
 
     public function setLogger(LoggerInterface $logger)
@@ -287,6 +306,7 @@ class Loop
         $this->run->setHostname(gethostname());
         $this->run->setPid(getmypid());
         $this->run->setProcessed(0);
+        $this->run->setProcessTimeout($this->processTimeout);
         $this->persistRun();
     }
 

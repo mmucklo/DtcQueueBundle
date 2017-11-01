@@ -57,9 +57,16 @@ abstract class BaseRun extends \Dtc\QueueBundle\Model\Run
      * @ODM\Field(type="string", nullable=true)
      */
     protected $hostname;
+
     /**
      * @Grid\Column()
      * @ODM\Field(type="int", nullable=true)
      */
     protected $pid;
+
+    /**
+     * @Grid\Column()
+     * @ODM\Field(type="int", nullable=true)
+     */
+    protected $processTimeout;
 }

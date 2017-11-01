@@ -42,6 +42,10 @@ class DtcQueueListener
         $runManager = $this->container->get('dtc_queue.run_manager');
 
         $runArchiveClass = $runManager->getRunArchiveClass();
+        if ($object instanceof $runArchiveClass) {
+            return;
+        }
+
         $runArchive = new $runArchiveClass();
         Util::copy($object, $runArchive);
         $metadata = $objectManager->getClassMetadata($runArchiveClass);

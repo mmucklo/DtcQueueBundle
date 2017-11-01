@@ -5,8 +5,6 @@ namespace Dtc\QueueBundle\ORM;
 use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\Id\AssignedGenerator;
-use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\QueryBuilder;
 use Dtc\QueueBundle\Doctrine\BaseJobManager;
 use Dtc\QueueBundle\Entity\Job;
@@ -19,30 +17,6 @@ class JobManager extends BaseJobManager
     protected $formerIdGenerators;
     protected static $saveInsertCalled = null;
     protected static $resetInsertCalled = null;
-
-    public function stopIdGenerator($objectName)
-    {
-        $objectManager = $this->getObjectManager();
-        $repository = $objectManager->getRepository($objectName);
-        /** @var ClassMetadata $metadata */
-        $metadata = $objectManager->getClassMetadata($repository->getClassName());
-        $this->formerIdGenerators[$objectName]['generator'] = $metadata->idGenerator;
-        $this->formerIdGenerators[$objectName]['type'] = $metadata->generatorType;
-        $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
-        $metadata->setIdGenerator(new AssignedGenerator());
-    }
-
-    public function restoreIdGenerator($objectName)
-    {
-        $objectManager = $this->getObjectManager();
-        $repository = $objectManager->getRepository($objectName);
-        /** @var ClassMetadata $metadata */
-        $metadata = $objectManager->getClassMetadata($repository->getClassName());
-        $generator = $this->formerIdGenerators[$objectName]['generator'];
-        $type = $this->formerIdGenerators[$objectName]['type'];
-        $metadata->setIdGeneratorType($type);
-        $metadata->setIdGenerator($generator);
-    }
 
     public function countJobsByStatus($objectName, $status, $workerName = null, $method = null)
     {

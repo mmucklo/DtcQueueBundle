@@ -3,17 +3,26 @@
 namespace Dtc\QueueBundle\ORM;
 
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\QueryBuilder;
 use Dtc\QueueBundle\Doctrine\BaseRunManager;
 
 class RunManager extends BaseRunManager
 {
     use CommonTrait;
 
-    public function pruneArchivedRuns(\DateTime $olderThan)
+    protected function getOldLiveRuns()
     {
-        /** @var EntityManager $entityManager */
-        $entityManager = $this->getObjectManager();
+        /** @var EntityManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        /** @var QueryBuilder $queryBuilder */
+        $queryBuilder = $objectManager->createQueryBuilder();
+        $queryBuilder->select(['r'])
+            ->from($this->getRunClass(), 'r');
+        $time = time() - 86400;
+        $date = new \DateTime("@$time");
+        $queryBuilder->where('r.lastHeartbeatAt < :date');
+        $queryBuilder->setParameter(':date', $date);
 
-        return $this->removeOlderThan($entityManager, $this->getRunArchiveClass(), 'endedAt', $olderThan);
+        return $queryBuilder->getQuery()->getResult();
     }
 }

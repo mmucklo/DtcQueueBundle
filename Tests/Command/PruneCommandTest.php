@@ -66,6 +66,11 @@ class PruneCommandTest extends TestCase
         $this->runPruneCommand(['type' => 'stalled'], 'pruneStalledJobs');
     }
 
+    public function testPruneCommandStalledRuns()
+    {
+        $this->runPruneCommand(['type' => 'stalled_runs'], 'pruneStalledRuns');
+    }
+
     protected function getPruneCommandOlderDateDiff($older, $type = 'old', $call = 'pruneArchivedJobs')
     {
         $startTime = time();

@@ -29,19 +29,6 @@ class JobManager extends BaseJobManager
     }
 
     /**
-     * @param string $objectName
-     */
-    public function stopIdGenerator($objectName)
-    {
-        // Not needed for ODM
-    }
-
-    public function restoreIdGenerator($objectName)
-    {
-        // Not needed for ODM
-    }
-
-    /**
      * @param string|null $workerName
      * @param string|null $method
      */

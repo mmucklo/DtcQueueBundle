@@ -201,7 +201,10 @@ bin/console dtc:queue:prune old --older 1m
 # May be needed if jobs stall out
 bin/console dtc:queue:prune stalled
 
-# If you're recording runs
+# If you're recording runs...this is recommended:
+bin/console dtc:queue:prune stalled_runs
+
+# If you're recording runs...another recommendation
 bin/console dtc:queue:prune old_runs --older 1m
 
 # If you're recording timings
@@ -516,21 +519,41 @@ Full Configuration
 dtc_queue:
     document_manager: default
     entity_manager: default
-    # default_manager: builtins: orm, odm, beanstalkd, rabbit_mq
+    # default_manager
+    #
+    #  builtins: orm, odm, beanstalkd, rabbit_mq
     default_manager: odm
-    # run_manager: can be set to any of the same options as "default_manager", defaults to what ever default_manager is set
+    #
+    # run_manager: can be set to any of the same options as
+    #
+    #  "default_manager", defaults to what ever default_manager is set
     run_manager: ~
     class_job: ~
     class_job_archive: ~
     class_run: ~
     class_run_archive: ~
-    # Whether to record job timings in a separate job_timings table / collection (uses same store as run_manager)
+    #
+    # record_timings
+    #
+    #  Whether to record job timings in a separate job_timings
+    #  table / collection (uses same store as run_manager)
     record_timings: false
-    # 255 is the recommended max for RabbitMQ, although Mongo/ORM could be set to INT_MAX for their platform
+    #
+    # prioirty_max
+    #
+    #  255 is the recommended max for RabbitMQ, although Mongo/ORM
+    #  could be set to INT_MAX for their platform
     priority_max: 255
-    # desc means 1 is high priority, asc means 1 is the low prioirty
-    #  In the queue and database, priorities will always be stored in asc, however (so as to sort null as the lowest)
-    #   This is just for how setPriority() and the priority argument of such function as later() works
+    #
+    # priority_direction
+    #
+    #  desc means 1 is high priority, asc means 1 is low prioirty
+    #
+    #  In the queue and database, priorities will always be stored
+    #  in ascending order, however, (so as to sort null as the lowest)
+    #  
+    #  This is just for the direction that setPriority() and the
+    #  prioirty argument of such functions as later() use
     priority_direction: desc
     beanstalkd:
         host: ~
@@ -565,5 +588,6 @@ This bundle is under the MIT license (see LICENSE file under [Resources/meta/LIC
 
 Credit
 --------
-Originally written by @dtee
+Originally written by @dtee 
+Enhanced and maintained by @mmucklo
 

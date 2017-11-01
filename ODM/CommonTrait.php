@@ -2,19 +2,23 @@
 
 namespace Dtc\QueueBundle\ODM;
 
+use Doctrine\Common\Persistence\ObjectManager;
+use Doctrine\ODM\MongoDB\DocumentManager;
+
 trait CommonTrait
 {
     /**
-     * @param \Doctrine\ODM\MongoDB\DocumentManager $documentManager
-     * @param string                                $objectName
-     * @param string                                $field
-     * @param \DateTime                             $olderThan
+     * @param ObjectManager $objectManager
+     * @param string        $objectName
+     * @param string        $field
+     * @param \DateTime     $olderThan
      *
      * @return int
      */
-    protected function removeOlderThan(\Doctrine\ODM\MongoDB\DocumentManager $documentManager, $objectName, $field, \DateTime $olderThan)
+    protected function removeOlderThan(ObjectManager $objectManager, $objectName, $field, \DateTime $olderThan)
     {
-        $qb = $documentManager->createQueryBuilder($objectName);
+        /** @var DocumentManager $objectManager */
+        $qb = $objectManager->createQueryBuilder($objectName);
         $qb
             ->remove()
             ->field($field)->lt($olderThan);
@@ -26,5 +30,18 @@ trait CommonTrait
         }
 
         return 0;
+    }
+
+    /**
+     * @param string $objectName
+     */
+    public function stopIdGenerator($objectName)
+    {
+        // Not needed for ODM
+    }
+
+    public function restoreIdGenerator($objectName)
+    {
+        // Not needed for ODM
     }
 }

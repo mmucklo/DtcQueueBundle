@@ -447,6 +447,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $objectManager = $jobManager->getObjectManager();
         $run = new $runClass();
+        $run->setLastHeartbeatAt(new \DateTime());
         $objectManager->persist($run);
         $objectManager->flush();
         $runId = $run->getId();

@@ -37,7 +37,7 @@ abstract class BaseRun extends \Dtc\QueueBundle\Model\Run
 
     /**
      * @Grid\Column(sortable=true)
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(type="datetime")
      */
     protected $lastHeartbeatAt;
 
@@ -62,4 +62,10 @@ abstract class BaseRun extends \Dtc\QueueBundle\Model\Run
      * @ORM\Column(type="integer", nullable=true)
      */
     protected $pid;
+
+    /**
+     * @Grid\Column()
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    protected $processTimeout;
 }

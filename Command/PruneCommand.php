@@ -17,7 +17,7 @@ class PruneCommand extends ContainerAwareCommand
         $this
         ->setName('dtc:queue:prune')
         ->setDescription('Prune job with error status')
-        ->addArgument('type', InputArgument::REQUIRED, '<stalled|error|expired|old|old_runs|old_job_timings> Prune stalled, erroneous, expired, or old jobs')
+        ->addArgument('type', InputArgument::REQUIRED, '<stalled|stalled_runs|error|expired|old|old_runs|old_job_timings> Prune stalled, erroneous, expired, or old jobs')
             ->addOption('older', null, InputOption::VALUE_REQUIRED, self::OLDER_MESSAGE);
     }
 
@@ -37,6 +37,10 @@ class PruneCommand extends ContainerAwareCommand
                 break;
             case 'stalled':
                 $count = $jobManager->pruneStalledJobs();
+                $output->writeln("$count Stalled Job(s) pruned");
+                break;
+            case 'stalled_runs':
+                $count = $container->get('dtc_queue.run_manager')->pruneStalledRuns();
                 $output->writeln("$count Stalled Job(s) pruned");
                 break;
             default:

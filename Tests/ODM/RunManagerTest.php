@@ -43,4 +43,36 @@ class RunManagerTest extends TestCase
         self::assertEmpty($runArchiveRepository->findAll());
         self::assertEmpty($runRepository->findAll());
     }
+
+    public function testPruneStaleRuns()
+    {
+        JobManagerTest::setUpBeforeClass();
+        $jobManager = JobManagerTest::$jobManager;
+        $runClass = \Dtc\QueueBundle\Document\Run::class;
+        $runArchiveClass = \Dtc\QueueBundle\Document\RunArchive::class;
+        $runManager = new \Dtc\QueueBundle\ODM\RunManager($runClass, JobTiming::class, true);
+        $runManager->setRunArchiveClass($runArchiveClass);
+        $runManager->setObjectManager($jobManager->getObjectManager());
+        $objectManager = $runManager->getObjectManager();
+        $runRepository = $objectManager->getRepository($runClass);
+        self::assertEmpty($runRepository->findAll());
+        $runArchiveRepository = $objectManager->getRepository($runArchiveClass);
+        self::assertEmpty($runArchiveRepository->findAll());
+
+        $run = new $runClass();
+        $time = time() - 96400;
+        $date = new \DateTime("@$time");
+
+        $run->setStartedAt($date);
+        $run->setLastHeartbeatAt($date);
+        $objectManager->persist($run);
+        $objectManager->flush($run);
+        self::assertCount(1, $runRepository->findAll());
+
+        $count = $runManager->pruneStalledRuns();
+        self::assertEquals(1, $count);
+        self::assertEmpty($runRepository->findAll());
+        $count = $runManager->pruneStalledRuns();
+        self::assertEquals(0, $count);
+    }
 }

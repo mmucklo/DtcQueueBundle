@@ -41,4 +41,9 @@ class RunArchive extends BaseRun
      * @ODM\Field(type="date")
      */
     protected $lastHeartbeatAt;
+
+    /**
+     * @ODM\Field(type="int", nullable=true)
+     */
+    protected $processTimeout;
 }

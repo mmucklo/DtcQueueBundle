@@ -34,7 +34,7 @@ class JobManagerTest extends BaseJobManagerTest
         self::$jobManager = new JobManager();
         self::$jobManager->setAMQPConnection(self::$connection);
         self::$jobManager->setMaxPriority(255);
-        self::$jobManager->setQueueArgs('dtc_queue', false, true, false, false, 255);
+        self::$jobManager->setQueueArgs('dtc_queue', false, true, false, false);
         self::$jobManager->setExchangeArgs('dtc_queue_exchange', 'direct', false, true, false);
         $channel = self::$connection->channel();
         $channel->queue_delete('dtc_queue');
