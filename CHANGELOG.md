@@ -1,3 +1,5 @@
+### 2.5.1
+   * Fix PruneCommand output in certain cases
 ### 2.5.0
    * Fix bug with archiving of Runs
    * Add a prune for stalled runs
