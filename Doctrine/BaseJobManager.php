@@ -299,10 +299,8 @@ abstract class BaseJobManager extends PriorityJobManager
         $this->deleteJob($job); // Should cause job to be archived
     }
 
-    public function prioritySave(\Dtc\QueueBundle\Model\Job $job)
+    protected function prioritySave(\Dtc\QueueBundle\Model\Job $job)
     {
-        // Todo: Serialize args
-
         // Generate crc hash for the job
         $hashValues = array($job->getClassName(), $job->getMethod(), $job->getWorkerName(), $job->getArgs());
         $crcHash = hash('sha256', serialize($hashValues));

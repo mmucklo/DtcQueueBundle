@@ -2,3 +2,4 @@ queue:
     resource: "@DtcQueueBundle/Controller/QueueController.php"
     prefix:  /dtc_queue/
     type: annotation
+

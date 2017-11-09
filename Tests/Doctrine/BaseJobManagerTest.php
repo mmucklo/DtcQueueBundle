@@ -473,6 +473,24 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertEquals(2, $count);
     }
 
+    public function testBatchJobs() {
+        $jobs = self::$jobManager->getRepository()->findAll();
+        foreach ($jobs as $job) {
+            self::$jobManager->getObjectManager()->remove($job);
+        }
+        self::$jobManager->getObjectManager()->flush();
+
+        self::$jobManager->getObjectManager()->clear();
+
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
+        $worker = self::$worker;
+        $worker->later()->fibonacci(1);
+        $worker->batchLater()->fibonacci(1);
+
+        $jobs = self::$jobManager->getRepository()->findAll();
+        self::assertCount(1, $jobs);
+    }
+
     public function testPruneExpiredJobs()
     {
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
