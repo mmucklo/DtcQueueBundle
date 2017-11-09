@@ -104,20 +104,24 @@ class PruneCommand extends ContainerAwareCommand
     protected function pruneOlderThan($type, \DateTime $olderThan, OutputInterface $output)
     {
         $container = $this->getContainer();
+        $typeName = null;
         switch ($type) {
             case 'old':
                 $count = $container->get('dtc_queue.job_manager')->pruneArchivedJobs($olderThan);
+                $typeName = 'Job';
                 break;
             case 'old_runs':
                 $count = $container->get('dtc_queue.run_manager')->pruneArchivedRuns($olderThan);
+                $typeName = 'Run';
                 break;
             case 'old_job_timings':
                 $count = $container->get('dtc_queue.run_manager')->pruneJobTimings($olderThan);
+                $typeName = 'Job Timing';
                 break;
             default:
                 throw new \Exception("Unknown type $type");
         }
-        $output->writeln("$count Archived Job(s) pruned");
+        $output->writeln("$count Archived $typeName(s) pruned");
 
         return 0;
     }
