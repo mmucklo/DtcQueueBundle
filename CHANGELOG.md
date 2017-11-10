@@ -1,3 +1,5 @@
+### 2.5.3
+   * Fix a bug in queue.yml
 ### 2.5.2
    * Add a test
    * Fix a few issues from Sensio Insight
