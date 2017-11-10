@@ -10,7 +10,6 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 trait CommonTrait
 {
     /**
-     * @param ObjectManager $entityManager
      * @param string        $objectName
      * @param string        $field
      * @param \DateTime     $olderThan
