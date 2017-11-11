@@ -4,6 +4,7 @@ DtcQueueBundle
 [![Build Status](https://secure.travis-ci.org/mmucklo/DtcQueueBundle.png?branch=master)](http://travis-ci.org/mmucklo/DtcQueueBundle)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/mmucklo/DtcQueueBundle/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/mmucklo/DtcQueueBundle/?branch=master)
 [![Code Coverage](https://scrutinizer-ci.com/g/mmucklo/DtcQueueBundle/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/mmucklo/DtcQueueBundle/?branch=master)
+[![SensioLabsInsight](https://insight.sensiolabs.com/projects/a417419a-2d04-43eb-b7a2-1a04a4dfcc8e/mini.png)](https://insight.sensiolabs.com/projects/a417419a-2d04-43eb-b7a2-1a04a4dfcc8e)
 
 > Allow symfony developers to create background job as easily as: `$worker->later()->process(1,2,3)`
 
@@ -18,6 +19,9 @@ This bundle provides a way to easily create queued background jobs
 - Logs errors from worker
 - Command to run and debug jobs from console
 - Works with GridBundle to provide queue management
+- Various safety checks for things such as stalled jobs, errored jobs
+   - Allows for reseting stalled and errored jobs via console commands
+      - If automated, limits can be placed on the number of retries
 
 Supported Queues
 ----------------
