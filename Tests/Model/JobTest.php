@@ -19,17 +19,15 @@ class JobTest extends TestCase
         $job->setArgs(array(1));
         $job->setArgs(array(1, array(1, 2)));
 
+        $this->callSetArgs($job, array($job));
+        $this->callSetArgs($job, array(1, array($job)));
+    }
+
+    protected function callSetArgs(Job $job, $args)
+    {
         $failed = false;
         try {
-            $job->setArgs(array($job));
-            $failed = true;
-        } catch (\Exception $e) {
-            self::assertTrue(true);
-        }
-        self::assertFalse($failed);
-
-        try {
-            $job->setArgs(array(1, array($job)));
+            $job->setArgs($args);
             $failed = true;
         } catch (\Exception $e) {
             self::assertTrue(true);

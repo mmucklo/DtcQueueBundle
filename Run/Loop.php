@@ -155,14 +155,35 @@ class Loop
         $duration = Util::validateIntNull('duration', $duration, 32);
         $nanoSleep = Util::validateIntNull('nanoSleep', $nanoSleep, 63);
 
-        if (null === $nanoSleep) {
-            throw new \Exception("nanoSleep can't be null");
-        }
+        $this->validateNanoSleep($nanoSleep);
+        $this->validateMaxCountDuration($maxCount, $duration);
+    }
+
+    /**
+     * @param int|null $maxCount
+     * @param int|null $duration
+     *
+     * @throws \Exception
+     */
+    protected function validateMaxCountDuration($maxCount, $duration)
+    {
         if (0 === $maxCount && 0 === $duration) {
             throw new \Exception('maxCount and duration can not both be 0');
         }
         if (null === $maxCount && null === $duration) {
             throw new \Exception('maxCount and duration can not both be null');
+        }
+    }
+
+    /**
+     * @param int|null $nanoSleep
+     *
+     * @throws \Exception
+     */
+    protected function validateNanoSleep($nanoSleep)
+    {
+        if (null === $nanoSleep) {
+            throw new \Exception("nanoSleep can't be null");
         }
     }
 
@@ -238,18 +259,45 @@ class Loop
      */
     protected function isFinished($maxCount, $endTime, $currentJob, $noMoreJobsToRun)
     {
-        if ((null === $maxCount || $currentJob <= $maxCount)) {
-            if (null === $endTime) { // This means that there is a $maxCount as we force one or the other to be not null
-                if ($noMoreJobsToRun) {
-                    return true;
-                }
+        if (null === $maxCount) {
+            return $this->isFinishedEndTime($endTime);
+        }
+        if ($currentJob <= $maxCount) {
+            return $this->isFinishedJobs($endTime, $noMoreJobsToRun);
+        }
 
-                return false;
+        return true;
+    }
+
+    /**
+     * @param \DateTime|null $endTime
+     * @param bool           $noMoreJobsToRun
+     *
+     * @return bool
+     */
+    protected function isFinishedJobs($endTime, $noMoreJobsToRun)
+    {
+        if (null === $endTime) { // This means that there is a $maxCount as we force one or the other to be not null
+            if ($noMoreJobsToRun) {
+                return true;
             }
-            $now = new \DateTime();
-            if ($endTime > $now) {
-                return false;
-            }
+
+            return false;
+        }
+
+        return $this->isFinishedEndTime($endTime);
+    }
+
+    /**
+     * @param \DateTime $endTime
+     *
+     * @return bool
+     */
+    protected function isFinishedEndTime(\DateTime $endTime)
+    {
+        $now = new \DateTime();
+        if ($endTime > $now) {
+            return false;
         }
 
         return true;

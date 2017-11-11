@@ -74,7 +74,7 @@ class JobManager extends PriorityJobManager
         return $this->channel;
     }
 
-    public function setupChannel()
+    protected function checkChannelArgs()
     {
         if (empty($this->queueArgs)) {
             throw new \Exception(__METHOD__.': queue args need to be set via setQueueArgs(...)');
@@ -82,15 +82,25 @@ class JobManager extends PriorityJobManager
         if (empty($this->exchangeArgs)) {
             throw new \Exception(__METHOD__.': exchange args need to be set via setExchangeArgs(...)');
         }
+    }
+
+    protected function performChannelSetup()
+    {
+        call_user_func_array([$this->channel, 'exchange_declare'], $this->exchangeArgs);
+        if ($this->maxPriority) {
+            array_push($this->queueArgs, false);
+            array_push($this->queueArgs, ['x-max-priority' => ['I', intval($this->maxPriority)]]);
+        }
+        call_user_func_array([$this->channel, 'queue_declare'], $this->queueArgs);
+        $this->channel->queue_bind($this->queueArgs[0], $this->exchangeArgs[0]);
+    }
+
+    public function setupChannel()
+    {
+        $this->checkChannelArgs();
 
         if (!$this->channelSetup) {
-            call_user_func_array([$this->channel, 'exchange_declare'], $this->exchangeArgs);
-            if ($this->maxPriority) {
-                array_push($this->queueArgs, false);
-                array_push($this->queueArgs, ['x-max-priority' => ['I', intval($this->maxPriority)]]);
-            }
-            call_user_func_array([$this->channel, 'queue_declare'], $this->queueArgs);
-            $this->channel->queue_bind($this->queueArgs[0], $this->exchangeArgs[0]);
+            $this->performChannelSetup();
             $this->channelSetup = true;
         }
     }
@@ -173,15 +183,19 @@ class JobManager extends PriorityJobManager
         }
     }
 
+    protected function verifyGetJobArgs($workerName = null, $methodName = null, $prioritize = true)
+    {
+        if (null !== $workerName || null !== $methodName || true !== $prioritize) {
+            throw new \Exception('Unsupported');
+        }
+    }
+
     /**
      * @param string $workerName
      */
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
-        if (null !== $workerName || null !== $methodName || true !== $prioritize) {
-            throw new \Exception('Unsupported');
-        }
-
+        $this->verifyGetJobArgs($workerName, $methodName, $prioritize);
         $this->setupChannel();
 
         do {

@@ -108,6 +108,28 @@ class WorkerCompilerPass implements CompilerPassInterface
     }
 
     /**
+     * @param $managerType
+     *
+     * @return null|string
+     */
+    protected function getDirectory($managerType)
+    {
+        switch ($managerType) {
+            case 'mongodb': // deprecated remove in 3.0
+            case 'odm':
+                return 'Document';
+            case 'beanstalkd':
+                return 'Beanstalkd';
+            case 'rabbit_mq':
+                return 'RabbitMQ';
+            case 'orm':
+                return 'Entity';
+        }
+
+        return null;
+    }
+
+    /**
      * Determines the job class based on the queue manager type.
      *
      * @param ContainerBuilder $container
@@ -120,22 +142,10 @@ class WorkerCompilerPass implements CompilerPassInterface
     {
         $jobClass = $container->getParameter('dtc_queue.class_job');
         if (!$jobClass) {
-            switch ($defaultType = $container->getParameter('dtc_queue.default_manager')) {
-                case 'mongodb': // deprecated remove in 3.0
-                case 'odm':
-                    $jobClass = 'Dtc\\QueueBundle\\Document\\Job';
-                    break;
-                case 'beanstalkd':
-                    $jobClass = 'Dtc\\QueueBundle\\Beanstalkd\\Job';
-                    break;
-                case 'rabbit_mq':
-                    $jobClass = 'Dtc\\QueueBundle\\RabbitMQ\\Job';
-                    break;
-                case 'orm':
-                    $jobClass = 'Dtc\\QueueBundle\\Entity\\Job';
-                    break;
-                default:
-                    throw new \Exception('Unknown default_manager type '.$defaultType.' - please specify a Job class in the \'class\' configuration parameter');
+            if ($directory = $this->getDirectory($managerType = $container->getParameter('dtc_queue.default_manager'))) {
+                $jobClass = 'Dtc\QueueBundle\\'.$directory.'\Job';
+            } else {
+                throw new \Exception('Unknown default_manager type '.$managerType.' - please specify a Job class in the \'class\' configuration parameter');
             }
         }
 

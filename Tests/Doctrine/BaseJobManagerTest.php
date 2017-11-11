@@ -107,30 +107,11 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
 
-        /** @var Job $job */
-        $job = $this->getJob();
-        $id = $job->getId();
-        $jobManager->deleteJob($job);
-
-        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
-        $jobManager = self::$jobManager;
+        $id = $this->createErroredJob();
         $archiveObjectName = $jobManager->getArchiveObjectName();
-
         $objectManager = $jobManager->getObjectManager();
-
         $archiveRepository = $objectManager->getRepository($archiveObjectName);
         $result = $archiveRepository->find($id);
-        self::assertNotNull($result);
-        self::assertEquals($id, $result->getId());
-
-        $result->setStatus(BaseJob::STATUS_ERROR);
-        $result->setLocked(true);
-        $result->setLockedAt(new \DateTime());
-        $result->setFinishedAt(new \DateTime());
-        $result->setElapsed(12345);
-        $result->setMessage('soomething');
-        $objectManager->persist($result);
-        $objectManager->flush();
 
         if ($objectManager instanceof EntityManager) {
             JobManagerTest::createObjectManager();
@@ -155,9 +136,59 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $objectManager->remove($job);
         $objectManager->flush();
+
+        $id = $this->createErroredJob();
+        $archiveObjectName = $jobManager->getArchiveObjectName();
+        $objectManager = $jobManager->getObjectManager();
+        $archiveRepository = $objectManager->getRepository($archiveObjectName);
+        $result = $archiveRepository->find($id);
+        $result->setMaxRetries(10);
+        $result->setRetries(10);
+        $objectManager->persist($result);
+        $objectManager->flush();
+        $count = $jobManager->resetErroneousJobs();
+        self::assertEquals(0, $count);
+        $job = $repository->find($id);
+        self::assertNull($job);
+        $job = $archiveRepository->find($id);
+        self::assertNotNull($job);
+        $objectManager->remove($job);
+        $objectManager->flush();
     }
 
-    public function testResetStalledJobs()
+    protected function createErroredJob()
+    {
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
+        $jobManager = self::$jobManager;
+
+        /** @var Job $job */
+        $job = $this->getJob();
+        $id = $job->getId();
+        $jobManager->deleteJob($job);
+
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
+        $archiveObjectName = $jobManager->getArchiveObjectName();
+
+        $objectManager = $jobManager->getObjectManager();
+
+        $archiveRepository = $objectManager->getRepository($archiveObjectName);
+        $result = $archiveRepository->find($id);
+        self::assertNotNull($result);
+        self::assertEquals($id, $result->getId());
+
+        $result->setStatus(BaseJob::STATUS_ERROR);
+        $result->setLocked(true);
+        $result->setLockedAt(new \DateTime());
+        $result->setFinishedAt(new \DateTime());
+        $result->setElapsed(12345);
+        $result->setMessage('soomething');
+        $objectManager->persist($result);
+        $objectManager->flush();
+
+        return $id;
+    }
+
+    public function createStalledJob()
     {
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
@@ -201,12 +232,21 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $objectManager->persist($archivedRun);
         $objectManager->flush();
+        $id = $job->getId();
 
+        return $id;
+    }
+
+    public function testResetStalledJobs()
+    {
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
+        $jobManager = self::$jobManager;
+        $id = $this->createStalledJob();
+
+        $objectManager = $jobManager->getObjectManager();
         $count = $jobManager->resetStalledJobs();
-
         self::assertEquals(1, $count);
 
-        $id = $job->getId();
         $job = $jobManager->getRepository()->find($id);
 
         self::assertNotNull($job);
@@ -218,6 +258,38 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertNull($job->getLocked());
         self::assertEquals(1, $job->getStalledCount());
 
+        $objectManager->remove($job);
+        $objectManager->flush();
+
+        $id = $this->createStalledJob();
+        $job = $jobManager->getRepository()->find($id);
+        $job->setMaxRetries(10);
+        $job->setRetries(10);
+        $objectManager->persist($job);
+        $objectManager->flush();
+
+        $count = $jobManager->resetStalledJobs();
+        self::assertEquals(0, $count);
+        $job = $jobManager->getRepository()->find($id);
+        self::assertNull($job);
+        $job = $objectManager->getRepository($jobManager->getArchiveObjectName())->find($id);
+        self::assertNotNull($job);
+        $objectManager->remove($job);
+        $objectManager->flush();
+
+        $id = $this->createStalledJob();
+        $job = $jobManager->getRepository()->find($id);
+        $job->setMaxStalled(10);
+        $job->setStalledCount(10);
+        $objectManager->persist($job);
+        $objectManager->flush();
+
+        $count = $jobManager->resetStalledJobs();
+        self::assertEquals(0, $count);
+        $job = $jobManager->getRepository()->find($id);
+        self::assertNull($job);
+        $job = $objectManager->getRepository($jobManager->getArchiveObjectName())->find($id);
+        self::assertNotNull($job);
         $objectManager->remove($job);
         $objectManager->flush();
     }

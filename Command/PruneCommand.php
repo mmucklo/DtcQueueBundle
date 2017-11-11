@@ -35,6 +35,19 @@ class PruneCommand extends ContainerAwareCommand
                 $count = $jobManager->pruneExpiredJobs();
                 $output->writeln("$count Expired Job(s) pruned");
                 break;
+            default:
+                return $this->executeStalledOther($input, $output);
+        }
+
+        return 0;
+    }
+
+    public function executeStalledOther(InputInterface $input, OutputInterface $output)
+    {
+        $container = $this->getContainer();
+        $jobManager = $container->get('dtc_queue.job_manager');
+        $type = $input->getArgument('type');
+        switch ($type) {
             case 'stalled':
                 $count = $jobManager->pruneStalledJobs();
                 $output->writeln("$count Stalled Job(s) pruned");
@@ -44,22 +57,28 @@ class PruneCommand extends ContainerAwareCommand
                 $output->writeln("$count Stalled Job(s) pruned");
                 break;
             default:
-                $older = $input->getOption('older');
-                if (!$older) {
-                    $output->writeln('<error>--older must be specified</error>');
-
-                    return 1;
-                }
-                if (!preg_match("/(\d+)([d|m|y|h|i|s]){0,1}$/", $older, $matches)) {
-                    $output->writeln('<error>Wrong format for --older</error>');
-
-                    return 1;
-                }
-
-                return $this->pruneOldJobs($matches, $type, $output);
+                return $this->executeOlder($input, $output);
         }
 
         return 0;
+    }
+
+    public function executeOlder(InputInterface $input, OutputInterface $output)
+    {
+        $older = $input->getOption('older');
+        $type = $input->getArgument('type');
+        if (!$older) {
+            $output->writeln('<error>--older must be specified</error>');
+
+            return 1;
+        }
+        if (!preg_match("/(\d+)([d|m|y|h|i|s]){0,1}$/", $older, $matches)) {
+            $output->writeln('<error>Wrong format for --older</error>');
+
+            return 1;
+        }
+
+        return $this->pruneOldJobs($matches, $type, $output);
     }
 
     /**
@@ -148,6 +167,24 @@ class PruneCommand extends ContainerAwareCommand
             case 'y':
                 $interval = new \DateInterval("P${duration}Y");
                 break;
+            default:
+                $interval = $this->getIntervalTime($modifier, $duration);
+        }
+
+        return $interval;
+    }
+
+    /**
+     * @param string $modifier
+     * @param int    $duration
+     *
+     * @return \DateInterval
+     *
+     * @throws \Exception
+     */
+    protected function getIntervalTime($modifier, $duration)
+    {
+        switch ($modifier) {
             case 'h':
                 $interval = new \DateInterval("PT${duration}H");
                 break;
