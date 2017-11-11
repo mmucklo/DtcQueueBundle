@@ -152,10 +152,15 @@ abstract class BaseJobManager extends PriorityJobManager
                     ++$finalCount;
                 }
             }
-            $objectManager->flush();
+            $this->flush();
         }
 
         return $finalCount;
+    }
+
+    protected function flush()
+    {
+        $this->getObjectManager()->flush();
     }
 
     protected function getStalledJobs($workerName = null, $method = null)
@@ -254,7 +259,7 @@ abstract class BaseJobManager extends PriorityJobManager
                 $objectManager->persist($job);
                 ++$countProcessed;
             }
-            $objectManager->flush();
+            $this->flush();
         }
 
         return $countProcessed;
@@ -281,7 +286,7 @@ abstract class BaseJobManager extends PriorityJobManager
                 $objectManager->remove($job);
                 ++$countProcessed;
             }
-            $objectManager->flush();
+            $this->flush();
         }
 
         return $countProcessed;
@@ -308,12 +313,6 @@ abstract class BaseJobManager extends PriorityJobManager
         $objectManager = $this->getObjectManager();
 
         if (true === $job->getBatch()) {
-            // See if similar job that hasn't run exists
-            //  Bug: what if there are multiple - shouldn't we batch up to the soonest or
-            //     do we batch to the latest - does it matter which we batch to - unless priority shift
-            //     or whenAt shift happens, no, correct?
-            //   Bug: Atomicity - shouldn't this be in a transaction for ORM and a findAndModify for ODM?
-            //  Option: Include STATUS_RUNNING as well?
             $oldJob = $this->updateNearestBatch($job);
             if ($oldJob) {
                 return $oldJob;

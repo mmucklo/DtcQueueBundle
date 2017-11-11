@@ -104,10 +104,15 @@ abstract class BaseRunManager extends RunManager
             foreach ($deleteList as $object) {
                 $objectManager->remove($object);
             }
-            $objectManager->flush();
+            $this->flush();
         }
 
         return $count;
+    }
+
+    protected function flush()
+    {
+        $this->getObjectManager()->flush();
     }
 
     /**
