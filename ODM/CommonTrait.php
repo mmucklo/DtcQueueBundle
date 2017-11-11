@@ -8,10 +8,9 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 trait CommonTrait
 {
     /**
-     * @param ObjectManager $objectManager
-     * @param string        $objectName
-     * @param string        $field
-     * @param \DateTime     $olderThan
+     * @param string    $objectName
+     * @param string    $field
+     * @param \DateTime $olderThan
      *
      * @return int
      */
@@ -32,6 +31,11 @@ trait CommonTrait
 
         return 0;
     }
+
+    /**
+     * @return ObjectManager
+     */
+    abstract public function getObjectManager();
 
     /**
      * @param string $objectName

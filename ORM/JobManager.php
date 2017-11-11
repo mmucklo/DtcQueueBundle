@@ -14,7 +14,6 @@ use Dtc\QueueBundle\Model\RetryableJob;
 class JobManager extends BaseJobManager
 {
     use CommonTrait;
-    protected $formerIdGenerators;
     protected static $saveInsertCalled = null;
     protected static $resetInsertCalled = null;
 

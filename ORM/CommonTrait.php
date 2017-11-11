@@ -2,12 +2,15 @@
 
 namespace Dtc\QueueBundle\ORM;
 
+use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Id\AssignedGenerator;
 use Doctrine\ORM\Mapping\ClassMetadata;
 
 trait CommonTrait
 {
+    protected $formerIdGenerators;
+
     /**
      * @param string    $objectName
      * @param string    $field
@@ -53,4 +56,9 @@ trait CommonTrait
         $metadata->setIdGeneratorType($type);
         $metadata->setIdGenerator($generator);
     }
+
+    /**
+     * @return ObjectManager
+     */
+    abstract public function getObjectManager();
 }

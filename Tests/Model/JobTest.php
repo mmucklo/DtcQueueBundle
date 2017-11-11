@@ -24,6 +24,7 @@ class JobTest extends TestCase
             $job->setArgs(array($job));
             $failed = true;
         } catch (\Exception $e) {
+            self::assertTrue(true);
         }
         self::assertFalse($failed);
 
