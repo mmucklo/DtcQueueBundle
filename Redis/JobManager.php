@@ -9,10 +9,5 @@ use Dtc\QueueBundle\Model\PriorityJobManager;
  */
 abstract class JobManager extends PriorityJobManager
 {
-    private $redis;
-
-    public function setRedis(RedisInterface $redis)
-    {
-        $this->redis = $redis;
-    }
+    abstract public function setRedis(RedisInterface $redis);
 }
