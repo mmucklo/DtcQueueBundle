@@ -4,12 +4,16 @@ php:
   - 5.6
   - 7.0
   - 7.1
+  - 7.2
 
 services:
   - mongodb
   - rabbitmq
   - mysql
 
+addons:
+  sonarcloud:
+    organization: "mmucklo"
 
 # beanstalkd setup from https://github.com/assaf/ironium/blob/220c112fd92ffea144b954ae4697c6b5cabe7016/.travis.yml
 # (MIT Licensed - see LICENSE for MIT License information, Copyright (c) 2014 Assaf Arkin)
@@ -30,7 +34,7 @@ before_script:
   - composer install
 
 script:
-  - BEANSTALKD_HOST=localhost MONGODB_HOST=localhost RABBIT_MQ_HOST=localhost MYSQL_HOST=localhost MYSQL_USER=root MYSQL_DATABASE=queue_test bin/phpunit --coverage-clover=coverage.clover
+  - BEANSTALKD_HOST=localhost MONGODB_HOST=localhost RABBIT_MQ_HOST=localhost MYSQL_HOST=localhost MYSQL_USER=root MYSQL_DATABASE=queue_test bin/phpunit --coverage-clover=coverage.clover --coverage-xml=phpunit.coverage.xml --log-junit=phpunit.result.xml
   - wget https://scrutinizer-ci.com/ocular.phar || true
   - php ocular.phar code-coverage:upload --format=php-clover coverage.clover || true
-
+  - sonar-scanner

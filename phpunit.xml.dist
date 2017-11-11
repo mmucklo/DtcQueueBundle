@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<phpunit bootstrap="./Tests/bootstrap.php"
+<phpunit bootstrap="./tests/bootstrap.php"
     stopOnFailure               = "true"
     syntaxCheck                 = "true"
     verbose                     = "true"
@@ -9,7 +9,7 @@
 
     <testsuites>
         <testsuite name="DtcQueueBundle Test Suite">
-            <directory>./Tests</directory>
+            <directory>./tests</directory>
         </testsuite>
     </testsuites>
 
@@ -17,8 +17,8 @@
         <whitelist>
             <directory>./</directory>
             <exclude>
-                <directory>./Resources</directory>
-                <directory>./Tests</directory>
+                <directory>./src/Resources</directory>
+                <directory>./tests</directory>
                 <directory>./vendor</directory>
             </exclude>
         </whitelist>
