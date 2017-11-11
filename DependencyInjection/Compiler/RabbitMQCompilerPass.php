@@ -95,11 +95,10 @@ class RabbitMQCompilerPass implements CompilerPassInterface
         } else {
             $arguments[] = 3.0;
         }
-        if (isset($options['context'])) {
-            $arguments[] = $options['context'];
-        } else {
-            $arguments[] = null;
-        }
+
+        // Context is impossible to set through config.yml
+        $arguments[] = null;
+
         if (isset($options['keepalive'])) {
             $arguments[] = $options['keepalive'];
         } else {

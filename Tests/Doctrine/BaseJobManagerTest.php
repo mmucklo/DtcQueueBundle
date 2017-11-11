@@ -473,22 +473,79 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertEquals(2, $count);
     }
 
-    public function testBatchJobs() {
+    public function testBatchJobs()
+    {
         $jobs = self::$jobManager->getRepository()->findAll();
         foreach ($jobs as $job) {
             self::$jobManager->getObjectManager()->remove($job);
         }
         self::$jobManager->getObjectManager()->flush();
-
         self::$jobManager->getObjectManager()->clear();
 
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $worker = self::$worker;
-        $worker->later()->fibonacci(1);
-        $worker->batchLater()->fibonacci(1);
+        $job1 = $worker->later()->fibonacci(1);
+        $job2 = $worker->batchLater()->fibonacci(1);
+        self::assertEquals($job1, $job2);
 
         $jobs = self::$jobManager->getRepository()->findAll();
         self::assertCount(1, $jobs);
+        self::assertEquals($job1, $jobs[0]);
+        self::assertNull($jobs[0]->getPriority());
+        self::$jobManager->getObjectManager()->remove($jobs[0]);
+        self::$jobManager->getObjectManager()->flush();
+        self::$jobManager->getObjectManager()->clear();
+
+        $job1 = $worker->later()->fibonacci(1);
+        self::assertNull($job1->getPriority());
+        $job2 = $worker->batchLater()->setPriority(3)->fibonacci(1);
+        self::assertEquals($job1, $job2);
+        self::assertNotNull($job2->getPriority());
+
+        $jobs = self::$jobManager->getRepository()->findAll();
+        self::assertCount(1, $jobs);
+        self::assertEquals($job1, $jobs[0]);
+        self::assertNotNull($jobs[0]->getPriority());
+
+        // Not
+        $jobs = self::$jobManager->getRepository()->findAll();
+        foreach ($jobs as $job) {
+            self::$jobManager->getObjectManager()->remove($job);
+        }
+        self::$jobManager->getObjectManager()->remove($jobs[0]);
+        self::$jobManager->getObjectManager()->flush();
+        self::$jobManager->getObjectManager()->clear();
+
+        $job1 = $worker->later(100)->fibonacci(1);
+
+        $time1 = new \DateTime('@'.time());
+        $job2 = $worker->batchLater(0)->fibonacci(1);
+        $time2 = new \DateTime();
+
+        self::assertEquals($job1, $job2);
+        self::assertGreaterThanOrEqual($time1, $job2->getWhenAt());
+        self::assertLessThanOrEqual($time2, $job2->getWhenAt());
+
+        $jobs = self::$jobManager->getRepository()->findAll();
+        self::assertCount(1, $jobs);
+        self::assertEquals($job1, $jobs[0]);
+        self::assertGreaterThanOrEqual($time1, $jobs[0]->getWhenAt());
+        self::assertLessThanOrEqual($time2, $jobs[0]->getWhenAt());
+        self::$jobManager->getObjectManager()->remove($jobs[0]);
+        self::$jobManager->getObjectManager()->flush();
+        self::$jobManager->getObjectManager()->clear();
+
+        $job1 = $worker->later(100)->setPriority(3)->fibonacci(1);
+        $priority1 = $job1->getPriority();
+        $time1 = new \DateTime('@'.time());
+        $job2 = $worker->batchLater(0)->setPriority(1)->fibonacci(1);
+        $time2 = new \DateTime();
+        self::assertEquals($job1, $job2);
+        self::assertNotEquals($priority1, $job2->getPriority());
+
+        self::assertEquals($job1, $job2);
+        self::assertGreaterThanOrEqual($time1, $job2->getWhenAt());
+        self::assertLessThanOrEqual($time2, $job2->getWhenAt());
     }
 
     public function testPruneExpiredJobs()

@@ -310,4 +310,49 @@ class JobManager extends BaseJobManager
 
         return null;
     }
+
+    /**
+     * Tries to update the nearest job as a batch.
+     *
+     * @param \Dtc\QueueBundle\Model\Job $job
+     *
+     * @return mixed|null
+     */
+    public function updateNearestBatch(\Dtc\QueueBundle\Model\Job $job)
+    {
+        $oldJob = null;
+        do {
+            try {
+                /** @var EntityManager $entityManager */
+                $entityManager = $this->getObjectManager();
+                $entityManager->beginTransaction();
+
+                /** @var QueryBuilder $queryBuilder */
+                $queryBuilder = $this->getRepository()->createQueryBuilder('j');
+                $queryBuilder->select()
+                    ->where('j.crcHash = :crcHash')
+                    ->andWhere('j.status = :status')
+                    ->setParameter(':status', BaseJob::STATUS_NEW)
+                    ->setParameter(':crcHash', $job->getCrcHash())
+                    ->orderBy('j.whenAt', 'ASC')
+                    ->setMaxResults(1);
+                $oldJob = $queryBuilder->getQuery()->getSingleResult();
+
+                if (!$oldJob) {
+                    return null;
+                }
+
+                $oldJob->setPriority(max($job->getPriority(), $oldJob->getPriority()));
+                $oldJob->setWhenAt(min($job->getWhenAt(), $oldJob->getWhenAt()));
+
+                $entityManager->persist($oldJob);
+                $entityManager->commit();
+                $entityManager->flush();
+            } catch (\Exception $exception) {
+                $entityManager->rollback();
+            }
+        } while (null === $oldJob);
+
+        return $oldJob;
+    }
 }

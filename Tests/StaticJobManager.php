@@ -70,6 +70,8 @@ class StaticJobManager extends AbstractJobManager
 
             ++$this->uniqeId;
         }
+
+        return $job;
     }
 
     public function compareJobPriority(Job $a, Job $b)

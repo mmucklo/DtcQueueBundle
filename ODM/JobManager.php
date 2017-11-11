@@ -226,7 +226,10 @@ class JobManager extends BaseJobManager
 
         $this->addWorkerNameCriterion($qb, $workerName, $methodName);
         if ($prioritize) {
-            $qb->sort('priority', 'desc');
+            $qb->sort([
+                'priority' => 'desc',
+                'whenAt' => 'asc',
+            ]);
         } else {
             $qb->sort('whenAt', 'asc');
         }
@@ -253,5 +256,49 @@ class JobManager extends BaseJobManager
         $job = $query->execute();
 
         return $job;
+    }
+
+    protected function updateNearestBatch(\Dtc\QueueBundle\Model\Job $job)
+    {
+        /** @var DocumentManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $qb = $objectManager->createQueryBuilder($this->getObjectName());
+        $qb->find();
+
+        $qb->sort('whenAt', 'asc');
+        $qb->field('status')->equals(BaseJob::STATUS_NEW)
+            ->field('crcHash')->equals($job->getCrcHash())
+            ->field('locked')->equals(null);
+        $oldJob = $qb->getQuery()->getSingleResult();
+
+        if (!$oldJob) {
+            return null;
+        }
+
+        // Update priority or whenAt
+        //  This makes sure if someone else is updating at the same time
+        //  that we don't trounce their changes.
+        $qb = $objectManager->createQueryBuilder($this->getObjectName());
+        $qb->findAndUpdate();
+        $qb->field('_id')->equals($oldJob->getId());
+        $qb->field('priority')->lt($job->getPriority());
+        $qb->field('priority')->set($job->getPriority());
+        $qb->getQuery()->execute();
+
+        $qb = $objectManager->createQueryBuilder($this->getObjectName());
+        $qb->findAndUpdate();
+        $qb->field('_id')->equals($oldJob->getId());
+        $qb->field('whenAt')->gt($job->getWhenAt());
+        $qb->field('whenAt')->set($job->getWhenAt());
+        $qb->getQuery()->execute();
+
+        if ($job->getWhenAt() < $oldJob->getWhenAt()) {
+            $oldJob->setWhenAt($job->getWhenAt());
+        }
+        if ($job->getPriority() > $oldJob->getPriority()) {
+            $oldJob->setPriority($job->getPriority());
+        }
+
+        return $oldJob;
     }
 }

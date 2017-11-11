@@ -29,9 +29,9 @@ class Job extends BaseJob
             throw new \Exception("{$this->className}->{$method}() does not exist");
         }
 
-        $this->jobManager->save($this);
+        $job = $this->jobManager->save($this);
 
-        return $this;
+        return $job;
     }
 
     /**

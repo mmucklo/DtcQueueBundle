@@ -30,40 +30,49 @@ class RabbitMQCompilerPassTest extends TestCase
             'queue_args' => [],
             'exchange_args' => [],
         ];
-        $container = new ContainerBuilder();
-        $count = count($container->getDefinitions());
-        $container->setParameter('dtc_queue.rabbit_mq', $rabbitMQOptions);
-        $definition = new Definition();
-        $definition->setClass(JobManager::class);
-        $container->addDefinitions(['dtc_queue.job_manager.rabbit_mq' => $definition]);
-        $compilerPass = new RabbitMQCompilerPass();
-        $compilerPass->process($container);
+        $container = $this->setupContainer($rabbitMQOptions);
 
-        self::assertGreaterThan($count, count($container->getDefinitions()));
+        self::assertGreaterThan(0, count($container->getDefinitions()));
         self::assertTrue($container->hasDefinition('dtc_queue.rabbit_mq'));
         self::assertEquals(AMQPStreamConnection::class, $container->getDefinition('dtc_queue.rabbit_mq')->getClass());
+        self::assertCount(5, $container->getDefinition('dtc_queue.rabbit_mq')->getArguments());
 
-        $rabbitMQOptions = [
-            'host' => 'somehost',
-            'port' => 1234,
-            'user' => 'asdf',
-            'password' => 'pass',
-            'vhost' => 'vhoster',
-            'ssl' => true,
-            'queue_args' => [],
-            'exchange_args' => [],
-        ];
+        $rabbitMQOptions['ssl'] = true;
+        $container = $this->setupContainer($rabbitMQOptions);
+        self::assertEquals(AMQPSSLConnection::class, $container->getDefinition('dtc_queue.rabbit_mq')->getClass());
+        self::assertCount(6, $container->getDefinition('dtc_queue.rabbit_mq')->getArguments());
+
+        $rabbitMQOptions['ssl_options']['verify_peer'] = false;
+        $container = $this->setupContainer($rabbitMQOptions);
+        self::assertEquals(AMQPSSLConnection::class, $container->getDefinition('dtc_queue.rabbit_mq')->getClass());
+        $arguments = $container->getDefinition('dtc_queue.rabbit_mq')->getArguments();
+        self::assertCount(6, $arguments);
+        self::assertArrayHasKey('verify_peer', $arguments[5]);
+
+        $rabbitMQOptions['options']['insist'] = true;
+        $container = $this->setupContainer($rabbitMQOptions);
+        self::assertEquals(AMQPSSLConnection::class, $container->getDefinition('dtc_queue.rabbit_mq')->getClass());
+        $arguments = $container->getDefinition('dtc_queue.rabbit_mq')->getArguments();
+        self::assertCount(7, $arguments);
+        self::assertArrayHasKey('insist', $arguments[6]);
+
+        $rabbitMQOptions['ssl'] = false;
+        $container = $this->setupContainer($rabbitMQOptions);
+        $arguments = $container->getDefinition('dtc_queue.rabbit_mq')->getArguments();
+        self::assertCount(14, $arguments);
+        self::assertTrue($arguments[5]);
+    }
+
+    public function setupContainer(array $options)
+    {
         $container = new ContainerBuilder();
-        $count = count($container->getDefinitions());
-        $container->setParameter('dtc_queue.rabbit_mq', $rabbitMQOptions);
+        $container->setParameter('dtc_queue.rabbit_mq', $options);
         $definition = new Definition();
         $definition->setClass(JobManager::class);
         $container->addDefinitions(['dtc_queue.job_manager.rabbit_mq' => $definition]);
         $compilerPass = new RabbitMQCompilerPass();
         $compilerPass->process($container);
 
-        self::assertGreaterThan($count, count($container->getDefinitions()));
-        self::assertTrue($container->hasDefinition('dtc_queue.rabbit_mq'));
-        self::assertEquals(AMQPSSLConnection::class, $container->getDefinition('dtc_queue.rabbit_mq')->getClass());
+        return $container;
     }
 }

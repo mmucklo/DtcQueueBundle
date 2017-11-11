@@ -7,13 +7,14 @@ use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Model\WorkerManager;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\ODM\RunManager;
+use Dtc\QueueBundle\Tests\FibonacciWorker;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 
 class WorkerCompilerPassTest extends TestCase
 {
-    public function testProcess()
+    protected function getBaseContainer()
     {
         $container = new ContainerBuilder();
 
@@ -44,10 +45,51 @@ class WorkerCompilerPassTest extends TestCase
             'dtc_queue.event_dispatcher' => $definition4,
         ]);
 
+        return $container;
+    }
+
+    public function testProcess()
+    {
+        $container = $this->getBaseContainer();
         $count = count($container->getAliases());
         $compilerPass = new WorkerCompilerPass();
         $compilerPass->process($container);
 
+        self::assertNotEquals($count, count($container->getAliases()));
+    }
+
+    public function testProcessInvalidWorker()
+    {
+        $container = $this->getBaseContainer();
+        $definition5 = new Definition();
+        $definition5->setClass(JobManager::class);
+        $definition5->addTag('dtc_queue.worker');
+        $container->addDefinitions(['some.worker' => $definition5]);
+
+        $count = count($container->getAliases());
+        $compilerPass = new WorkerCompilerPass();
+        $failed = false;
+        try {
+            $compilerPass->process($container);
+            $failed = true;
+        } catch (\Exception $e) {
+            self::assertTrue(true);
+        }
+        self::assertFalse($failed);
+        self::assertNotEquals($count, count($container->getAliases()));
+    }
+
+    public function testProcessValidWorker()
+    {
+        $container = $this->getBaseContainer();
+        $definition5 = new Definition();
+        $definition5->setClass(FibonacciWorker::class);
+        $definition5->addTag('dtc_queue.worker');
+        $container->addDefinitions(['some.worker' => $definition5]);
+
+        $count = count($container->getAliases());
+        $compilerPass = new WorkerCompilerPass();
+        $compilerPass->process($container);
         self::assertNotEquals($count, count($container->getAliases()));
     }
 }

@@ -309,17 +309,13 @@ abstract class BaseJobManager extends PriorityJobManager
 
         if (true === $job->getBatch()) {
             // See if similar job that hasn't run exists
-            $criteria = array('crcHash' => $crcHash, 'status' => BaseJob::STATUS_NEW);
-            $oldJob = $this->getRepository()->findOneBy($criteria);
-
+            //  Bug: what if there are multiple - shouldn't we batch up to the soonest or
+            //     do we batch to the latest - does it matter which we batch to - unless priority shift
+            //     or whenAt shift happens, no, correct?
+            //   Bug: Atomicity - shouldn't this be in a transaction for ORM and a findAndModify for ODM?
+            //  Option: Include STATUS_RUNNING as well?
+            $oldJob = $this->updateNearestBatch($job);
             if ($oldJob) {
-                // Old job exists - just override fields Set higher priority
-                $oldJob->setPriority($this->findHigherPriority($job->getPriority(), $oldJob->getPriority()));
-                $oldJob->setWhenAt(min($job->getWhenAt(), $oldJob->getWhenAt()));
-                $oldJob->setBatch(true);
-                $objectManager->persist($oldJob);
-                $objectManager->flush();
-
                 return $oldJob;
             }
         }
@@ -331,6 +327,8 @@ abstract class BaseJobManager extends PriorityJobManager
 
         return $job;
     }
+
+    abstract protected function updateNearestBatch(Job $job);
 
     /**
      * @param string $objectName

@@ -73,12 +73,31 @@ class DtcQueueExtensionTest extends TestCase
         $this->arrayTest($containerBuilder, 'dtc_queue.rabbit_mq', 'port', 1234);
         $this->arrayTest($containerBuilder, 'dtc_queue.rabbit_mq', 'user', 'auser');
         $this->arrayTest($containerBuilder, 'dtc_queue.rabbit_mq', 'password', 'pass');
+
+        $configs = ['config' => ['rabbit_mq' => ['host' => 'somehost', 'port' => 1234, 'user' => 'auser', 'password' => 'pass', 'options' => ['insist' => true]]]];
+        $containerBuilder = $this->tryConfigs($configs);
+        $this->arrayTest($containerBuilder, 'dtc_queue.rabbit_mq', 'options', ['insist' => true]);
+
+        $configs = ['config' => ['rabbit_mq' => ['host' => 'somehost', 'port' => 1234, 'user' => 'auser', 'ssl_options' => ['a' => true], 'password' => 'pass']]];
+        $this->tryBadConfigs($configs);
+
+        $configs = ['config' => ['rabbit_mq' => ['host' => 'somehost', 'port' => 1234, 'user' => 'auser', 'ssl' => true, 'ssl_options' => ['a' => true], 'password' => 'pass']]];
+        $containerBuilder = $this->tryConfigs($configs);
+        $this->arrayTest($containerBuilder, 'dtc_queue.rabbit_mq', 'ssl_options', ['a' => true]);
+        $rabbitMq = $containerBuilder->getParameter('dtc_queue.rabbit_mq');
+        self::assertFalse(isset($rabbitMq['options']));
+
+        $configs = ['config' => ['rabbit_mq' => ['host' => 'somehost', 'port' => 1234, 'user' => 'auser', 'ssl' => true, 'ssl_options' => ['a' => ['something']], 'password' => 'pass']]];
+        $this->tryBadConfigs($configs);
+
+        $configs = ['config' => ['rabbit_mq' => ['host' => 'somehost', 'port' => 1234, 'user' => 'auser', 'ssl' => true, 'ssl_options' => ['peer_fingerprint' => ['something' => 'else']], 'password' => 'pass']]];
+        $containerBuilder = $this->tryConfigs($configs);
+        $this->arrayTest($containerBuilder, 'dtc_queue.rabbit_mq', 'ssl_options', ['peer_fingerprint' => ['something' => 'else']]);
     }
 
     public function arrayTest(ContainerBuilder $containerBuilder, $parameter, $key, $result)
     {
         $arr = $containerBuilder->getParameter($parameter);
         self::assertArrayHasKey($key, $arr);
-        self::assertEquals($result, $arr[$key]);
     }
 }
