@@ -343,7 +343,7 @@ class JobManager extends BaseJobManager
 
                 $entityManager->persist($oldJob);
                 $entityManager->commit();
-                $entityManager->flush();
+                $this->flush();
             } catch (\Exception $exception) {
                 $entityManager->rollback();
             }
