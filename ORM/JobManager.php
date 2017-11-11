@@ -125,6 +125,16 @@ class JobManager extends BaseJobManager
         return intval($query->execute());
     }
 
+    protected function getJobCurrentStatus(\Dtc\QueueBundle\Model\Job $job)
+    {
+        /** @var EntityManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $qb = $objectManager->createQueryBuilder()->select('j.status')->from($this->getObjectName(), 'j');
+        $qb->where('j.id = :id')->setParameter(':id', $job->getId());
+
+        return $qb->getQuery()->getSingleScalarResult();
+    }
+
     /**
      * Removes archived jobs older than $olderThan.
      *
@@ -181,6 +191,31 @@ class JobManager extends BaseJobManager
         $query = $qb->getQuery();
 
         return $query->getSingleScalarResult();
+    }
+
+    /**
+     * For ORM it's prudent to wrap things in a transaction.
+     *
+     * @param $i
+     * @param $count
+     * @param array $stalledJobs
+     * @param $countProcessed
+     */
+    protected function runStalledLoop($i, $count, array $stalledJobs, &$countProcessed)
+    {
+        /** @var EntityManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        try {
+            $objectManager->beginTransaction();
+            parent::runStalledLoop($i, $count, $stalledJobs, $countProcessed);
+            $objectManager->commit();
+        }
+        catch (\Exception $exception) {
+            $objectManager->rollback();
+
+            // Try again
+            parent::runStalledLoop($i, $count, $stalledJobs, $countProcessed);
+        }
     }
 
     /**

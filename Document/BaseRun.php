@@ -69,4 +69,10 @@ abstract class BaseRun extends \Dtc\QueueBundle\Model\Run
      * @ODM\Field(type="int", nullable=true)
      */
     protected $processTimeout;
+
+    /**
+     * @Grid\Column()
+     * @ODM\Field(type="string", nullable=true)
+     */
+    protected $currentJobId;
 }

@@ -68,4 +68,10 @@ abstract class BaseRun extends \Dtc\QueueBundle\Model\Run
      * @ORM\Column(type="integer", nullable=true)
      */
     protected $processTimeout;
+
+    /**
+     * @Grid\Column()
+     * @ORM\Column(type="string", nullable=true)
+     */
+    protected $currentJobId;
 }

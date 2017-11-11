@@ -129,8 +129,8 @@ class Loop
             $currentJob = 1;
             $noMoreJobsToRun = false;
             do {
-                $this->recordHeartbeat($start);
                 $job = $this->workerManager->run($workerName, $methodName, true, $this->run->getId());
+                $this->recordHeartbeat($start, $job);
                 $this->runCurrentJob($job, $noMoreJobsToRun, $currentJob, $duration, $nanoSleep);
             } while (!$this->isFinished($maxCount, $endTime, $currentJob, $noMoreJobsToRun));
         } catch (\Exception $e) {
@@ -304,11 +304,18 @@ class Loop
     }
 
     /**
-     * @param float $start
+     * @param float    $start
+     * @param Job|null $jobId
      */
-    protected function recordHeartbeat($start)
+    protected function recordHeartbeat($start, $job)
     {
+        $jobId = null;
+        if (null !== $job) {
+            $jobId = $job->getId();
+        }
+
         $this->run->setLastHeartbeatAt(new \DateTime());
+        $this->run->setCurrentJobId($jobId);
         $this->run->setElapsed(microtime(true) - $start);
         $this->persistRun();
     }

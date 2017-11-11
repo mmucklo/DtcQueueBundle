@@ -20,6 +20,7 @@ class Run
     protected $hostname;
     protected $pid;
     protected $processTimeout;
+    protected $currentJobId;
 
     /**
      * @return mixed
@@ -195,5 +196,21 @@ class Run
     public function setProcessTimeout($processTimeout)
     {
         $this->processTimeout = $processTimeout;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCurrentJobId()
+    {
+        return $this->currentJobId;
+    }
+
+    /**
+     * @param mixed $currentJobId
+     */
+    public function setCurrentJobId($currentJobId)
+    {
+        $this->currentJobId = $currentJobId;
     }
 }

@@ -188,7 +188,12 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         return $id;
     }
 
-    public function createStalledJob()
+    /**
+     * @param bool $flushRun
+     *
+     * @return mixed
+     */
+    public function createStalledJob($endRun, $setId)
     {
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
@@ -211,6 +216,9 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $objectManager = $jobManager->getObjectManager();
         $run = new $runClass();
         $run->setLastHeartbeatAt(new \DateTime());
+        if ($setId) {
+            $run->setCurrentJobId($job->getId);
+        }
         $objectManager->persist($run);
         $objectManager->flush();
         $runId = $run->getId();
@@ -218,20 +226,24 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $job->setRunId($runId);
         $objectManager->persist($job);
         $objectManager->flush();
-        $objectManager->remove($run);
-        $objectManager->flush();
+        if ($endRun) {
+            $objectManager->remove($run);
+            $objectManager->flush();
+        }
         $id = $job->getId();
         $job = $jobManager->getRepository()->find($id);
 
         self::assertNotNull($job);
 
-        $archivedRun = $objectManager->getRepository($jobManager->getRunArchiveClass())->find($runId);
+        if ($endRun) {
+            $archivedRun = $objectManager->getRepository($jobManager->getRunArchiveClass())->find($runId);
 
-        $minusTime = $time - (BaseJobManager::STALLED_SECONDS + 1);
-        $archivedRun->setEndedAt(new \DateTime("@$minusTime"));
+            $minusTime = $time - (BaseJobManager::STALLED_SECONDS + 1);
+            $archivedRun->setEndedAt(new \DateTime("@$minusTime"));
 
-        $objectManager->persist($archivedRun);
-        $objectManager->flush();
+            $objectManager->persist($archivedRun);
+            $objectManager->flush();
+        }
         $id = $job->getId();
 
         return $id;
@@ -241,7 +253,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
     {
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
-        $id = $this->createStalledJob();
+        $id = $this->createStalledJob(true, false);
 
         $objectManager = $jobManager->getObjectManager();
         $count = $jobManager->resetStalledJobs();
@@ -261,7 +273,56 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $objectManager->remove($job);
         $objectManager->flush();
 
-        $id = $this->createStalledJob();
+        $jobManager = self::$jobManager;
+        $id = $this->createStalledJob(true, true);
+
+        $objectManager = $jobManager->getObjectManager();
+        $count = $jobManager->resetStalledJobs();
+        self::assertEquals(1, $count);
+
+        $job = $jobManager->getRepository()->find($id);
+
+        self::assertNotNull($job);
+        $objectManager->remove($job);
+        $objectManager->flush();
+
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
+        $id = $this->createStalledJob(false, false);
+
+        $objectManager = $jobManager->getObjectManager();
+        $count = $jobManager->resetStalledJobs();
+        self::assertEquals(1, $count);
+
+        $job = $jobManager->getRepository()->find($id);
+
+        self::assertNotNull($job);
+        self::assertEquals(BaseJob::STATUS_NEW, $job->getStatus());
+        self::assertNull($job->getLockedAt());
+        self::assertNull($job->getFinishedAt());
+        self::assertNull($job->getElapsed());
+        self::assertNull($job->getMessage());
+        self::assertNull($job->getLocked());
+        self::assertEquals(1, $job->getStalledCount());
+
+        $objectManager->remove($job);
+        $objectManager->flush();
+
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
+        $jobManager = self::$jobManager;
+        $id = $this->createStalledJob(false, true);
+
+        $count = $jobManager->resetStalledJobs();
+        self::assertEquals(1, $count);
+
+        $job = $jobManager->getRepository()->find($id);
+        $objectManager = $jobManager->getObjectManager();
+        $count = $jobManager->resetStalledJobs();
+        self::assertEquals(0, $count);
+
+        $objectManager->remove($job);
+        $objectManager->flush();
+
+        $id = $this->createStalledJob(true, false);
         $job = $jobManager->getRepository()->find($id);
         $job->setMaxRetries(10);
         $job->setRetries(10);
@@ -277,7 +338,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $objectManager->remove($job);
         $objectManager->flush();
 
-        $id = $this->createStalledJob();
+        $id = $this->createStalledJob(true, false);
         $job = $jobManager->getRepository()->find($id);
         $job->setMaxStalled(10);
         $job->setStalledCount(10);

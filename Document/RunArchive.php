@@ -46,4 +46,9 @@ class RunArchive extends BaseRun
      * @ODM\Field(type="int", nullable=true)
      */
     protected $processTimeout;
+
+    /**
+     * @ODM\Field(type="string", nullable=true)
+     */
+    protected $currentJobId;
 }

@@ -47,4 +47,9 @@ class RunArchive extends BaseRun
      * @ORM\Column(type="integer", nullable=true)
      */
     protected $processTimeout;
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     */
+    protected $currentJobId;
 }

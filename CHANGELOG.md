@@ -4,6 +4,9 @@
    * Add more testing, fix extended configuration for RabbitMQ, and make it work properly
    * Fixes from SensioLabs Insights
    * May have been an issue with instantiating a rabbit_mq / beanstalkd based queue
+   * Schema Update:
+      * Added a new column to Run: currentJobId
+         * tracks the id of the currently running job (null if nothing)
 ### 2.5.3
    * Fix a bug in queue.yml
 ### 2.5.2

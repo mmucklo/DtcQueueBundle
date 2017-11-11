@@ -195,18 +195,39 @@ abstract class BaseJobManager extends PriorityJobManager
         return $runningJobsById;
     }
 
-    protected function extractStalledJobs(array $runningJobsById)
+    /**
+     * @param $runId
+     * @param array $jobs
+     * @param array $stalledJobs
+     */
+    protected function extractStalledLiveRuns($runId, array $jobs, array &$stalledJobs)
     {
         $objectManager = $this->getObjectManager();
         $runRepository = $objectManager->getRepository($this->runClass);
+        if ($run = $runRepository->find($runId)) {
+            foreach ($jobs as $job) {
+                if ($run->getCurrentJobId() == $job->getId()) {
+                    continue;
+                }
+                $stalledJobs[] = $job;
+            }
+        }
+    }
+
+    /**
+     * @param array $runningJobsById
+     *
+     * @return array
+     */
+    protected function extractStalledJobs(array $runningJobsById)
+    {
+        $objectManager = $this->getObjectManager();
         /** @var EntityRepository|DocumentRepository $runArchiveRepository */
         $runArchiveRepository = $objectManager->getRepository($this->runArchiveClass);
 
         $stalledJobs = [];
         foreach (array_keys($runningJobsById) as $runId) {
-            if ($runRepository->find($runId)) {
-                continue;
-            }
+            $this->extractStalledLiveRuns($runId, $runningJobsById[$runId], $stalledJobs);
             /** @var Run $run */
             if ($run = $runArchiveRepository->find($runId)) {
                 if ($endTime = $run->getEndedAt()) {
@@ -232,33 +253,47 @@ abstract class BaseJobManager extends PriorityJobManager
         return false;
     }
 
+    abstract protected function getJobCurrentStatus(Job $job);
+
+    protected function runStalledLoop($i, $count, array $stalledJobs, &$countProcessed)
+    {
+        $objectManager = $this->getObjectManager();
+        for ($j = $i, $max = $i + static::FETCH_COUNT; $j < $max && $j < $count; ++$j) {
+            /* RetryableJob $job */
+            $job = $stalledJobs[$j];
+            $status = $this->getJobCurrentStatus($job);
+
+            // Query the data store to make sure the job is still marked running
+            if (BaseJob::STATUS_RUNNING !== $status) {
+                continue;
+            }
+
+            $job->setStalledCount($job->getStalledCount() + 1);
+            if ($this->updateMaxStatus($job, RetryableJob::STATUS_MAX_STALLED, $job->getMaxStalled(), $job->getStalledCount())) {
+                $objectManager->remove($job);
+                continue;
+            } elseif ($this->updateMaxStatus($job, RetryableJob::STATUS_MAX_RETRIES, $job->getMaxRetries(), $job->getRetries())) {
+                $objectManager->remove($job);
+                continue;
+            }
+
+            $job->setRetries($job->getRetries() + 1);
+            $job->setStatus(BaseJob::STATUS_NEW);
+            $job->setLocked(null);
+            $job->setLockedAt(null);
+            $objectManager->persist($job);
+            ++$countProcessed;
+        }
+    }
+
     public function resetStalledJobs($workerName = null, $method = null)
     {
-        $stalledJobs = $this->getStalledJobs($workerName, $method);
-
         $objectManager = $this->getObjectManager();
+        $stalledJobs = $this->getStalledJobs($workerName, $method);
 
         $countProcessed = 0;
         for ($i = 0, $count = count($stalledJobs); $i < $count; $i += static::FETCH_COUNT) {
-            for ($j = $i, $max = $i + static::FETCH_COUNT; $j < $max && $j < $count; ++$j) {
-                $job = $stalledJobs[$j];
-                /* RetryableJob $job */
-                $job->setStalledCount($job->getStalledCount() + 1);
-                if ($this->updateMaxStatus($job, RetryableJob::STATUS_MAX_STALLED, $job->getMaxStalled(), $job->getStalledCount())) {
-                    $objectManager->remove($job);
-                    continue;
-                } elseif ($this->updateMaxStatus($job, RetryableJob::STATUS_MAX_RETRIES, $job->getMaxRetries(), $job->getRetries())) {
-                    $objectManager->remove($job);
-                    continue;
-                }
-
-                $job->setRetries($job->getRetries() + 1);
-                $job->setStatus(BaseJob::STATUS_NEW);
-                $job->setLocked(null);
-                $job->setLockedAt(null);
-                $objectManager->persist($job);
-                ++$countProcessed;
-            }
+            $this->runStalledLoop($i, $count, $stalledJobs, $countProcessed);
             $this->flush();
         }
 
