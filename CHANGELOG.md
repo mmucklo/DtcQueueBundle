@@ -1,3 +1,7 @@
+### 2.6.0
+   * Fix a race-condition with batching in ORM and ODM
+   * Fix a bug with prioritization not being done right with ORM and ODM
+   * Add more testing, fix extended configuration for RabbitMQ, and make it work properly
 ### 2.5.3
    * Fix a bug in queue.yml
 ### 2.5.2
