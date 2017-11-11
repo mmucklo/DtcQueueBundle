@@ -2,6 +2,8 @@
    * Fix a race-condition with batching in ORM and ODM
    * Fix a bug with prioritization not being done right with ORM and ODM
    * Add more testing, fix extended configuration for RabbitMQ, and make it work properly
+   * Fixes from SensioLabs Insights
+   * May have been an issue with instantiating a rabbit_mq / beanstalkd based queue
 ### 2.5.3
    * Fix a bug in queue.yml
 ### 2.5.2

@@ -99,9 +99,6 @@ class JobManager extends BaseJobManager
      */
     public function pruneArchivedJobs(\DateTime $olderThan)
     {
-        /** @var DocumentManager $documentManager */
-        $documentManager = $this->getObjectManager();
-
         return $this->removeOlderThan($this->getArchiveObjectName(), 'updatedAt', $olderThan);
     }
 

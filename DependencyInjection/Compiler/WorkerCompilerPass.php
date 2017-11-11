@@ -50,15 +50,20 @@ class WorkerCompilerPass implements CompilerPassInterface
         }
 
         $defaultRunManagerType = $container->getParameter('dtc_queue.run_manager');
-        if (!$container->hasDefinition('dtc_queue.run_manager.'.$defaultRunManagerType)) {
+        $definitionName = 'dtc_queue.run_manager.'.$defaultRunManagerType;
+        if (!$container->hasDefinition($definitionName) && !$container->hasAlias($definitionName)) {
             throw new \Exception("No run manager found for dtc_queue.run_manager.$defaultRunManagerType");
         }
 
         $alias = new Alias('dtc_queue.job_manager.'.$defaultManagerType);
         $container->setAlias('dtc_queue.job_manager', $alias);
 
-        $alias = new Alias('dtc_queue.run_manager.'.$defaultRunManagerType);
-        $container->setAlias('dtc_queue.run_manager', $alias);
+        if ($container->hasDefinition($definitionName)) {
+            $alias = new Alias('dtc_queue.run_manager.'.$defaultRunManagerType);
+            $container->setAlias('dtc_queue.run_manager', $alias);
+        } else {
+            $container->setAlias('dtc_queue.run_manager', $container->getAlias($definitionName));
+        }
     }
 
     /**

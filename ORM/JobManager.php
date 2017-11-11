@@ -133,9 +133,6 @@ class JobManager extends BaseJobManager
      */
     public function pruneArchivedJobs(\DateTime $olderThan)
     {
-        /** @var EntityManager $entityManager */
-        $entityManager = $this->getObjectManager();
-
         return $this->removeOlderThan($this->getArchiveObjectName(),
                 'updatedAt',
                 $olderThan);

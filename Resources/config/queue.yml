@@ -96,7 +96,8 @@ services:
     dtc_queue.remove_listener:
         class: Dtc\QueueBundle\Doctrine\DtcQueueListener
         arguments:
-            - "@service_container"
+            - "@dtc_queue.job_manager"
+            - "@dtc_queue.run_manager"
         tags:
             - { name: doctrine.event_listener, event: preRemove }
             - { name: doctrine.event_listener, event: prePersist }

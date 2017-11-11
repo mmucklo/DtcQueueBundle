@@ -7,26 +7,27 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Id\AssignedGenerator;
+use Dtc\QueueBundle\Model\JobManagerInterface;
 use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\Run;
+use Dtc\QueueBundle\Model\RunManager;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\Util\Util;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class DtcQueueListener
 {
-    /** @var ContainerInterface */
-    private $container;
+    private $jobManager;
+    private $runManager;
 
-    public function __construct(ContainerInterface $container)
+    public function __construct(JobManagerInterface $jobManager, RunManager $runManager)
     {
-        $this->container = $container;
+        $this->jobManager = $jobManager;
+        $this->runManager = $runManager;
     }
 
     public function preRemove(LifecycleEventArgs $eventArgs)
     {
         $object = $eventArgs->getObject();
-        $objectManager = $eventArgs->getObjectManager();
 
         if ($object instanceof \Dtc\QueueBundle\Model\Job) {
             $this->processJob($object);
@@ -38,7 +39,7 @@ class DtcQueueListener
     public function processRun(Run $object)
     {
         /** @var BaseRunManager $runManager */
-        $runManager = $this->container->get('dtc_queue.run_manager');
+        $runManager = $this->runManager;
 
         $runArchiveClass = $runManager->getRunArchiveClass();
         if ($object instanceof $runArchiveClass) {
@@ -62,7 +63,7 @@ class DtcQueueListener
 
     public function processJob(\Dtc\QueueBundle\Model\Job $object)
     {
-        $jobManager = $this->container->get('dtc_queue.job_manager');
+        $jobManager = $this->jobManager;
 
         if ($object instanceof \Dtc\QueueBundle\Document\Job ||
             $object instanceof \Dtc\QueueBundle\Entity\Job) {
