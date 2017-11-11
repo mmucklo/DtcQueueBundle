@@ -217,7 +217,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $run = new $runClass();
         $run->setLastHeartbeatAt(new \DateTime());
         if ($setId) {
-            $run->setCurrentJobId($job->getId);
+            $run->setCurrentJobId($job->getId());
         }
         $objectManager->persist($run);
         $objectManager->flush();
@@ -310,9 +310,6 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
         $id = $this->createStalledJob(false, true);
-
-        $count = $jobManager->resetStalledJobs();
-        self::assertEquals(1, $count);
 
         $job = $jobManager->getRepository()->find($id);
         $objectManager = $jobManager->getObjectManager();

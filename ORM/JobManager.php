@@ -209,8 +209,7 @@ class JobManager extends BaseJobManager
             $objectManager->beginTransaction();
             parent::runStalledLoop($i, $count, $stalledJobs, $countProcessed);
             $objectManager->commit();
-        }
-        catch (\Exception $exception) {
+        } catch (\Exception $exception) {
             $objectManager->rollback();
 
             // Try again

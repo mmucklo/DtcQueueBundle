@@ -20,18 +20,18 @@ class Util
         }
         $reflection1 = new \ReflectionObject($obj1);
         $reflection2 = new \ReflectionObject($obj2);
-        self::copyMethods($obj1, $obj2, $reflection1, $reflection2);
-        self::copyProperties($obj1, $obj2, $reflection1, $reflection2);
+        self::copyMethods([$obj1, $obj2], $reflection1, $reflection2);
+        self::copyProperties([$obj1, $obj2], $reflection1, $reflection2);
     }
 
     /**
-     * @param object            $obj1
-     * @param object            $obj2
-     * @param \ReflectionObject $reflection1
-     * @param \ReflectionObject $reflection2
+     * @param array[object, object] $payload
+     * @param \ReflectionObject     $reflection1
+     * @param \ReflectionObject     $reflection2
      */
-    private static function copyProperties($obj1, $obj2, \ReflectionObject $reflection1, \ReflectionObject $reflection2)
+    private static function copyProperties(array $payload, \ReflectionObject $reflection1, \ReflectionObject $reflection2)
     {
+        list($obj1, $obj2) = $payload;
         $publicVars = $reflection1->getProperties(\ReflectionProperty::IS_PUBLIC);
         foreach ($publicVars as $property) {
             $propertyName = $property->getName();
@@ -42,13 +42,13 @@ class Util
     }
 
     /**
-     * @param object            $obj1
-     * @param object            $obj2
-     * @param \ReflectionObject $reflection1
-     * @param \ReflectionObject $reflection2
+     * @param array[object, object] $payload
+     * @param \ReflectionObject     $reflection1
+     * @param \ReflectionObject     $reflection2
      */
-    private static function copyMethods($obj1, $obj2, \ReflectionObject $reflection1, \ReflectionObject $reflection2)
+    private static function copyMethods(array $payload, \ReflectionObject $reflection1, \ReflectionObject $reflection2)
     {
+        list($obj1, $obj2) = $payload;
         $methods = $reflection1->getMethods(\ReflectionMethod::IS_PUBLIC);
         foreach ($methods as $method) {
             $methodName = $method->name;
@@ -56,20 +56,20 @@ class Util
                 $getMethod = $methodName;
                 $setMethod = $methodName;
                 $setMethod[0] = 's';
-                self::copyMethod($obj1, $obj2, $getMethod, $setMethod, $reflection2);
+                self::copyMethod([$obj1, $obj2], $getMethod, $setMethod, $reflection2);
             }
         }
     }
 
     /**
-     * @param object            $obj1
-     * @param object            $obj2
-     * @param string            $getMethod
-     * @param string            $setMethod
-     * @param \ReflectionObject $reflection2
+     * @param array[object, object] $payload
+     * @param string                $getMethod
+     * @param string                $setMethod
+     * @param \ReflectionObject     $reflection2
      */
-    private static function copyMethod($obj1, $obj2, $getMethod, $setMethod, \ReflectionObject $reflection2)
+    private static function copyMethod(array $payload, $getMethod, $setMethod, \ReflectionObject $reflection2)
     {
+        list($obj1, $obj2) = $payload;
         if ($reflection2->hasMethod($setMethod)) {
             $value = $obj1->$getMethod();
             if (null !== $value) {

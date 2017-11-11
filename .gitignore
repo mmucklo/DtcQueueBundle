@@ -1,12 +1,3 @@
-# emacs
-*~
-\#*
-\#*\#
-auto-save-list
-
-# vim
-*.swp
-
 # composer
 composer.phar
 vendor
@@ -18,8 +9,3 @@ bin
 # PHP CS Fixer
 .php_cs.cache
 
-# Jetbrains
-.idea
-
-# Mac
-.DS_Store

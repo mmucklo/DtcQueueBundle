@@ -288,7 +288,6 @@ abstract class BaseJobManager extends PriorityJobManager
 
     public function resetStalledJobs($workerName = null, $method = null)
     {
-        $objectManager = $this->getObjectManager();
         $stalledJobs = $this->getStalledJobs($workerName, $method);
 
         $countProcessed = 0;
