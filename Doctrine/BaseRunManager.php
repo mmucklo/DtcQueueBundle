@@ -17,20 +17,18 @@ abstract class BaseRunManager extends RunManager
     /** @var string|null */
     protected $runArchiveClass;
 
+    public function __construct(ObjectManager $objectManager, $runClass, $jobTimingClass, $recordTimings)
+    {
+        $this->objectManager = $objectManager;
+        parent::__construct($runClass, $jobTimingClass, $recordTimings);
+    }
+
     /**
      * @return ObjectManager
      */
     public function getObjectManager()
     {
         return $this->objectManager;
-    }
-
-    /**
-     * @param ObjectManager $objectManager
-     */
-    public function setObjectManager(ObjectManager $objectManager)
-    {
-        $this->objectManager = $objectManager;
     }
 
     /**
@@ -117,21 +115,15 @@ abstract class BaseRunManager extends RunManager
      */
     abstract protected function getOldLiveRuns();
 
-    abstract protected function removeOlderThan(ObjectManager $objectManager, $objectName, $field, \DateTime $olderThan);
+    abstract protected function removeOlderThan($objectName, $field, \DateTime $olderThan);
 
     public function pruneArchivedRuns(\DateTime $olderThan)
     {
-        /** @var ObjectManager $objectManager */
-        $objectManager = $this->getObjectManager();
-
-        return $this->removeOlderThan($objectManager, $this->getRunArchiveClass(), 'endedAt', $olderThan);
+        return $this->removeOlderThan($this->getRunArchiveClass(), 'endedAt', $olderThan);
     }
 
     public function pruneJobTimings(\DateTime $olderThan)
     {
-        /** @var ObjectManager $objectManager */
-        $objectManager = $this->getObjectManager();
-
-        return $this->removeOlderThan($objectManager, $this->getJobTimingClass(), 'createdAt', $olderThan);
+        return $this->removeOlderThan($this->getJobTimingClass(), 'createdAt', $olderThan);
     }
 }

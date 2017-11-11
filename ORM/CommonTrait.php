@@ -2,7 +2,6 @@
 
 namespace Dtc\QueueBundle\ORM;
 
-use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Id\AssignedGenerator;
 use Doctrine\ORM\Mapping\ClassMetadata;
@@ -10,15 +9,16 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 trait CommonTrait
 {
     /**
-     * @param string        $objectName
-     * @param string        $field
-     * @param \DateTime     $olderThan
+     * @param string    $objectName
+     * @param string    $field
+     * @param \DateTime $olderThan
      *
      * @return int
      */
-    protected function removeOlderThan(ObjectManager $objectManager, $objectName, $field, \DateTime $olderThan)
+    protected function removeOlderThan($objectName, $field, \DateTime $olderThan)
     {
         /** @var EntityManager $objectManager */
+        $objectManager = $this->getObjectManager();
         $qb = $objectManager->createQueryBuilder()->delete($objectName, 'j');
         $qb = $qb
             ->where('j.'.$field.' < :'.$field)

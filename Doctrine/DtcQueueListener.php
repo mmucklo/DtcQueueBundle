@@ -3,7 +3,6 @@
 namespace Dtc\QueueBundle\Doctrine;
 
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
-use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
 use Doctrine\ORM\EntityManager;
@@ -32,11 +31,11 @@ class DtcQueueListener
         if ($object instanceof \Dtc\QueueBundle\Model\Job) {
             $this->processJob($object);
         } elseif ($object instanceof Run) {
-            $this->processRun($object, $objectManager);
+            $this->processRun($object);
         }
     }
 
-    public function processRun(Run $object, ObjectManager $objectManager)
+    public function processRun(Run $object)
     {
         /** @var BaseRunManager $runManager */
         $runManager = $this->container->get('dtc_queue.run_manager');
@@ -48,6 +47,7 @@ class DtcQueueListener
 
         $runArchive = new $runArchiveClass();
         Util::copy($object, $runArchive);
+        $objectManager = $runManager->getObjectManager();
         $metadata = $objectManager->getClassMetadata($runArchiveClass);
         if ($objectManager instanceof EntityManager) {
             /* @var \Doctrine\ORM\Mapping\ClassMetadata $metadata */

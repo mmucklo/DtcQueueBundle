@@ -14,9 +14,8 @@ class RunManagerTest extends TestCase
         $jobManager = JobManagerTest::$jobManager;
         $runClass = \Dtc\QueueBundle\Document\Run::class;
         $runArchiveClass = \Dtc\QueueBundle\Document\RunArchive::class;
-        $runManager = new \Dtc\QueueBundle\ODM\RunManager($runClass, JobTiming::class, true);
+        $runManager = new \Dtc\QueueBundle\ODM\RunManager($jobManager->getObjectManager(), $runClass, JobTiming::class, true);
         $runManager->setRunArchiveClass($runArchiveClass);
-        $runManager->setObjectManager($jobManager->getObjectManager());
         $objectManager = $runManager->getObjectManager();
         $runRepository = $objectManager->getRepository($runClass);
         self::assertEmpty($runRepository->findAll());
@@ -50,9 +49,8 @@ class RunManagerTest extends TestCase
         $jobManager = JobManagerTest::$jobManager;
         $runClass = \Dtc\QueueBundle\Document\Run::class;
         $runArchiveClass = \Dtc\QueueBundle\Document\RunArchive::class;
-        $runManager = new \Dtc\QueueBundle\ODM\RunManager($runClass, JobTiming::class, true);
+        $runManager = new \Dtc\QueueBundle\ODM\RunManager($jobManager->getObjectManager(), $runClass, JobTiming::class, true);
         $runManager->setRunArchiveClass($runArchiveClass);
-        $runManager->setObjectManager($jobManager->getObjectManager());
         $objectManager = $runManager->getObjectManager();
         $runRepository = $objectManager->getRepository($runClass);
         self::assertEmpty($runRepository->findAll());

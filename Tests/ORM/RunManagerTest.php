@@ -12,9 +12,8 @@ class RunManagerTest extends TestCase
         $jobManager = JobManagerTest::$jobManager;
         $runClass = \Dtc\QueueBundle\Entity\Run::class;
         $runArchiveClass = \Dtc\QueueBundle\Entity\RunArchive::class;
-        $runManager = new \Dtc\QueueBundle\ORM\RunManager($runClass, \Dtc\QueueBundle\Entity\JobTiming::class, true);
+        $runManager = new \Dtc\QueueBundle\ORM\RunManager($jobManager->getObjectManager(), $runClass, \Dtc\QueueBundle\Entity\JobTiming::class, true);
         $runManager->setRunArchiveClass($runArchiveClass);
-        $runManager->setObjectManager($jobManager->getObjectManager());
         $objectManager = $runManager->getObjectManager();
         $runRepository = $objectManager->getRepository($runClass);
         self::assertEmpty($runRepository->findAll());

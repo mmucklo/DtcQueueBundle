@@ -15,9 +15,10 @@ trait CommonTrait
      *
      * @return int
      */
-    protected function removeOlderThan(ObjectManager $objectManager, $objectName, $field, \DateTime $olderThan)
+    protected function removeOlderThan($objectName, $field, \DateTime $olderThan)
     {
         /** @var DocumentManager $objectManager */
+        $objectManager = $this->getObjectManager();
         $qb = $objectManager->createQueryBuilder($objectName);
         $qb
             ->remove()

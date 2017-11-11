@@ -7,8 +7,8 @@ class Util
     /**
      * Copies the members of obj1 that have public getters to obj2 if there exists a public setter in obj2 of the same suffix, it will also copy public variables.
      *
-     * @param $obj1
-     * @param $obj2
+     * @param object $obj1
+     * @param object $obj2
      */
     public static function copy($obj1, $obj2)
     {
@@ -24,6 +24,12 @@ class Util
         self::copyProperties($obj1, $obj2, $reflection1, $reflection2);
     }
 
+    /**
+     * @param object            $obj1
+     * @param object            $obj2
+     * @param \ReflectionObject $reflection1
+     * @param \ReflectionObject $reflection2
+     */
     private static function copyProperties($obj1, $obj2, \ReflectionObject $reflection1, \ReflectionObject $reflection2)
     {
         $publicVars = $reflection1->getProperties(\ReflectionProperty::IS_PUBLIC);
@@ -35,6 +41,12 @@ class Util
         }
     }
 
+    /**
+     * @param object            $obj1
+     * @param object            $obj2
+     * @param \ReflectionObject $reflection1
+     * @param \ReflectionObject $reflection2
+     */
     private static function copyMethods($obj1, $obj2, \ReflectionObject $reflection1, \ReflectionObject $reflection2)
     {
         $methods = $reflection1->getMethods(\ReflectionMethod::IS_PUBLIC);
@@ -49,6 +61,13 @@ class Util
         }
     }
 
+    /**
+     * @param object            $obj1
+     * @param object            $obj2
+     * @param string            $getMethod
+     * @param string            $setMethod
+     * @param \ReflectionObject $reflection2
+     */
     private static function copyMethod($obj1, $obj2, $getMethod, $setMethod, \ReflectionObject $reflection2)
     {
         if ($reflection2->hasMethod($setMethod)) {
@@ -61,6 +80,7 @@ class Util
 
     /**
      * @param string $varName
+     * @param int    $var
      * @param int    $pow
      */
     public static function validateIntNull($varName, $var, $pow)

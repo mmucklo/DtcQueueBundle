@@ -136,8 +136,7 @@ class JobManager extends BaseJobManager
         /** @var EntityManager $entityManager */
         $entityManager = $this->getObjectManager();
 
-        return $this->removeOlderThan($entityManager,
-                $this->getArchiveObjectName(),
+        return $this->removeOlderThan($this->getArchiveObjectName(),
                 'updatedAt',
                 $olderThan);
     }

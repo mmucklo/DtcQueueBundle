@@ -102,7 +102,7 @@ class JobManager extends BaseJobManager
         /** @var DocumentManager $documentManager */
         $documentManager = $this->getObjectManager();
 
-        return $this->removeOlderThan($documentManager, $this->getArchiveObjectName(), 'updatedAt', $olderThan);
+        return $this->removeOlderThan($this->getArchiveObjectName(), 'updatedAt', $olderThan);
     }
 
     public function getJobCount($workerName = null, $method = null)

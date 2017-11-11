@@ -95,9 +95,16 @@ class DtcQueueExtensionTest extends TestCase
         $this->arrayTest($containerBuilder, 'dtc_queue.rabbit_mq', 'ssl_options', ['peer_fingerprint' => ['something' => 'else']]);
     }
 
-    public function arrayTest(ContainerBuilder $containerBuilder, $parameter, $key, $result)
+    /**
+     * @param ContainerBuilder $containerBuilder
+     * @param string           $parameter
+     * @param string           $key
+     * @param mixed            $result
+     */
+    protected function arrayTest(ContainerBuilder $containerBuilder, $parameter, $key, $result)
     {
         $arr = $containerBuilder->getParameter($parameter);
         self::assertArrayHasKey($key, $arr);
+        self::assertEquals($result, $arr[$key]);
     }
 }

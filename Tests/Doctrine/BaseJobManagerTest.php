@@ -43,8 +43,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
     {
         self::$jobManager = new self::$jobManagerClass(self::$objectManager, self::$objectName, self::$archiveObjectName, self::$runClass, self::$runArchiveClass);
         self::$jobManager->setMaxPriority(255);
-        self::$runManager = new self::$runManagerClass(self::$runClass, self::$jobTimingClass, true);
-        self::$runManager->setObjectManager(self::$objectManager);
+        self::$runManager = new self::$runManagerClass(self::$objectManager, self::$runClass, self::$jobTimingClass, true);
         self::$runManager->setRunArchiveClass(self::$runArchiveClass);
 
         self::assertEquals(255, self::$jobManager->getMaxPriority());
