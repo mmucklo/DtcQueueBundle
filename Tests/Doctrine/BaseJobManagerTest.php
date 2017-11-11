@@ -61,7 +61,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $container->set('dtc_queue.job_manager', $jobManager);
         $container->set('dtc_queue.run_manager', self::$runManager);
 
-        self::$dtcQueueListener = new DtcQueueListener(self::$jobManager, self::$runManager);
+        self::$dtcQueueListener = new DtcQueueListener(self::$jobManager->getArchiveObjectName(), self::$runManager->getRunArchiveClass());
         self::$objectManager->getEventManager()->addEventListener('preUpdate', self::$dtcQueueListener);
         self::$objectManager->getEventManager()->addEventListener('prePersist', self::$dtcQueueListener);
         self::$objectManager->getEventManager()->addEventListener('preRemove', self::$dtcQueueListener);

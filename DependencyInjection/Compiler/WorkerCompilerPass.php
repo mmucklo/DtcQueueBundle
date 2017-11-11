@@ -42,28 +42,26 @@ class WorkerCompilerPass implements CompilerPassInterface
         $this->setupDoctrineManagers($container);
     }
 
+    protected function setupAlias(ContainerBuilder $container, $defaultManagerType, $type)
+    {
+        $definitionName = 'dtc_queue.'.$type.'.'.$defaultManagerType;
+        if (!$container->hasDefinition($definitionName) && !$container->hasAlias($definitionName)) {
+            throw new \Exception("No job manager found for dtc_queue.'.$type.'.$defaultManagerType");
+        }
+        if ($container->hasDefinition($definitionName)) {
+            $alias = new Alias('dtc_queue.'.$type.'.'.$defaultManagerType);
+            $container->setAlias('dtc_queue.'.$type, $alias);
+        } else {
+            $container->setAlias('dtc_queue.'.$type, $container->getAlias($definitionName));
+        }
+    }
+
     protected function setupAliases(ContainerBuilder $container)
     {
         $defaultManagerType = $container->getParameter('dtc_queue.default_manager');
-        if (!$container->hasDefinition('dtc_queue.job_manager.'.$defaultManagerType) && !$container->hasAlias('dtc_queue.job_manager.'.$defaultManagerType)) {
-            throw new \Exception("No job manager found for dtc_queue.job_manager.$defaultManagerType");
-        }
-
+        $this->setupAlias($container, $defaultManagerType, 'job_manager');
         $defaultRunManagerType = $container->getParameter('dtc_queue.run_manager');
-        $definitionName = 'dtc_queue.run_manager.'.$defaultRunManagerType;
-        if (!$container->hasDefinition($definitionName) && !$container->hasAlias($definitionName)) {
-            throw new \Exception("No run manager found for dtc_queue.run_manager.$defaultRunManagerType");
-        }
-
-        $alias = new Alias('dtc_queue.job_manager.'.$defaultManagerType);
-        $container->setAlias('dtc_queue.job_manager', $alias);
-
-        if ($container->hasDefinition($definitionName)) {
-            $alias = new Alias('dtc_queue.run_manager.'.$defaultRunManagerType);
-            $container->setAlias('dtc_queue.run_manager', $alias);
-        } else {
-            $container->setAlias('dtc_queue.run_manager', $container->getAlias($definitionName));
-        }
+        $this->setupAlias($container, $defaultRunManagerType, 'run_manager');
     }
 
     /**
