@@ -305,7 +305,7 @@ class Loop
 
     /**
      * @param float    $start
-     * @param Job|null $jobId
+     * @param Job|null $job
      */
     protected function recordHeartbeat($start, Job $job = null)
     {
