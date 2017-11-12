@@ -41,4 +41,5 @@ script:
   - wget https://scrutinizer-ci.com/ocular.phar || true
   - php ocular.phar code-coverage:upload --format=php-clover coverage.clover || true
   - echo $(ls -l)
+  - echo $(pwd)
   - sonar-scanner
