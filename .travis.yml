@@ -37,7 +37,7 @@ before_script:
   - composer install
 
 script:
-  - BEANSTALKD_HOST=localhost MONGODB_HOST=localhost RABBIT_MQ_HOST=localhost MYSQL_HOST=localhost MYSQL_USER=root MYSQL_DATABASE=queue_test bin/phpunit --coverage-clover=coverage.clover --coverage-xml=coverage.xml --log-junit=phpunit.result.xml
+  - BEANSTALKD_HOST=localhost MONGODB_HOST=localhost RABBIT_MQ_HOST=localhost MYSQL_HOST=localhost MYSQL_USER=root MYSQL_DATABASE=queue_test bin/phpunit --coverage-clover=coverage.clover --log-junit=phpunit.result.xml
   - wget https://scrutinizer-ci.com/ocular.phar || true
   - php ocular.phar code-coverage:upload --format=php-clover coverage.clover || true
   - echo $(ls -l)
