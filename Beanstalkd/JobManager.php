@@ -4,6 +4,7 @@ namespace Dtc\QueueBundle\Beanstalkd;
 
 use Dtc\QueueBundle\Model\AbstractJobManager;
 use Dtc\QueueBundle\Model\Job as BaseJob;
+use Dtc\QueueBundle\Exception\UnsupportedException;
 use Pheanstalk\Pheanstalk;
 
 class JobManager extends AbstractJobManager
@@ -64,15 +65,15 @@ class JobManager extends AbstractJobManager
      *
      * @return Job|null
      *
-     * @throws \Exception
+     * @throws UnsupportedException
      */
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
         if (null !== $methodName) {
-            throw new \Exception('Unsupported');
+            throw new UnsupportedException('Unsupported');
         }
         if (null !== $workerName) {
-            throw new \Exception('Unsupported');
+            throw new UnsupportedException('Unsupported');
         }
 
         $beanstalkd = $this->beanstalkd;

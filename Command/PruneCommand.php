@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Command;
 
+use Dtc\QueueBundle\Exception\UnsupportedException;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -118,7 +119,7 @@ class PruneCommand extends ContainerAwareCommand
      *
      * @return int
      *
-     * @throws \Exception
+     * @throws UnsupportedException
      */
     protected function pruneOlderThan($type, \DateTime $olderThan, OutputInterface $output)
     {
@@ -138,7 +139,7 @@ class PruneCommand extends ContainerAwareCommand
                 $typeName = 'Job Timing';
                 break;
             default:
-                throw new \Exception("Unknown type $type");
+                throw new UnsupportedException("Unknown type $type");
         }
         $output->writeln("$count Archived $typeName(s) pruned");
 
@@ -153,7 +154,7 @@ class PruneCommand extends ContainerAwareCommand
      *
      * @return \DateInterval
      *
-     * @throws \Exception
+     * @throws UnsupportedException
      */
     protected function getInterval($modifier, $duration)
     {
@@ -180,7 +181,7 @@ class PruneCommand extends ContainerAwareCommand
      *
      * @return \DateInterval
      *
-     * @throws \Exception
+     * @throws UnsupportedException
      */
     protected function getIntervalTime($modifier, $duration)
     {
@@ -196,7 +197,7 @@ class PruneCommand extends ContainerAwareCommand
                 $interval = new \DateInterval("PT${duration}S");
                 break;
             default:
-                throw new \Exception("Unknown duration modifier: $modifier");
+                throw new UnsupportedException("Unknown duration modifier: $modifier");
         }
 
         return $interval;

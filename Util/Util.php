@@ -13,10 +13,10 @@ class Util
     public static function copy($obj1, $obj2)
     {
         if (!is_object($obj1)) {
-            throw new \Exception('$obj1 must be an object, not '.gettype($obj1));
+            throw new \InvalidArgumentException('$obj1 must be an object, not '.gettype($obj1));
         }
         if (!is_object($obj2)) {
-            throw new \Exception('$obj2 must be an object, not '.gettype($obj2));
+            throw new \InvalidArgumentException('$obj2 must be an object, not '.gettype($obj2));
         }
         $reflection1 = new \ReflectionObject($obj1);
         $reflection2 = new \ReflectionObject($obj2);
@@ -89,11 +89,11 @@ class Util
             return null;
         }
         if (!ctype_digit(strval($var))) {
-            throw new \Exception("$varName must be an integer");
+            throw new \InvalidArgumentException("$varName must be an integer");
         }
 
         if (strval(intval($var)) !== strval($var) || $var <= 0 || $var >= pow(2, $pow)) {
-            throw new \Exception("$varName must be an base 10 integer within 2^$pow");
+            throw new \InvalidArgumentException("$varName must be an base 10 integer within 2^$pow");
         }
 
         return intval($var);

@@ -11,6 +11,7 @@ use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\Model\RunManager;
 use Dtc\QueueBundle\Model\WorkerManager;
 use Dtc\QueueBundle\Util\Util;
+use Dtc\QueueBundle\Exception\ClassNotSubclassException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -91,7 +92,7 @@ class Loop
         $this->runStart($start);
 
         if (!$this->jobManager instanceof BaseJobManager) {
-            throw new \Exception("Can't get job by id when not using a database/datastore backed queue (such as mongodb or an RDBMS)");
+            throw new ClassNotSubclassException("Can't get job by id when not using a database/datastore backed queue (such as mongodb or an RDBMS)");
         }
 
         /** @var Job $job */
@@ -147,7 +148,7 @@ class Loop
      * @param null|int $maxCount
      * @param null|int $duration
      *
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     private function checkParameters(&$nanoSleep, &$maxCount, &$duration)
     {
@@ -163,27 +164,27 @@ class Loop
      * @param int|null $maxCount
      * @param int|null $duration
      *
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     protected function validateMaxCountDuration($maxCount, $duration)
     {
         if (0 === $maxCount && 0 === $duration) {
-            throw new \Exception('maxCount and duration can not both be 0');
+            throw new \InvalidArgumentException('maxCount and duration can not both be 0');
         }
         if (null === $maxCount && null === $duration) {
-            throw new \Exception('maxCount and duration can not both be null');
+            throw new \InvalidArgumentException('maxCount and duration can not both be null');
         }
     }
 
     /**
      * @param int|null $nanoSleep
      *
-     * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     protected function validateNanoSleep($nanoSleep)
     {
         if (null === $nanoSleep) {
-            throw new \Exception("nanoSleep can't be null");
+            throw new \InvalidArgumentException("nanoSleep can't be null");
         }
     }
 

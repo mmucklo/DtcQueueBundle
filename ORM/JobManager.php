@@ -10,6 +10,7 @@ use Dtc\QueueBundle\Doctrine\BaseJobManager;
 use Dtc\QueueBundle\Entity\Job;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\RetryableJob;
+use Symfony\Component\Process\Exception\LogicException;
 
 class JobManager extends BaseJobManager
 {
@@ -82,7 +83,7 @@ class JobManager extends BaseJobManager
         if ($splObjectHash === $compare) {
             // Insert SQL is cached...
             $msg = "Can't call save and reset within the same process cycle (or using the same EntityManager)";
-            throw new \Exception($msg);
+            throw new LogicException($msg);
         }
 
         if ('save' === $function) {
@@ -278,9 +279,6 @@ class JobManager extends BaseJobManager
      */
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
-        $uniqid = uniqid(gethostname().'-'.getmypid(), true);
-        $hash = hash('sha256', $uniqid);
-
         /** @var EntityManager $objectManager */
         $objectManager = $this->getObjectManager();
 
@@ -322,9 +320,6 @@ class JobManager extends BaseJobManager
         if ($jobs) {
             /** @var Job $job */
             $job = $jobs[0];
-            if (!$job) {
-                throw new \Exception("No job found for $hash, even though last result was count ".count($jobs));
-            }
             $job->setLocked(true);
             $job->setLockedAt(new \DateTime());
             $job->setStatus(BaseJob::STATUS_RUNNING);

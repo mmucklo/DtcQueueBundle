@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Command;
 
 use Dtc\QueueBundle\Documents\Job;
+use Dtc\QueueBundle\Exception\WorkerNotRegisteredException;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -33,7 +34,7 @@ class CreateJobCommand extends ContainerAwareCommand
         $worker = $workerManager->getWorker($workerName);
 
         if (!$worker) {
-            throw new \Exception("Worker `{$workerName}` is not registered.");
+            throw new WorkerNotRegisteredException("Worker `{$workerName}` is not registered.");
         }
 
         $when = new \DateTime();
