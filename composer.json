@@ -47,9 +47,9 @@
         "bin-dir": "bin"
     },
     "autoload": {
-        "psr-4": { "Dtc\\QueueBundle\\": "src", "Dtc\\QueueBundle\\Tests\\": "tests" },
+        "psr-4": { "Dtc\\QueueBundle\\": "" },
         "exclude-from-classmap": [
-            "/tests/"
+            "/Tests/"
         ]
     },
     "minimum-stability": "dev",
