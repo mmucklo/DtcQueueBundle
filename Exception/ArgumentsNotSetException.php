@@ -2,4 +2,6 @@
 
 namespace Dtc\QueueBundle\Exception;
 
-class ArgumentsNotSetException extends \Exception {}
+class ArgumentsNotSetException extends \Exception
+{
+}

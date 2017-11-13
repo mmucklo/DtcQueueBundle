@@ -2,4 +2,6 @@
 
 namespace Dtc\QueueBundle\Exception;
 
-class PriorityException extends \Exception {}
+class PriorityException extends \Exception
+{
+}

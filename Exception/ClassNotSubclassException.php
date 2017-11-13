@@ -2,4 +2,6 @@
 
 namespace Dtc\QueueBundle\Exception;
 
-class ClassNotSubclassException extends \Exception {}
+class ClassNotSubclassException extends \Exception
+{
+}

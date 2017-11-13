@@ -269,10 +269,8 @@ abstract class BaseJobManager extends PriorityJobManager
             }
 
             $job->setStalledCount($job->getStalledCount() + 1);
-            if ($this->updateMaxStatus($job, RetryableJob::STATUS_MAX_STALLED, $job->getMaxStalled(), $job->getStalledCount())) {
-                $objectManager->remove($job);
-                continue;
-            } elseif ($this->updateMaxStatus($job, RetryableJob::STATUS_MAX_RETRIES, $job->getMaxRetries(), $job->getRetries())) {
+            if ($this->updateMaxStatus($job, RetryableJob::STATUS_MAX_STALLED, $job->getMaxStalled(), $job->getStalledCount()) ||
+                $this->updateMaxStatus($job, RetryableJob::STATUS_MAX_RETRIES, $job->getMaxRetries(), $job->getRetries())) {
                 $objectManager->remove($job);
                 continue;
             }

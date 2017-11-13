@@ -2,4 +2,6 @@
 
 namespace Dtc\QueueBundle\Exception;
 
-class ClassNotFoundException extends \Exception {}
+class ClassNotFoundException extends \Exception
+{
+}

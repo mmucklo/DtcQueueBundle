@@ -2,4 +2,6 @@
 
 namespace Dtc\QueueBundle\Exception;
 
-class DuplicateWorkerException extends \Exception {}
+class DuplicateWorkerException extends \Exception
+{
+}

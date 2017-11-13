@@ -326,6 +326,7 @@ class JobManager extends BaseJobManager
             $job->setRunId($runId);
             $objectManager->commit();
             $objectManager->flush();
+
             return $job;
         }
 

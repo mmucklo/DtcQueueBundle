@@ -2,4 +2,6 @@
 
 namespace Dtc\QueueBundle\Exception;
 
-class UnsupportedException extends \Exception {}
+class UnsupportedException extends \Exception
+{
+}

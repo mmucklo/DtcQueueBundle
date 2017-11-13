@@ -2,4 +2,6 @@
 
 namespace Dtc\QueueBundle\Exception;
 
-class WorkerNotRegisteredException extends \Exception {}
+class WorkerNotRegisteredException extends \Exception
+{
+}
