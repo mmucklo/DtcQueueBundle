@@ -279,9 +279,6 @@ class JobManager extends BaseJobManager
      */
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
-        $uniqid = uniqid(gethostname().'-'.getmypid(), true);
-        $hash = hash('sha256', $uniqid);
-
         /** @var EntityManager $objectManager */
         $objectManager = $this->getObjectManager();
 
