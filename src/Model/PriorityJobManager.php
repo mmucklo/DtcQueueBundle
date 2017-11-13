@@ -2,6 +2,8 @@
 
 namespace Dtc\QueueBundle\Model;
 
+use Dtc\QueueBundle\Exception\PriorityException;
+
 abstract class PriorityJobManager extends AbstractJobManager
 {
     const PRIORITY_ASC = 'asc';
@@ -49,14 +51,14 @@ abstract class PriorityJobManager extends AbstractJobManager
         }
 
         if (!ctype_digit(strval($priority))) {
-            throw new \Exception("Priority ($priority) needs to be a positive integer");
+            throw new PriorityException("Priority ($priority) needs to be a positive integer");
         }
         if (strval(intval($priority)) !== strval($priority)) {
-            throw new \Exception("Priority ($priority) needs to be less than ".PHP_INT_MAX);
+            throw new PriorityException("Priority ($priority) needs to be less than ".PHP_INT_MAX);
         }
         $maxPriority = $this->getMaxPriority();
         if (intval($priority) > $maxPriority) {
-            throw new \Exception("Priority ($priority) must be less than ".$maxPriority);
+            throw new PriorityException("Priority ($priority) must be less than ".$maxPriority);
         }
     }
 

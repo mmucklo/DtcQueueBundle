@@ -5,6 +5,9 @@ namespace Dtc\QueueBundle\DependencyInjection\Compiler;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Model\Run;
+use Dtc\QueueBundle\Exception\ClassNotFoundException;
+use Dtc\QueueBundle\Exception\ClassNotSubclassException;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -46,7 +49,7 @@ class WorkerCompilerPass implements CompilerPassInterface
     {
         $definitionName = 'dtc_queue.'.$type.'.'.$defaultManagerType;
         if (!$container->hasDefinition($definitionName) && !$container->hasAlias($definitionName)) {
-            throw new \Exception("No job manager found for dtc_queue.'.$type.'.$defaultManagerType");
+            throw new InvalidConfigurationException("No job manager found for dtc_queue.'.$type.'.$defaultManagerType");
         }
         if ($container->hasDefinition($definitionName)) {
             $alias = new Alias('dtc_queue.'.$type.'.'.$defaultManagerType);
@@ -136,7 +139,7 @@ class WorkerCompilerPass implements CompilerPassInterface
      *
      * @return mixed|string
      *
-     * @throws \Exception
+     * @throws InvalidConfigurationException
      */
     protected function getJobClass(ContainerBuilder $container)
     {
@@ -145,7 +148,7 @@ class WorkerCompilerPass implements CompilerPassInterface
             if ($directory = $this->getDirectory($managerType = $container->getParameter('dtc_queue.default_manager'))) {
                 $jobClass = 'Dtc\QueueBundle\\'.$directory.'\Job';
             } else {
-                throw new \Exception('Unknown default_manager type '.$managerType.' - please specify a Job class in the \'class\' configuration parameter');
+                throw new InvalidConfigurationException('Unknown default_manager type '.$managerType.' - please specify a Job class in the \'class\' configuration parameter');
             }
         }
 
@@ -177,17 +180,18 @@ class WorkerCompilerPass implements CompilerPassInterface
     }
 
     /**
-     * @throws \Exception
+     * @throws ClassNotFoundException
+     * @throws ClassNotSubclassException
      */
     protected function testClass($className, $parent)
     {
         if (!class_exists($className)) {
-            throw new \Exception("Can't find class $className");
+            throw new ClassNotFoundException("Can't find class $className");
         }
 
         $test = new $className();
         if (!$test instanceof $className) {
-            throw new \Exception("$className must be instance of (or derived from) $parent");
+            throw new ClassNotSubclassException("$className must be instance of (or derived from) $parent");
         }
     }
 
@@ -198,7 +202,8 @@ class WorkerCompilerPass implements CompilerPassInterface
      *
      * @return mixed|string
      *
-     * @throws \Exception
+     * @throws ClassNotFoundException
+     * @throws ClassNotSubclassException
      */
     protected function getJobClassArchive(ContainerBuilder $container)
     {

@@ -3,6 +3,10 @@
 namespace Dtc\QueueBundle\RabbitMQ;
 
 use Dtc\QueueBundle\Model\PriorityJobManager;
+use Dtc\QueueBundle\Exception\ArgumentsNotSetException;
+use Dtc\QueueBundle\Exception\ClassNotSubclassException;
+use Dtc\QueueBundle\Exception\PriorityException;
+use Dtc\QueueBundle\Exception\UnsupportedException;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AbstractConnection;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -53,10 +57,10 @@ class JobManager extends PriorityJobManager
 
         $this->queueArgs = $arguments;
         if (!ctype_digit(strval($this->maxPriority))) {
-            throw new \Exception('Max Priority ('.$this->maxPriority.') needs to be a non-negative integer');
+            throw new PriorityException('Max Priority ('.$this->maxPriority.') needs to be a non-negative integer');
         }
         if (strval(intval($this->maxPriority)) !== strval($this->maxPriority)) {
-            throw new \Exception('Priority is higher than '.PHP_INT_MAX);
+            throw new PriorityException('Priority is higher than '.PHP_INT_MAX);
         }
     }
 
@@ -77,10 +81,10 @@ class JobManager extends PriorityJobManager
     protected function checkChannelArgs()
     {
         if (empty($this->queueArgs)) {
-            throw new \Exception(__METHOD__.': queue args need to be set via setQueueArgs(...)');
+            throw new ArgumentsNotSetException(__METHOD__.': queue args need to be set via setQueueArgs(...)');
         }
         if (empty($this->exchangeArgs)) {
-            throw new \Exception(__METHOD__.': exchange args need to be set via setExchangeArgs(...)');
+            throw new ArgumentsNotSetException(__METHOD__.': exchange args need to be set via setExchangeArgs(...)');
         }
     }
 
@@ -110,12 +114,12 @@ class JobManager extends PriorityJobManager
      *
      * @return \Dtc\QueueBundle\Model\Job
      *
-     * @throws \Exception
+     * @throws ClassNotSubclassException
      */
     public function prioritySave(\Dtc\QueueBundle\Model\Job $job)
     {
         if (!$job instanceof Job) {
-            throw new \Exception('Must be derived from '.Job::class);
+            throw new ClassNotSubclassException('Must be derived from '.Job::class);
         }
 
         $this->setupChannel();
@@ -170,23 +174,24 @@ class JobManager extends PriorityJobManager
     /**
      * @param \Dtc\QueueBundle\Model\Job $job
      *
-     * @throws \Exception
+     * @throws PriorityException
+     * @throws ClassNotSubclassException
      */
     protected function validateSaveable(\Dtc\QueueBundle\Model\Job $job)
     {
         if (null !== $job->getPriority() && null === $this->maxPriority) {
-            throw new \Exception('This queue does not support priorities');
+            throw new PriorityException('This queue does not support priorities');
         }
 
         if (!$job instanceof Job) {
-            throw new \Exception('Job needs to be instance of '.Job::class);
+            throw new ClassNotSubclassException('Job needs to be instance of '.Job::class);
         }
     }
 
     protected function verifyGetJobArgs($workerName = null, $methodName = null, $prioritize = true)
     {
         if (null !== $workerName || null !== $methodName || true !== $prioritize) {
-            throw new \Exception('Unsupported');
+            throw new UnsupportedException('Unsupported');
         }
     }
 
@@ -238,7 +243,7 @@ class JobManager extends PriorityJobManager
     public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
     {
         if (!$job instanceof Job) {
-            throw new \Exception("Expected \Dtc\QueueBundle\RabbitMQ\Job, got ".get_class($job));
+            throw new ClassNotSubclassException("Expected \Dtc\QueueBundle\RabbitMQ\Job, got ".get_class($job));
         }
         $deliveryTag = $job->getDeliveryTag();
         $this->channel->basic_ack($deliveryTag);

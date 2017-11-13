@@ -2,6 +2,8 @@
 
 namespace Dtc\QueueBundle\Model;
 
+use Dtc\QueueBundle\Exception\UnsupportedException;
+
 class RunManager
 {
     /** @var string */
@@ -43,7 +45,7 @@ class RunManager
      */
     public function pruneArchivedRuns(\DateTime $olderThan)
     {
-        throw new \Exception('not supported');
+        throw new UnsupportedException('not supported');
     }
 
     /**
@@ -53,12 +55,12 @@ class RunManager
      */
     public function pruneJobTimings(\DateTime $olderThan)
     {
-        throw new \Exception('not supported');
+        throw new UnsupportedException('not supported');
     }
 
     public function pruneStalledRuns()
     {
-        throw new \Exception('not supported');
+        throw new UnsupportedException('not supported');
     }
 
     /**

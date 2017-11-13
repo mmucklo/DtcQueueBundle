@@ -5,7 +5,6 @@ namespace Dtc\QueueBundle\ODM;
 use Doctrine\MongoDB\Query\Builder;
 use Dtc\QueueBundle\Doctrine\BaseJobManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
-use Dtc\QueueBundle\Document\Job;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\RetryableJob;
 

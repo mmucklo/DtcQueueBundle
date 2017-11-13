@@ -4,6 +4,7 @@ namespace Dtc\QueueBundle\Model;
 
 use Dtc\QueueBundle\EventDispatcher\Event;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
+use Dtc\QueueBundle\Exception\DuplicateWorkerException;
 use Psr\Log\LoggerInterface;
 
 class WorkerManager
@@ -35,7 +36,7 @@ class WorkerManager
         }
 
         if (isset($this->workers[$worker->getName()])) {
-            throw new \Exception("{$worker->getName()} already exists in worker manager");
+            throw new DuplicateWorkerException("{$worker->getName()} already exists in worker manager");
         }
 
         $this->workers[$worker->getName()] = $worker;

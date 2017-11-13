@@ -124,7 +124,7 @@ abstract class BaseJob
     public function setArgs($args)
     {
         if (!$this->validateArgs($args)) {
-            throw new \Exception('Args must not contain object');
+            throw new \InvalidArgumentException('Args must not contain object');
         }
 
         $this->args = $args;

@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\DependencyInjection;
 
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
@@ -48,7 +49,7 @@ class DtcQueueExtension extends Extension
         if (isset($config['rabbit_mq'])) {
             foreach (['host', 'port', 'user', 'password'] as $value) {
                 if (!isset($config['rabbit_mq'][$value])) {
-                    throw new \Exception('dtc_queue: rabbit_mq must have '.$value.' in config.yml');
+                    throw new InvalidConfigurationException('dtc_queue: rabbit_mq must have '.$value.' in config.yml');
                 }
             }
             $config['rabbit_mq']['queue_args']['max_priority'] = $config['priority_max'];
@@ -60,7 +61,7 @@ class DtcQueueExtension extends Extension
     {
         if (isset($config['beanstalkd'])) {
             if (!isset($config['beanstalkd']['host'])) {
-                throw new \Exception('dtc_queue: beanstalkd requires host in config.yml');
+                throw new InvalidConfigurationException('dtc_queue: beanstalkd requires host in config.yml');
             }
         }
 

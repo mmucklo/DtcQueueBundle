@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Controller;
 
+use Dtc\QueueBundle\Exception\UnsupportedException;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -54,7 +55,7 @@ class QueueController extends Controller
     {
         $managerType = $this->container->getParameter('dtc_queue.default_manager');
         if ('mongodb' !== $managerType && 'orm' != $managerType) {
-            throw new \Exception("Unsupported manager type: $managerType");
+            throw new UnsupportedException("Unsupported manager type: $managerType");
         }
 
         $rendererFactory = $this->get('dtc_grid.renderer.factory');

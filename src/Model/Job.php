@@ -26,7 +26,7 @@ class Job extends BaseJob
 
         // Make sure the method exists - job should not be created
         if (!method_exists($this->worker, $method)) {
-            throw new \Exception("{$this->className}->{$method}() does not exist");
+            throw new \BadMethodCallException("{$this->className}->{$method}() does not exist");
         }
 
         $job = $this->jobManager->save($this);

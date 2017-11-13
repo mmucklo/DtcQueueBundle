@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Command;
 
+use Dtc\QueueBundle\Exception\ClassNotSubclassException;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Run\Loop;
 use Dtc\QueueBundle\Util\Util;
@@ -119,7 +120,7 @@ class RunCommand extends ContainerAwareCommand
 
         $logger = $container->get($loggerService);
         if (!$logger instanceof LoggerInterface) {
-            throw new \Exception("$loggerService must be instance of Psr\\Log\\LoggerInterface");
+            throw new ClassNotSubclassException("$loggerService must be instance of Psr\\Log\\LoggerInterface");
         }
         $loop->setLogger($logger);
     }
