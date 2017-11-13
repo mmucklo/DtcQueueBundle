@@ -9,7 +9,7 @@
 
     <testsuites>
         <testsuite name="DtcQueueBundle Test Suite">
-            <directory>./tests</directory>
+            <directory>./Tests</directory>
         </testsuite>
     </testsuites>
 
@@ -18,7 +18,7 @@
             <directory>./</directory>
             <exclude>
                 <directory>./src/Resources</directory>
-                <directory>./tests</directory>
+                <directory>./Tests</directory>
                 <directory>./vendor</directory>
             </exclude>
         </whitelist>
