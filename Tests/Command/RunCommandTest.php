@@ -72,6 +72,6 @@ class RunCommandTest extends TestCase
     {
         $command = RunCommand::class;
         $this->runCommand($command, $container, $params);
-        self::assertEquals($amountProcessed, $loop->getRun()->getProcessed());
+        self::assertEquals($amountProcessed, $loop->getLastRun()->getProcessed());
     }
 }

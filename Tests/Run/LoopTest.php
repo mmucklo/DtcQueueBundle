@@ -31,15 +31,15 @@ class LoopTest extends TestCase
         $job = $worker->later()->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
         $start = microtime(true);
-        self::assertNull($loop->getRun());
+        self::assertNull($loop->getLastRun());
         $failed = false;
         try {
             $loop->runJobById($start, $job->getId());
             $failed = true;
         } catch (\Exception $e) {
-            self::assertNotNull($loop->getRun());
-            self::assertEquals(0, $loop->getRun()->getProcessed());
-            self::assertEquals(gethostname(), $loop->getRun()->getHostname());
+            self::assertNotNull($loop->getLastRun());
+            self::assertEquals(0, $loop->getLastRun()->getProcessed());
+            self::assertEquals(gethostname(), $loop->getLastRun()->getHostname());
         }
         self::assertFalse($failed);
 
@@ -52,26 +52,26 @@ class LoopTest extends TestCase
 
         $result = $loop->runLoop($start, null, null, 1);
         self::assertEquals(0, $result);
-        self::assertNotNull($loop->getRun());
-        self::assertEquals(1, $loop->getRun()->getProcessed());
+        self::assertNotNull($loop->getLastRun());
+        self::assertEquals(1, $loop->getLastRun()->getProcessed());
 
         $result = $loop->runLoop($start, null, null, 1);
         self::assertEquals(0, $result);
-        self::assertNotNull($loop->getRun());
-        self::assertEquals(0, $loop->getRun()->getProcessed());
+        self::assertNotNull($loop->getLastRun());
+        self::assertEquals(0, $loop->getLastRun()->getProcessed());
 
         $worker->later()->fibonacci(1);
         $worker->later()->fibonacci(2);
 
         $result = $loop->runLoop($start, null, null, 4);
         self::assertEquals(0, $result);
-        self::assertNotNull($loop->getRun());
-        self::assertEquals(2, $loop->getRun()->getProcessed());
+        self::assertNotNull($loop->getLastRun());
+        self::assertEquals(2, $loop->getLastRun()->getProcessed());
 
         $result = $loop->runLoop($start, null, null, 4);
         self::assertEquals(0, $result);
-        self::assertNotNull($loop->getRun());
-        self::assertEquals(0, $loop->getRun()->getProcessed());
+        self::assertNotNull($loop->getLastRun());
+        self::assertEquals(0, $loop->getLastRun()->getProcessed());
     }
 
     public function testMongoDBRun()
@@ -92,25 +92,25 @@ class LoopTest extends TestCase
         $job = $worker->later()->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
         $start = microtime(true);
-        self::assertNull($loop->getRun());
+        self::assertNull($loop->getLastRun());
         try {
             $loop->runJobById($start, $job->getId());
         } catch (\Exception $e) {
             self::fail('Should not get here');
         }
 
-        self::assertNotNull($loop->getRun());
-        self::assertNotNull($id1 = $loop->getRun()->getId());
-        self::assertEquals(1, $loop->getRun()->getProcessed());
-        self::assertEquals(gethostname(), $loop->getRun()->getHostname());
+        self::assertNotNull($loop->getLastRun());
+        self::assertNotNull($id1 = $loop->getLastRun()->getId());
+        self::assertEquals(1, $loop->getLastRun()->getProcessed());
+        self::assertEquals(gethostname(), $loop->getLastRun()->getHostname());
         $worker->later()->fibonacci(1);
 
         $result = $loop->runLoop($start, null, null, 1);
         self::assertEquals(0, $result);
-        self::assertNotNull($loop->getRun());
-        self::assertNotNull($id2 = $loop->getRun()->getId());
+        self::assertNotNull($loop->getLastRun());
+        self::assertNotNull($id2 = $loop->getLastRun()->getId());
         self::assertNotEquals($id1, $id2);
-        self::assertEquals(1, $loop->getRun()->getProcessed());
+        self::assertEquals(1, $loop->getLastRun()->getProcessed());
 
         $documentManager = $jobManager->getObjectManager();
         print_r($jobManager->getRunArchiveClass());
@@ -120,27 +120,27 @@ class LoopTest extends TestCase
 
         $result = $loop->runLoop($start, null, null, 1);
         self::assertEquals(0, $result);
-        self::assertNotNull($loop->getRun());
-        self::assertEquals(0, $loop->getRun()->getProcessed());
+        self::assertNotNull($loop->getLastRun());
+        self::assertEquals(0, $loop->getLastRun()->getProcessed());
 
         $worker->later()->fibonacci(1);
         $worker->later()->fibonacci(2);
 
         $result = $loop->runLoop($start, null, null, 4);
         self::assertEquals(0, $result);
-        self::assertNotNull($loop->getRun());
-        self::assertEquals(2, $loop->getRun()->getProcessed());
+        self::assertNotNull($loop->getLastRun());
+        self::assertEquals(2, $loop->getLastRun()->getProcessed());
 
         $result = $loop->runLoop($start, null, null, 4);
         self::assertEquals(0, $result);
-        self::assertNotNull($loop->getRun());
-        self::assertEquals(0, $loop->getRun()->getProcessed());
+        self::assertNotNull($loop->getLastRun());
+        self::assertEquals(0, $loop->getLastRun()->getProcessed());
 
         $timeStart = microtime(true);
         $result = $loop->runLoop($timeStart, null, null, null, 2);
         self::assertEquals(0, $result);
-        self::assertNotNull($loop->getRun());
-        self::assertEquals(0, $loop->getRun()->getProcessed());
+        self::assertNotNull($loop->getLastRun());
+        self::assertEquals(0, $loop->getLastRun()->getProcessed());
         $total = time() - intval($timeStart);
         self::assertGreaterThanOrEqual(2, $total);
     }

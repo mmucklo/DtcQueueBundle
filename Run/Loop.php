@@ -3,7 +3,6 @@
 namespace Dtc\QueueBundle\Run;
 
 use Dtc\QueueBundle\Doctrine\BaseJobManager;
-use Dtc\QueueBundle\Doctrine\BaseRunManager;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobManagerInterface;
@@ -17,9 +16,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Loop
 {
-    /** @var Run $run */
-    protected $run;
-
     /** @var OutputInterface */
     protected $output;
 
@@ -38,6 +34,9 @@ class Loop
     /** @var int */
     protected $processTimeout;
 
+    /** @var Run */
+    protected $lastRun;
+
     public function __construct(
         WorkerManager $workerManager,
         JobManagerInterface $jobManager,
@@ -46,6 +45,14 @@ class Loop
         $this->workerManager = $workerManager;
         $this->jobManager = $jobManager;
         $this->runManager = $runManager;
+    }
+
+    /**
+     * @return Run|null
+     */
+    public function getLastRun()
+    {
+        return $this->lastRun;
     }
 
     /**
@@ -75,21 +82,12 @@ class Loop
     }
 
     /**
-     * The current (last) run object.
-     *
-     * @return Run|null
-     */
-    public function getRun()
-    {
-        return $this->run;
-    }
-
-    /**
      * @param float $start
      */
     public function runJobById($start, $jobId)
     {
-        $this->runStart($start);
+        $run = $this->runManager->runStart($start, null, null, $this->processTimeout);
+        $this->lastRun = $run;
 
         if (!$this->jobManager instanceof BaseJobManager) {
             throw new ClassNotSubclassException("Can't get job by id when not using a database/datastore backed queue (such as mongodb or an RDBMS)");
@@ -99,15 +97,16 @@ class Loop
         $job = $this->jobManager->getRepository()->find($jobId);
         if (!$job) {
             $this->log('error', "Job id is not found: {$jobId}");
-            $this->runStop($start);
+            $this->runManager->runStop($run, $start);
 
             return;
         }
 
         $job = $this->workerManager->runJob($job);
         $this->reportJob($job);
-        $this->run->setProcessed(1);
-        $this->runStop($start);
+        $run->setProcessed(1);
+        $this->runManager->runStop($run, $start);
+        $this->log('info', 'Ended with 1 job processed over '.strval($run->getElapsed()).' seconds.');
 
         return;
     }
@@ -122,23 +121,25 @@ class Loop
     {
         $this->checkParameters($nanoSleep, $maxCount, $duration);
         $this->workerManager->setLoggingFunc([$this, 'log']);
-        $this->runStart($start, $maxCount, $duration);
+        $run = $this->runManager->runStart($start, $maxCount, $duration, $this->processTimeout);
+        $this->lastRun = $run;
         try {
             $this->log('info', 'Staring up a new job...');
 
-            $endTime = $this->getEndTime($duration);
+            $endTime = $this->getEndTime($run, $duration);
             $currentJob = 1;
             $noMoreJobsToRun = false;
             do {
-                $job = $this->workerManager->run($workerName, $methodName, true, $this->run->getId());
-                $this->recordHeartbeat($start, $job);
-                $this->runCurrentJob($job, $noMoreJobsToRun, $currentJob, $duration, $nanoSleep);
+                $job = $this->workerManager->run($workerName, $methodName, true, $run->getId());
+                $this->runManager->recordHeartbeat($run, $start, $job);
+                $this->runCurrentJob($run, $job, $noMoreJobsToRun, $currentJob, $duration, $nanoSleep);
             } while (!$this->isFinished($maxCount, $endTime, $currentJob, $noMoreJobsToRun));
         } catch (\Exception $e) {
             // Uncaught error: possibly with QueueBundle itself
             $this->log('critical', $e->getMessage(), $e->getTrace());
         }
-        $this->runStop($start);
+        $this->runManager->runStop($run, $start);
+        $this->log('info', 'Ended with '.$run->getProcessed().' job(s) processed over '.strval($run->getElapsed()).' seconds.');
 
         return 0;
     }
@@ -193,12 +194,12 @@ class Loop
      *
      * @return null|\DateTime
      */
-    protected function getEndTime($duration)
+    protected function getEndTime(Run $run, $duration)
     {
         $endTime = null;
         if (null !== $duration) {
             $interval = new \DateInterval("PT${duration}S");
-            $endTime = clone $this->run->getStartedAt();
+            $endTime = clone $run->getStartedAt();
             $endTime->add($interval);
         }
 
@@ -206,18 +207,19 @@ class Loop
     }
 
     /**
+     * @param Run      $run
      * @param Job|null $job
      * @param bool     $noMoreJobsToRun
      * @param int      $currentJob
      * @param int|null $duration
      * @param int      $nanoSleep
      */
-    protected function runCurrentJob($job, &$noMoreJobsToRun, &$currentJob, $duration, $nanoSleep)
+    protected function runCurrentJob($run, $job, &$noMoreJobsToRun, &$currentJob, $duration, $nanoSleep)
     {
         if (null !== $job) {
             $noMoreJobsToRun = false;
             $this->reportJob($job);
-            $this->updateProcessed($currentJob);
+            $this->runManager->updateProcessed($run, $currentJob);
             ++$currentJob;
         } else {
             if (!$noMoreJobsToRun) {
@@ -302,83 +304,6 @@ class Loop
         }
 
         return true;
-    }
-
-    /**
-     * @param float    $start
-     * @param Job|null $job
-     */
-    protected function recordHeartbeat($start, Job $job = null)
-    {
-        $jobId = null;
-        if (null !== $job) {
-            $jobId = $job->getId();
-        }
-
-        $this->run->setLastHeartbeatAt(new \DateTime());
-        $this->run->setCurrentJobId($jobId);
-        $this->run->setElapsed(microtime(true) - $start);
-        $this->persistRun();
-    }
-
-    protected function persistRun($action = 'persist')
-    {
-        if ($this->runManager instanceof BaseRunManager) {
-            $objectManager = $this->runManager->getObjectManager();
-            $objectManager->$action($this->run);
-            $objectManager->flush();
-        }
-    }
-
-    /**
-     * @param int $count
-     */
-    protected function updateProcessed($count)
-    {
-        $this->run->setProcessed($count);
-        $this->persistRun();
-    }
-
-    /**
-     * Sets up the runManager (document / entity persister) if appropriate.
-     *
-     * @param float    $start
-     * @param int|null $maxCount
-     * @param int|null $duration
-     */
-    protected function runStart($start, $maxCount = null, $duration = null)
-    {
-        $runClass = $this->runManager->getRunClass();
-        $this->run = new $runClass();
-        $startDate = \DateTime::createFromFormat('U.u', $start);
-        $this->run->setLastHeartbeatAt($startDate);
-        $this->run->setStartedAt($startDate);
-        if (null !== $maxCount) {
-            $this->run->setMaxCount($maxCount);
-        }
-        if (null !== $duration) {
-            $this->run->setDuration($duration);
-        }
-        $this->run->setHostname(gethostname());
-        $this->run->setPid(getmypid());
-        $this->run->setProcessed(0);
-        $this->run->setProcessTimeout($this->processTimeout);
-        $this->persistRun();
-    }
-
-    /**
-     * @param int|null $start
-     */
-    protected function runStop($start)
-    {
-        $end = microtime(true);
-        $endedTime = \DateTime::createFromFormat('U.u', $end);
-        if ($endedTime) {
-            $this->run->setEndedAt($endedTime);
-        }
-        $this->run->setElapsed($end - $start);
-        $this->persistRun('remove');
-        $this->log('info', 'Ended with '.$this->run->getProcessed().' job(s) processed over '.strval($this->run->getElapsed()).' seconds.');
     }
 
     /**

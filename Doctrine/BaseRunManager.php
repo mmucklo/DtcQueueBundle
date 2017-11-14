@@ -115,6 +115,13 @@ abstract class BaseRunManager extends RunManager
         $this->getObjectManager()->flush();
     }
 
+    protected function persistRun(Run $run, $action = 'persist')
+    {
+        $objectManager = $this->getObjectManager();
+        $objectManager->$action($run);
+        $objectManager->flush();
+    }
+
     /**
      * @return array
      */
