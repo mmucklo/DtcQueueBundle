@@ -1,3 +1,5 @@
+### 2.6.2
+   * Prevent infinite looping if commits keep failing
 ### 2.6.1
    * Fix a bug in ORM\JobManager
 ### 2.6.0

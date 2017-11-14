@@ -345,6 +345,7 @@ class JobManager extends BaseJobManager
     public function updateNearestBatch(\Dtc\QueueBundle\Model\Job $job)
     {
         $oldJob = null;
+        $retries = 0;
         do {
             try {
                 /** @var EntityManager $entityManager */
@@ -374,9 +375,10 @@ class JobManager extends BaseJobManager
                 $entityManager->commit();
                 $this->flush();
             } catch (\Exception $exception) {
+                ++$retries;
                 $entityManager->rollback();
             }
-        } while (null === $oldJob);
+        } while (null === $oldJob && $retries < 5); // After 5 retries assume database is down or too much contention
 
         return $oldJob;
     }
