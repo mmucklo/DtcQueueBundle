@@ -1,3 +1,5 @@
+### 2.6.1
+   * Fix a bug in ORM\JobManager
 ### 2.6.0
    * Fix a race-condition with batching in ORM and ODM
    * Fix a bug with prioritization not being done right with ORM and ODM
