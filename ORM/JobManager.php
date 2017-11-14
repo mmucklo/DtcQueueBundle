@@ -360,7 +360,7 @@ class JobManager extends BaseJobManager
                     ->setParameter(':crcHash', $job->getCrcHash())
                     ->orderBy('j.whenAt', 'ASC')
                     ->setMaxResults(1);
-                $oldJob = $queryBuilder->getQuery()->getSingleResult();
+                $oldJob = $queryBuilder->getQuery()->getFirstResult();
 
                 if (!$oldJob) {
                     return null;
