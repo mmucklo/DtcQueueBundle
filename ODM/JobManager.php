@@ -124,18 +124,6 @@ class JobManager extends BaseJobManager
         return $query->count(true);
     }
 
-    protected function getJobCurrentStatus(\Dtc\QueueBundle\Model\Job $job)
-    {
-        /** @var DocumentManager $objectManager */
-        $objectManager = $this->getObjectManager();
-        $qb = $objectManager->createQueryBuilder($this->getObjectName())->select('status')->field('_id')->equals($job->getId());
-        $query = $qb->getQuery();
-        $query->setHydrate(false);
-        $result = $query->getSingleResult();
-
-        return isset($result['status']) ? $result['status'] : null;
-    }
-
     /**
      * Get Status Jobs.
      *

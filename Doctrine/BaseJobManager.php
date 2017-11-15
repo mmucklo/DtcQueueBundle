@@ -253,21 +253,12 @@ abstract class BaseJobManager extends PriorityJobManager
         return false;
     }
 
-    abstract protected function getJobCurrentStatus(Job $job);
-
     protected function runStalledLoop($i, $count, array $stalledJobs, &$countProcessed)
     {
         $objectManager = $this->getObjectManager();
         for ($j = $i, $max = $i + static::FETCH_COUNT; $j < $max && $j < $count; ++$j) {
             /* RetryableJob $job */
             $job = $stalledJobs[$j];
-            $status = $this->getJobCurrentStatus($job);
-
-            // Query the data store to make sure the job is still marked running
-            if (BaseJob::STATUS_RUNNING !== $status) {
-                continue;
-            }
-
             $job->setStalledCount($job->getStalledCount() + 1);
             if ($this->updateMaxStatus($job, RetryableJob::STATUS_MAX_STALLED, $job->getMaxStalled(), $job->getStalledCount()) ||
                 $this->updateMaxStatus($job, RetryableJob::STATUS_MAX_RETRIES, $job->getMaxRetries(), $job->getRetries())) {

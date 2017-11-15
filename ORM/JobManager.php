@@ -125,16 +125,6 @@ class JobManager extends BaseJobManager
         return intval($query->execute());
     }
 
-    protected function getJobCurrentStatus(\Dtc\QueueBundle\Model\Job $job)
-    {
-        /** @var EntityManager $objectManager */
-        $objectManager = $this->getObjectManager();
-        $queryBuilder = $objectManager->createQueryBuilder()->select('j.status')->from($this->getObjectName(), 'j');
-        $queryBuilder->where('j.id = :id')->setParameter(':id', $job->getId());
-
-        return $queryBuilder->getQuery()->getSingleScalarResult();
-    }
-
     /**
      * Removes archived jobs older than $olderThan.
      *
