@@ -99,7 +99,7 @@ class WorkerManager
         $this->eventDispatcher->dispatch(Event::PRE_JOB, $event);
 
         $start = microtime(true);
-        $handleException = function (\Exception $exception) use ($job) {
+        $handleException = function ($exception) use ($job) {
             /** @var \Exception $exception */
             $exceptionMessage = get_class($exception)."\n".$exception->getCode().' - '.$exception->getMessage()."\n".$exception->getTraceAsString();
             $this->log('debug', "Failed: {$job->getClassName()}->{$job->getMethod()}");

@@ -1,4 +1,6 @@
-### 2.6.4
+### 2.6.6
+   * Another bug with PHP >= 7
+### 2.6.5
    * 2nd bug with runId in ORM
 ### 2.6.4
    * bug with runId in ORM
