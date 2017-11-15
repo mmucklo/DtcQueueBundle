@@ -334,7 +334,8 @@ class JobManager extends BaseJobManager
                 ->setParameter(':status', BaseJob::STATUS_RUNNING);
             if (null !== $runId) {
                 $queryBuilder
-                    ->set(':runId', $runId);
+                    ->set('runId', ':runId')
+                    ->setParameter(':runId', $runId);
             }
             $queryBuilder->where('j.id = :id');
             $queryBuilder->andWhere('j.locked is NULL');

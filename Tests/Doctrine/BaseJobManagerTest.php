@@ -90,7 +90,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $id = $job->getId();
         $jobManager->deleteJob($job);
 
-        $nextJob = $jobManager->getJob();
+        $nextJob = $jobManager->getJob(null, null, true, 123);
         self::assertNull($nextJob, "Shouldn't be any jobs left in queue");
 
         $archiveObjectName = $jobManager->getArchiveObjectName();
