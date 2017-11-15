@@ -278,9 +278,6 @@ class JobManager extends BaseJobManager
      */
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
-        /** @var EntityManager $objectManager */
-        $objectManager = $this->getObjectManager();
-
         /** @var EntityRepository $repository */
         $repository = $this->getRepository();
         $queryBuilder = $repository->createQueryBuilder('j');
@@ -312,16 +309,13 @@ class JobManager extends BaseJobManager
         /** @var QueryBuilder $queryBuilder */
         $query = $queryBuilder->getQuery();
         $jobs = $query->getResult();
-        if (isset($jobs[0]['id'])) {
-            return $this->takeJob($jobs[0]['id'], $runId);
-        }
 
-        return null;
+        return $this->takeJob($jobs, $runId);
     }
 
-    protected function takeJob($jobId, $runId = null)
+    protected function takeJob($jobs, $runId = null)
     {
-        if ($jobId) {
+        if (isset($jobs[0]['id'])) {
             $repository = $this->getRepository();
             $queryBuilder = $repository->createQueryBuilder('j');
             $queryBuilder
@@ -339,11 +333,11 @@ class JobManager extends BaseJobManager
             }
             $queryBuilder->where('j.id = :id');
             $queryBuilder->andWhere('j.locked is NULL');
-            $queryBuilder->setParameter(':id', $jobId);
+            $queryBuilder->setParameter(':id', $jobs[0]['id']);
             $resultCount = $queryBuilder->getQuery()->execute();
 
             if (1 === $resultCount) {
-                return $repository->find($jobId);
+                return $repository->find($jobs[0]['id']);
             }
         }
 
