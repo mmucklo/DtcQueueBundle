@@ -1,3 +1,5 @@
+### 2.6.3
+   * Remove transactions from getJob() to avoid locking contention
 ### 2.6.2
    * Prevent infinite looping if commits keep failing
 ### 2.6.1

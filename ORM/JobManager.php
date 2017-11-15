@@ -2,7 +2,6 @@
 
 namespace Dtc\QueueBundle\ORM;
 
-use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -23,23 +22,23 @@ class JobManager extends BaseJobManager
         /** @var EntityManager $objectManager */
         $objectManager = $this->getObjectManager();
 
-        $qb = $objectManager
+        $queryBuilder = $objectManager
             ->createQueryBuilder()
             ->select('count(a.id)')
             ->from($objectName, 'a')
             ->where('a.status = :status');
 
         if (null !== $workerName) {
-            $qb->andWhere('a.workerName = :workerName')
+            $queryBuilder->andWhere('a.workerName = :workerName')
                 ->setParameter(':workerName', $workerName);
         }
 
         if (null !== $method) {
-            $qb->andWhere('a.method = :method')
+            $queryBuilder->andWhere('a.method = :method')
                 ->setParameter(':method', $workerName);
         }
 
-        $count = $qb->setParameter(':status', $status)
+        $count = $queryBuilder->setParameter(':status', $status)
             ->getQuery()->getSingleScalarResult();
 
         if (!$count) {
@@ -59,12 +58,12 @@ class JobManager extends BaseJobManager
     {
         /** @var EntityManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $qb = $objectManager->createQueryBuilder()->delete($this->getArchiveObjectName(), 'j');
-        $qb->where('j.status = :status')
+        $queryBuilder = $objectManager->createQueryBuilder()->delete($this->getArchiveObjectName(), 'j');
+        $queryBuilder->where('j.status = :status')
             ->setParameter(':status', BaseJob::STATUS_ERROR);
 
-        $this->addWorkerNameCriterion($qb, $workerName, $method);
-        $query = $qb->getQuery();
+        $this->addWorkerNameCriterion($queryBuilder, $workerName, $method);
+        $query = $queryBuilder->getQuery();
 
         return intval($query->execute());
     }
@@ -112,16 +111,16 @@ class JobManager extends BaseJobManager
     {
         /** @var EntityManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $qb = $objectManager->createQueryBuilder()->update($this->getObjectName(), 'j');
-        $qb->set('j.status', ':newStatus');
-        $qb->where('j.expiresAt <= :expiresAt')
+        $queryBuilder = $objectManager->createQueryBuilder()->update($this->getObjectName(), 'j');
+        $queryBuilder->set('j.status', ':newStatus');
+        $queryBuilder->where('j.expiresAt <= :expiresAt')
             ->setParameter(':expiresAt', new \DateTime());
-        $qb->andWhere('j.status = :status')
+        $queryBuilder->andWhere('j.status = :status')
             ->setParameter(':status', BaseJob::STATUS_NEW)
             ->setParameter(':newStatus', Job::STATUS_EXPIRED);
 
-        $this->addWorkerNameCriterion($qb, $workerName, $method);
-        $query = $qb->getQuery();
+        $this->addWorkerNameCriterion($queryBuilder, $workerName, $method);
+        $query = $queryBuilder->getQuery();
 
         return intval($query->execute());
     }
@@ -130,10 +129,10 @@ class JobManager extends BaseJobManager
     {
         /** @var EntityManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $qb = $objectManager->createQueryBuilder()->select('j.status')->from($this->getObjectName(), 'j');
-        $qb->where('j.id = :id')->setParameter(':id', $job->getId());
+        $queryBuilder = $objectManager->createQueryBuilder()->select('j.status')->from($this->getObjectName(), 'j');
+        $queryBuilder->where('j.id = :id')->setParameter(':id', $job->getId());
 
-        return $qb->getQuery()->getSingleScalarResult();
+        return $queryBuilder->getQuery()->getSingleScalarResult();
     }
 
     /**
@@ -152,44 +151,44 @@ class JobManager extends BaseJobManager
     {
         /** @var EntityManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $qb = $objectManager->createQueryBuilder();
+        $queryBuilder = $objectManager->createQueryBuilder();
 
-        $qb = $qb->select('count(j)')->from($this->getObjectName(), 'j');
+        $queryBuilder = $queryBuilder->select('count(j)')->from($this->getObjectName(), 'j');
 
         $where = 'where';
         if (null !== $workerName) {
             if (null !== $method) {
-                $qb->where($qb->expr()->andX(
-                    $qb->expr()->eq('j.workerName', ':workerName'),
-                                                $qb->expr()->eq('j.method', ':method')
+                $queryBuilder->where($queryBuilder->expr()->andX(
+                    $queryBuilder->expr()->eq('j.workerName', ':workerName'),
+                                                $queryBuilder->expr()->eq('j.method', ':method')
                 ))
                     ->setParameter(':method', $method);
             } else {
-                $qb->where('j.workerName = :workerName');
+                $queryBuilder->where('j.workerName = :workerName');
             }
-            $qb->setParameter(':workerName', $workerName);
+            $queryBuilder->setParameter(':workerName', $workerName);
             $where = 'andWhere';
         } elseif (null !== $method) {
-            $qb->where('j.method = :method')->setParameter(':method', $method);
+            $queryBuilder->where('j.method = :method')->setParameter(':method', $method);
             $where = 'andWhere';
         }
 
         $dateTime = new \DateTime();
         // Filter
-        $qb
-            ->$where($qb->expr()->orX(
-                $qb->expr()->isNull('j.whenAt'),
-                                        $qb->expr()->lte('j.whenAt', ':whenAt')
+        $queryBuilder
+            ->$where($queryBuilder->expr()->orX(
+                $queryBuilder->expr()->isNull('j.whenAt'),
+                                        $queryBuilder->expr()->lte('j.whenAt', ':whenAt')
             ))
-            ->andWhere($qb->expr()->orX(
-                $qb->expr()->isNull('j.expiresAt'),
-                $qb->expr()->gt('j.expiresAt', ':expiresAt')
+            ->andWhere($queryBuilder->expr()->orX(
+                $queryBuilder->expr()->isNull('j.expiresAt'),
+                $queryBuilder->expr()->gt('j.expiresAt', ':expiresAt')
             ))
             ->andWhere('j.locked is NULL')
             ->setParameter(':whenAt', $dateTime)
             ->setParameter(':expiresAt', $dateTime);
 
-        $query = $qb->getQuery();
+        $query = $queryBuilder->getQuery();
 
         return $query->getSingleScalarResult();
     }
@@ -282,55 +281,70 @@ class JobManager extends BaseJobManager
         /** @var EntityManager $objectManager */
         $objectManager = $this->getObjectManager();
 
-        $objectManager->beginTransaction();
-
         /** @var EntityRepository $repository */
         $repository = $this->getRepository();
-        $qb = $repository->createQueryBuilder('j');
+        $queryBuilder = $repository->createQueryBuilder('j');
         $dateTime = new \DateTime();
-        $qb
-            ->select('j')
+        $queryBuilder
+            ->select('j.id')
             ->where('j.status = :status')->setParameter(':status', BaseJob::STATUS_NEW)
             ->andWhere('j.locked is NULL')
-            ->andWhere($qb->expr()->orX(
-                $qb->expr()->isNull('j.whenAt'),
-                        $qb->expr()->lte('j.whenAt', ':whenAt')
+            ->andWhere($queryBuilder->expr()->orX(
+                $queryBuilder->expr()->isNull('j.whenAt'),
+                        $queryBuilder->expr()->lte('j.whenAt', ':whenAt')
             ))
-            ->andWhere($qb->expr()->orX(
-                $qb->expr()->isNull('j.expiresAt'),
-                        $qb->expr()->gt('j.expiresAt', ':expiresAt')
+            ->andWhere($queryBuilder->expr()->orX(
+                $queryBuilder->expr()->isNull('j.expiresAt'),
+                        $queryBuilder->expr()->gt('j.expiresAt', ':expiresAt')
             ))
             ->setParameter(':whenAt', $dateTime)
             ->setParameter(':expiresAt', $dateTime);
 
-        $this->addWorkerNameCriterion($qb, $workerName, $methodName);
+        $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
 
         if ($prioritize) {
-            $qb->add('orderBy', 'j.priority DESC, j.whenAt ASC');
+            $queryBuilder->add('orderBy', 'j.priority DESC, j.whenAt ASC');
         } else {
-            $qb->orderBy('j.whenAt', 'ASC');
+            $queryBuilder->orderBy('j.whenAt', 'ASC');
         }
-        $qb->setMaxResults(1);
+        $queryBuilder->setMaxResults(1);
 
-        /** @var QueryBuilder $qb */
-        $query = $qb->getQuery();
-        $query->setLockMode(LockMode::PESSIMISTIC_WRITE);
+        /** @var QueryBuilder $queryBuilder */
+        $query = $queryBuilder->getQuery();
         $jobs = $query->getResult();
-
-        if ($jobs) {
-            /** @var Job $job */
-            $job = $jobs[0];
-            $job->setLocked(true);
-            $job->setLockedAt(new \DateTime());
-            $job->setStatus(BaseJob::STATUS_RUNNING);
-            $job->setRunId($runId);
-            $objectManager->commit();
-            $objectManager->flush();
-
-            return $job;
+        if (isset($jobs[0]['id'])) {
+            return $this->takeJob($jobs[0]['id'], $runId);
         }
 
-        $objectManager->rollback();
+        return null;
+    }
+
+    protected function takeJob($jobId, $runId = null)
+    {
+        if ($jobId) {
+            $repository = $this->getRepository();
+            $queryBuilder = $repository->createQueryBuilder('j');
+            $queryBuilder
+                ->update()
+                ->set('j.locked', ':locked')
+                ->setParameter(':locked', true)
+                ->set('j.lockedAt', ':lockedAt')
+                ->setParameter(':lockedAt', new \DateTime())
+                ->set('j.status', ':status')
+                ->setParameter(':status', BaseJob::STATUS_RUNNING);
+            if (null !== $runId) {
+                $queryBuilder
+                    ->set(':runId', $runId);
+            }
+            $queryBuilder->where('j.id = :id');
+            $queryBuilder->andWhere('j.locked is NULL');
+            $queryBuilder->setParameter(':id', $jobId);
+            $resultCount = $queryBuilder->getQuery()->execute();
+
+            if (1 === $resultCount) {
+                return $repository->find($jobId);
+            }
+        }
 
         return null;
     }

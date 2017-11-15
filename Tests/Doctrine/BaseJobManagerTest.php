@@ -112,7 +112,8 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $objectManager = $jobManager->getObjectManager();
         $archiveRepository = $objectManager->getRepository($archiveObjectName);
         $result = $archiveRepository->find($id);
-
+        self::assertNotNull($result);
+        self::assertEquals(BaseJob::STATUS_ERROR, $result->getStatus());
         if ($objectManager instanceof EntityManager) {
             JobManagerTest::createObjectManager();
             $jobManager = new self::$jobManagerClass(self::$objectManager, self::$objectName, self::$archiveObjectName, self::$runClass, self::$runArchiveClass);
