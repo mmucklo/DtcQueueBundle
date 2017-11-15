@@ -1,4 +1,6 @@
 ### 2.6.4
+   * 2nd bug with runId in ORM
+### 2.6.4
    * bug with runId in ORM
 ### 2.6.3
    * Remove transactions from getJob() to avoid locking contention
