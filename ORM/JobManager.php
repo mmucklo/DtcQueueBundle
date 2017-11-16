@@ -184,30 +184,6 @@ class JobManager extends BaseJobManager
     }
 
     /**
-     * For ORM it's prudent to wrap things in a transaction.
-     *
-     * @param $i
-     * @param $count
-     * @param array $stalledJobs
-     * @param $countProcessed
-     */
-    protected function runStalledLoop($i, $count, array $stalledJobs, &$countProcessed)
-    {
-        /** @var EntityManager $objectManager */
-        $objectManager = $this->getObjectManager();
-        try {
-            $objectManager->beginTransaction();
-            parent::runStalledLoop($i, $count, $stalledJobs, $countProcessed);
-            $objectManager->commit();
-        } catch (\Exception $exception) {
-            $objectManager->rollback();
-
-            // Try again
-            parent::runStalledLoop($i, $count, $stalledJobs, $countProcessed);
-        }
-    }
-
-    /**
      * Get Jobs statuses.
      */
     public function getStatus()
@@ -290,7 +266,8 @@ class JobManager extends BaseJobManager
         $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
 
         if ($prioritize) {
-            $queryBuilder->add('orderBy', 'j.priority DESC, j.whenAt ASC');
+            $queryBuilder->addOrderBy('j.priority', 'DESC');
+            $queryBuilder->addOrderBy('j.whenAt', 'ASC');
         } else {
             $queryBuilder->orderBy('j.whenAt', 'ASC');
         }
@@ -306,7 +283,9 @@ class JobManager extends BaseJobManager
     protected function takeJob($jobs, $runId = null)
     {
         if (isset($jobs[0]['id'])) {
+            /** @var EntityRepository $repository */
             $repository = $this->getRepository();
+            /** @var QueryBuilder $queryBuilder */
             $queryBuilder = $repository->createQueryBuilder('j');
             $queryBuilder
                 ->update()
@@ -343,42 +322,58 @@ class JobManager extends BaseJobManager
      */
     public function updateNearestBatch(\Dtc\QueueBundle\Model\Job $job)
     {
-        $oldJob = null;
-        $retries = 0;
-        do {
-            try {
-                /** @var EntityManager $entityManager */
-                $entityManager = $this->getObjectManager();
-                $entityManager->beginTransaction();
+        /** @var QueryBuilder $queryBuilder */
+        $queryBuilder = $this->getRepository()->createQueryBuilder('j');
+        $queryBuilder->select()
+            ->where('j.crcHash = :crcHash')
+            ->andWhere('j.status = :status')
+            ->setParameter(':status', BaseJob::STATUS_NEW)
+            ->setParameter(':crcHash', $job->getCrcHash())
+            ->orderBy('j.whenAt', 'ASC')
+            ->setMaxResults(1);
+        $existingJobs = $queryBuilder->getQuery()->execute();
 
-                /** @var QueryBuilder $queryBuilder */
-                $queryBuilder = $this->getRepository()->createQueryBuilder('j');
-                $queryBuilder->select()
-                    ->where('j.crcHash = :crcHash')
-                    ->andWhere('j.status = :status')
-                    ->setParameter(':status', BaseJob::STATUS_NEW)
-                    ->setParameter(':crcHash', $job->getCrcHash())
-                    ->orderBy('j.whenAt', 'ASC')
-                    ->setMaxResults(1);
-                $oldJobs = $queryBuilder->getQuery()->execute();
+        if (empty($existingJobs)) {
+            return null;
+        }
+        /** @var Job $existingJob */
+        $existingJob = $existingJobs[0];
 
-                if (empty($oldJobs)) {
-                    return null;
-                }
-                $oldJob = $oldJobs[0];
+        $newPriority = max($job->getPriority(), $existingJob->getPriority());
+        $newWhenAt = min($job->getWhenAt(), $existingJob->getWhenAt());
 
-                $oldJob->setPriority(max($job->getPriority(), $oldJob->getPriority()));
-                $oldJob->setWhenAt(min($job->getWhenAt(), $oldJob->getWhenAt()));
+        $this->updateBatchJob($existingJob, $newPriority, $newWhenAt);
 
-                $entityManager->persist($oldJob);
-                $entityManager->commit();
-                $this->flush();
-            } catch (\Exception $exception) {
-                ++$retries;
-                $entityManager->rollback();
+        return $existingJob;
+    }
+
+    protected function updateBatchJob(Job $existingJob, $newPriority, $newWhenAt)
+    {
+        $existingPriority = $existingJob->getPriority();
+        $existingWhenAt = $existingJob->getWhenAt();
+
+        if ($newPriority !== $existingPriority || $newWhenAt !== $existingWhenAt) {
+            /** @var EntityRepository $repository */
+            $repository = $this->getRepository();
+            /** @var QueryBuilder $queryBuilder */
+            $queryBuilder = $repository->createQueryBuilder('j');
+            $queryBuilder->update();
+            if ($newPriority !== $existingPriority) {
+                $existingJob->setPriority($newPriority);
+                $queryBuilder->set('j.priority', ':priority')
+                    ->setParameter(':priority', $newPriority);
             }
-        } while (null === $oldJob && $retries < 5); // After 5 retries assume database is down or too much contention
+            if ($newWhenAt !== $existingWhenAt) {
+                $existingJob->setWhenAt($newWhenAt);
+                $queryBuilder->set('j.whenAt', ':whenAt')
+                    ->setParameter(':whenAt', $newWhenAt);
+            }
+            $queryBuilder->where('j.id = :id');
+            $queryBuilder->andWhere('j.locked is NULL');
+            $queryBuilder->setParameter(':id', $existingJob->getId());
+            $queryBuilder->getQuery()->execute();
+        }
 
-        return $oldJob;
+        return $existingJob;
     }
 }

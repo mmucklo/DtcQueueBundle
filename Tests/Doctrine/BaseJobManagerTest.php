@@ -80,6 +80,132 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         parent::tearDownAfterClass();
     }
 
+    public function testOrdering()
+    {
+        // priority when at
+        /** @var BaseJobManager $jobManager */
+        $jobManager = self::$jobManager;
+
+        $time1 = time() - 2;
+        $dateTime1 = new \DateTime("@$time1");
+
+        $time2 = time();
+        $dateTime2 = new \DateTime("@$time2");
+
+        /** @var Job $job */
+        $job = new static::$jobClass(static::$worker, false, null);
+        $job->fibonacci(1);
+        $job->setWhenAt($dateTime1);
+        $job->setPriority(3);
+        $id = $job->getId();
+
+        $job2 = new static::$jobClass(static::$worker, false, null);
+        $job2->setPriority(1);
+        $job2->setWhenAt($dateTime2);
+        $job2->fibonacci(1);
+        $id2 = $job2->getId();
+
+        $job3 = new static::$jobClass(static::$worker, false, null);
+        $job3->setPriority(1);
+        $job3->setWhenAt($dateTime1);
+        $job3->fibonacci(1);
+        $id3 = $job3->getId();
+
+        $job4 = new static::$jobClass(static::$worker, false, null);
+        $job4->setPriority(1);
+        $job4->setWhenAt($dateTime2);
+        $job4->fibonacci(1);
+        $id4 = $job4->getId();
+
+        $nextJob = $jobManager->getJob();
+        static::assertEquals($id3, $nextJob->getId());
+        $nextNextJob = $jobManager->getJob();
+        $nextNextId = $nextNextJob->getId();
+        static::assertTrue($id4 == $nextNextId || $id2 == $nextNextId, "$nextNextId not equals $id4 or $id2, could be $id or $id3");
+
+        static::assertNotNull($jobManager->getJob());
+        static::assertNotNull($jobManager->getJob());
+
+        // non-priority when at
+        $time1 = time() - 2;
+        $dateTime1 = new \DateTime("@$time1");
+
+        $time2 = time();
+        $dateTime2 = new \DateTime("@$time2");
+
+        /** @var Job $job */
+        $job = new static::$jobClass(static::$worker, false, null);
+        $job->fibonacci(1);
+        $job->setWhenAt($dateTime1);
+        $job->setPriority(3);
+        $id = $job->getId();
+
+        $job2 = new static::$jobClass(static::$worker, false, null);
+        $job2->setPriority(1);
+        $job2->setWhenAt($dateTime2);
+        $job2->fibonacci(1);
+
+        $job3 = new static::$jobClass(static::$worker, false, null);
+        $job3->setPriority(1);
+        $job3->setWhenAt($dateTime2);
+        $job3->fibonacci(1);
+
+        $job4 = new static::$jobClass(static::$worker, false, null);
+        $job4->setPriority(1);
+        $job4->setWhenAt($dateTime2);
+        $job4->fibonacci(1);
+
+        $nextJob = $jobManager->getJob(null, null, false);
+        static::assertEquals($id, $nextJob->getId());
+        static::assertNotNull($jobManager->getJob());
+        static::assertNotNull($jobManager->getJob());
+        static::assertNotNull($jobManager->getJob());
+    }
+
+    public function getJobBy()
+    {
+        /** @var BaseJobManager $jobManager */
+        $jobManager = self::$jobManager;
+
+        /** @var Job $job */
+        $job = new static::$jobClass(static::$worker, false, null);
+        $job->fibonacci(1);
+        $id = $job->getId();
+        $nextJob = $jobManager->getJob('fibonacci', null);
+        static::assertNotNull($nextJob);
+        static::assertEquals($id, $nextJob->getId());
+
+        /** @var Job $job */
+        $job = new static::$jobClass(static::$worker, false, null);
+        $job->fibonacci(1);
+        $id = $job->getId();
+        $nextJob = $jobManager->getJob('fibonacci', 'fibonacci');
+        static::assertNotNull($nextJob);
+        static::assertEquals($id, $nextJob->getId());
+
+        /** @var Job $job */
+        $job = new static::$jobClass(static::$worker, false, null);
+        $job->fibonacci(1);
+        $id = $job->getId();
+        $nextJob = $jobManager->getJob(null, 'fibonacci');
+        static::assertNotNull($nextJob);
+        static::assertEquals($id, $nextJob->getId());
+
+        /** @var Job $job */
+        $job = new static::$jobClass(static::$worker, false, null);
+        $job->fibonacci(1);
+        $id = $job->getId();
+        $nextJob = $jobManager->getJob(null, 'fibonaccia');
+        static::assertNull($nextJob);
+        $nextJob = $jobManager->getJob('fibonacci', 'fibonaccia');
+        static::assertNull($nextJob);
+        $nextJob = $jobManager->getJob('fibonaccii', 'fibonacci');
+        static::assertNull($nextJob);
+        $nextJob = $jobManager->getJob();
+        static::assertNotNull($nextJob);
+        static::assertEquals($id, $nextJob->getId());
+    }
+
     public function testDeleteJob()
     {
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */

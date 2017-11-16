@@ -93,25 +93,30 @@ class WorkerManager
         return $this->runJob($job);
     }
 
+    /**
+     * @param \Throwable|\Exception $exception
+     * @param Job                   $job
+     */
+    protected function handleException($exception, Job $job)
+    {
+        $exceptionMessage = get_class($exception)."\n".$exception->getCode().' - '.$exception->getMessage()."\n".$exception->getTraceAsString();
+        $this->log('debug', "Failed: {$job->getClassName()}->{$job->getMethod()}");
+        $job->setStatus(BaseJob::STATUS_ERROR);
+        if ($job instanceof RetryableJob) {
+            $job->setErrorCount($job->getErrorCount() + 1);
+            if (null !== ($maxError = $job->getMaxError()) && $job->getErrorCount() >= $maxError) {
+                $job->setStatus(RetryableJob::STATUS_MAX_ERROR);
+            }
+        }
+        $job->setMessage($exceptionMessage);
+    }
+
     public function runJob(Job $job)
     {
         $event = new Event($job);
         $this->eventDispatcher->dispatch(Event::PRE_JOB, $event);
 
         $start = microtime(true);
-        $handleException = function ($exception) use ($job) {
-            /** @var \Exception $exception */
-            $exceptionMessage = get_class($exception)."\n".$exception->getCode().' - '.$exception->getMessage()."\n".$exception->getTraceAsString();
-            $this->log('debug', "Failed: {$job->getClassName()}->{$job->getMethod()}");
-            $job->setStatus(BaseJob::STATUS_ERROR);
-            if ($job instanceof RetryableJob) {
-                $job->setErrorCount($job->getErrorCount() + 1);
-                if (null !== ($maxError = $job->getMaxError()) && $job->getErrorCount() >= $maxError) {
-                    $job->setStatus(RetryableJob::STATUS_MAX_ERROR);
-                }
-            }
-            $job->setMessage($exceptionMessage);
-        };
         try {
             $worker = $this->getWorker($job->getWorkerName());
             $this->log('debug', "Start: {$job->getClassName()}->{$job->getMethod()}", $job->getArgs());
@@ -122,9 +127,9 @@ class WorkerManager
             $job->setStatus(BaseJob::STATUS_SUCCESS);
             $job->setMessage(null);
         } catch (\Throwable $exception) {
-            $handleException($exception);
+            $this->handleException($exception, $job);
         } catch (\Exception $exception) {
-            $handleException($exception);
+            $this->handleException($exception, $job);
         }
 
         // save Job history

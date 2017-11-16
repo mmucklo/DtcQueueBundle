@@ -1,3 +1,6 @@
+### 2.6.7
+   * Remove transactions from ORM to avoid lock contention issues
+   * Add more testing
 ### 2.6.6
    * Another bug with PHP >= 7
 ### 2.6.5
