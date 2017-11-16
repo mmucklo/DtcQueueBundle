@@ -94,11 +94,12 @@ class WorkerManager
     }
 
     /**
-     * @param \Throwable|\Exception $exception
-     * @param Job                   $job
+     * @param array $payload
+     * @param Job   $job
      */
-    protected function handleException($exception, Job $job)
+    protected function handleException(array $payload, Job $job)
     {
+        $exception = $payload[0];
         $exceptionMessage = get_class($exception)."\n".$exception->getCode().' - '.$exception->getMessage()."\n".$exception->getTraceAsString();
         $this->log('debug', "Failed: {$job->getClassName()}->{$job->getMethod()}");
         $job->setStatus(BaseJob::STATUS_ERROR);
@@ -127,9 +128,9 @@ class WorkerManager
             $job->setStatus(BaseJob::STATUS_SUCCESS);
             $job->setMessage(null);
         } catch (\Throwable $exception) {
-            $this->handleException($exception, $job);
+            $this->handleException([$exception], $job);
         } catch (\Exception $exception) {
-            $this->handleException($exception, $job);
+            $this->handleException([$exception], $job);
         }
 
         // save Job history
