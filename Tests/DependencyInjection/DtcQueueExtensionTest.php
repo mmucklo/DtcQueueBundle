@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Tests\DependencyInjection;
 
 use Dtc\QueueBundle\DependencyInjection\DtcQueueExtension;
+use Dtc\QueueBundle\Model\PriorityJobManager;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -39,6 +40,27 @@ class DtcQueueExtensionTest extends TestCase
 
         self::assertEquals('something', $containerBuilder->getParameter('dtc_queue.beanstalkd.tube'));
         self::assertEquals('somehost', $containerBuilder->getParameter('dtc_queue.beanstalkd.host'));
+    }
+
+    public function testPriority() {
+        $configs = [];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals(255, $containerBuilder->getParameter('dtc_queue.priority_max'));
+        self::assertEquals(PriorityJobManager::PRIORITY_DESC, $containerBuilder->getParameter('dtc_queue.priority_direction'));
+        $configs = ['config' => ['priority_max' => 200]];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals(200, $containerBuilder->getParameter('dtc_queue.priority_max'));
+        $configs = ['config' => ['priority_max' => null]];
+        $this->tryBadConfigs($configs);
+        $configs = ['config' => ['priority_max' => 0]];
+        $this->tryBadConfigs($configs);
+        $configs = ['config' => ['priority_direction' => 'asdf']];
+        $this->tryBadConfigs($configs);
+
+        $configs = ['config' => ['priority_direction' => PriorityJobManager::PRIORITY_ASC]];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals(PriorityJobManager::PRIORITY_ASC, $containerBuilder->getParameter('dtc_queue.priority_direction'));
+
     }
 
     protected function tryConfigs(array $configs, $good = true)

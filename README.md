@@ -75,6 +75,17 @@ dtc_queue:
     default_manager: orm
 ```
 
+__NOTE:__ You may need to add DtcQueueBundle to your mappings section in config.yml if auto_mapping is not enabled
+
+```yaml
+doctrine:
+   #...
+   orm:
+       #...
+       mappings:
+           DtcQueueBundle: ~
+```
+
    * You'll need to create the schemas in your database by using one of:
       * bin/console doctrine:schema:update --dump-sql
       * bin/console doctrine:schema:update --force
@@ -83,7 +94,7 @@ dtc_queue:
          * then:
             * bin/console doctrine:migrations:migrate
 
-####Optional Admin
+#### Optional Admin
 
 Add this to your app/config/routing.yml file:
 
@@ -543,7 +554,7 @@ dtc_queue:
     #  table / collection (uses same store as run_manager)
     record_timings: false
     #
-    # prioirty_max
+    # prioirty_max: int
     #
     #  255 is the recommended max for RabbitMQ, although Mongo/ORM
     #  could be set to INT_MAX for their platform
@@ -551,13 +562,14 @@ dtc_queue:
     #
     # priority_direction
     #
-    #  desc means 1 is high priority, asc means 1 is low prioirty
+    #  "desc" means 1 is high priority, "asc" means 1 is low prioirty
     #
     #  In the queue and database, priorities will always be stored
-    #  in ascending order, however, (so as to sort null as the lowest)
+    #   in ascending order, however, (so as to sort null as the lowest)
     #  
-    #  This is just for the direction that setPriority() and the
-    #  prioirty argument of such functions as later() use
+    #  This is for the direction that a Job's setPriority() method
+    #   uses, plus direction that the priority argument of such
+    #   functions as later()
     priority_direction: desc
     beanstalkd:
         host: ~
