@@ -33,7 +33,7 @@ class StaticJobManager extends AbstractJobManager
             $total += count($this->jobs[$jobWorkerName]);
         }
 
-        return array_sum(array_map(function ($jobs) { return count($jobs); }, $this->jobs));
+        return array_sum(array_map(function($jobs) { return count($jobs); }, $this->jobs));
     }
 
     public function getStatus()
