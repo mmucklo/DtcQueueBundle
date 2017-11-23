@@ -316,8 +316,9 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
     }
 
     /**
-     * @param bool $flushRun
      *
+     * @param boolean $endRun
+     * @param boolean $setId
      * @return mixed
      */
     public function createStalledJob($endRun, $setId)
