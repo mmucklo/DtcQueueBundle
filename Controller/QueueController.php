@@ -62,7 +62,7 @@ class QueueController extends Controller
         $managerType = $this->container->getParameter('dtc_queue.default_manager');
         $rendererFactory = $this->get('dtc_grid.renderer.factory');
         $renderer = $rendererFactory->create('datatables');
-        $gridSource = $this->get('dtc_queue.grid_source.live_jobs.'.($managerType = 'mongodb' ? 'odm' : $managerType));
+        $gridSource = $this->get('dtc_queue.grid_source.live_jobs.'.($managerType === 'mongodb' ? 'odm' : $managerType));
         $renderer->bind($gridSource);
         $params = $renderer->getParams();
         $this->addCssJs($params);
