@@ -20,8 +20,7 @@
         "sensio/generator-bundle": "2.*|3.*|4.*",
         "symfony/framework-bundle": "2.*|3.*|4.*",
         "sensio/framework-extra-bundle": "2.*|3.*|4.*|5.*",
-        "cocur/background-process": ">=0.7",
-        "alcaeus/mongo-php-adapter": "^1.1"
+        "cocur/background-process": ">=0.7"
     },
     "require-dev": {
         "doctrine/orm": "^2.4",
