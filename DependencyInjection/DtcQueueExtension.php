@@ -27,11 +27,17 @@ class DtcQueueExtension extends Extension
         $container->setParameter('dtc_queue.priority_max', $config['priority_max']);
         $container->setParameter('dtc_queue.priority_direction', $config['priority_direction']);
         $this->configClasses($config, $container);
+        $this->configAdmin($config, $container);
 
         // Load Grid if Dtc\GridBundle Bundle is registered
         $yamlLoader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
 
         $yamlLoader->load('queue.yml');
+    }
+
+    protected function configAdmin(array $config, ContainerBuilder $container)
+    {
+        $container->setParameter('dtc_queue.admin.chartjs', $config['admin']['chartjs']);
     }
 
     protected function configClasses(array $config, ContainerBuilder $container)

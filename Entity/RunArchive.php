@@ -8,7 +8,9 @@ use Dtc\GridBundle\Annotation as Grid;
 /**
  * @ORM\Entity
  * @ORM\Table(name="dtc_queue_run_archive")
- * @Grid\Grid(actions={@Grid\ShowAction()})
+ * @ORM\Table(name="dtc_queue_run_archive",indexes={
+ *                  @ORM\Index(name="run_archive_ended_at_idx", columns={"ended_at"})})
+ * @Grid\Grid(actions={@Grid\ShowAction()},sort=@Grid\Sort(column="endedAt",direction="DESC"))
  */
 class RunArchive extends BaseRun
 {
@@ -22,7 +24,7 @@ class RunArchive extends BaseRun
     protected $duration; // How long to run for in seconds
 
     /**
-     * @Grid\Column(sortable=true)
+     * @Grid\Column(sortable=true, order=2)
      * @ORM\Column(type="datetime", nullable=true)
      */
     protected $endedAt;

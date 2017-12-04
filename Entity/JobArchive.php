@@ -10,12 +10,12 @@ use Dtc\GridBundle\Annotation as Grid;
  * @ORM\Table(name="dtc_queue_job_archive",indexes={
  *                  @ORM\Index(name="job_archive_status_idx", columns={"status"}),
  *                  @ORM\Index(name="job_archive_updated_at_idx", columns={"updated_at"})})
- * @Grid\Grid(actions={@Grid\ShowAction()})
+ * @Grid\Grid(actions={@Grid\ShowAction()},sort=@Grid\Sort(column="updatedAt",direction="DESC"))
  */
 class JobArchive extends BaseJob
 {
     /**
-     * @Grid\Column(sortable=true)
+     * @Grid\Column(sortable=true, order=1)
      * @ORM\Column(type="bigint")
      * @ORM\Id
      */
@@ -24,13 +24,13 @@ class JobArchive extends BaseJob
     /**
      * When the job finished.
      *
-     * @Grid\Column(sortable=true)
+     * @Grid\Column(sortable=true, order=2)
      * @ORM\Column(type="datetime", nullable=true)
      */
     protected $finishedAt;
 
     /**
-     * @Grid\Column()
+     * @Grid\Column(sortable=true)
      * @ORM\Column(type="float", nullable=true)
      */
     protected $elapsed;
@@ -63,7 +63,7 @@ class JobArchive extends BaseJob
     protected $expiresAt;
 
     /**
-     * @Grid\Column(sortable=true)
+     * @Grid\Column(sortable=true, order=3)
      * @ORM\Column(type="datetime")
      */
     protected $updatedAt;

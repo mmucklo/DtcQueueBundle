@@ -1,0 +1,9 @@
+{% extends "DtcQueueBundle::layout.html.twig" %}
+
+{% block content %}
+    <ul>
+    {% for name, className in workers %}
+        <li>{{ name }}: {{ className }}</li>
+    {% endfor %}
+    </ul>
+{% endblock %}

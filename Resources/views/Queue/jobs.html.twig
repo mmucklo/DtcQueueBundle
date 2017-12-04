@@ -3,9 +3,6 @@
 {% block grid %}
     {% include 'DtcQueueBundle:Queue:nav.html.twig' %}
 
-    <h3>{{ dtc_queue_grid_label1 }}</h3>
+    <h3>Live Jobs</h3>
     {{ dtc_grid.render | raw }}
-    <h3>{{ dtc_queue_grid_label2 }}</h3>
-    {{ archive_grid.render | raw }}
 {% endblock %}
-

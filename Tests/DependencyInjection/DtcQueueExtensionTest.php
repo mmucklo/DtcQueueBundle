@@ -42,7 +42,8 @@ class DtcQueueExtensionTest extends TestCase
         self::assertEquals('somehost', $containerBuilder->getParameter('dtc_queue.beanstalkd.host'));
     }
 
-    public function testPriority() {
+    public function testPriority()
+    {
         $configs = [];
         $containerBuilder = $this->tryConfigs($configs);
         self::assertEquals(255, $containerBuilder->getParameter('dtc_queue.priority_max'));
@@ -60,7 +61,6 @@ class DtcQueueExtensionTest extends TestCase
         $configs = ['config' => ['priority_direction' => PriorityJobManager::PRIORITY_ASC]];
         $containerBuilder = $this->tryConfigs($configs);
         self::assertEquals(PriorityJobManager::PRIORITY_ASC, $containerBuilder->getParameter('dtc_queue.priority_direction'));
-
     }
 
     protected function tryConfigs(array $configs, $good = true)

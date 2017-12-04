@@ -16,7 +16,7 @@
     "require": {
         "php": ">=5.6",
         "dstuecken/php7ify": ">=1.1",
-    	"mmucklo/grid-bundle": ">=3.1.1",
+    	"mmucklo/grid-bundle": ">=3.2.2",
         "sensio/generator-bundle": "2.*|3.*|4.*",
         "symfony/framework-bundle": "2.*|3.*|4.*",
         "sensio/framework-extra-bundle": "2.*|3.*|4.*|5.*",
@@ -41,7 +41,9 @@
         "pda/pheanstalk": "For working with beanstalk",
         "php-amqplib/php-amqplib": "For working with RabbitMQ",
         "doctrine/orm": "for working with RDBMS",
-        "doctrine/mongodb-odm": "for a mongo db based queue"
+        "doctrine/mongodb-odm": "for a mongo db based queue",
+        "oro/doctrine-extensions": "For YEAR, MONTH, DAY, HOUR, MINUTE date functions if using JobTiming trends",
+        "beberlei/DoctrineExtensions": "Alternative for YEAR, MONTH, DAY, HOUR, MINUTE if using JobTiming trends"
     },
     "config": {
         "bin-dir": "bin"

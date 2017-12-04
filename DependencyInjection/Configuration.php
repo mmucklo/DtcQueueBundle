@@ -64,9 +64,23 @@ class Configuration implements ConfigurationInterface
                     ->end()
                 ->end()
                 ->append($this->addRabbitMq())
+                ->append($this->addAdmin())
             ->end();
 
         return $treeBuilder;
+    }
+
+    protected function addAdmin()
+    {
+        $treeBuilder = new TreeBuilder();
+        $rootNode = $treeBuilder->root('admin');
+        $rootNode
+            ->addDefaultsIfNotSet()
+            ->children()
+                ->scalarNode('chartjs')->defaultValue('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js')->end()
+            ->end();
+
+        return $rootNode;
     }
 
     protected function addRabbitMqOptions()
@@ -95,7 +109,7 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->prototype('variable')->end()
             ->validate()
-                ->ifTrue(function($node) {
+                ->ifTrue(function ($node) {
                     if (!is_array($node)) {
                         return true;
                     }
@@ -172,7 +186,7 @@ class Configuration implements ConfigurationInterface
             ->append($this->addRabbitMqSslOptions())
             ->append($this->addRabbitMqArgs())
             ->append($this->addRabbitMqExchange())
-            ->validate()->always(function($node) {
+            ->validate()->always(function ($node) {
                 if (empty($node['ssl_options'])) {
                     unset($node['ssl_options']);
                 }
@@ -182,7 +196,7 @@ class Configuration implements ConfigurationInterface
 
                 return $node;
             })->end()
-            ->validate()->ifTrue(function($node) {
+            ->validate()->ifTrue(function ($node) {
                 if (isset($node['ssl_options']) && !$node['ssl']) {
                     return true;
                 }

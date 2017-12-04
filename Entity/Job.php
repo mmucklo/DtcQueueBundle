@@ -14,12 +14,12 @@ use Dtc\GridBundle\Annotation as Grid;
  *                  @ORM\Index(name="job_priority_idx", columns={"priority","when_at"}),
  *                  @ORM\Index(name="job_when_idx", columns={"when_at","locked"}),
  *                  @ORM\Index(name="job_status_idx", columns={"status","locked","when_at"})})
- * @Grid\Grid(actions={@Grid\ShowAction(), @Grid\DeleteAction(label="Archive")})
+ * @Grid\Grid(actions={@Grid\ShowAction(), @Grid\DeleteAction(label="Archive")},sort=@Grid\Sort(column="id"))
  */
 class Job extends BaseJob
 {
     /**
-     * @Grid\Column(sortable=true)
+     * @Grid\Column(sortable=true,order=1)
      * @ORM\Column(type="bigint")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")

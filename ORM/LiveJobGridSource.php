@@ -1,0 +1,43 @@
+<?php
+
+namespace Dtc\QueueBundle\ORM;
+
+use Doctrine\ORM\EntityManager;
+use Dtc\GridBundle\Grid\Source\EntityGridSource;
+
+class LiveJobGridSource extends EntityGridSource
+{
+    protected $jobManager;
+
+    public function getId()
+    {
+        return 'dtc_queue.grid_source.live_jobs.orm';
+    }
+
+    public function __construct(JobManager $jobManager)
+    {
+        $this->jobManager = $jobManager;
+        /** @var EntityManager $entityManager */
+        $entityManager = $jobManager->getObjectManager();
+        parent::__construct($entityManager, $jobManager->getObjectName());
+    }
+
+    public function getColumns()
+    {
+        if ($columns = parent::getColumns()) {
+            return $columns;
+        }
+        $this->autoDiscoverColumns();
+
+        return parent::getColumns();
+    }
+
+    protected function getQueryBuilder()
+    {
+        $queryBuilder = $this->jobManager->getJobQueryBuilder();
+        $queryBuilder->setFirstResult($this->offset)
+                     ->setMaxResults($this->limit);
+
+        return $queryBuilder;
+    }
+}

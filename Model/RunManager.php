@@ -120,7 +120,7 @@ class RunManager
      * @param float    $start
      * @param int|null $maxCount
      * @param int|null $duration
-     * @param integer $processTimeout
+     * @param int      $processTimeout
      *
      * @return Run
      */

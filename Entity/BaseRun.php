@@ -8,14 +8,14 @@ use Doctrine\ORM\Mapping as ORM;
 abstract class BaseRun extends \Dtc\QueueBundle\Model\Run
 {
     /**
-     * @Grid\Column()
+     * @Grid\Column(sortable=true,order=1)
      * @ORM\Column(type="bigint")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
     protected $id;
     /**
-     * @Grid\Column(sortable=true)
+     * @Grid\Column(sortable=true, order=2)
      * @ORM\Column(type="datetime", nullable=true)
      */
     protected $startedAt;

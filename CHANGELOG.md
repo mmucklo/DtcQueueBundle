@@ -1,3 +1,11 @@
+### 2.7.0
+   * Administrative updates
+      * Add a header to admin pages
+      * Show Live Jobs for ODM and ORM according to actual jobs query (won't show expired jobs)
+      * Separate page for showing "All" Jobs + "Archived" Jobs
+      * Added Workers list page
+      * Added Trends page
+   * Fixed a bug where run_manager being different than default_manager could cause a problem
 ### 2.6.7
    * Remove transactions from ORM to avoid lock contention issues
    * Add more testing

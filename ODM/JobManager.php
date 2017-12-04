@@ -213,59 +213,73 @@ class JobManager extends BaseJobManager
      */
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
-        /** @var DocumentManager $objectManager */
-        $objectManager = $this->getObjectManager();
-        $qb = $objectManager->createQueryBuilder($this->getObjectName());
-        $qb
+        $builder = $this->getJobQueryBuilder($workerName, $methodName, $prioritize);
+        $builder
             ->findAndUpdate()
             ->returnNew();
 
-        $this->addWorkerNameCriterion($qb, $workerName, $methodName);
-        if ($prioritize) {
-            $qb->sort([
-                'priority' => 'desc',
-                'whenAt' => 'asc',
-            ]);
-        } else {
-            $qb->sort('whenAt', 'asc');
-        }
-
-        // Filter
-        $date = new \DateTime();
-        $qb
-            ->addAnd(
-                $qb->expr()->addOr($qb->expr()->field('whenAt')->equals(null), $qb->expr()->field('whenAt')->lte($date)),
-                $qb->expr()->addOr($qb->expr()->field('expiresAt')->equals(null), $qb->expr()->field('expiresAt')->gt($date))
-            )
-            ->field('status')->equals(BaseJob::STATUS_NEW)
-            ->field('locked')->equals(null);
-
         // Update
-        $qb
+        $builder
             ->field('lockedAt')->set($date) // Set started
             ->field('locked')->set(true)
             ->field('status')->set(BaseJob::STATUS_RUNNING)
             ->field('runId')->set($runId);
 
-        $query = $qb->getQuery();
+        $query = $builder->getQuery();
 
         $job = $query->execute();
 
         return $job;
     }
 
+    /**
+     * @param null $workerName
+     * @param null $methodName
+     * @param bool $prioritize
+     *
+     * @return Builder
+     */
+    public function getJobQueryBuilder($workerName = null, $methodName = null, $prioritize = true)
+    {
+        /** @var DocumentManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $builder = $objectManager->createQueryBuilder($this->getObjectName());
+
+        $this->addWorkerNameCriterion($builder, $workerName, $methodName);
+        if ($prioritize) {
+            $builder->sort([
+                'priority' => 'desc',
+                'whenAt' => 'asc',
+            ]);
+        } else {
+            $builder->sort('whenAt', 'asc');
+        }
+
+        // Filter
+        $date = new \DateTime();
+        $builder
+            ->addAnd(
+                $builder->expr()->addOr($builder->expr()->field('whenAt')->equals(null), $builder->expr()->field('whenAt')->lte($date)),
+                $builder->expr()->addOr($builder->expr()->field('expiresAt')->equals(null), $builder->expr()->field('expiresAt')->gt($date))
+            )
+            ->field('status')->equals(BaseJob::STATUS_NEW)
+            ->field('locked')->equals(null);
+
+        return $builder;
+    }
+
     protected function updateNearestBatch(\Dtc\QueueBundle\Model\Job $job)
     {
         /** @var DocumentManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $qb = $objectManager->createQueryBuilder($this->getObjectName());
-        $qb->find();
+        $builder = $objectManager->createQueryBuilder($this->getObjectName());
+        $builder->find();
 
-        $qb->sort('whenAt', 'asc');
-        $qb->field('status')->equals(BaseJob::STATUS_NEW)
+        $builder->sort('whenAt', 'asc');
+        $builder->field('status')->equals(BaseJob::STATUS_NEW)
             ->field('crcHash')->equals($job->getCrcHash())
             ->field('locked')->equals(null);
-        $oldJob = $qb->getQuery()->getSingleResult();
+        $oldJob = $builder->getQuery()->getSingleResult();
 
         if (!$oldJob) {
             return null;
@@ -274,19 +288,19 @@ class JobManager extends BaseJobManager
         // Update priority or whenAt
         //  This makes sure if someone else is updating at the same time
         //  that we don't trounce their changes.
-        $qb = $objectManager->createQueryBuilder($this->getObjectName());
-        $qb->findAndUpdate();
-        $qb->field('_id')->equals($oldJob->getId());
-        $qb->field('priority')->lt($job->getPriority());
-        $qb->field('priority')->set($job->getPriority());
-        $qb->getQuery()->execute();
+        $builder = $objectManager->createQueryBuilder($this->getObjectName());
+        $builder->findAndUpdate();
+        $builder->field('_id')->equals($oldJob->getId());
+        $builder->field('priority')->lt($job->getPriority());
+        $builder->field('priority')->set($job->getPriority());
+        $builder->getQuery()->execute();
 
-        $qb = $objectManager->createQueryBuilder($this->getObjectName());
-        $qb->findAndUpdate();
-        $qb->field('_id')->equals($oldJob->getId());
-        $qb->field('whenAt')->gt($job->getWhenAt());
-        $qb->field('whenAt')->set($job->getWhenAt());
-        $qb->getQuery()->execute();
+        $builder = $objectManager->createQueryBuilder($this->getObjectName());
+        $builder->findAndUpdate();
+        $builder->field('_id')->equals($oldJob->getId());
+        $builder->field('whenAt')->gt($job->getWhenAt());
+        $builder->field('whenAt')->set($job->getWhenAt());
+        $builder->getQuery()->execute();
 
         if ($job->getWhenAt() < $oldJob->getWhenAt()) {
             $oldJob->setWhenAt($job->getWhenAt());

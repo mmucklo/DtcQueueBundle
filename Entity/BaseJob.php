@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
 {
     /**
-     * @Grid\Column()
+     * @Grid\Column(order=1,sortable=true,searchable=true)
      * @ORM\Column(type="bigint")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
@@ -61,7 +61,7 @@ abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
     protected $lockedAt;
 
     /**
-     * @Grid\Column(sortable=true)
+     * @Grid\Column(sortable=true,searchable=true)
      * @ORM\Column(type="integer", nullable=true)
      */
     protected $priority;
@@ -72,7 +72,7 @@ abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
     protected $crcHash;
 
     /**
-     * @Grid\Column(sortable=true)
+     * @Grid\Column(sortable=true,order=2)
      * @ORM\Column(type="datetime", nullable=true)
      */
     protected $whenAt;

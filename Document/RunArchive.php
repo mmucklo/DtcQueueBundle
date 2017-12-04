@@ -6,7 +6,7 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 use Dtc\GridBundle\Annotation as Grid;
 
 /**
- * @Grid\Grid(actions={@Grid\ShowAction()})
+ * @Grid\Grid(actions={@Grid\ShowAction()},sort=@Grid\Sort(column="endedAt",direction="DESC"))
  * @ODM\Document(db="dtc_queue", collection="run_archive")
  */
 class RunArchive extends BaseRun
@@ -16,8 +16,9 @@ class RunArchive extends BaseRun
      */
     protected $startedAt;
     /**
-     * @Grid\Column(sortable=true)
+     * @Grid\Column(sortable=true, order=2)
      * @ODM\Field(type="date", nullable=true)
+     * @ODM\Index(unique=false, order="desc")
      */
     protected $endedAt;
 

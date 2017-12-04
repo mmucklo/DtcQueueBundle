@@ -8,13 +8,13 @@ use Dtc\GridBundle\Annotation as Grid;
 abstract class BaseRun extends \Dtc\QueueBundle\Model\Run
 {
     /**
-     * @Grid\Column(sortable=true)
+     * @Grid\Column(sortable=true, order=1)
      * @ODM\Id
      */
     protected $id;
 
     /**
-     * @Grid\Column()
+     * @Grid\Column(sortable=true, order=2)
      * @ODM\Field(type="date", nullable=true)
      */
     protected $startedAt;

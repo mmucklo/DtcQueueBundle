@@ -1,0 +1,72 @@
+{% extends "DtcQueueBundle::layout.html.twig" %}
+
+{% block content %}
+    {% if not record_timings %}
+        <h2>Timings Not Recorded</h2>
+        <p>
+            Job timings are not being recorded.
+        </p>
+        <p>
+            The following configuration entry needs to be enabled in config.yml:
+        </p>
+<pre>
+dtc_queue:
+    # ...
+    record_timings: true
+</pre>
+    {% else %}
+        <script src="{{ chartjs }}"></script>
+        <canvas id="trends"></canvas>
+
+        <script>
+            var red = 'rgb(255, 99, 132)';
+            var canvasEle = document.getElementById('trends');
+            var chart = new Chart(canvasEle, {
+              type: 'line',
+              data: {
+                labels: {{ timings_dates | raw }},
+                datasets: [{
+                  label: "Jobs Processed Per Hour",
+                  backgroundColor: 'blue',
+                  borderColor: 'blue',
+                  data: {{ timings_data }},
+                  fill: false
+                }]
+              },
+              options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: 'Job Timings'
+                },
+                tooltips: {
+                    mode: 'index',
+                  intersect: true
+                },
+                scales: {
+                  xAxes: [
+                    {
+                      display: true,
+                      scaleLabel: {
+                        display: true,
+                        labelString: 'Hour'
+                      }
+                    }
+                  ],
+                  yAxes: [{
+                    ticks: {
+                      beginAtZero: true,
+                      stepSize: 1
+                    },
+                    display: true,
+                    scaleLabel: {
+                      display: true,
+                      labelString: 'Count'
+                    }
+                  }]
+                }
+              }
+            });
+        </script>
+    {% endif %}
+{% endblock %}

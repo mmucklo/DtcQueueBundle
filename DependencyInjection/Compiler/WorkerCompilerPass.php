@@ -31,10 +31,12 @@ class WorkerCompilerPass implements CompilerPassInterface
         $jobArchiveClass = $this->getJobClassArchive($container);
         $container->setParameter('dtc_queue.class_job', $jobClass);
         $container->setParameter('dtc_queue.class_job_archive', $jobArchiveClass);
-        $container->setParameter('dtc_queue.class_job_timing', $this->getClass($container, 'job_timing',
+
+        $managerType = $this->getRunManagerType($container);
+        $container->setParameter('dtc_queue.class_job_timing', $this->getClass($container, $managerType, 'job_timing',
             'JobTiming', JobTiming::class));
-        $container->setParameter('dtc_queue.class_run', $this->getClass($container, 'run', 'Run', Run::class));
-        $container->setParameter('dtc_queue.class_run_archive', $this->getClass($container, 'run_archive', 'RunArchive', Run::class));
+        $container->setParameter('dtc_queue.class_run', $this->getClass($container, $managerType, 'run', 'Run', Run::class));
+        $container->setParameter('dtc_queue.class_run_archive', $this->getClass($container, $managerType, 'run_archive', 'RunArchive', Run::class));
 
         $this->setupTaggedServices($container, $definition, $jobManagerRef, $jobClass);
         $eventDispatcher = $container->getDefinition('dtc_queue.event_dispatcher');
@@ -49,7 +51,7 @@ class WorkerCompilerPass implements CompilerPassInterface
     {
         $definitionName = 'dtc_queue.'.$type.'.'.$defaultManagerType;
         if (!$container->hasDefinition($definitionName) && !$container->hasAlias($definitionName)) {
-            throw new InvalidConfigurationException("No job manager found for dtc_queue.'.$type.'.$defaultManagerType");
+            throw new InvalidConfigurationException("No job manager found for dtc_queue.$type.$defaultManagerType");
         }
         if ($container->hasDefinition($definitionName)) {
             $alias = new Alias('dtc_queue.'.$type.'.'.$defaultManagerType);
@@ -157,11 +159,21 @@ class WorkerCompilerPass implements CompilerPassInterface
         return $jobClass;
     }
 
-    protected function getClass(ContainerBuilder $container, $type, $className, $baseClass)
+    protected function getRunManagerType(ContainerBuilder $container)
+    {
+        $managerType = 'dtc_queue.default_manager';
+        if ($container->hasParameter('dtc_queue.run_manager')) {
+            $managerType = 'dtc_queue.run_manager';
+        }
+
+        return $managerType;
+    }
+
+    protected function getClass(ContainerBuilder $container, $managerType, $type, $className, $baseClass)
     {
         $runClass = $container->hasParameter('dtc_queue.class_'.$type) ? $container->getParameter('dtc_queue.class_'.$type) : null;
         if (!$runClass) {
-            switch ($container->getParameter('dtc_queue.default_manager')) {
+            switch ($container->getParameter($managerType)) {
                 case 'mongodb': // deprecated remove in 3.0
                 case 'odm':
                     $runClass = 'Dtc\\QueueBundle\\Document\\'.$className;

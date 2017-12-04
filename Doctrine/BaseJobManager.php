@@ -398,6 +398,13 @@ abstract class BaseJobManager extends PriorityJobManager
     }
 
     /**
+     * @param null $workerName
+     * @param null $methodName
+     * @param bool $prioritize
+     */
+    abstract public function getJobQueryBuilder($workerName = null, $methodName = null, $prioritize = true);
+
+    /**
      * @param RetryableJob $jobArchive
      * @param $className
      * @param $countProcessed

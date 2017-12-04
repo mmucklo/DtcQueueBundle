@@ -244,6 +244,25 @@ class JobManager extends BaseJobManager
      */
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
+        $queryBuilder = $this->getJobQueryBuilder($workerName, $methodName, $prioritize);
+        $queryBuilder->setMaxResults(1);
+
+        /** @var QueryBuilder $queryBuilder */
+        $query = $queryBuilder->getQuery();
+        $jobs = $query->getResult();
+
+        return $this->takeJob($jobs, $runId);
+    }
+
+    /**
+     * @param null $workerName
+     * @param null $methodName
+     * @param bool $prioritize
+     *
+     * @return QueryBuilder
+     */
+    public function getJobQueryBuilder($workerName = null, $methodName = null, $prioritize = true)
+    {
         /** @var EntityRepository $repository */
         $repository = $this->getRepository();
         $queryBuilder = $repository->createQueryBuilder('j');
@@ -254,11 +273,11 @@ class JobManager extends BaseJobManager
             ->andWhere('j.locked is NULL')
             ->andWhere($queryBuilder->expr()->orX(
                 $queryBuilder->expr()->isNull('j.whenAt'),
-                        $queryBuilder->expr()->lte('j.whenAt', ':whenAt')
+                $queryBuilder->expr()->lte('j.whenAt', ':whenAt')
             ))
             ->andWhere($queryBuilder->expr()->orX(
                 $queryBuilder->expr()->isNull('j.expiresAt'),
-                        $queryBuilder->expr()->gt('j.expiresAt', ':expiresAt')
+                $queryBuilder->expr()->gt('j.expiresAt', ':expiresAt')
             ))
             ->setParameter(':whenAt', $dateTime)
             ->setParameter(':expiresAt', $dateTime);
@@ -271,13 +290,8 @@ class JobManager extends BaseJobManager
         } else {
             $queryBuilder->orderBy('j.whenAt', 'ASC');
         }
-        $queryBuilder->setMaxResults(1);
 
-        /** @var QueryBuilder $queryBuilder */
-        $query = $queryBuilder->getQuery();
-        $jobs = $query->getResult();
-
-        return $this->takeJob($jobs, $runId);
+        return $queryBuilder;
     }
 
     protected function takeJob($jobs, $runId = null)

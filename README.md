@@ -571,6 +571,8 @@ dtc_queue:
     #   uses, plus direction that the priority argument of such
     #   functions as later()
     priority_direction: desc
+    admin:
+        chartjs: https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js
     beanstalkd:
         host: ~
         tube: ~

@@ -8,31 +8,31 @@ use Dtc\GridBundle\Annotation as Grid;
 abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
 {
     /**
-     * @Grid\Column()
+     * @Grid\Column(order=1,sortable=true,searchable=true)
      * @ODM\Id
      */
     protected $id;
 
     /**
-     * @Grid\Column()
+     * @Grid\Column(sortable=true, searchable=true)
      * @ODM\Field(type="string", name="worker_name")
      */
     protected $workerName;
 
     /**
-     * @Grid\Column()
+     * @Grid\Column(sortable=true, searchable=true)
      * @ODM\Field(type="string", name="class_name")
      */
     protected $className;
 
     /**
-     * @Grid\Column()
+     * @Grid\Column(sortable=true, searchable=true)
      * @ODM\Field(type="string")
      */
     protected $method;
 
     /**
-     * @Grid\Column()
+     * @Grid\Column(sortable=true,searchable=true)
      * @ODM\Field(type="string")
      * @ODM\Index(unique=false, order="asc")
      */
@@ -49,7 +49,7 @@ abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
     protected $batch;
 
     /**
-     * @Grid\Column()
+     * @Grid\Column(sortable=true, searchable=true)
      * @ODM\Field(type="boolean", nullable=true)
      */
     protected $locked;
@@ -60,7 +60,7 @@ abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
     protected $lockedAt;
 
     /**
-     * @Grid\Column()
+     * @Grid\Column(sortable=true,searchable=true)
      * @ODM\Field(type="int", nullable=true)
      * @ODM\Index(unique=false, order="asc")
      */
@@ -72,7 +72,7 @@ abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
     protected $crcHash;
 
     /**
-     * @Grid\Column()
+     * @Grid\Column(sortable=true, order=2)
      * @ODM\Field(type="date", nullable=true)
      * @ODM\AlsoLoad(name="when")
      * @ODM\Index(unique=false, order="asc")
@@ -80,7 +80,7 @@ abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
     protected $whenAt;
 
     /**
-     * @Grid\Column()
+     * @Grid\Column(sortable=true)
      * @ODM\Field(type="date", nullable=true)
      */
     protected $expiresAt;
@@ -88,7 +88,7 @@ abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
     /**
      * When the job started.
      *
-     * @Grid\Column()
+     * @Grid\Column(sortable=true)
      * @ODM\Field(type="date", nullable=true)
      */
     protected $startedAt;

@@ -1,0 +1,26 @@
+<nav class="navbar navbar-default">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="#">DtcQueue</a>
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                <li class="{%  if app.request.get('_route') == 'dtc_queue_jobs' %}active{% endif %}"><a href="{{ path('dtc_queue_jobs') }}">Live Jobs{% if app.request.get('_route') == 'dtc_queue_jobs' %} <span class="sr-only">(current)</span>{% endif %}</a></li>
+                <li class="{%  if app.request.get('_route') == 'dtc_queue_jobs_all' %}active{% endif %}"><a href="{{ path('dtc_queue_jobs_all') }}">All Jobs{% if app.request.get('_route') == 'dtc_queue_jobs_all' %} <span class="sr-only">(current)</span>{% endif %}</a></li>
+                <li class="{%  if app.request.get('_route') == 'dtc_queue_runs' %}active{% endif %}"><a href="{{ path('dtc_queue_runs') }}">Runs{% if app.request.get('_route') == 'dtc_queue_runs' %} <span class="sr-only">(current)</span>{% endif %}</a></li>
+                <li class="{%  if app.request.get('_route') == 'dtc_queue_status' %}active{% endif %}"><a href="{{ path('dtc_queue_queue_status') }}">Status{% if app.request.get('_route') == 'dtc_queue_status' %} <span class="sr-only">(current)</span>{% endif %}</a></li>
+                <li class="{%  if app.request.get('_route') == 'dtc_queue_workers' %}active{% endif %}"><a href="{{ path('dtc_queue_queue_workers') }}">Workers{% if app.request.get('_route') == 'dtc_queue_workers' %} <span class="sr-only">(current)</span>{% endif %}</a></li>
+                <li class="{%  if app.request.get('_route') == 'dtc_queue_trends' %}active{% endif %}"><a href="{{ path('dtc_queue_queue_trends') }}">Trends{% if app.request.get('_route') == 'dtc_queue_trends' %} <span class="sr-only">(current)</span>{% endif %}</a></li>
+            </ul>
+        </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+</nav>
