@@ -17,17 +17,17 @@ class RunCommandTest extends TestCase
 {
     use CommandTrait;
 
-    public function testMongoDBRun()
+    public function testORMRun()
     {
-        \Dtc\QueueBundle\Tests\ODM\JobManagerTest::setUpBeforeClass();
+        \Dtc\QueueBundle\Tests\ORM\JobManagerTest::setUpBeforeClass();
 
         /** @var JobManager $jobManager */
-        $jobManager = \Dtc\QueueBundle\Tests\ODM\JobManagerTest::$jobManager;
-        $runManager = \Dtc\QueueBundle\Tests\ODM\JobManagerTest::$runManager;
+        $jobManager = \Dtc\QueueBundle\Tests\ORM\JobManagerTest::$jobManager;
+        $runManager = \Dtc\QueueBundle\Tests\ORM\JobManagerTest::$runManager;
         $eventDispatcher = new EventDispatcher();
         $workerManager = new WorkerManager($jobManager, $eventDispatcher);
         $worker = new FibonacciWorker();
-        $worker->setJobClass(\Dtc\QueueBundle\Document\Job::class);
+        $worker->setJobClass(\Dtc\QueueBundle\Entity\Job::class);
         $workerManager->addWorker($worker);
         $worker->setJobManager($jobManager);
 
