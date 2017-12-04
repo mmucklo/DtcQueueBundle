@@ -218,6 +218,7 @@ class JobManager extends BaseJobManager
             ->findAndUpdate()
             ->returnNew();
 
+        $date = new \DateTime();
         // Update
         $builder
             ->field('lockedAt')->set($date) // Set started
