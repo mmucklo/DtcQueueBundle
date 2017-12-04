@@ -1,3 +1,7 @@
+### 2.7.1
+   * Fix a bug in mongo Job Manager
+   * Travis build fixes for RunManager
+   * Travis build for 7.2
 ### 2.7.0
    * Administrative updates
       * Add a header to admin pages
