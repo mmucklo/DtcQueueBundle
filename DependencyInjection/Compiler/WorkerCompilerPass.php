@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\DependencyInjection\Compiler;
 
+use Dtc\GridBundle\DependencyInjection\Compiler\GridSourceCompilerPass;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Model\Run;
@@ -102,6 +103,7 @@ class WorkerCompilerPass implements CompilerPassInterface
         $odmManager = "doctrine_mongodb.odm.{$documentManager}_document_manager";
         if ($container->has($odmManager)) {
             $container->setAlias('dtc_queue.document_manager', $odmManager);
+            GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.live_jobs.odm');
         }
 
         $entityManager = $container->getParameter('dtc_queue.entity_manager');
@@ -109,6 +111,7 @@ class WorkerCompilerPass implements CompilerPassInterface
         $ormManager = "doctrine.orm.{$entityManager}_entity_manager";
         if ($container->has($ormManager)) {
             $container->setAlias('dtc_queue.entity_manager', $ormManager);
+            GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.live_jobs.orm');
         }
     }
 

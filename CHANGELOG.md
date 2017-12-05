@@ -1,3 +1,7 @@
+### 2.7.3
+   * Fix the dependency issue
+### 2.7.2
+   * Attempt to fix a dependency issue
 ### 2.7.1
    * Fix a bug in mongo Job Manager
    * Travis build fixes for RunManager
