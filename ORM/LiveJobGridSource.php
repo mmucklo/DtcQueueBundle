@@ -40,4 +40,15 @@ class LiveJobGridSource extends EntityGridSource
 
         return $queryBuilder;
     }
+
+    public function getCount()
+    {
+        $qb = $this->getQueryBuilder();
+        $qb->add('select', 'count(j)')
+            ->setFirstResult(null)
+            ->setMaxResults(null);
+
+        return $qb->getQuery()
+            ->getSingleScalarResult();
+    }
 }

@@ -1,3 +1,5 @@
+### 2.7.5
+   * Fix bug with Job count query
 ### 2.7.4
    * Fix the dependency issue pt.2
 ### 2.7.3
