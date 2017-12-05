@@ -31,8 +31,6 @@ services:
         calls:
             - [ 'setAnnotationReader', ['@annotation_reader' ]]
             - [ 'setCacheDir', ['%kernel.cache_dir%' ]]
-        tags:
-            - { name: dtc_grid.source }
 
     dtc_queue.grid_source.live_jobs.orm:
         class: Dtc\QueueBundle\ORM\LiveJobGridSource
@@ -41,8 +39,6 @@ services:
         calls:
             - [ 'setAnnotationReader', ['@annotation_reader' ]]
             - [ 'setCacheDir', ['%kernel.cache_dir%' ]]
-        tags:
-            - { name: dtc_grid.source }
 
     dtc_queue.job_manager.mongodb: # deprecated, remove in 4.0
         alias: dtc_queue.job_manager.odm
