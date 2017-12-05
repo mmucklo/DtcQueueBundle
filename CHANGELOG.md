@@ -1,3 +1,5 @@
+### 2.7.4
+   * Fix the dependency issue pt.2
 ### 2.7.3
    * Fix the dependency issue
 ### 2.7.2
