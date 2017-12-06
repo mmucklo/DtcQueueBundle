@@ -1,3 +1,5 @@
+### 2.7.7
+   * Updates to the trends page
 ### 2.7.6
    * Fix bug with LiveJob Query
 ### 2.7.5

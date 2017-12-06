@@ -2,12 +2,15 @@
 <html class="no-js" lang="en-us">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>{% block title %}DtcQueue - Admin{% endblock %}</title>
 	{% for item in css %}
 		<link rel="stylesheet" href="{{ item }}" />
 	{% endfor %}
 	{% for item in js %}
 		<script src="{{ item }}"></script>
 	{% endfor %}
+	{% block headcontent %}
+	{% endblock %}
 </head>
 <body>
 	{% block main %}

@@ -1,4 +1,16 @@
 {% extends "DtcQueueBundle::layout.html.twig" %}
+{% block title %}DtcQueue - Admin - Trends{% endblock %}
+{% block headcontent %}
+    <style type="text/css">
+        .view label {
+            font-weight: normal;
+            margin-right: 5px;
+        }
+        .view #type-spin {
+            font-size: 5px;
+        }
+    </style>
+{% endblock %}
 
 {% block content %}
     {% if not record_timings %}
@@ -16,57 +28,97 @@ dtc_queue:
 </pre>
     {% else %}
         <script src="{{ chartjs }}"></script>
-        <canvas id="trends"></canvas>
-
+        <div class="view">
+            <label for="type">View</label>
+            <select id="type">
+                <option value="YEAR">By Year</option>
+                <option value="MONTH">By Month</option>
+                <option value="DAY">By Day</option>
+                <option value="HOUR" selected>By Hour</option>
+                <option value="MINUTE">By Minute</option>
+            </select> <span id="type-spin"><i class="fa fa-cog fa-spin fa-3x fa-fw"></i>
+            <span class="sr-only">Loading...</span></span>
+        </div>
+        <div>
+            <canvas id="trends"></canvas>
+        </div>
         <script>
-            var red = 'rgb(255, 99, 132)';
-            var canvasEle = document.getElementById('trends');
-            var chart = new Chart(canvasEle, {
-              type: 'line',
-              data: {
-                labels: {{ timings_dates | raw }},
-                datasets: [{
-                  label: "Jobs Processed Per Hour",
-                  backgroundColor: 'blue',
-                  borderColor: 'blue',
-                  data: {{ timings_data }},
-                  fill: false
-                }]
-              },
-              options: {
-                responsive: true,
-                title: {
+            var canvasElement = document.getElementById('trends');
+            var selectElement = document.getElementById('type');
+            var spinElement = document.getElementById('type-spin');
+            var prevIdx;
+            function fetchData() {
+                var idx = selectElement.selectedIndex;
+                if (prevIdx === idx) {
+                  return;
+                }
+                var options = selectElement.getElementsByTagName('OPTION');
+                if (idx >= 0) {
+                  spinElement.style.visibility = 'visible';
+                  var selectedOption = options[idx];
+                  var selectedValue = selectedOption.value;
+
+                  fetch('{{ path('dtc_queue_timings') }}?type=' + selectedValue).then(function(response) {
+                    if (response.status === 200) {
+                      response.json().then(function (data) {
+                        renderTrends(data.timings_dates, data.timings_data, selectedValue.toString().toLowerCase());
+                        spinElement.style.visibility = 'hidden';
+                      });
+                    }
+                  });
+                }
+            }
+            selectElement.onchange=fetchData;
+            fetchData();
+            function renderTrends(timingsDates, timingsData, label) {
+              var red = 'rgb(255, 99, 132)';
+              var canvasEle = document.getElementById('trends');
+              var chart = new Chart(canvasEle, {
+                type: 'line',
+                data: {
+                  labels: timingsDates,
+                  datasets: [{
+                    label: "Jobs processed per " + label,
+                    backgroundColor: 'blue',
+                    borderColor: 'blue',
+                    data: timingsData,
+                    fill: false
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  title: {
                     display: true,
                     text: 'Job Timings'
-                },
-                tooltips: {
+                  },
+                  tooltips: {
                     mode: 'index',
-                  intersect: true
-                },
-                scales: {
-                  xAxes: [
-                    {
+                    intersect: true
+                  },
+                  scales: {
+                    xAxes: [
+                      {
+                        display: true,
+                        scaleLabel: {
+                          display: true,
+                          labelString: label
+                        }
+                      }
+                    ],
+                    yAxes: [{
+                      ticks: {
+                        beginAtZero: true
+                      },
                       display: true,
                       scaleLabel: {
                         display: true,
-                        labelString: 'Hour'
+                        labelString: 'Count'
                       }
-                    }
-                  ],
-                  yAxes: [{
-                    ticks: {
-                      beginAtZero: true,
-                      stepSize: 1
-                    },
-                    display: true,
-                    scaleLabel: {
-                      display: true,
-                      labelString: 'Count'
-                    }
-                  }]
+                    }]
+                  }
                 }
-              }
-            });
+              });
+            }
         </script>
     {% endif %}
 {% endblock %}
