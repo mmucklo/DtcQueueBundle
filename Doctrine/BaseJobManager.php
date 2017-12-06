@@ -54,14 +54,6 @@ abstract class BaseJobManager extends PriorityJobManager
     }
 
     /**
-     * @param ObjectManager $objectManager
-     */
-    public function setObjectManager(ObjectManager $objectManager)
-    {
-        $this->objectManager = $objectManager;
-    }
-
-    /**
      * @return string
      */
     public function getObjectName()
