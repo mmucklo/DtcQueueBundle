@@ -202,33 +202,38 @@ class QueueController extends Controller
         $recordTimings = $this->container->getParameter('dtc_queue.record_timings');
         $params = [];
         if ($recordTimings) {
-            $this->validateRunManager();
-
-            /** @var BaseRunManager $runManager */
-            $runManager = $this->get('dtc_queue.run_manager');
-            if ($runManager instanceof RunManager) {
-                $timings = $this->getJobTimingsOdm($type, $endDate, $beginDate);
-            } else {
-                $timings = $this->getJobTimingsOrm($type, $endDate, $beginDate);
-            }
-            uksort($timings, function ($date1str, $date2str) {
-                $date1 = \DateTime::createFromFormat('Y-m-d H', $date1str);
-                $date2 = \DateTime::createFromFormat('Y-m-d H', $date2str);
-                if (!$date2) {
-                    return false;
-                }
-                if (!$date1) {
-                    return false;
-                }
-
-                return $date1 > $date2;
-            });
-
-            $params['timings_dates'] = array_keys($timings);
-            $params['timings_data'] = array_values($timings);
+            $params = $this->calculateTimings($type, $beginDate, $endDate);
         }
-
         return new JsonResponse($params);
+    }
+
+    protected function calculateTimings($type, $beginDate, $endDate) {
+        $params = [];
+        $this->validateRunManager();
+
+        /** @var BaseRunManager $runManager */
+        $runManager = $this->get('dtc_queue.run_manager');
+        if ($runManager instanceof RunManager) {
+            $timings = $this->getJobTimingsOdm($type, $endDate, $beginDate);
+        } else {
+            $timings = $this->getJobTimingsOrm($type, $endDate, $beginDate);
+        }
+        uksort($timings, function ($date1str, $date2str) {
+            $date1 = \DateTime::createFromFormat('Y-m-d H', $date1str);
+            $date2 = \DateTime::createFromFormat('Y-m-d H', $date2str);
+            if (!$date2) {
+                return false;
+            }
+            if (!$date1) {
+                return false;
+            }
+
+            return $date1 > $date2;
+        });
+
+        $params['timings_dates'] = array_keys($timings);
+        $params['timings_data'] = array_values($timings);
+        return $params;
     }
 
     protected function getJobTimingsOdm($type, \DateTime $end, \DateTime $begin = null)
