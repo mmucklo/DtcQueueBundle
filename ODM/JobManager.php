@@ -189,7 +189,12 @@ class JobManager extends BaseJobManager
         $status2 = $this->getStatusByDocument($this->getArchiveObjectName());
         foreach ($status2 as $key => $value) {
             foreach ($value as $k => $v) {
-                $result[$key][$k] += $v;
+                if (isset($result[$key][$k])) {
+                    $result[$key][$k] += $v;
+                }
+                else {
+                    $result[$key][$k] = $v;
+                }
             }
         }
 

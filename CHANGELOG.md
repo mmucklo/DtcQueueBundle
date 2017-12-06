@@ -1,3 +1,5 @@
+### 2.7.8
+   * Fix ODM (mongo) status function
 ### 2.7.7
    * Updates to the trends page
 ### 2.7.6
