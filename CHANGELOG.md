@@ -1,3 +1,5 @@
+### 2.7.10
+   * Make services public for now
 ### 2.7.9
    * Add a method to set the object manager for RunManager and JobManager
 ### 2.7.8

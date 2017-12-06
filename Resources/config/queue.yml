@@ -6,15 +6,18 @@ services:
         synthetic: true
 
     dtc_queue.job_manager:
+        public: true
         synthetic: true
 
     dtc_queue.run_manager:
+        public: true
         synthetic: true
 
     dtc_queue.run_manager.mongodb: # deprecated, remove in 4.0
         alias: dtc_queue.run_manager.odm
 
     dtc_queue.run_manager.odm:
+        public: true
         class: Dtc\QueueBundle\ODM\RunManager
         arguments:
             - "@dtc_queue.document_manager"
@@ -25,6 +28,7 @@ services:
             - ["setRunArchiveClass", ["%dtc_queue.class_run_archive%"]]
 
     dtc_queue.grid_source.live_jobs.odm:
+        public: true
         class: Dtc\QueueBundle\ODM\LiveJobGridSource
         arguments:
             - "@dtc_queue.job_manager.odm"
@@ -33,6 +37,7 @@ services:
             - [ 'setCacheDir', ['%kernel.cache_dir%' ]]
 
     dtc_queue.grid_source.live_jobs.orm:
+        public: true
         class: Dtc\QueueBundle\ORM\LiveJobGridSource
         arguments:
             - "@dtc_queue.job_manager.orm"
@@ -44,6 +49,7 @@ services:
         alias: dtc_queue.job_manager.odm
 
     dtc_queue.job_manager.odm:
+        public: true
         class: Dtc\QueueBundle\ODM\JobManager
         arguments:
             - '@dtc_queue.document_manager'
@@ -56,17 +62,20 @@ services:
             - ["setPriorityDirection", ['%dtc_queue.priority_direction%']]
 
     dtc_queue.job_manager.beanstalkd:
+        public: true
         class: Dtc\QueueBundle\Beanstalkd\JobManager
         arguments:
             - '%dtc_queue.class_job%'
 
     dtc_queue.job_manager.rabbit_mq:
+        public: true
         class: Dtc\QueueBundle\RabbitMQ\JobManager
         calls:
             - ["setMaxPriority", ['%dtc_queue.priority_max%']]
             - ["setPriorityDirection", ['%dtc_queue.priority_direction%']]
 
     dtc_queue.run_manager.orm:
+        public: true
         class: Dtc\QueueBundle\ORM\RunManager
         arguments:
             - '@dtc_queue.entity_manager'
@@ -77,12 +86,15 @@ services:
             - ["setRunArchiveClass", ["%dtc_queue.class_run_archive%"]]
 
     dtc_queue.run_manager.beanstalkd:
+        public: true
         alias: dtc_queue.run_manager_base
 
     dtc_queue.run_manager.rabbit_mq:
+        public: true
         alias: dtc_queue.run_manager_base
 
     dtc_queue.run_manager_base:
+        public: true
         class: Dtc\QueueBundle\Model\RunManager
         arguments:
             - "%dtc_queue.class_run%"
@@ -90,6 +102,7 @@ services:
             - "%dtc_queue.record_timings%"
 
     dtc_queue.job_manager.orm:
+        public: true
         class: Dtc\QueueBundle\ORM\JobManager
         arguments:
             - '@dtc_queue.entity_manager'
@@ -102,6 +115,7 @@ services:
             - ["setPriorityDirection", ['%dtc_queue.priority_direction%']]
 
     dtc_queue.worker_manager:
+        public: true
         class: Dtc\QueueBundle\Model\WorkerManager
         arguments:
             - '@dtc_queue.job_manager'
@@ -111,8 +125,11 @@ services:
         tags: [{ name: monolog.logger, channel: dtc_queue }]
 
     dtc_queue.event_dispatcher:
+        public: true
         class: Dtc\QueueBundle\EventDispatcher\EventDispatcher
+
     dtc_queue.remove_listener:
+        public: true
         class: Dtc\QueueBundle\Doctrine\DtcQueueListener
         arguments:
             - '%dtc_queue.class_job_archive%'
@@ -124,7 +141,9 @@ services:
             - { name: doctrine_mongodb.odm.event_listener, event: preRemove }
             - { name: doctrine_mongodb.odm.event_listener, event: perPersist }
             - { name: doctrine_mongodb.odm.event_listener, event: preUpdate }
+
     dtc_queue.run.loop:
+        public: true
         class: Dtc\QueueBundle\Run\Loop
         arguments:
             - "@dtc_queue.worker_manager"
