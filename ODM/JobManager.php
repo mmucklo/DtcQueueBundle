@@ -191,8 +191,7 @@ class JobManager extends BaseJobManager
             foreach ($value as $k => $v) {
                 if (isset($result[$key][$k])) {
                     $result[$key][$k] += $v;
-                }
-                else {
+                } else {
                     $result[$key][$k] = $v;
                 }
             }

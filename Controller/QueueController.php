@@ -181,6 +181,7 @@ class QueueController extends Controller
         $recordTimings = $this->container->getParameter('dtc_queue.record_timings');
         $params = ['record_timings' => $recordTimings];
         $this->addCssJs($params);
+
         return $params;
     }
 

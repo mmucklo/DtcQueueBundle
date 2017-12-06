@@ -1,3 +1,5 @@
+### 2.7.9
+   * Add a method to set the object manager for RunManager and JobManager
 ### 2.7.8
    * Fix ODM (mongo) status function
 ### 2.7.7

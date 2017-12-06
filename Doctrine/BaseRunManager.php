@@ -32,6 +32,14 @@ abstract class BaseRunManager extends RunManager
     }
 
     /**
+     * @param ObjectManager $objectManager
+     */
+    public function setObjectManager(ObjectManager $objectManager)
+    {
+        $this->objectManager = $objectManager;
+    }
+
+    /**
      * @return ObjectRepository
      */
     public function getRepository()
