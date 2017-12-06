@@ -1,3 +1,5 @@
+### 2.7.6
+   * Fix bug with LiveJob Query
 ### 2.7.5
    * Fix bug with Job count query
 ### 2.7.4

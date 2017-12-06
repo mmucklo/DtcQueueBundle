@@ -35,6 +35,7 @@ class LiveJobGridSource extends EntityGridSource
     protected function getQueryBuilder()
     {
         $queryBuilder = $this->jobManager->getJobQueryBuilder();
+        $queryBuilder->add('select', 'j');
         $queryBuilder->setFirstResult($this->offset)
                      ->setMaxResults($this->limit);
 

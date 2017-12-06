@@ -245,6 +245,7 @@ class JobManager extends BaseJobManager
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
         $queryBuilder = $this->getJobQueryBuilder($workerName, $methodName, $prioritize);
+        $queryBuilder->select('j.id');
         $queryBuilder->setMaxResults(1);
 
         /** @var QueryBuilder $queryBuilder */
@@ -268,7 +269,6 @@ class JobManager extends BaseJobManager
         $queryBuilder = $repository->createQueryBuilder('j');
         $dateTime = new \DateTime();
         $queryBuilder
-            ->select('j.id')
             ->where('j.status = :status')->setParameter(':status', BaseJob::STATUS_NEW)
             ->andWhere('j.locked is NULL')
             ->andWhere($queryBuilder->expr()->orX(
