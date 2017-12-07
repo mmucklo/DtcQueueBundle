@@ -1,3 +1,5 @@
+### 2.7.12
+   * fix templating issue by being explicit
 ### 2.7.11
    * back out object manager setting to make SensioLabs Insight happier..
 ### 2.7.10

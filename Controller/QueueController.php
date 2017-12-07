@@ -21,7 +21,7 @@ class QueueController extends Controller
      *
      * @Route("/")
      * @Route("/status/")
-     * @Template()
+     * @Template("@DtcQueue/Queue/jobs.html.twig")
      */
     public function statusAction()
     {
@@ -55,7 +55,7 @@ class QueueController extends Controller
     /**
      * List jobs in system by default.
      *
-     * @Template()
+     * @Template("@DtcQueue/Queue/grid.html.twig")
      * @Route("/jobs", name="dtc_queue_jobs")
      */
     public function jobsAction()
@@ -152,7 +152,7 @@ class QueueController extends Controller
      * List registered workers in the system.
      *
      * @Route("/workers", name="dtc_queue_workers")
-     * @Template()
+     * @Template("@DtcQueue/Queue/workers.html.twig")
      */
     public function workersAction()
     {
@@ -174,7 +174,7 @@ class QueueController extends Controller
      * Show a graph of job trends.
      *
      * @Route("/trends", name="dtc_queue_trends")
-     * @Template()
+     * @Template("@DtcQueue/Queue/trends.html.twig")
      */
     public function trendsAction()
     {
