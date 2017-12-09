@@ -1,6 +1,7 @@
 ### 3.0.0
    * Symfony 4 support
-   * Fix a template bug in the admin section
+### 2.7.13
+   * fixed wrong template
 ### 2.7.12
    * fix templating issue by being explicit
 ### 2.7.11
