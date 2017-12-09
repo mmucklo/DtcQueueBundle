@@ -55,7 +55,7 @@ class QueueController extends Controller
     /**
      * List jobs in system by default.
      *
-     * @Template("@DtcQueue/Queue/grid.html.twig")
+     * @Template("@DtcQueue/Queue/jobs.html.twig")
      * @Route("/jobs", name="dtc_queue_jobs")
      */
     public function jobsAction()

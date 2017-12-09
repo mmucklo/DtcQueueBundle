@@ -11,7 +11,7 @@ DtcQueueBundle
 __2.0 release:__ many changes see [UPGRADING-2.0.md](UPGRADING-2.0.md)
 
 This bundle provides a way to easily create queued background jobs
-
+    
 - Background tasks with just a few lines of code
 - Add workers to your application with very little effort
 - Turn any code into background task with a few lines
@@ -34,9 +34,35 @@ Supported Queues
 Installation
 ------------
 
-Install via composer:
+### Symfony 4
 
-    composer require mmucklo/queue-bundle
+First -
+
+   * Inside of config/packages/framework.yaml, make sure you have the twig engine turned on:
+
+```yaml
+framework:
+    # ...
+    templating:
+        engines: ['twig']
+```
+
+Then
+
+```
+    composer.phar require mmucklo/queue-bundle
+```
+
+Then
+
+Add this to your config/routes.yaml file:
+
+```yaml
+dtc_queue:
+    resource: '@DtcQueueBundle/Resources/config/routing.yml'
+```
+
+### Symfony 2/3
 
 Then add the bundle to __AppKernel.php__:
 
