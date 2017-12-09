@@ -29,7 +29,7 @@ class Configuration implements ConfigurationInterface
                     ->cannotBeEmpty()
                 ->end()
                 ->scalarNode('default_manager')
-                    ->defaultValue('mongodb')
+                    ->defaultValue('odm')
                     ->cannotBeEmpty()
                 ->end()
                 ->scalarNode('run_manager')

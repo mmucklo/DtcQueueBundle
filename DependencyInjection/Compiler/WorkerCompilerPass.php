@@ -56,8 +56,10 @@ class WorkerCompilerPass implements CompilerPassInterface
         }
         if ($container->hasDefinition($definitionName)) {
             $alias = new Alias('dtc_queue.'.$type.'.'.$defaultManagerType);
+            $alias->setPublic(true);
             $container->setAlias('dtc_queue.'.$type, $alias);
         } else {
+            $container->getAlias($definitionName)->setPublic(true);
             $container->setAlias('dtc_queue.'.$type, $container->getAlias($definitionName));
         }
     }

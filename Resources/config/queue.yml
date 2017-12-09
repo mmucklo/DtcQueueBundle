@@ -6,14 +6,13 @@ services:
         synthetic: true
 
     dtc_queue.job_manager:
-        public: true
         synthetic: true
 
     dtc_queue.run_manager:
-        public: true
         synthetic: true
 
     dtc_queue.run_manager.mongodb: # deprecated, remove in 4.0
+        public: true
         alias: dtc_queue.run_manager.odm
 
     dtc_queue.run_manager.odm:
@@ -152,3 +151,28 @@ services:
         calls:
             - [ "setLogger", ['@?logger'] ]
         tags: [{ name: monolog.logger, channel: dtc_queue }]
+
+    dtc_queue.command.count:
+        class: Dtc\QueueBundle\Command\CountCommand
+        tags:
+            - { name: console.command }
+
+    dtc_queue.command.create_job:
+        class: Dtc\QueueBundle\Command\CreateJobCommand
+        tags:
+            - { name: console.command }
+
+    dtc_queue.command.prune:
+        class: Dtc\QueueBundle\Command\PruneCommand
+        tags:
+            - { name: console.command }
+
+    dtc_queue.command.reset:
+        class: Dtc\QueueBundle\Command\ResetCommand
+        tags:
+            - { name: console.command }
+
+    dtc_queue.command.run:
+        class: Dtc\QueueBundle\Command\RunCommand
+        tags:
+            - { name: console.command }
