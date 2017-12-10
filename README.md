@@ -51,8 +51,9 @@ Usage
 
 Create a worker class that will work on the background job.
 
-__src\Worker\FibonacciWorker.php:__ (symfony 4)
-__src\AppBundle\Worker\FibonacciWorker.php:__ (symfony 2/3)
+Example:
+   * __src\Worker\FibonacciWorker.php:__ (symfony 4)
+   * __src\AppBundle\Worker\FibonacciWorker.php:__ (symfony 2/3)
 ```php
 <?php
 namespace App\Worker; // for symfony 2/3, the namespace would typically be AppBundle\Worker
@@ -108,9 +109,9 @@ YAML:
 __Symfony 4 and 3.3, 3.4:__
 ```yaml
 services:
-    # for symfony 3 the class name would be AppBundle\Worker\FibonacciWorker
+    # for symfony 3 the class name would likely be AppBundle\Worker\FibonacciWorker
     App\Worker\FibonacciWorker:
-        # public: false is possible if you use DependencyInjection only for access to the service
+        # public: false is possible if you completely use DependencyInjection for access to the service
         public: true
         tags:
             - { name: "dtc_queue.worker" }
@@ -131,9 +132,11 @@ services:
 ```php
 // Dependency inject the worker or fetch it from the container
 $fibonacciWorker = $container->get('App\Worker\FibonacciWorker');
+
 // For Symfony 3.3, 3.4
 //     $fibonacciWorker = $container->get('AppBundle\Worker\FibonacciWorker');
 //
+
 // For Symfony 2, 3.0, 3.1, 3.2:
 //     $fibonacciWorker = $container->get('app.worker.fibonacci'); 
 
@@ -154,10 +157,9 @@ $fibonacciWorker->later(0, 1); // As soon as possible, High priority
 $fibonacciWorker->later(0, 125); // Medium priority
 $fibonacciWorker->later(0, 255); // Low priority
 
-// Advanced Usage
+// Advanced Usage Example:
+//  (If the job is not processed by $expireTime, then don't execute it ever...)
 $expireTime = time() + 3600;
-
-// If we don't get to the job by $expireTime, then don't execute it...
 $fibonacciWorker->later()->setExpiresAt(new \DateTime("@$expireTime"))->fibonacci(20); // Must be run within the hour or not at all
 ```
 
