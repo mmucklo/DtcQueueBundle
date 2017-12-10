@@ -4,6 +4,10 @@ namespace Dtc\QueueBundle\Tests\RabbitMQ;
 
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\JobTiming;
+use Dtc\QueueBundle\Model\JobTimingManager;
+use Dtc\QueueBundle\Model\Run;
+use Dtc\QueueBundle\Model\RunManager;
 use Dtc\QueueBundle\RabbitMQ\JobManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest;
@@ -29,9 +33,13 @@ class JobManagerTest extends BaseJobManagerTest
         $user = 'guest';
         $pass = 'guest';
         $vhost = '/';
+        $jobTimingClass = JobTiming::class;
+        $runClass = Run::class;
         self::$connection = new AMQPStreamConnection($host, $port, $user, $pass, $vhost);
 
-        self::$jobManager = new JobManager();
+        self::$jobTimingManager = new JobTimingManager($jobTimingClass, false);
+        self::$runManager = new RunManager($runClass);
+        self::$jobManager = new JobManager(self::$runManager, self::$jobTimingManager, Job::class);
         self::$jobManager->setAMQPConnection(self::$connection);
         self::$jobManager->setMaxPriority(255);
         self::$jobManager->setQueueArgs('dtc_queue', false, true, false, false);
@@ -62,7 +70,7 @@ class JobManagerTest extends BaseJobManagerTest
     {
         $test = null;
         try {
-            $test = new JobManager();
+            $test = new JobManager(self::$runManager, self::$jobTimingManager, Job::class);
         } catch (\Exception $exception) {
             self::fail("shouldn't get here");
         }
@@ -71,7 +79,7 @@ class JobManagerTest extends BaseJobManagerTest
 
     public function testSetupChannel()
     {
-        $jobManager = new JobManager();
+        $jobManager = new JobManager(self::$runManager, self::$jobTimingManager, Job::class);
         $failed = false;
         try {
             $jobManager->setupChannel();

@@ -50,13 +50,7 @@ abstract class Worker
         if (null === $time) {
             $time = time();
         }
-
-        if ($time) {
-            $dateTime = new \DateTime();
-            $dateTime->setTimestamp($time);
-        } else {
-            $dateTime = null;
-        }
+        $dateTime = new \DateTime("@$time");
 
         return new $this->jobClass($this, $batch, $priority, $dateTime);
     }

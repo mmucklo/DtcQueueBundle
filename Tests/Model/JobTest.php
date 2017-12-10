@@ -3,6 +3,10 @@
 namespace Dtc\QueueBundle\Tests\Model;
 
 use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\JobTiming;
+use Dtc\QueueBundle\Model\JobTimingManager;
+use Dtc\QueueBundle\Model\Run;
+use Dtc\QueueBundle\Model\RunManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\GetterSetterTrait;
 use Dtc\QueueBundle\Tests\StaticJobManager;
@@ -42,7 +46,9 @@ class JobTest extends TestCase
 
     public function testChainJobCall()
     {
-        $jobManager = new StaticJobManager();
+        $jobTimingManager = new JobTimingManager(JobTiming::class, false);
+        $runManager = new RunManager(Run::class);
+        $jobManager = new StaticJobManager($runManager, $jobTimingManager, Job::class);
         $worker = new FibonacciWorker();
         $worker->setJobManager($jobManager);
 

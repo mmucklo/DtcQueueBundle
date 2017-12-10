@@ -32,6 +32,11 @@ interface JobManagerInterface
     public function pruneStalledJobs($workerName = null, $method = null);
 
     /**
+     * @return JobTimingManager
+     */
+    public function getJobTimingManager();
+
+    /**
      * Removes archived jobs older than $olderThan.
      *
      * @param \DateTime $olderThan

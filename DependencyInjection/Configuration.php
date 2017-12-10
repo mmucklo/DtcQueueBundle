@@ -34,7 +34,7 @@ class Configuration implements ConfigurationInterface
                 ->end()
                 ->scalarNode('run_manager')
                 ->end()
-                ->scalarNode('document_am')
+                ->scalarNode('job_timing_manager')
                 ->end()
                 ->scalarNode('class_job')
                 ->end()

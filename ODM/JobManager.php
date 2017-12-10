@@ -11,6 +11,21 @@ use Dtc\QueueBundle\Model\RetryableJob;
 class JobManager extends BaseJobManager
 {
     use CommonTrait;
+    const REDUCE_FUNCTION = 'function(k, vals) {
+            var result = {};
+            for (var index in vals) {
+                var val =  vals[index];
+                for (var i in val) {
+                    if (result.hasOwnProperty(i)) {
+                        result[i] += val[i];
+                    }
+                    else {
+                        result[i] = val[i];
+                    }
+                }
+            }
+            return result;
+        }';
 
     public function countJobsByStatus($objectName, $status, $workerName = null, $method = null)
     {
@@ -35,7 +50,7 @@ class JobManager extends BaseJobManager
     {
         /** @var DocumentManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $qb = $objectManager->createQueryBuilder($this->getArchiveObjectName());
+        $qb = $objectManager->createQueryBuilder($this->getJobArchiveClass());
         $qb = $qb->remove();
         $qb->field('status')->equals(BaseJob::STATUS_ERROR);
         $this->addWorkerNameCriterion($qb, $workerName, $method);
@@ -75,7 +90,7 @@ class JobManager extends BaseJobManager
     {
         /** @var DocumentManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $qb = $objectManager->createQueryBuilder($this->getObjectName());
+        $qb = $objectManager->createQueryBuilder($this->getJobClass());
         $qb = $qb->updateMany();
         $qb->field('expiresAt')->lte(new \DateTime());
         $qb->field('status')->equals(BaseJob::STATUS_NEW);
@@ -94,18 +109,19 @@ class JobManager extends BaseJobManager
      * Removes archived jobs older than $olderThan.
      *
      * @param \DateTime $olderThan
-     *                             return int
+     *
+     * @return int
      */
     public function pruneArchivedJobs(\DateTime $olderThan)
     {
-        return $this->removeOlderThan($this->getArchiveObjectName(), 'updatedAt', $olderThan);
+        return $this->removeOlderThan($this->getJobArchiveClass(), 'updatedAt', $olderThan);
     }
 
     public function getJobCount($workerName = null, $method = null)
     {
         /** @var DocumentManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $qb = $objectManager->createQueryBuilder($this->getObjectName());
+        $qb = $objectManager->createQueryBuilder($this->getJobClass());
         $qb
             ->find();
 
@@ -140,21 +156,7 @@ class JobManager extends BaseJobManager
             var key = this.worker_name + '->' + this.method + '()';
             emit(key, result);
         }";
-        $reduceFunc = 'function(k, vals) {
-            var result = {};
-            for (var index in vals) {
-                var val =  vals[index];
-                for (var i in val) {
-                    if (result.hasOwnProperty(i)) {
-                        result[i] += val[i];
-                    }
-                    else {
-                        result[i] = val[i];
-                    }
-                }
-            }
-            return result;
-        }';
+        $reduceFunc = self::REDUCE_FUNCTION;
         /** @var DocumentManager $objectManager */
         $objectManager = $this->getObjectManager();
         $qb = $objectManager->createQueryBuilder($documentName);
@@ -185,8 +187,8 @@ class JobManager extends BaseJobManager
 
     public function getStatus()
     {
-        $result = $this->getStatusByDocument($this->getObjectName());
-        $status2 = $this->getStatusByDocument($this->getArchiveObjectName());
+        $result = $this->getStatusByDocument($this->getJobClass());
+        $status2 = $this->getStatusByDocument($this->getJobArchiveClass());
         foreach ($status2 as $key => $value) {
             foreach ($value as $k => $v) {
                 if (isset($result[$key][$k])) {
@@ -209,9 +211,10 @@ class JobManager extends BaseJobManager
     /**
      * Get the next job to run (can be filtered by workername and method name).
      *
-     * @param string $workerName
-     * @param string $methodName
-     * @param bool   $prioritize
+     * @param string      $workerName
+     * @param string      $methodName
+     * @param bool        $prioritize
+     * @param string|null $runId
      *
      * @return \Dtc\QueueBundle\Model\Job
      */
@@ -248,7 +251,7 @@ class JobManager extends BaseJobManager
     {
         /** @var DocumentManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $builder = $objectManager->createQueryBuilder($this->getObjectName());
+        $builder = $objectManager->createQueryBuilder($this->getJobClass());
 
         $this->addWorkerNameCriterion($builder, $workerName, $methodName);
         if ($prioritize) {
@@ -277,7 +280,7 @@ class JobManager extends BaseJobManager
     {
         /** @var DocumentManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $builder = $objectManager->createQueryBuilder($this->getObjectName());
+        $builder = $objectManager->createQueryBuilder($this->getJobClass());
         $builder->find();
 
         $builder->sort('whenAt', 'asc');
@@ -293,14 +296,14 @@ class JobManager extends BaseJobManager
         // Update priority or whenAt
         //  This makes sure if someone else is updating at the same time
         //  that we don't trounce their changes.
-        $builder = $objectManager->createQueryBuilder($this->getObjectName());
+        $builder = $objectManager->createQueryBuilder($this->getJobClass());
         $builder->findAndUpdate();
         $builder->field('_id')->equals($oldJob->getId());
         $builder->field('priority')->lt($job->getPriority());
         $builder->field('priority')->set($job->getPriority());
         $builder->getQuery()->execute();
 
-        $builder = $objectManager->createQueryBuilder($this->getObjectName());
+        $builder = $objectManager->createQueryBuilder($this->getJobClass());
         $builder->findAndUpdate();
         $builder->field('_id')->equals($oldJob->getId());
         $builder->field('whenAt')->gt($job->getWhenAt());

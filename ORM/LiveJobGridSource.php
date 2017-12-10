@@ -19,7 +19,7 @@ class LiveJobGridSource extends EntityGridSource
         $this->jobManager = $jobManager;
         /** @var EntityManager $entityManager */
         $entityManager = $jobManager->getObjectManager();
-        parent::__construct($entityManager, $jobManager->getObjectName());
+        parent::__construct($entityManager, $jobManager->getJobClass());
     }
 
     public function getColumns()

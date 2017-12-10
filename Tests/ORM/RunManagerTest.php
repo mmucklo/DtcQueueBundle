@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Tests\ORM;
 
+use Dtc\QueueBundle\Entity\RunArchive;
 use PHPUnit\Framework\TestCase;
 
 class RunManagerTest extends TestCase
@@ -12,8 +13,7 @@ class RunManagerTest extends TestCase
         $jobManager = JobManagerTest::$jobManager;
         $runClass = \Dtc\QueueBundle\Entity\Run::class;
         $runArchiveClass = \Dtc\QueueBundle\Entity\RunArchive::class;
-        $runManager = new \Dtc\QueueBundle\ORM\RunManager($jobManager->getObjectManager(), $runClass, \Dtc\QueueBundle\Entity\JobTiming::class, true);
-        $runManager->setRunArchiveClass($runArchiveClass);
+        $runManager = new \Dtc\QueueBundle\ORM\RunManager($jobManager->getObjectManager(), $runClass, RunArchive::class);
         $objectManager = $runManager->getObjectManager();
         $runRepository = $objectManager->getRepository($runClass);
         self::assertEmpty($runRepository->findAll());

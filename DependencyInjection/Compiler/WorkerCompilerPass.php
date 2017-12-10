@@ -26,7 +26,6 @@ class WorkerCompilerPass implements CompilerPassInterface
         $this->setupAliases($container);
 
         $definition = $container->getDefinition('dtc_queue.worker_manager');
-        $jobManagerRef = array(new Reference('dtc_queue.job_manager'));
 
         $jobClass = $this->getJobClass($container);
         $jobArchiveClass = $this->getJobClassArchive($container);
@@ -34,12 +33,13 @@ class WorkerCompilerPass implements CompilerPassInterface
         $container->setParameter('dtc_queue.class_job_archive', $jobArchiveClass);
 
         $managerType = $this->getRunManagerType($container);
-        $container->setParameter('dtc_queue.class_job_timing', $this->getClass($container, $managerType, 'job_timing',
+        $jobTimingManagerType = $this->getJobTimingManagerType($container);
+        $container->setParameter('dtc_queue.class_job_timing', $this->getClass($container, $jobTimingManagerType, 'job_timing',
             'JobTiming', JobTiming::class));
         $container->setParameter('dtc_queue.class_run', $this->getClass($container, $managerType, 'run', 'Run', Run::class));
         $container->setParameter('dtc_queue.class_run_archive', $this->getClass($container, $managerType, 'run_archive', 'RunArchive', Run::class));
 
-        $this->setupTaggedServices($container, $definition, $jobManagerRef, $jobClass);
+        $this->setupTaggedServices($container, $definition, $jobClass);
         $eventDispatcher = $container->getDefinition('dtc_queue.event_dispatcher');
         foreach ($container->findTaggedServiceIds('dtc_queue.event_subscriber') as $id => $attributes) {
             $eventSubscriber = $container->getDefinition($id);
@@ -52,24 +52,28 @@ class WorkerCompilerPass implements CompilerPassInterface
     {
         $definitionName = 'dtc_queue.'.$type.'.'.$defaultManagerType;
         if (!$container->hasDefinition($definitionName) && !$container->hasAlias($definitionName)) {
-            throw new InvalidConfigurationException("No job manager found for dtc_queue.$type.$defaultManagerType");
+            throw new InvalidConfigurationException("No $type manager found for dtc_queue.$type.$defaultManagerType");
         }
         if ($container->hasDefinition($definitionName)) {
             $alias = new Alias('dtc_queue.'.$type.'.'.$defaultManagerType);
             $alias->setPublic(true);
             $container->setAlias('dtc_queue.'.$type, $alias);
-        } else {
-            $container->getAlias($definitionName)->setPublic(true);
-            $container->setAlias('dtc_queue.'.$type, $container->getAlias($definitionName));
+
+            return;
         }
+
+        $container->getAlias($definitionName)->setPublic(true);
+        $container->setAlias('dtc_queue.'.$type, $container->getAlias($definitionName));
     }
 
     protected function setupAliases(ContainerBuilder $container)
     {
         $defaultManagerType = $container->getParameter('dtc_queue.default_manager');
         $this->setupAlias($container, $defaultManagerType, 'job_manager');
-        $defaultRunManagerType = $container->getParameter('dtc_queue.run_manager');
-        $this->setupAlias($container, $defaultRunManagerType, 'run_manager');
+        $runManagerType = $container->getParameter($this->getRunManagerType($container));
+        $this->setupAlias($container, $runManagerType, 'run_manager');
+        $jobTimingManagerType = $container->getParameter($this->getJobTimingManagerType($container));
+        $this->setupAlias($container, $jobTimingManagerType, 'job_timing_manager');
     }
 
     /**
@@ -77,8 +81,9 @@ class WorkerCompilerPass implements CompilerPassInterface
      * @param Reference[]      $jobManagerRef
      * @param string           $jobClass
      */
-    protected function setupTaggedServices(ContainerBuilder $container, Definition $definition, array $jobManagerRef, $jobClass)
+    protected function setupTaggedServices(ContainerBuilder $container, Definition $definition, $jobClass)
     {
+        $jobManagerRef = array(new Reference('dtc_queue.job_manager'));
         // Add each worker to workerManager, make sure each worker has instance to work
         foreach ($container->findTaggedServiceIds('dtc_queue.worker') as $id => $attributes) {
             $worker = $container->getDefinition($id);
@@ -169,6 +174,16 @@ class WorkerCompilerPass implements CompilerPassInterface
         $managerType = 'dtc_queue.default_manager';
         if ($container->hasParameter('dtc_queue.run_manager')) {
             $managerType = 'dtc_queue.run_manager';
+        }
+
+        return $managerType;
+    }
+
+    protected function getJobTimingManagerType(ContainerBuilder $container)
+    {
+        $managerType = $this->getRunManagerType($container);
+        if ($container->hasParameter('dtc_queue.job_timing_manager')) {
+            $managerType = 'dtc_queue.job_timing_manager';
         }
 
         return $managerType;

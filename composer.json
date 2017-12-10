@@ -42,10 +42,14 @@
         "doctrine/orm": "for working with RDBMS",
         "doctrine/mongodb-odm": "for a mongo db based queue",
         "oro/doctrine-extensions": "For YEAR, MONTH, DAY, HOUR, MINUTE date functions if using JobTiming trends",
-        "beberlei/DoctrineExtensions": "Alternative for YEAR, MONTH, DAY, HOUR, MINUTE if using JobTiming trends"
+        "beberlei/DoctrineExtensions": "Alternative for YEAR, MONTH, DAY, HOUR, MINUTE if using JobTiming trends",
+        "alcaeus/mongo-php-adapter": "If trying to use MongoDB ODM on PHP 7.0 or greater"
     },
     "config": {
-        "bin-dir": "bin"
+        "bin-dir": "bin",
+        "platform": {
+            "ext-mongo": "1.6.16"
+        }
     },
     "autoload": {
         "psr-4": { "Dtc\\QueueBundle\\": "" },

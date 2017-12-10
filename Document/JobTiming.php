@@ -36,4 +36,10 @@ class JobTiming extends BaseJobTiming
      * @ODM\Index(unique=false, order="asc")
      */
     protected $finishedAt;
+
+    /**
+     * @ODM\Field(type="integer")
+     * @ODM\Index(unique=false, order="asc")
+     */
+    protected $status;
 }

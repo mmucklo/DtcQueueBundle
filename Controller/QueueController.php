@@ -4,10 +4,12 @@ namespace Dtc\QueueBundle\Controller;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ORM\EntityManager;
-use Dtc\QueueBundle\Doctrine\BaseRunManager;
+use Dtc\QueueBundle\Doctrine\BaseJobTimingManager;
 use Dtc\QueueBundle\Exception\UnsupportedException;
+use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Model\Worker;
-use Dtc\QueueBundle\ODM\RunManager;
+use Dtc\QueueBundle\ODM\JobManager;
+use Dtc\QueueBundle\ODM\JobTimingManager;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -121,9 +123,20 @@ class QueueController extends Controller
         $params['chartjs'] = $this->container->getParameter('dtc_queue.admin.chartjs');
     }
 
+    protected function validateJobTimingManager()
+    {
+        if ($this->container->hasParameter('dtc_queue.job_timing_manager')) {
+            $this->validateManagerType('dtc_queue.job_timing_manager');
+        } elseif ($this->container->hasParameter('dtc_queue.job_timing_manager')) {
+            $this->validateManagerType('dtc_queue.run_manager');
+        } else {
+            $this->validateManagerType('dtc_queue.default_manager');
+        }
+    }
+
     protected function validateRunManager()
     {
-        if ($this->container->hasParameter('dtc_queue.run_manager')) {
+        if ($this->container->hasParameter('dtc_queue.job_timing_manager')) {
             $this->validateManagerType('dtc_queue.run_manager');
         } else {
             $this->validateManagerType('dtc_queue.default_manager');
@@ -179,7 +192,7 @@ class QueueController extends Controller
     public function trendsAction()
     {
         $recordTimings = $this->container->getParameter('dtc_queue.record_timings');
-        $params = ['record_timings' => $recordTimings];
+        $params = ['record_timings' => $recordTimings, 'states' => JobTiming::getStates()];
         $this->addCssJs($params);
 
         return $params;
@@ -204,21 +217,34 @@ class QueueController extends Controller
         if ($recordTimings) {
             $params = $this->calculateTimings($type, $beginDate, $endDate);
         }
+
         return new JsonResponse($params);
     }
 
-    protected function calculateTimings($type, $beginDate, $endDate) {
+    protected function calculateTimings($type, $beginDate, $endDate)
+    {
         $params = [];
-        $this->validateRunManager();
+        $this->validateJobTimingManager();
 
-        /** @var BaseRunManager $runManager */
-        $runManager = $this->get('dtc_queue.run_manager');
-        if ($runManager instanceof RunManager) {
+        /** @var BaseJobTimingManager $jobTimingManager */
+        $jobTimingManager = $this->get('dtc_queue.job_timing_manager');
+        if ($jobTimingManager instanceof JobTimingManager) {
             $timings = $this->getJobTimingsOdm($type, $endDate, $beginDate);
         } else {
             $timings = $this->getJobTimingsOrm($type, $endDate, $beginDate);
         }
-        uksort($timings, function ($date1str, $date2str) {
+
+        $timingStates = JobTiming::getStates();
+        $timingsDates = [];
+        foreach (array_keys($timingStates) as $state) {
+            if (!isset($timings[$state])) {
+                continue;
+            }
+            $timingsData = $timings[$state];
+            $timingsDates = array_unique(array_merge(array_keys($timingsData), $timingsDates));
+        }
+
+        usort($timingsDates, function ($date1str, $date2str) {
             $date1 = \DateTime::createFromFormat('Y-m-d H', $date1str);
             $date2 = \DateTime::createFromFormat('Y-m-d H', $date2str);
             if (!$date2) {
@@ -231,18 +257,29 @@ class QueueController extends Controller
             return $date1 > $date2;
         });
 
-        $params['timings_dates'] = array_keys($timings);
-        $params['timings_data'] = array_values($timings);
+        foreach (array_keys($timingStates) as $state) {
+            if (!isset($timings[$state])) {
+                continue;
+            }
+
+            $timingsData = $timings[$state];
+            foreach ($timingsDates as $date) {
+                $params['timings_data_'.$state][] = isset($timingsData[$date]) ? $timingsData[$date] : 0;
+            }
+        }
+        $params['timings_dates'] = $timingsDates;
+
         return $params;
     }
 
     protected function getJobTimingsOdm($type, \DateTime $end, \DateTime $begin = null)
     {
-        /** @var RunManager $runManager */
-        $runManager = $this->get('dtc_queue.run_manager');
-        $jobTimingClass = $runManager->getJobTimingClass();
+        /** @var JobTimingManager $runManager */
+        $jobTimingManager = $this->get('dtc_queue.job_timing_manager');
+        $jobTimingClass = $jobTimingManager->getJobTimingClass();
+
         /** @var DocumentManager $documentManager */
-        $documentManager = $runManager->getObjectManager();
+        $documentManager = $jobTimingManager->getObjectManager();
 
         $regexInfo = $this->getRegexDate($type);
         if (!$begin) {
@@ -257,13 +294,12 @@ class QueueController extends Controller
             var dateBegin = new Date('{$begin->format('c')}');
             var dateEnd = new Date('{$end->format('c')}');
             if (this.finishedAt >= dateBegin && this.finishedAt <= dateEnd) {
-                emit(dateStr, 1);
+                var result = {};
+                result[dateStr] = 1;
+                emit(this.status, result);
             }
         }";
-        $reduceFunc = 'function(k, vals) {
-            return Array.sum(vals);
-        }';
-
+        $reduceFunc = JobManager::REDUCE_FUNCTION;
         $builder = $documentManager->createQueryBuilder($jobTimingClass);
         $builder->map($mapFunc)
             ->reduce($reduceFunc);
@@ -323,11 +359,11 @@ class QueueController extends Controller
 
     protected function getJobTimingsOrm($type, \DateTime $end, \DateTime $begin = null)
     {
-        /** @var RunManager $runManager */
-        $runManager = $this->get('dtc_queue.run_manager');
-        $jobTimingClass = $runManager->getJobTimingClass();
+        /** @var JobTimingManager $jobTimingManager */
+        $jobTimingManager = $this->get('dtc_queue.job_timing_manager');
+        $jobTimingClass = $jobTimingManager->getJobTimingClass();
         /** @var EntityManager $entityManager */
-        $entityManager = $runManager->getObjectManager();
+        $entityManager = $jobTimingManager->getObjectManager();
 
         $groupByInfo = $this->getOrmGroupBy($type);
 
@@ -336,20 +372,21 @@ class QueueController extends Controller
             $begin->sub($groupByInfo['interval']);
         }
 
-        $queryBuilder = $entityManager->createQueryBuilder()->select("count(j.finishedAt) as thecount, {$groupByInfo['groupby']} as thedate")
+        $queryBuilder = $entityManager->createQueryBuilder()->select("j.status as status, count(j.finishedAt) as thecount, {$groupByInfo['groupby']} as thedate")
             ->from($jobTimingClass, 'j')
             ->where('j.finishedAt <= :end')
             ->andWhere('j.finishedAt >= :begin')
             ->setParameter(':end', $end)
             ->setParameter(':begin', $begin)
-            ->groupBy('thedate');
+            ->groupBy('status')
+            ->addGroupBy('thedate');
 
         $result = $queryBuilder
             ->getQuery()->getArrayResult();
 
         $resultHash = [];
         foreach ($result as $row) {
-            $resultHash[$row['thedate']] = intval($row['thecount']);
+            $resultHash[$row['status']][$row['thedate']] = intval($row['thecount']);
         }
 
         return $resultHash;

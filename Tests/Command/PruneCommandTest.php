@@ -43,7 +43,7 @@ class PruneCommandTest extends TestCase
         $repository = $jobManager->getRepository();
         $count = $repository->createQueryBuilder()->getQuery()->count(true);
         self::assertEquals(1, $count);
-        $archiveRepository = $jobManager->getObjectManager()->getRepository($jobManager->getArchiveObjectName());
+        $archiveRepository = $jobManager->getObjectManager()->getRepository($jobManager->getJobArchiveClass());
         $countArchive = $archiveRepository->createQueryBuilder()->getQuery()->count(true);
         self::assertEquals(0, $countArchive);
 

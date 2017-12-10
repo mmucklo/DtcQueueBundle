@@ -8,9 +8,12 @@ use Doctrine\ODM\MongoDB\DocumentRepository;
 use Doctrine\ORM\EntityRepository;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\JobTiming;
+use Dtc\QueueBundle\Model\JobTimingManager;
 use Dtc\QueueBundle\Model\PriorityJobManager;
 use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\Run;
+use Dtc\QueueBundle\Model\RunManager;
 use Dtc\QueueBundle\Util\Util;
 
 abstract class BaseJobManager extends PriorityJobManager
@@ -20,11 +23,15 @@ abstract class BaseJobManager extends PriorityJobManager
 
     /** Number of seconds before a job is considered stalled if the runner is no longer active */
     const STALLED_SECONDS = 1800;
+
+    /**
+     * @var ObjectManager
+     */
     protected $objectManager;
-    protected $objectName;
-    protected $archiveObjectName;
-    protected $runClass;
-    protected $runArchiveClass;
+    /**
+     * @var string
+     */
+    protected $jobArchiveClass;
 
     /**
      * @param string $objectName
@@ -32,17 +39,13 @@ abstract class BaseJobManager extends PriorityJobManager
      * @param string $runClass
      * @param string $runArchiveClass
      */
-    public function __construct(ObjectManager $objectManager,
-        $objectName,
-        $archiveObjectName,
-        $runClass,
-        $runArchiveClass)
+    public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, ObjectManager $objectManager,
+        $jobClass,
+        $jobArchiveClass)
     {
         $this->objectManager = $objectManager;
-        $this->objectName = $objectName;
-        $this->archiveObjectName = $archiveObjectName;
-        $this->runClass = $runClass;
-        $this->runArchiveClass = $runArchiveClass;
+        $this->jobArchiveClass = $jobArchiveClass;
+        parent::__construct($runManager, $jobTimingManager, $jobClass);
     }
 
     /**
@@ -56,33 +59,9 @@ abstract class BaseJobManager extends PriorityJobManager
     /**
      * @return string
      */
-    public function getObjectName()
+    public function getJobArchiveClass()
     {
-        return $this->objectName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getArchiveObjectName()
-    {
-        return $this->archiveObjectName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getRunClass()
-    {
-        return $this->runClass;
-    }
-
-    /**
-     * @return string
-     */
-    public function getRunArchiveClass()
-    {
-        return $this->runArchiveClass;
+        return $this->jobArchiveClass;
     }
 
     /**
@@ -90,7 +69,7 @@ abstract class BaseJobManager extends PriorityJobManager
      */
     public function getRepository()
     {
-        return $this->getObjectManager()->getRepository($this->getObjectName());
+        return $this->getObjectManager()->getRepository($this->getJobClass());
     }
 
     /**
@@ -100,7 +79,7 @@ abstract class BaseJobManager extends PriorityJobManager
 
     public function resetErroneousJobs($workerName = null, $method = null)
     {
-        $count = $this->countJobsByStatus($this->getArchiveObjectName(), Job::STATUS_ERROR, $workerName, $method);
+        $count = $this->countJobsByStatus($this->getJobArchiveClass(), Job::STATUS_ERROR, $workerName, $method);
 
         $criterion = ['status' => Job::STATUS_ERROR];
         $this->addWorkerNameMethod($criterion, $workerName, $method);
@@ -144,15 +123,20 @@ abstract class BaseJobManager extends PriorityJobManager
         $finalCount = 0;
         for ($i = 0; $i < $count; $i += static::FETCH_COUNT) {
             $expiredJobs = $repository->findBy($criterion, null, static::FETCH_COUNT, $i);
+            $innerCount = 0;
             if (!empty($expiredJobs)) {
                 foreach ($expiredJobs as $expiredJob) {
                     /* @var Job $expiredJob */
                     $expiredJob->setStatus(Job::STATUS_EXPIRED);
                     $objectManager->remove($expiredJob);
                     ++$finalCount;
+                    ++$innerCount;
                 }
             }
             $this->flush();
+            for ($j = 0; $j < $innerCount; ++$j) {
+                $this->jobTiminigManager->recordTiming(JobTiming::STATUS_FINISHED_EXPIRED);
+            }
         }
 
         return $finalCount;
@@ -165,7 +149,7 @@ abstract class BaseJobManager extends PriorityJobManager
 
     protected function getStalledJobs($workerName = null, $method = null)
     {
-        $count = $this->countJobsByStatus($this->getObjectName(), Job::STATUS_RUNNING, $workerName, $method);
+        $count = $this->countJobsByStatus($this->getJobClass(), Job::STATUS_RUNNING, $workerName, $method);
 
         $criterion = ['status' => BaseJob::STATUS_RUNNING];
         $this->addWorkerNameMethod($criterion, $workerName, $method);
@@ -203,7 +187,7 @@ abstract class BaseJobManager extends PriorityJobManager
     protected function extractStalledLiveRuns($runId, array $jobs, array &$stalledJobs)
     {
         $objectManager = $this->getObjectManager();
-        $runRepository = $objectManager->getRepository($this->runClass);
+        $runRepository = $objectManager->getRepository($this->getRunManager()->getRunClass());
         if ($run = $runRepository->find($runId)) {
             foreach ($jobs as $job) {
                 if ($run->getCurrentJobId() == $job->getId()) {
@@ -221,25 +205,36 @@ abstract class BaseJobManager extends PriorityJobManager
      */
     protected function extractStalledJobs(array $runningJobsById)
     {
-        $objectManager = $this->getObjectManager();
-        /** @var EntityRepository|DocumentRepository $runArchiveRepository */
-        $runArchiveRepository = $objectManager->getRepository($this->runArchiveClass);
-
         $stalledJobs = [];
         foreach (array_keys($runningJobsById) as $runId) {
             $this->extractStalledLiveRuns($runId, $runningJobsById[$runId], $stalledJobs);
-            /** @var Run $run */
-            if ($run = $runArchiveRepository->find($runId)) {
-                if ($endTime = $run->getEndedAt()) {
-                    // Did it end over an hour ago
-                    if ((time() - $endTime->getTimestamp()) > static::STALLED_SECONDS) {
-                        $stalledJobs = array_merge($stalledJobs, $runningJobsById[$runId]);
-                    }
-                }
-            }
+            $this->extractStalledJobsRunArchive($runningJobsById, $stalledJobs, $runId);
         }
 
         return $stalledJobs;
+    }
+
+    protected function extractStalledJobsRunArchive(array $runningJobsById, array &$stalledJobs, $runId)
+    {
+        $runManager = $this->getRunManager();
+        if (!method_exists($runManager, 'getObjectManager')) {
+            return;
+        }
+        if (!method_exists($runManager, 'getRunArchiveClass')) {
+            return;
+        }
+
+        /** @var EntityRepository|DocumentRepository $runArchiveRepository */
+        $runArchiveRepository = $runManager->getObjectManager()->getRepository($runManager->getRunArchiveClass());
+        /** @var Run $run */
+        if ($run = $runArchiveRepository->find($runId)) {
+            if ($endTime = $run->getEndedAt()) {
+                // Did it end over an hour ago
+                if ((time() - $endTime->getTimestamp()) > static::STALLED_SECONDS) {
+                    $stalledJobs = array_merge($stalledJobs, $runningJobsById[$runId]);
+                }
+            }
+        }
     }
 
     protected function updateMaxStatus(RetryableJob $job, $status, $max = null, $count = 0)
@@ -256,6 +251,7 @@ abstract class BaseJobManager extends PriorityJobManager
     protected function runStalledLoop($i, $count, array $stalledJobs, &$countProcessed)
     {
         $objectManager = $this->getObjectManager();
+        $newCount = 0;
         for ($j = $i, $max = $i + static::FETCH_COUNT; $j < $max && $j < $count; ++$j) {
             /* RetryableJob $job */
             $job = $stalledJobs[$j];
@@ -263,6 +259,7 @@ abstract class BaseJobManager extends PriorityJobManager
             if ($this->updateMaxStatus($job, RetryableJob::STATUS_MAX_STALLED, $job->getMaxStalled(), $job->getStalledCount()) ||
                 $this->updateMaxStatus($job, RetryableJob::STATUS_MAX_RETRIES, $job->getMaxRetries(), $job->getRetries())) {
                 $objectManager->remove($job);
+                $this->jobTiminigManager->recordTiming(JobTiming::STATUS_FINISHED_STALLED);
                 continue;
             }
 
@@ -271,8 +268,11 @@ abstract class BaseJobManager extends PriorityJobManager
             $job->setLocked(null);
             $job->setLockedAt(null);
             $objectManager->persist($job);
+            ++$newCount;
             ++$countProcessed;
         }
+
+        return $newCount;
     }
 
     public function resetStalledJobs($workerName = null, $method = null)
@@ -281,8 +281,12 @@ abstract class BaseJobManager extends PriorityJobManager
 
         $countProcessed = 0;
         for ($i = 0, $count = count($stalledJobs); $i < $count; $i += static::FETCH_COUNT) {
-            $this->runStalledLoop($i, $count, $stalledJobs, $countProcessed);
+            $newCount = $this->runStalledLoop($i, $count, $stalledJobs, $countProcessed);
             $this->flush();
+            for ($j = 0; $j < $newCount; ++$j) {
+                $this->jobTiminigManager->recordTiming(JobTiming::STATUS_FINISHED_STALLED);
+                $this->jobTiminigManager->recordTiming(JobTiming::STATUS_INSERT);
+            }
         }
 
         return $countProcessed;
@@ -371,8 +375,8 @@ abstract class BaseJobManager extends PriorityJobManager
     {
         $objectManager = $this->getObjectManager();
         $this->resetSaveOk(__FUNCTION__);
-        $objectName = $this->getObjectName();
-        $archiveObjectName = $this->getArchiveObjectName();
+        $objectName = $this->getJobClass();
+        $archiveObjectName = $this->getJobArchiveClass();
         $jobRepository = $objectManager->getRepository($objectName);
         $jobArchiveRepository = $objectManager->getRepository($archiveObjectName);
         $className = $jobRepository->getClassName();
@@ -430,9 +434,9 @@ abstract class BaseJobManager extends PriorityJobManager
         $job->setStartedAt(null);
         $job->setElapsed(null);
         $job->setRetries($job->getRetries() + 1);
-
         $objectManager->persist($job);
         $objectManager->remove($jobArchive);
+        $this->jobTiminigManager->recordTiming(JobTiming::STATUS_INSERT);
         ++$countProcessed;
     }
 }

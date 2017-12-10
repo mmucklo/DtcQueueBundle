@@ -2,11 +2,14 @@
 
 namespace Dtc\QueueBundle\RabbitMQ;
 
+use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Model\PriorityJobManager;
 use Dtc\QueueBundle\Exception\ArgumentsNotSetException;
 use Dtc\QueueBundle\Exception\ClassNotSubclassException;
 use Dtc\QueueBundle\Exception\PriorityException;
 use Dtc\QueueBundle\Exception\UnsupportedException;
+use Dtc\QueueBundle\Model\RunManager;
+use Dtc\QueueBundle\Model\JobTimingManager;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AbstractConnection;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -26,10 +29,11 @@ class JobManager extends PriorityJobManager
     protected $hostname;
     protected $pid;
 
-    public function __construct()
+    public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, $jobClass)
     {
         $this->hostname = gethostname() ?: '';
         $this->pid = getmypid();
+        parent::__construct($runManager, $jobTimingManager, $jobClass);
     }
 
     /**
@@ -228,6 +232,7 @@ class JobManager extends PriorityJobManager
             if (($expiresAt = $job->getExpiresAt()) && $expiresAt->getTimestamp() < time()) {
                 $expiredJob = true;
                 $this->channel->basic_nack($message->delivery_info['delivery_tag']);
+                $this->jobTiminigManager->recordTiming(JobTiming::STATUS_FINISHED_EXPIRED);
 
                 return null;
             }

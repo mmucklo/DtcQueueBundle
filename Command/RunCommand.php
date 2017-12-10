@@ -16,62 +16,85 @@ use Symfony\Component\HttpKernel\Kernel;
 
 class RunCommand extends ContainerAwareCommand
 {
+    protected $loggerPrivate = false;
+    protected $nanoSleepOption = null;
+
+    protected function symfonyDetect()
+    {
+        $this->nanoSleepOption = null;
+        if (class_exists('Symfony\Component\HttpKernel\Kernel')) {
+            if (Kernel::VERSION_ID >= 30000) {
+                $this->nanoSleepOption = 's';
+            }
+            if (Kernel::VERSION_ID >= 30400) {
+                $this->loggerPrivate = true;
+            }
+        }
+    }
+
     protected function configure()
     {
-        $nanoSleep = null;
-        if (class_exists('Symfony\Component\HttpKernel\Kernel') && Kernel::VERSION_ID >= 30000) {
-            $nanoSleep = 's';
+        $this->symfonyDetect();
+        $options = array(
+            new InputArgument('worker-name', InputArgument::OPTIONAL, 'Name of worker', null),
+            new InputArgument('method', InputArgument::OPTIONAL, 'DI method of worker', null),
+            new InputOption(
+                'id',
+                'i',
+                InputOption::VALUE_REQUIRED,
+                'Id of Job to run',
+                null
+            ),
+            new InputOption(
+                'max-count',
+                'm',
+                InputOption::VALUE_REQUIRED,
+                'Maximum number of jobs to work on before exiting',
+                null
+            ),
+            new InputOption(
+                'duration',
+                'd',
+                InputOption::VALUE_REQUIRED,
+                'Duration to run for in seconds',
+                null
+            ),
+            new InputOption(
+                'timeout',
+                't',
+                InputOption::VALUE_REQUIRED,
+                'Process timeout in seconds (hard exit of process regardless)',
+                3600
+            ),
+            new InputOption(
+                'nano-sleep',
+                $this->nanoSleepOption,
+                InputOption::VALUE_REQUIRED,
+                'If using duration, this is the time to sleep when there\'s no jobs in nanoseconds',
+                500000000
+            ),
+            new InputOption(
+                'disable-gc',
+                null,
+                InputOption::VALUE_NONE,
+                'Disable garbage collection'
+            ),
+        );
+
+        // Symfony 4 and Symfony 3.4 out-of-the-box makes the logger private
+        if (!$this->loggerPrivate) {
+            $options[] =
+                new InputOption(
+                    'logger',
+                    'l',
+                    InputOption::VALUE_REQUIRED,
+                    'Log using the logger service specified, or output to console if null (or an invalid logger service id) is passed in'
+                );
         }
 
         $this
             ->setName('dtc:queue:run')
-            ->setDefinition(
-                array(
-                    new InputArgument('worker_name', InputArgument::OPTIONAL, 'Name of worker', null),
-                    new InputArgument('method', InputArgument::OPTIONAL, 'DI method of worker', null),
-                    new InputOption(
-                        'id',
-                        'i',
-                        InputOption::VALUE_REQUIRED,
-                        'Id of Job to run',
-                        null
-                    ),
-                    new InputOption(
-                        'max_count',
-                        'm',
-                        InputOption::VALUE_REQUIRED,
-                        'Maximum number of jobs to work on before exiting',
-                        null
-                    ),
-                    new InputOption(
-                        'duration',
-                        'd',
-                        InputOption::VALUE_REQUIRED,
-                        'Duration to run for in seconds',
-                        null
-                    ),
-                    new InputOption(
-                        'timeout',
-                        't',
-                        InputOption::VALUE_REQUIRED,
-                        'Process timeout in seconds (hard exit of process regardless)',
-                        3600
-                    ),
-                    new InputOption(
-                        'nano_sleep',
-                        $nanoSleep,
-                        InputOption::VALUE_REQUIRED,
-                        'If using duration, this is the time to sleep when there\'s no jobs in nanoseconds',
-                        500000000
-                    ),
-                    new InputOption(
-                        'logger',
-                        'l',
-                        InputOption::VALUE_REQUIRED,
-                        'Log using the logger service specified, or output to console if null (or an invalid logger service id) is passed in'
-                    ),
-                )
-            )
+            ->setDefinition($options)
             ->setDescription('Start up a job in queue');
     }
 
@@ -81,13 +104,15 @@ class RunCommand extends ContainerAwareCommand
         $container = $this->getContainer();
         $loop = $container->get('dtc_queue.run.loop');
         $loop->setOutput($output);
-        $workerName = $input->getArgument('worker_name');
+        $workerName = $input->getArgument('worker-name');
         $methodName = $input->getArgument('method');
-        $maxCount = $input->getOption('max_count');
+        $maxCount = $input->getOption('max-count');
         $duration = $input->getOption('duration');
         $processTimeout = $input->getOption('timeout');
-        $nanoSleep = $input->getOption('nano_sleep');
-        $loggerService = $input->getOption('logger');
+        $nanoSleep = $input->getOption('nano-sleep');
+        $loggerService = !$this->loggerPrivate ? $input->getOption('logger', null) : null;
+        $disableGc = $input->getOption('disable-gc', false);
+        $this->setGc($disableGc);
 
         $this->setLoggerService($loop, $loggerService);
 
@@ -105,6 +130,24 @@ class RunCommand extends ContainerAwareCommand
         }
 
         return $loop->runLoop($start, $workerName, $methodName, $maxCount, $duration, $nanoSleep);
+    }
+
+    /**
+     * @param bool $disableGc
+     */
+    protected function setGc($disableGc)
+    {
+        if ($disableGc) {
+            if (gc_enabled()) {
+                gc_disable();
+            }
+
+            return;
+        }
+
+        if (!gc_enabled()) {
+            gc_enable();
+        }
     }
 
     protected function setLoggerService(Loop $loop, $loggerService)

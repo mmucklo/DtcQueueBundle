@@ -5,6 +5,9 @@ namespace Dtc\QueueBundle\Tests\Command;
 use Dtc\QueueBundle\Command\CreateJobCommand;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\JobTimingManager;
+use Dtc\QueueBundle\Model\Run;
+use Dtc\QueueBundle\Model\RunManager;
 use Dtc\QueueBundle\Model\WorkerManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\StubJobManager;
@@ -17,7 +20,9 @@ class CreateJobCommandTest extends TestCase
 
     public function testCreateJobCommand()
     {
-        $jobManager = new StubJobManager();
+        $jobTimingManager = new JobTimingManager(JobTimingManager::class, false);
+        $runManager = new RunManager($jobTimingManager, Run::class);
+        $jobManager = new StubJobManager($runManager, $jobTimingManager, Job::class);
         $container = new Container();
         $container->set('dtc_queue.job_manager', $jobManager);
         $this->runCommandException(CreateJobCommand::class, $container, ['worker_name' => 'fibonacci', 'method' => 'fibonacci', 'args' => [1]]);

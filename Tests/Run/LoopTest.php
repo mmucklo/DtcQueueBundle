@@ -25,8 +25,7 @@ class LoopTest extends TestCase
         $worker->setJobManager($jobManager);
 
         $runClass = \Dtc\QueueBundle\Document\Run::class;
-        $jobTimingClass = \Dtc\QueueBundle\Document\JobTiming::class;
-        $runManager = new \Dtc\QueueBundle\Model\RunManager($runClass, $jobTimingClass, false);
+        $runManager = new \Dtc\QueueBundle\Model\RunManager($runClass);
         $loop = new Loop($workerManager, $jobManager, $runManager);
         $job = $worker->later()->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
@@ -113,8 +112,8 @@ class LoopTest extends TestCase
         self::assertEquals(1, $loop->getLastRun()->getProcessed());
 
         $documentManager = $jobManager->getObjectManager();
-        print_r($jobManager->getRunArchiveClass());
-        $runArchiveRepository = $documentManager->getRepository($jobManager->getRunArchiveClass());
+        print_r($runManager->getRunArchiveClass());
+        $runArchiveRepository = $documentManager->getRepository($runManager->getRunArchiveClass());
         self::assertNotNull($runArchiveRepository->find($id1));
         self::assertNotNull($runArchiveRepository->find($id2));
 

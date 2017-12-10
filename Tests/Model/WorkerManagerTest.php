@@ -4,6 +4,10 @@ namespace Dtc\QueueBundle\Tests\Model;
 
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\JobTiming;
+use Dtc\QueueBundle\Model\JobTimingManager;
+use Dtc\QueueBundle\Model\Run;
+use Dtc\QueueBundle\Model\RunManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\StaticJobManager;
 use Dtc\QueueBundle\Model\WorkerManager;
@@ -21,7 +25,9 @@ class WorkerManagerTest extends TestCase
 
     public function setup()
     {
-        $this->jobManager = new StaticJobManager();
+        $jobTimingManager = new JobTimingManager(JobTiming::class, false);
+        $runManager = new RunManager(Run::class);
+        $this->jobManager = new StaticJobManager($runManager, $jobTimingManager, Job::class);
         $this->worker = new FibonacciWorker();
         $this->worker->setJobManager($this->jobManager);
         $this->eventDispatcher = new EventDispatcher();
