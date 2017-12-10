@@ -42,8 +42,6 @@ Installation
 
 [see /Resources/doc/symfony2_3.md](/Resources/doc/symfony2_3.md)
 
-NOTE: for the examples below, the namespace will typically start with __AppBundle\\__ instead of __App\\__
-
 ### Symfony 4
 
 [see /Resources/doc/symfony4.md](/Resources/doc/symfony4.md)
