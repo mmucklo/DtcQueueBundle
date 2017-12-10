@@ -40,7 +40,7 @@ Installation
 
 ### Symfony 2/3
 
-[see /Resources/doc/symfony2_3.md](/Resources/doc/symfony2_3.md)
+[see /Resources/doc/symfony2-3.md](/Resources/doc/symfony2-3.md)
 
 ### Symfony 4
 
@@ -96,15 +96,7 @@ class FibonacciWorker
 
 Create a DI service for the job, and tag it as a background worker.
 
-XML:
-```xml
-<services>
-	<service id="fibonacci_worker" class="FibonacciWorker">
-	    <tag name="dtc_queue.worker" />
-	</service>
-```
-	
-YAML:
+##### YAML:
 
 __Symfony 4 and 3.3, 3.4:__
 ```yaml
@@ -126,6 +118,18 @@ services:
         tags:
             - { name: "dtc_queue.worker" }
 ```
+
+##### XML:
+```xml
+<services>
+	<!-- ... -->
+	<service id="fibonacci_worker" class="FibonacciWorker">
+	    <tag name="dtc_queue.worker" />
+	</service>
+	<!-- ... -->
+</services>
+```
+	
 
 #### Create a job
 
@@ -501,79 +505,7 @@ sudo service beanstalkd restart; BEANSTALD_HOST=localhost bin/phpunit Tests/Bean
 
 Full Configuration
 ==================
-```yaml
-dtc_queue:
-    document_manager: default
-    entity_manager: default
-    # default_manager
-    #
-    #  builtins: orm, odm, beanstalkd, rabbit_mq
-    default_manager: odm
-    #
-    # run_manager: can be set to any of the same options as
-    #
-    #  "default_manager", defaults to what ever default_manager is set to
-    run_manager: ~
-    #
-    # job_timing_manager: can be set to any of the same options as
-    #
-    #  "default_manager", defaults to what ever run_manager is set to
-    job_timing_manager: ~
-    class_job: ~
-    class_job_archive: ~
-    class_run: ~
-    class_run_archive: ~
-    #
-    # record_timings
-    #
-    #  Whether to record job timings in a separate job_timings
-    #  table / collection (uses same store as run_manager)
-    record_timings: false
-    #
-    # prioirty_max: int
-    #
-    #  255 is the recommended max for RabbitMQ, although Mongo/ORM
-    #  could be set to INT_MAX for their platform
-    priority_max: 255
-    #
-    # priority_direction
-    #
-    #  "desc" means 1 is high priority, "asc" means 1 is low prioirty
-    #
-    #  In the queue and database, priorities will always be stored
-    #   in ascending order, however, (so as to sort null as the lowest)
-    #  
-    #  This is for the direction that a Job's setPriority() method
-    #   uses, plus direction that the priority argument of such
-    #   functions as later()
-    priority_direction: desc
-    admin:
-        chartjs: https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js
-    beanstalkd:
-        host: ~
-        tube: ~
-    rabbit_mq:
-        host: ~
-        port: ~
-        user: ~
-        password: ~
-        vhost: "/"
-        ssl: false
-        options: ~
-        ssl_options: ~
-        queue_args:
-            queue: dtc_queue
-            passive: false
-            durable: true
-            exclusive: false
-            auto_delete: false
-       exchange_args:
-            exchange: dtc_queue_exchange
-            type: direct
-            passive: false
-            durable: true
-            auto_delete: false
-```
+See [/Resources/doc/full-configuration.md](/Resources/doc/full-configuration.md)
 
 License
 -------
