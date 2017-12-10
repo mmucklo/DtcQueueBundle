@@ -1,3 +1,5 @@
+### 3.0.1
+   * Bump DtcGridBundle requirement
 ### 3.0.0
    * Symfony 4 support
    * Enabled Garbage collection during usage of RunCommand, but allow it to be disabled via a command-line option --disable-gc
