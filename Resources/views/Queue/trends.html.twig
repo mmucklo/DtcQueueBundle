@@ -9,6 +9,14 @@
         .view #type-spin {
             font-size: 5px;
         }
+
+        #range-container {
+            display: none;
+        }
+
+        .range input[type=range] {
+            width: 100%;
+        }
     </style>
 {% endblock %}
 
@@ -42,11 +50,42 @@ dtc_queue:
         <div>
             <canvas id="trends"></canvas>
         </div>
+        <div id="range-container">
+            <label for="date-adjuster">Range: </label> <input id="date-adjuster" type="range" max="23" value="23" min="0" /> <span id="date-adjuster-value"></span>
+        </div>
         <script>
-            var canvasElement = document.getElementById('trends');
+            var ranges = {
+                YEAR: {
+                    max: 9
+                },
+                MONTH: {
+                    max: 11
+                },
+                DAY: {
+                    max: 30
+                },
+                HOUR: {
+                    max: 23
+                },
+                MINUTE: {
+                    max: 59
+                }
+            };
+
+            var states = {{ states | json_encode | raw }};
             var selectElement = document.getElementById('type');
             var spinElement = document.getElementById('type-spin');
+            var rangeElement = document.getElementById('date-adjuster');
+
             var prevIdx;
+
+            selectElement.onchange=fetchData;
+            fetchData();
+
+            function calculateRangeLabel() {
+
+            }
+
             function fetchData() {
                 var idx = selectElement.selectedIndex;
                 if (prevIdx === idx) {
@@ -61,30 +100,43 @@ dtc_queue:
                   fetch('{{ path('dtc_queue_timings') }}?type=' + selectedValue).then(function(response) {
                     if (response.status === 200) {
                       response.json().then(function (data) {
-                        renderTrends(data.timings_dates, data.timings_data, selectedValue.toString().toLowerCase());
+                        renderTrends(data, selectedValue.toString().toLowerCase());
                         spinElement.style.visibility = 'hidden';
                       });
                     }
                   });
                 }
             }
-            selectElement.onchange=fetchData;
-            fetchData();
-            function renderTrends(timingsDates, timingsData, label) {
-              var red = 'rgb(255, 99, 132)';
-              var canvasEle = document.getElementById('trends');
-              var chart = new Chart(canvasEle, {
-                type: 'line',
-                data: {
-                  labels: timingsDates,
-                  datasets: [{
-                    label: "Jobs processed per " + label,
-                    backgroundColor: 'blue',
-                    borderColor: 'blue',
-                    data: timingsData,
-                    fill: false
-                  }]
-                },
+
+            function renderTrends(data, label) {
+                var datasets = [];
+                var curLabel;
+                var curColor;
+                var timingsData;
+                for (var state in states) {
+                    if (states.hasOwnProperty(state)) {
+                        curLabel = states[state].label;
+                        curColor = states[state].color;
+                        timingsData = data['timings_data_' + state];
+                        datasets.push(
+                            {
+                                label: curLabel,
+                                backgroundColor: curColor,
+                                borderColor: curColor,
+                                data: timingsData,
+                                fill: false
+                            }
+                        );
+                    }
+                }
+                var red = 'rgb(255, 99, 132)';
+                var canvasEle = document.getElementById('trends');
+                var chart = new Chart(canvasEle, {
+                    type: 'line',
+                    data: {
+                      labels: data['timings_dates'],
+                      datasets: datasets
+                    },
                 options: {
                   responsive: true,
                   title: {

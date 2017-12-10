@@ -4,6 +4,8 @@ namespace Dtc\QueueBundle\Tests;
 
 use Dtc\QueueBundle\Model\AbstractJobManager;
 use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\JobTimingManager;
+use Dtc\QueueBundle\Model\RunManager;
 
 /**
  * @author David Tee
@@ -16,10 +18,11 @@ class StaticJobManager extends AbstractJobManager
     private $uniqeId;
     public $enableSorting = true;
 
-    public function __construct()
+    public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, $jobClass)
     {
         $this->jobs = array();
         $this->uniqeId = 1;
+        parent::__construct($runManager, $jobTimingManager, $jobClass);
     }
 
     public function getJobCount($workerName = null, $methodName = null)

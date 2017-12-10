@@ -58,7 +58,7 @@ class JobManager extends BaseJobManager
     {
         /** @var EntityManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $queryBuilder = $objectManager->createQueryBuilder()->delete($this->getArchiveObjectName(), 'j');
+        $queryBuilder = $objectManager->createQueryBuilder()->delete($this->getJobArchiveClass(), 'j');
         $queryBuilder->where('j.status = :status')
             ->setParameter(':status', BaseJob::STATUS_ERROR);
 
@@ -111,7 +111,7 @@ class JobManager extends BaseJobManager
     {
         /** @var EntityManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $queryBuilder = $objectManager->createQueryBuilder()->update($this->getObjectName(), 'j');
+        $queryBuilder = $objectManager->createQueryBuilder()->update($this->getJobClass(), 'j');
         $queryBuilder->set('j.status', ':newStatus');
         $queryBuilder->where('j.expiresAt <= :expiresAt')
             ->setParameter(':expiresAt', new \DateTime());
@@ -132,7 +132,7 @@ class JobManager extends BaseJobManager
      */
     public function pruneArchivedJobs(\DateTime $olderThan)
     {
-        return $this->removeOlderThan($this->getArchiveObjectName(),
+        return $this->removeOlderThan($this->getJobArchiveClass(),
                 'updatedAt',
                 $olderThan);
     }
@@ -143,7 +143,7 @@ class JobManager extends BaseJobManager
         $objectManager = $this->getObjectManager();
         $queryBuilder = $objectManager->createQueryBuilder();
 
-        $queryBuilder = $queryBuilder->select('count(j)')->from($this->getObjectName(), 'j');
+        $queryBuilder = $queryBuilder->select('count(j)')->from($this->getJobClass(), 'j');
 
         $where = 'where';
         if (null !== $workerName) {
@@ -189,8 +189,8 @@ class JobManager extends BaseJobManager
     public function getStatus()
     {
         $result = [];
-        $this->getStatusByEntityName($this->getObjectName(), $result);
-        $this->getStatusByEntityName($this->getArchiveObjectName(), $result);
+        $this->getStatusByEntityName($this->getJobClass(), $result);
+        $this->getStatusByEntityName($this->getJobArchiveClass(), $result);
 
         $finalResult = [];
         foreach ($result as $key => $item) {

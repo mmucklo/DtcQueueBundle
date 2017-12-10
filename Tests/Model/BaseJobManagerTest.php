@@ -2,13 +2,28 @@
 
 namespace Dtc\QueueBundle\Tests\Model;
 
+use Dtc\QueueBundle\Model\JobManagerInterface;
+use Dtc\QueueBundle\Model\RunManager;
+use Dtc\QueueBundle\Model\Worker;
+use Dtc\QueueBundle\ODM\JobTimingManager;
 use PHPUnit\Framework\TestCase;
 
 abstract class BaseJobManagerTest extends TestCase
 {
+    /** @var Worker */
     public static $worker;
+
+    /** @var string */
     public static $jobClass;
+
+    /** @var JobManagerInterface */
     public static $jobManager;
+
+    /** @var RunManager */
+    public static $runManager;
+
+    /** @var JobTimingManager */
+    public static $jobTimingManager;
 
     public static function setUpBeforeClass()
     {

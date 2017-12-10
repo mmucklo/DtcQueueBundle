@@ -6,14 +6,16 @@ services:
         synthetic: true
 
     dtc_queue.job_manager:
-        public: true
         synthetic: true
 
     dtc_queue.run_manager:
-        public: true
+        synthetic: true
+
+    dtc_queue.job_timing_manager:
         synthetic: true
 
     dtc_queue.run_manager.mongodb: # deprecated, remove in 4.0
+        public: true
         alias: dtc_queue.run_manager.odm
 
     dtc_queue.run_manager.odm:
@@ -22,10 +24,15 @@ services:
         arguments:
             - "@dtc_queue.document_manager"
             - "%dtc_queue.class_run%"
+            - "%dtc_queue.class_run_archive%"
+
+    dtc_queue.job_timing_manager.odm:
+        public: true
+        class: Dtc\QueueBundle\ODM\JobTimingManager
+        arguments:
+            - "@dtc_queue.document_manager"
             - "%dtc_queue.class_job_timing%"
             - "%dtc_queue.record_timings%"
-        calls:
-            - ["setRunArchiveClass", ["%dtc_queue.class_run_archive%"]]
 
     dtc_queue.grid_source.live_jobs.odm:
         public: true
@@ -52,11 +59,11 @@ services:
         public: true
         class: Dtc\QueueBundle\ODM\JobManager
         arguments:
+            - "@dtc_queue.run_manager"
+            - "@dtc_queue.job_timing_manager"
             - '@dtc_queue.document_manager'
             - '%dtc_queue.class_job%'
             - '%dtc_queue.class_job_archive%'
-            - '%dtc_queue.class_run%'
-            - '%dtc_queue.class_run_archive%'
         calls:
             - ["setMaxPriority", ['%dtc_queue.priority_max%']]
             - ["setPriorityDirection", ['%dtc_queue.priority_direction%']]
@@ -65,11 +72,17 @@ services:
         public: true
         class: Dtc\QueueBundle\Beanstalkd\JobManager
         arguments:
+            - "@dtc_queue.run_manager"
+            - "@dtc_queue.job_timing_manager"
             - '%dtc_queue.class_job%'
 
     dtc_queue.job_manager.rabbit_mq:
         public: true
         class: Dtc\QueueBundle\RabbitMQ\JobManager
+        arguments:
+            - "@dtc_queue.run_manager"
+            - "@dtc_queue.job_timing_manager"
+            - "%dtc_queue.class_job%"
         calls:
             - ["setMaxPriority", ['%dtc_queue.priority_max%']]
             - ["setPriorityDirection", ['%dtc_queue.priority_direction%']]
@@ -80,10 +93,15 @@ services:
         arguments:
             - '@dtc_queue.entity_manager'
             - "%dtc_queue.class_run%"
+            - "%dtc_queue.class_run_archive%"
+
+    dtc_queue.job_timing_manager.orm:
+        public: true
+        class: Dtc\QueueBundle\ORM\JobTimingManager
+        arguments:
+            - "@dtc_queue.entity_manager"
             - "%dtc_queue.class_job_timing%"
             - "%dtc_queue.record_timings%"
-        calls:
-            - ["setRunArchiveClass", ["%dtc_queue.class_run_archive%"]]
 
     dtc_queue.run_manager.beanstalkd:
         public: true
@@ -93,11 +111,24 @@ services:
         public: true
         alias: dtc_queue.run_manager_base
 
+    dtc_queue.job_timing_manager.beanstalkd:
+        public: true
+        alias: dtc_queue.job_timing_manager_base
+
+    dtc_queue.job_timing_manager.rabbit_mq:
+        public: true
+        alias: dtc_queue.job_timing_manager_base
+
     dtc_queue.run_manager_base:
         public: true
         class: Dtc\QueueBundle\Model\RunManager
         arguments:
             - "%dtc_queue.class_run%"
+
+    dtc_queue.job_timing_manager_base:
+        public: true
+        class: Dtc\QueueBundle\Model\JobTimingManager
+        arguments:
             - "%dtc_queue.class_job_timing%"
             - "%dtc_queue.record_timings%"
 
@@ -105,11 +136,11 @@ services:
         public: true
         class: Dtc\QueueBundle\ORM\JobManager
         arguments:
+            - "@dtc_queue.run_manager"
+            - "@dtc_queue.job_timing_manager"
             - '@dtc_queue.entity_manager'
             - '%dtc_queue.class_job%'
             - '%dtc_queue.class_job_archive%'
-            - '%dtc_queue.class_run%'
-            - '%dtc_queue.class_run_archive%'
         calls:
             - ["setMaxPriority", ['%dtc_queue.priority_max%']]
             - ["setPriorityDirection", ['%dtc_queue.priority_direction%']]
@@ -152,3 +183,28 @@ services:
         calls:
             - [ "setLogger", ['@?logger'] ]
         tags: [{ name: monolog.logger, channel: dtc_queue }]
+
+    dtc_queue.command.count:
+        class: Dtc\QueueBundle\Command\CountCommand
+        tags:
+            - { name: console.command }
+
+    dtc_queue.command.create_job:
+        class: Dtc\QueueBundle\Command\CreateJobCommand
+        tags:
+            - { name: console.command }
+
+    dtc_queue.command.prune:
+        class: Dtc\QueueBundle\Command\PruneCommand
+        tags:
+            - { name: console.command }
+
+    dtc_queue.command.reset:
+        class: Dtc\QueueBundle\Command\ResetCommand
+        tags:
+            - { name: console.command }
+
+    dtc_queue.command.run:
+        class: Dtc\QueueBundle\Command\RunCommand
+        tags:
+            - { name: console.command }

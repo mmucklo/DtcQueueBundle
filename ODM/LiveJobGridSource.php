@@ -20,7 +20,7 @@ class LiveJobGridSource extends DocumentGridSource
 
         /** @var DocumentManager $documentManager */
         $documentManager = $jobManager->getObjectManager();
-        parent::__construct($documentManager, $jobManager->getObjectName());
+        parent::__construct($documentManager, $jobManager->getJobClass());
     }
 
     public function getColumns()

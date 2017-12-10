@@ -37,14 +37,15 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
     protected static $jobTimingClass;
     protected static $jobManagerClass;
     protected static $runManagerClass;
+    protected static $jobTimingManagerClass;
     public static $runManager;
 
     public static function setUpBeforeClass()
     {
-        self::$jobManager = new self::$jobManagerClass(self::$objectManager, self::$objectName, self::$archiveObjectName, self::$runClass, self::$runArchiveClass);
+        self::$jobTimingManager = new self::$jobTimingManagerClass(self::$objectManager, self::$jobTimingClass, true);
+        self::$runManager = new self::$runManagerClass(self::$objectManager, self::$runClass, self::$runArchiveClass);
+        self::$jobManager = new self::$jobManagerClass(self::$runManager, self::$jobTimingManager, self::$objectManager, self::$objectName, self::$archiveObjectName);
         self::$jobManager->setMaxPriority(255);
-        self::$runManager = new self::$runManagerClass(self::$objectManager, self::$runClass, self::$jobTimingClass, true);
-        self::$runManager->setRunArchiveClass(self::$runArchiveClass);
 
         self::assertEquals(255, self::$jobManager->getMaxPriority());
         self::assertEquals(JobManager::PRIORITY_DESC, self::$jobManager->getPriorityDirection());
@@ -61,7 +62,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $container->set('dtc_queue.job_manager', $jobManager);
         $container->set('dtc_queue.run_manager', self::$runManager);
 
-        self::$dtcQueueListener = new DtcQueueListener(self::$jobManager->getArchiveObjectName(), self::$runManager->getRunArchiveClass());
+        self::$dtcQueueListener = new DtcQueueListener(self::$jobManager->getJobArchiveClass(), self::$runManager->getRunArchiveClass());
         self::$objectManager->getEventManager()->addEventListener('preUpdate', self::$dtcQueueListener);
         self::$objectManager->getEventManager()->addEventListener('prePersist', self::$dtcQueueListener);
         self::$objectManager->getEventManager()->addEventListener('preRemove', self::$dtcQueueListener);
@@ -219,7 +220,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $nextJob = $jobManager->getJob(null, null, true, 123);
         self::assertNull($nextJob, "Shouldn't be any jobs left in queue");
 
-        $archiveObjectName = $jobManager->getArchiveObjectName();
+        $archiveObjectName = $jobManager->getJobArchiveClass();
 
         self::assertNotNull($id);
         $archiveRepository = $jobManager->getObjectManager()->getRepository($archiveObjectName);
@@ -234,7 +235,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $jobManager = self::$jobManager;
 
         $id = $this->createErroredJob();
-        $archiveObjectName = $jobManager->getArchiveObjectName();
+        $archiveObjectName = $jobManager->getJobArchiveClass();
         $objectManager = $jobManager->getObjectManager();
         $archiveRepository = $objectManager->getRepository($archiveObjectName);
         $result = $archiveRepository->find($id);
@@ -242,7 +243,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertEquals(BaseJob::STATUS_ERROR, $result->getStatus());
         if ($objectManager instanceof EntityManager) {
             JobManagerTest::createObjectManager();
-            $jobManager = new self::$jobManagerClass(self::$objectManager, self::$objectName, self::$archiveObjectName, self::$runClass, self::$runArchiveClass);
+            $jobManager = new self::$jobManagerClass(self::$runManager, self::$jobTimingManager, self::$objectManager, self::$objectName, self::$archiveObjectName);
             $jobManager->getObjectManager()->clear();
             $objectManager = $jobManager->getObjectManager();
         }
@@ -265,7 +266,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $objectManager->flush();
 
         $id = $this->createErroredJob();
-        $archiveObjectName = $jobManager->getArchiveObjectName();
+        $archiveObjectName = $jobManager->getJobArchiveClass();
         $objectManager = $jobManager->getObjectManager();
         $archiveRepository = $objectManager->getRepository($archiveObjectName);
         $result = $archiveRepository->find($id);
@@ -294,7 +295,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $jobManager->deleteJob($job);
 
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
-        $archiveObjectName = $jobManager->getArchiveObjectName();
+        $archiveObjectName = $jobManager->getJobArchiveClass();
 
         $objectManager = $jobManager->getObjectManager();
 
@@ -339,7 +340,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         self::assertNotNull($job);
 
-        $runClass = $jobManager->getRunClass();
+        $runClass = self::$runManager->getRunClass();
 
         $objectManager = $jobManager->getObjectManager();
         $run = new $runClass();
@@ -364,7 +365,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertNotNull($job);
 
         if ($endRun) {
-            $archivedRun = $objectManager->getRepository($jobManager->getRunArchiveClass())->find($runId);
+            $archivedRun = $objectManager->getRepository(self::$runManager->getRunArchiveClass())->find($runId);
 
             $minusTime = $time - (BaseJobManager::STALLED_SECONDS + 1);
             $archivedRun->setEndedAt(new \DateTime("@$minusTime"));
@@ -458,7 +459,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertEquals(0, $count);
         $job = $jobManager->getRepository()->find($id);
         self::assertNull($job);
-        $job = $objectManager->getRepository($jobManager->getArchiveObjectName())->find($id);
+        $job = $objectManager->getRepository($jobManager->getJobArchiveClass())->find($id);
         self::assertNotNull($job);
         $objectManager->remove($job);
         $objectManager->flush();
@@ -474,7 +475,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertEquals(0, $count);
         $job = $jobManager->getRepository()->find($id);
         self::assertNull($job);
-        $job = $objectManager->getRepository($jobManager->getArchiveObjectName())->find($id);
+        $job = $objectManager->getRepository($jobManager->getJobArchiveClass())->find($id);
         self::assertNotNull($job);
         $objectManager->remove($job);
         $objectManager->flush();
@@ -488,7 +489,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
         $jobManager->deleteJob($job);
-        $archiveObjectName = $jobManager->getArchiveObjectName();
+        $archiveObjectName = $jobManager->getJobArchiveClass();
 
         $objectManager = $jobManager->getObjectManager();
 
@@ -529,7 +530,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $objectManager->flush();
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
-        $archiveObjectName = $jobManager->getArchiveObjectName();
+        $archiveObjectName = $jobManager->getJobArchiveClass();
 
         $objectManager = $jobManager->getObjectManager();
 
@@ -554,7 +555,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
-        $archiveObjectName = $jobManager->getArchiveObjectName();
+        $archiveObjectName = $jobManager->getJobArchiveClass();
         $objectManager = $jobManager->getObjectManager();
 
         $archiveRepository = $objectManager->getRepository($archiveObjectName);
@@ -594,7 +595,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         self::assertNotNull($job);
 
-        $runClass = $jobManager->getRunClass();
+        $runClass = self::$runManager->getRunClass();
 
         $objectManager = $jobManager->getObjectManager();
         $run = new $runClass();
@@ -613,7 +614,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         self::assertNotNull($job);
 
-        $archivedRun = $objectManager->getRepository($jobManager->getRunArchiveClass())->find($runId);
+        $archivedRun = $objectManager->getRepository(self::$runManager->getRunArchiveClass())->find($runId);
 
         $minusTime = $time - (BaseJobManager::STALLED_SECONDS + 1);
         $archivedRun->setEndedAt(new \DateTime("@$minusTime"));
@@ -634,7 +635,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         self::assertNull($job);
 
-        $archivedJob = $jobManager->getObjectManager()->getRepository($jobManager->getArchiveObjectName())->find($id);
+        $archivedJob = $jobManager->getObjectManager()->getRepository($jobManager->getJobArchiveClass())->find($id);
 
         self::assertNotNull($archivedJob);
         self::assertEquals(BaseJob::STATUS_ERROR, $archivedJob->getStatus());
@@ -660,7 +661,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         self::assertNotNull($job);
 
-        $runClass = $jobManager->getRunClass();
+        $runClass = self::$runManager->getRunClass();
 
         $objectManager = $jobManager->getObjectManager();
         $run = new $runClass();
@@ -679,7 +680,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         self::assertNotNull($job);
 
-        $archivedRun = $objectManager->getRepository($jobManager->getRunArchiveClass())->find($runId);
+        $archivedRun = $objectManager->getRepository(self::$runManager->getRunArchiveClass())->find($runId);
 
         $minusTime = $time - (BaseJobManager::STALLED_SECONDS + 1);
         $archivedRun->setEndedAt(new \DateTime("@$minusTime"));
@@ -700,7 +701,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         self::assertNotNull($job);
 
-        $runClass = $jobManager->getRunClass();
+        $runClass = self::$runManager->getRunClass();
 
         $objectManager = $jobManager->getObjectManager();
         $run = new $runClass();
@@ -719,7 +720,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         self::assertNotNull($job);
 
-        $archivedRun = $objectManager->getRepository($jobManager->getRunArchiveClass())->find($runId);
+        $archivedRun = $objectManager->getRepository(self::$runManager->getRunArchiveClass())->find($runId);
 
         $minusTime = $time - (BaseJobManager::STALLED_SECONDS + 1);
         $archivedRun->setEndedAt(new \DateTime("@$minusTime"));
@@ -915,7 +916,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $count = $jobManager->pruneExpiredJobs();
         self::assertEquals(2, $count);
 
-        $archiveRepository = $jobManager->getObjectManager()->getRepository($jobManager->getArchiveObjectName());
+        $archiveRepository = $jobManager->getObjectManager()->getRepository($jobManager->getJobArchiveClass());
 
         $job = $archiveRepository->find($jobId1);
         self::assertNotNull($job);
@@ -931,7 +932,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
         $objectManager = $jobManager->getObjectManager();
-        $jobArchiveClass = $jobManager->getArchiveObjectName();
+        $jobArchiveClass = $jobManager->getJobArchiveClass();
         $jobArchiveRepository = $objectManager->getRepository($jobArchiveClass);
 
         self::$objectManager->getEventManager()->removeEventListener('preUpdate', self::$dtcQueueListener);

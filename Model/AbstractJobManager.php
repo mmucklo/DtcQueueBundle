@@ -6,6 +6,41 @@ use Dtc\QueueBundle\Exception\UnsupportedException;
 
 abstract class AbstractJobManager implements JobManagerInterface
 {
+    protected $jobTiminigManager;
+    protected $jobClass;
+    protected $runManager;
+
+    public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, $jobClass)
+    {
+        $this->runManager = $runManager;
+        $this->jobTiminigManager = $jobTimingManager;
+        $this->jobClass = $jobClass;
+    }
+
+    /**
+     * @return string
+     */
+    public function getJobClass()
+    {
+        return $this->jobClass;
+    }
+
+    /**
+     * @return JobTimingManager
+     */
+    public function getJobTimingManager()
+    {
+        return $this->jobTiminigManager;
+    }
+
+    /**
+     * @return RunManager
+     */
+    public function getRunManager()
+    {
+        return $this->runManager;
+    }
+
     abstract public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null);
 
     abstract public function save(Job $job);

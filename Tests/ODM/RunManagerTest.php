@@ -2,7 +2,7 @@
 
 namespace Dtc\QueueBundle\ODM;
 
-use Dtc\QueueBundle\Document\JobTiming;
+use Dtc\QueueBundle\Document\RunArchive;
 use Dtc\QueueBundle\Tests\ODM\JobManagerTest;
 use PHPUnit\Framework\TestCase;
 
@@ -13,13 +13,11 @@ class RunManagerTest extends TestCase
         JobManagerTest::setUpBeforeClass();
         $jobManager = JobManagerTest::$jobManager;
         $runClass = \Dtc\QueueBundle\Document\Run::class;
-        $runArchiveClass = \Dtc\QueueBundle\Document\RunArchive::class;
-        $runManager = new \Dtc\QueueBundle\ODM\RunManager($jobManager->getObjectManager(), $runClass, JobTiming::class, true);
-        $runManager->setRunArchiveClass($runArchiveClass);
+        $runManager = new \Dtc\QueueBundle\ODM\RunManager($jobManager->getObjectManager(), $runClass, RunArchive::class);
         $objectManager = $runManager->getObjectManager();
         $runRepository = $objectManager->getRepository($runClass);
         self::assertEmpty($runRepository->findAll());
-        $runArchiveRepository = $objectManager->getRepository($runArchiveClass);
+        $runArchiveRepository = $objectManager->getRepository(RunArchive::class);
         self::assertEmpty($runArchiveRepository->findAll());
 
         $run = new $runClass();
@@ -49,8 +47,7 @@ class RunManagerTest extends TestCase
         $jobManager = JobManagerTest::$jobManager;
         $runClass = \Dtc\QueueBundle\Document\Run::class;
         $runArchiveClass = \Dtc\QueueBundle\Document\RunArchive::class;
-        $runManager = new \Dtc\QueueBundle\ODM\RunManager($jobManager->getObjectManager(), $runClass, JobTiming::class, true);
-        $runManager->setRunArchiveClass($runArchiveClass);
+        $runManager = new \Dtc\QueueBundle\ODM\RunManager($jobManager->getObjectManager(), $runClass, RunArchive::class);
         $objectManager = $runManager->getObjectManager();
         $runRepository = $objectManager->getRepository($runClass);
         self::assertEmpty($runRepository->findAll());

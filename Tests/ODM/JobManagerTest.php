@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Tests\ODM;
 
 use Doctrine\Common\Annotations\AnnotationRegistry;
+use Dtc\QueueBundle\ODM\JobTimingManager;
 use Dtc\QueueBundle\ODM\RunManager;
 use Dtc\QueueBundle\Tests\Doctrine\BaseJobManagerTest;
 use Dtc\QueueBundle\ODM\JobManager;
@@ -83,6 +84,7 @@ class JobManagerTest extends BaseJobManagerTest
         self::$jobTimingClass = $jobTimingClass;
         self::$jobManagerClass = JobManager::class;
         self::$runManagerClass = RunManager::class;
+        self::$jobTimingManagerClass = JobTimingManager::class;
         parent::setUpBeforeClass();
     }
 }

@@ -92,6 +92,23 @@ abstract class PriorityJobManager extends AbstractJobManager
 
     abstract protected function prioritySave(Job $job);
 
+    protected function recordTiming(Job $job)
+    {
+        $status = JobTiming::STATUS_INSERT;
+        if ($job->getWhenAt() && $job->getWhenAt() > (new \DateTime())) {
+            $status = JobTiming::STATUS_INSERT_DELAYED;
+        }
+
+        $this->jobTiminigManager->recordTiming($status);
+    }
+
+    /**
+     * @param Job $job
+     *
+     * @return mixed
+     *
+     * @throws PriorityException
+     */
     public function save(Job $job)
     {
         $this->validatePriority($job->getPriority());
@@ -99,6 +116,9 @@ abstract class PriorityJobManager extends AbstractJobManager
             $job->setPriority($this->calculatePriority($job->getPriority()));
         }
 
-        return $this->prioritySave($job);
+        $result = $this->prioritySave($job);
+        $this->recordTiming($job);
+
+        return $result;
     }
 }

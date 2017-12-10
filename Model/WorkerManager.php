@@ -29,6 +29,11 @@ class WorkerManager
         $this->logger = $logger;
     }
 
+    /**
+     * @param Worker $worker
+     *
+     * @throws DuplicateWorkerException
+     */
     public function addWorker(Worker $worker)
     {
         if ($this->logger) {
@@ -110,6 +115,7 @@ class WorkerManager
             }
         }
         $job->setMessage($exceptionMessage);
+        $this->jobManager->getJobTimingManager()->recordTiming(JobTiming::STATUS_FINISHED_ERROR);
     }
 
     public function runJob(Job $job)
@@ -126,7 +132,9 @@ class WorkerManager
 
             // Job finshed successfuly... do we remove the job from database?
             $job->setStatus(BaseJob::STATUS_SUCCESS);
+
             $job->setMessage(null);
+            $this->jobManager->getJobTimingManager()->recordTiming(JobTiming::STATUS_FINISHED_SUCCESS);
         } catch (\Throwable $exception) {
             $this->handleException([$exception], $job);
         } catch (\Exception $exception) {

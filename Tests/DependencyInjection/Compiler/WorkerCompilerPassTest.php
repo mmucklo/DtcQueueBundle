@@ -6,6 +6,7 @@ use Dtc\QueueBundle\DependencyInjection\Compiler\WorkerCompilerPass;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Model\WorkerManager;
 use Dtc\QueueBundle\ODM\JobManager;
+use Dtc\QueueBundle\ODM\JobTimingManager;
 use Dtc\QueueBundle\ODM\RunManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use PHPUnit\Framework\TestCase;
@@ -38,9 +39,12 @@ class WorkerCompilerPassTest extends TestCase
         $definition3->setClass(RunManager::class);
         $definition4 = new Definition();
         $definition4->setClass(EventDispatcher::class);
+        $definition5 = new Definition();
+        $definition5->setClass(JobTimingManager::class);
         $container->addDefinitions([
             'dtc_queue.worker_manager' => $definition1,
             'dtc_queue.job_manager.odm' => $definition2,
+            'dtc_queue.job_timing_manager.odm' => $definition5,
             'dtc_queue.run_manager.odm' => $definition3,
             'dtc_queue.event_dispatcher' => $definition4,
         ]);

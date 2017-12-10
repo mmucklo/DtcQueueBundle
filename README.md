@@ -8,8 +8,6 @@ DtcQueueBundle
 
 > Allow symfony developers to create background job as easily as: `$worker->later()->process(1,2,3)`
 
-__2.0 release:__ many changes see [UPGRADING-2.0.md](UPGRADING-2.0.md)
-
 This bundle provides a way to easily create queued background jobs
 
 - Background tasks with just a few lines of code
@@ -22,6 +20,7 @@ This bundle provides a way to easily create queued background jobs
 - Various safety checks for things such as stalled jobs, errored jobs
    - Allows for reseting stalled and errored jobs via console commands
       - If automated, limits can be placed on the number of retries
+- Admin interface with an optional performance graph
 
 Supported Queues
 ----------------
@@ -34,91 +33,27 @@ Supported Queues
 Installation
 ------------
 
-Install via composer:
+### Symfony 2/3
 
-    composer require mmucklo/queue-bundle
+[see /Resources/doc/symfony2_3.md](/Resources/doc/symfony2_3.md)
 
-Then add the bundle to __AppKernel.php__:
+NOTE: for the examples below, the namespace will typically start with __AppBundle\\__ instead of __App\\__
 
-```php
-<?php
+### Symfony 4
 
-//...
-
-class AppKernel extends Kernel
-{
-    public function registerBundles()
-    {
-        $bundles = [
-                    //...
-                    new \Dtc\GridBundle\DtcGridBundle(),
-                    new \Dtc\QueueBundle\DtcQueueBundle(),
-// ...
-```
-
-MongoDB Setup:
-  * Add MongoDB ODM setting for Job Document.
-
-```yaml
-doctrine_mongodb:
-    document_managers:
-        default:
-            mappings:
-                DtcQueueBundle:
-                    dir: Document/
-                    type: annotation
-```
-ORM Setup:
-
-```yaml
-dtc_queue:
-    default_manager: orm
-```
-
-__NOTE:__ You may need to add DtcQueueBundle to your mappings section in config.yml if auto_mapping is not enabled
-
-```yaml
-doctrine:
-   #...
-   orm:
-       #...
-       mappings:
-           DtcQueueBundle: ~
-```
-
-   * You'll need to create the schemas in your database by using one of:
-      * bin/console doctrine:schema:update --dump-sql
-      * bin/console doctrine:schema:update --force
-      * Docrtrine Migrations (requires [DoctrineMigrationsBundle](https://github.com/doctrine/DoctrineMigrationsBundle) to be installed):
-         * bin/console doctrine:migrations:diff --filter-expression=/dtc_/
-         * then:
-            * bin/console doctrine:migrations:migrate
-
-#### Optional Admin
-
-Add this to your app/config/routing.yml file:
-
-```yaml
-dtc_queue:
-    resource: '@DtcQueueBundle/Resources/config/routing.yml'
-dtc_grid:
-    resource: '@DtcGridBundle/Resources/config/routing.yml'
-```
-
-__Urls:__
-   * /dtc_queue/jobs
-      * ODM / ORM only
-   * /dtc_queue/runs
-      * ODM / ORM only (or another type of queue with an ODM / ORM run_manager)
-   * /dtc_queue/status
+[see /Resources/doc/symfony4.md](/Resources/doc/symfony4.md)
 
 Usage
 -----
 
 Create a worker class that will work on the background job.
 
+__src\Worker\FibonacciWorker.php:__ (symfony 4)
+__src\AppBundle\Worker\FibonacciWorker.php:__ (symfony 2/3)
 ```php
 <?php
+namespace App\Worker; // for symfony 2/3, the namespace would typically be AppBundle\Worker
+
 class FibonacciWorker
     extends \Dtc\QueueBundle\Model\Worker
 {
@@ -167,9 +102,23 @@ XML:
 	
 YAML:
 
+__Symfony 4 and 3.3, 3.4:__
 ```yaml
 services:
-    AppBundle\Worker\FibonacciWorker:
+    # for symfony 3 the class name would be AppBundle\Worker\FibonacciWorker
+    App\Worker\FibonacciWorker:
+        # public: false is possible if you use DependencyInjection only for access to the service
+        public: true
+        tags:
+            - { name: "dtc_queue.worker" }
+```
+
+__Symfony 2, and 3.0, 3.1, 3.2:__
+
+```yaml
+services:
+    app.worker.fibonacci:
+        class: AppBundle\Worker\FibonacciWorker:
         tags:
             - { name: "dtc_queue.worker" }
 ```
@@ -177,6 +126,15 @@ services:
 #### Create a job
 
 ```php
+// Dependency inject the worker or fetch it from the container
+$fibonacciWorker = $container->get('App\Worker\FibonacciWorker');
+// For Symfony 3.3, 3.4
+//     $fibonacciWorker = $container->get('AppBundle\Worker\FibonacciWorker');
+//
+// For Symfony 2, 3.0, 3.1, 3.2:
+//     $fibonacciWorker = $container->get('app.worker.fibonacci'); 
+
+
 // Basic Examples
 $fibonacciWorker->later()->fibonacci(20);
 $fibonacciWorker->later()->fibonacciFile(20);
@@ -187,8 +145,16 @@ $fibonacciWorker->batchLater()->fibonacci(20); // Batch up runs into a single ru
 // Timed Example
 $fibonacciWorker->later(90)->fibonacci(20); // Run 90 seconds later
 
+// Priority
+//    Note: whether 1 == High or Low priority is configurable, but by default it is High
+$fibonacciWorker->later(0, 1); // As soon as possible, High priority
+$fibonacciWorker->later(0, 125); // Medium priority
+$fibonacciWorker->later(0, 255); // Low priority
+
 // Advanced Usage
 $expireTime = time() + 3600;
+
+// If we don't get to the job by $expireTime, then don't execute it...
 $fibonacciWorker->later()->setExpiresAt(new \DateTime("@$expireTime"))->fibonacci(20); // Must be run within the hour or not at all
 ```
 
@@ -375,7 +341,7 @@ Dtc\QueueBundle\Entity\JobArchive
 
 ```php
 <?php
-namespace AppBundle\Entity; // Or whatever
+namespace App\Entity; // Or whatever
 
 use Dtc\QueueBundle\Entity\Job as BaseJob;
 use Doctrine\ORM\Mapping as ORM;
@@ -395,7 +361,7 @@ class Job extends BaseJob {
 
 ```php
 <?php
-namespace AppBundle\Document;
+namespace App\Document;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 use Dtc\QueueBundle\Document\Job as BaseJob;
@@ -417,8 +383,8 @@ class Job extends BaseJob
 # config.yml
 # ...
 dtc_queue:
-    class_job: AppBundle\Entity\Job
-    class_job_archive: AppBundle\Entity\JobArchive
+    class_job: App\Entity\Job
+    class_job_archive: App\Entity\JobArchive
 ```
 
 
@@ -541,8 +507,13 @@ dtc_queue:
     #
     # run_manager: can be set to any of the same options as
     #
-    #  "default_manager", defaults to what ever default_manager is set
+    #  "default_manager", defaults to what ever default_manager is set to
     run_manager: ~
+    #
+    # job_timing_manager: can be set to any of the same options as
+    #
+    #  "default_manager", defaults to what ever run_manager is set to
+    job_timing_manager: ~
     class_job: ~
     class_job_archive: ~
     class_run: ~

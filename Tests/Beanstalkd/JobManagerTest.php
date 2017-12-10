@@ -3,6 +3,8 @@
 namespace Dtc\QueueBundle\Tests\Beanstalkd;
 
 use Dtc\QueueBundle\Beanstalkd\JobManager;
+use Dtc\QueueBundle\Model\JobTimingManager;
+use Dtc\QueueBundle\Model\RunManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest;
 use Pheanstalk\Pheanstalk;
@@ -20,10 +22,13 @@ class JobManagerTest extends BaseJobManagerTest
     {
         $host = getenv('BEANSTALKD_HOST');
         $className = 'Dtc\QueueBundle\Beanstalkd\Job';
+        $jobTimingClass = 'Dtc\QueueBundle\Model\JobTiming';
+        $runClass = 'Dtc\QueueBundle\Model\Run';
 
         self::$beanstalkd = new Pheanstalk($host);
-
-        self::$jobManager = new JobManager();
+        self::$jobTimingManager = new JobTimingManager($jobTimingClass, false);
+        self::$runManager = new RunManager($runClass);
+        self::$jobManager = new JobManager(self::$runManager, self::$jobTimingManager, $className);
         self::$jobManager->setBeanstalkd(self::$beanstalkd);
         self::$worker = new FibonacciWorker();
         self::$worker->setJobClass($className);
