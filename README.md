@@ -8,6 +8,17 @@ DtcQueueBundle
 
 > Allow symfony developers to create background job as easily as: `$worker->later()->process(1,2,3)`
 
+Supported Queues
+----------------
+
+- MongoDB via Doctrine-ODM
+- Mysql / Doctrine 2 supported databases via Doctrine-ORM
+- Beanstalkd via pheanstalk
+- RabbitMQ via php-amqplib
+
+Introduction
+------------
+
 This bundle provides a way to easily create queued background jobs
 
 - Background tasks with just a few lines of code
@@ -22,13 +33,7 @@ This bundle provides a way to easily create queued background jobs
       - If automated, limits can be placed on the number of retries
 - Admin interface with an optional performance graph
 
-Supported Queues
-----------------
-
-- MongoDB via Doctrine-ODM
-- Mysql / Doctrine 2 supported databases via Doctrine-ORM
-- Beanstalkd via pheanstalk
-- RabbitMQ via php-amqplib
+![Trends](/Resources/doc/images/trends-example.png?raw=true "DtcQueue Trends")
 
 Installation
 ------------
