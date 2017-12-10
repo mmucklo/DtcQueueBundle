@@ -3,6 +3,7 @@
    * Enabled Garbage collection during usage of RunCommand, but allow it to be disabled via a command-line option --disable-gc
    * Changed some command-line parameters to have "-" instead of "_" (see [UPGRADING-3.0.md](UPGRADING-3.0.md))
    * Added a "status" column to JobTiming, plus updated the index for ORM
+   * Updated the trends graph to show multiple statuses
 ### 2.7.13
    * fixed wrong template
 ### 2.7.12
