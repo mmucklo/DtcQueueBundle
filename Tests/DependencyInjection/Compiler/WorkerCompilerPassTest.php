@@ -44,9 +44,9 @@ class WorkerCompilerPassTest extends TestCase
         $definition5->setClass(JobTimingManager::class);
         $container->addDefinitions([
             'dtc_queue.worker_manager' => $definition1,
-            'dtc_queue.job_manager.' . $type => $definition2,
-            'dtc_queue.job_timing_manager.' . $jobTimingManagerType => $definition5,
-            'dtc_queue.run_manager.' . $runManagerType => $definition3,
+            'dtc_queue.job_manager.'.$type => $definition2,
+            'dtc_queue.job_timing_manager.'.$jobTimingManagerType => $definition5,
+            'dtc_queue.run_manager.'.$runManagerType => $definition3,
             'dtc_queue.event_dispatcher' => $definition4,
         ]);
 
@@ -84,7 +84,8 @@ class WorkerCompilerPassTest extends TestCase
         self::assertNotEquals($count, count($container->getAliases()));
     }
 
-    public function testProcessValidWorker() {
+    public function testProcessValidWorker()
+    {
         $this->runProcessValidWorker('odm');
         $this->runProcessValidWorker('odm', 'orm', 'orm');
         $this->runProcessValidWorker('orm');
@@ -98,8 +99,7 @@ class WorkerCompilerPassTest extends TestCase
         $failure = false;
         try {
             $this->runProcessValidWorker('bad');
-        }
-        catch (\Exception $e) {
+        } catch (\Exception $e) {
             $failure = true;
         }
         self::assertTrue($failure);

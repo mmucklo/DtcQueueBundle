@@ -1,3 +1,5 @@
+### 3.0.3
+   * Refactoring out the TrendsController from the QueueController, ran php-cs-fixer
 ### 3.0.2
    * Updates to trends page, GridBundle version, WorkerCompilerTest
 ### 3.0.1

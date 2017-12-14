@@ -50,11 +50,12 @@ class DtcQueueExtension extends Extension
         $container->setParameter('dtc_queue.class_job_timing', isset($config['class_job_timing']) ? $config['class_job_timing'] : null);
     }
 
-    protected function configRecordTimings(array $config, ContainerBuilder $container) {
+    protected function configRecordTimings(array $config, ContainerBuilder $container)
+    {
         $container->setParameter('dtc_queue.record_timings', isset($config['record_timings']) ? $config['record_timings'] : false);
         $container->setParameter('dtc_queue.record_timings_timezone_offset', $config['record_timings_timezone_offset']);
         if ($config['record_timings_timezone_offset'] > 24 || $config['record_timings_timezone_offset'] < -24) {
-            throw new \InvalidArgumentException("Invalid record_timings_timezone_offset: " . $config['record_timings_timezone_offset']);
+            throw new \InvalidArgumentException('Invalid record_timings_timezone_offset: '.$config['record_timings_timezone_offset']);
         }
     }
 
