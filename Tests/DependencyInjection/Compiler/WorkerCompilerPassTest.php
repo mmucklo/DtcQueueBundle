@@ -15,7 +15,7 @@ use Symfony\Component\DependencyInjection\Definition;
 
 class WorkerCompilerPassTest extends TestCase
 {
-    protected function getBaseContainer()
+    protected function getBaseContainer($type = 'odm', $runManagerType = 'odm', $jobTimingManagerType = 'odm')
     {
         $container = new ContainerBuilder();
 
@@ -27,8 +27,9 @@ class WorkerCompilerPassTest extends TestCase
         $container = new ContainerBuilder();
         $definition1 = new Definition();
         $definition1->setClass(WorkerManager::class);
-        $container->setParameter('dtc_queue.default_manager', 'odm');
-        $container->setParameter('dtc_queue.run_manager', 'odm');
+        $container->setParameter('dtc_queue.default_manager', $type);
+        $container->setParameter('dtc_queue.run_manager', $runManagerType);
+        $container->setParameter('dtc_queue.job_timing_manager', $jobTimingManagerType);
         $container->setParameter('dtc_queue.class_job', null);
         $container->setParameter('dtc_queue.class_job_archive', null);
         $container->setParameter('dtc_queue.document_manager', 'default');
@@ -43,9 +44,9 @@ class WorkerCompilerPassTest extends TestCase
         $definition5->setClass(JobTimingManager::class);
         $container->addDefinitions([
             'dtc_queue.worker_manager' => $definition1,
-            'dtc_queue.job_manager.odm' => $definition2,
-            'dtc_queue.job_timing_manager.odm' => $definition5,
-            'dtc_queue.run_manager.odm' => $definition3,
+            'dtc_queue.job_manager.' . $type => $definition2,
+            'dtc_queue.job_timing_manager.' . $jobTimingManagerType => $definition5,
+            'dtc_queue.run_manager.' . $runManagerType => $definition3,
             'dtc_queue.event_dispatcher' => $definition4,
         ]);
 
@@ -83,9 +84,30 @@ class WorkerCompilerPassTest extends TestCase
         self::assertNotEquals($count, count($container->getAliases()));
     }
 
-    public function testProcessValidWorker()
+    public function testProcessValidWorker() {
+        $this->runProcessValidWorker('odm');
+        $this->runProcessValidWorker('odm', 'orm', 'orm');
+        $this->runProcessValidWorker('orm');
+        $this->runProcessValidWorker('orm', 'odm', 'orm');
+        $this->runProcessValidWorker('beanstalkd');
+        $this->runProcessValidWorker('rabbit_mq');
+    }
+
+    public function testBadManagerType()
     {
-        $container = $this->getBaseContainer();
+        $failure = false;
+        try {
+            $this->runProcessValidWorker('bad');
+        }
+        catch (\Exception $e) {
+            $failure = true;
+        }
+        self::assertTrue($failure);
+    }
+
+    public function runProcessValidWorker($type, $runManagerType = 'odm', $jobTimingManagerType = 'odm')
+    {
+        $container = $this->getBaseContainer($type, $runManagerType, $jobTimingManagerType);
         $definition5 = new Definition();
         $definition5->setClass(FibonacciWorker::class);
         $definition5->addTag('dtc_queue.worker');

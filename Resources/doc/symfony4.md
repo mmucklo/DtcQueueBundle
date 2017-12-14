@@ -1,7 +1,17 @@
 # Symfony 4 Installation Instructions
 
+## Composer installation
+
 First -
 
+   * Turn on contrib recipie support
+      * composer config extra.symfony.allow-contrib true
+
+   * Then require the packages
+      * composer require mmucklo/queue-bundle
+   
+### Post install instructions
+ 
    * Inside of config/packages/framework.yaml, make sure you have the twig engine turned on:
 
 ```yaml
@@ -9,12 +19,6 @@ framework:
     # ...
     templating:
         engines: ['twig']
-```
-
-Then
-
-```
-    composer.phar require mmucklo/queue-bundle
 ```
 
 #### MongoDB configuration

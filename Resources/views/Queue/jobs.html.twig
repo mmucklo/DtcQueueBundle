@@ -5,4 +5,6 @@
 
     <h3>Live Jobs</h3>
     {{ dtc_grid.render | raw }}
+    <button class="btn btn-primary grid-delete" onclick="dtc_grid_delete(this)"><i class="fa fa-circle-o-notch fa-spin hidden"></i> Archive</button>
+
 {% endblock %}

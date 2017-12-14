@@ -209,8 +209,8 @@ class QueueController extends Controller
         $begin = $request->query->get('begin');
         $end = $request->query->get('end');
         $type = $request->query->get('type', 'HOUR');
-        $beginDate = \DateTime::createFromFormat(DATE_ISO8601, $begin) ?: null;
-        $endDate = \DateTime::createFromFormat(DATE_ISO8601, $end) ?: new \DateTime();
+        $beginDate = \DateTime::createFromFormat('Y-m-d\TH:i:s.uO', $begin) ?: null;
+        $endDate = \DateTime::createFromFormat('Y-m-d\TH:i:s.uO', $end) ?: new \DateTime();
 
         $recordTimings = $this->container->getParameter('dtc_queue.record_timings');
         $params = [];
@@ -244,9 +244,10 @@ class QueueController extends Controller
             $timingsDates = array_unique(array_merge(array_keys($timingsData), $timingsDates));
         }
 
-        usort($timingsDates, function ($date1str, $date2str) {
-            $date1 = \DateTime::createFromFormat('Y-m-d H', $date1str);
-            $date2 = \DateTime::createFromFormat('Y-m-d H', $date2str);
+        $format = $this->getDateFormat($type);
+        usort($timingsDates, function ($date1str, $date2str) use ($format) {
+            $date1 = \DateTime::createFromFormat($format, $date1str);
+            $date2 = \DateTime::createFromFormat($format, $date2str);
             if (!$date2) {
                 return false;
             }
@@ -256,6 +257,16 @@ class QueueController extends Controller
 
             return $date1 > $date2;
         });
+
+        $timezoneOffset = $this->container->getParameter('dtc_queue.record_timings_timezone_offset');
+        $timingsDatesAdjusted = [];
+        foreach ($timingsDates as $dateStr) {
+            $date = \DateTime::createFromFormat($format, $dateStr);
+            if ($timezoneOffset !== 0) {
+                $date->setTimestamp($date->getTimestamp() + ($timezoneOffset * 3600));
+            }
+            $timingsDatesAdjusted[] = $date->format(DATE_RFC3339);
+        }
 
         foreach (array_keys($timingStates) as $state) {
             if (!isset($timings[$state])) {
@@ -268,7 +279,7 @@ class QueueController extends Controller
             }
         }
         $params['timings_dates'] = $timingsDates;
-
+        $params['timings_dates_rfc3339'] = $timingsDatesAdjusted;
         return $params;
     }
 
@@ -311,6 +322,21 @@ class QueueController extends Controller
         }
 
         return $resultHash;
+    }
+
+    protected function getDateFormat($type) {
+        switch($type) {
+            case 'YEAR':
+                return 'Y';
+            case 'MONTH':
+                return 'Y-m';
+            case 'DAY':
+                return 'Y-m-d';
+            case 'HOUR':
+                return 'Y-m-d H';
+            default:
+                throw new \InvalidArgumentException("Invalid date format type '$type''");
+        }
     }
 
     protected function getRegexDate($type)

@@ -1,3 +1,5 @@
+### 3.0.2
+   * Updates to trends page, GridBundle version, WorkerCompilerTest
 ### 3.0.1
    * Bump DtcGridBundle requirement
 ### 3.0.0

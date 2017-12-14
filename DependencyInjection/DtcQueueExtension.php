@@ -27,6 +27,7 @@ class DtcQueueExtension extends Extension
         $container->setParameter('dtc_queue.priority_max', $config['priority_max']);
         $container->setParameter('dtc_queue.priority_direction', $config['priority_direction']);
         $this->configClasses($config, $container);
+        $this->configRecordTimings($config, $container);
         $this->configAdmin($config, $container);
 
         // Load Grid if Dtc\GridBundle Bundle is registered
@@ -47,7 +48,14 @@ class DtcQueueExtension extends Extension
         $container->setParameter('dtc_queue.class_run', isset($config['class_run']) ? $config['class_run'] : null);
         $container->setParameter('dtc_queue.class_run_archive', isset($config['class_run_archive']) ? $config['class_run_archive'] : null);
         $container->setParameter('dtc_queue.class_job_timing', isset($config['class_job_timing']) ? $config['class_job_timing'] : null);
+    }
+
+    protected function configRecordTimings(array $config, ContainerBuilder $container) {
         $container->setParameter('dtc_queue.record_timings', isset($config['record_timings']) ? $config['record_timings'] : false);
+        $container->setParameter('dtc_queue.record_timings_timezone_offset', $config['record_timings_timezone_offset']);
+        if ($config['record_timings_timezone_offset'] > 24 || $config['record_timings_timezone_offset'] < -24) {
+            throw new \InvalidArgumentException("Invalid record_timings_timezone_offset: " . $config['record_timings_timezone_offset']);
+        }
     }
 
     protected function configRabbitMQ(array $config, ContainerBuilder $container)
