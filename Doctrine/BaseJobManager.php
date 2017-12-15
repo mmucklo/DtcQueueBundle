@@ -439,4 +439,6 @@ abstract class BaseJobManager extends PriorityJobManager
         $this->jobTiminigManager->recordTiming(JobTiming::STATUS_INSERT);
         ++$countProcessed;
     }
+
+    abstract public function getWorkersAndMethods();
 }

@@ -264,17 +264,11 @@ class JobManager extends BaseJobManager
         }
 
         // Filter
-        $date = new \DateTime();
-        $builder
-            ->addAnd(
-                $builder->expr()->addOr($builder->expr()->field('whenAt')->equals(null), $builder->expr()->field('whenAt')->lte($date)),
-                $builder->expr()->addOr($builder->expr()->field('expiresAt')->equals(null), $builder->expr()->field('expiresAt')->gt($date))
-            )
-            ->field('status')->equals(BaseJob::STATUS_NEW)
-            ->field('locked')->equals(null);
-
+        $this->addStandardPredicates($builder);
         return $builder;
     }
+
+
 
     protected function updateNearestBatch(\Dtc\QueueBundle\Model\Job $job)
     {
@@ -318,5 +312,53 @@ class JobManager extends BaseJobManager
         }
 
         return $oldJob;
+    }
+
+    /**
+     * @param mixed $builder
+     */
+    protected function addStandardPredicates($builder) {
+        $date = new \DateTime();
+        $builder
+            ->addAnd(
+                $builder->expr()->addOr($builder->expr()->field('whenAt')->equals(null), $builder->expr()->field('whenAt')->lte($date)),
+                $builder->expr()->addOr($builder->expr()->field('expiresAt')->equals(null), $builder->expr()->field('expiresAt')->gt($date))
+            )
+            ->field('status')->equals(BaseJob::STATUS_NEW)
+            ->field('locked')->equals(null);
+    }
+
+    public function getWorkersAndMethods() {
+        /** @var DocumentManager $documentManager */
+        $documentManager = $this->getObjectManager();
+
+        if (!method_exists($documentManager, 'createAggregationBuilder')) {
+            return [];
+        }
+
+        $aggregationBuilder = $documentManager->createAggregationBuilder($this->getJobClass());
+
+
+        $this->addStandardPredicates($aggregationBuilder->match());
+
+        $aggregationBuilder->group()
+            ->field('id')
+            ->expression($aggregationBuilder->expr()
+                ->field('workerName')->expression('$workerName')
+                ->field('method')->expression('$method')
+            );
+        $results = $aggregationBuilder->execute()->toArray();
+
+        if (!$results) {
+            return [];
+        }
+
+        $workersMethods = [];
+        foreach ($results as $result) {
+            if (isset($result['_id'])) {
+                $workersMethods[$result['_id']['worker_name']][] = $result['_id']['method'];
+            }
+        }
+        return $workersMethods;
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Dtc\QueueBundle\Controller;
 
+use Dtc\QueueBundle\Exception\UnsupportedException;
+
 trait ControllerTrait
 {
     protected function validateJobTimingManager()

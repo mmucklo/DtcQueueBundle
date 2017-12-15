@@ -5,7 +5,7 @@ namespace Dtc\QueueBundle\ORM;
 use Doctrine\ORM\EntityManager;
 use Dtc\GridBundle\Grid\Source\EntityGridSource;
 
-class LiveJobGridSource extends EntityGridSource
+class LiveJobsGridSource extends EntityGridSource
 {
     protected $jobManager;
 

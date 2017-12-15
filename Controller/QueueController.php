@@ -3,9 +3,11 @@
 namespace Dtc\QueueBundle\Controller;
 
 use Dtc\QueueBundle\Model\Worker;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\Request;
 
 class QueueController extends Controller
 {
@@ -48,6 +50,18 @@ class QueueController extends Controller
     }
 
     /**
+     * @Route("/archive", name="dtc_queue_archive")
+     * @Method({"POST"})
+     */
+    public function archive(Request $request) {
+        $workerName = $request->get('workerName');
+        $method = $request->get('method');
+
+        $jobManager = $this->get('dtc_queue.job_manager');
+        $jobManager->archiveAllJobs($workerName, $method);
+    }
+
+    /**
      * List jobs in system by default.
      *
      * @Template("@DtcQueue/Queue/jobs.html.twig")
@@ -63,6 +77,8 @@ class QueueController extends Controller
         $renderer->bind($gridSource);
         $params = $renderer->getParams();
         $this->addCssJs($params);
+
+        $params['worker_methods'] = $this->get('dtc_queue.job_manager')->getWorkersAndMethods();
 
         return $params;
     }

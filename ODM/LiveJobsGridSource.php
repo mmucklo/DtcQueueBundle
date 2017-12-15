@@ -5,7 +5,7 @@ namespace Dtc\QueueBundle\ODM;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Dtc\GridBundle\Grid\Source\DocumentGridSource;
 
-class LiveJobGridSource extends DocumentGridSource
+class LiveJobsGridSource extends DocumentGridSource
 {
     protected $jobManager;
 

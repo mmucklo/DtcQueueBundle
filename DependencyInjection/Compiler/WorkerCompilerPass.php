@@ -46,6 +46,7 @@ class WorkerCompilerPass implements CompilerPassInterface
             $eventDispatcher->addMethodCall('addSubscriber', [$eventSubscriber]);
         }
         $this->setupDoctrineManagers($container);
+        $this->addLiveJobs($container);
     }
 
     protected function setupAlias(ContainerBuilder $container, $defaultManagerType, $type)
@@ -103,6 +104,9 @@ class WorkerCompilerPass implements CompilerPassInterface
         }
     }
 
+    /**
+     * @param ContainerBuilder $container
+     */
     protected function setupDoctrineManagers(ContainerBuilder $container)
     {
         $documentManager = $container->getParameter('dtc_queue.document_manager');
@@ -110,7 +114,6 @@ class WorkerCompilerPass implements CompilerPassInterface
         $odmManager = "doctrine_mongodb.odm.{$documentManager}_document_manager";
         if ($container->has($odmManager)) {
             $container->setAlias('dtc_queue.document_manager', $odmManager);
-            GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.live_jobs.odm');
         }
 
         $entityManager = $container->getParameter('dtc_queue.entity_manager');
@@ -118,6 +121,18 @@ class WorkerCompilerPass implements CompilerPassInterface
         $ormManager = "doctrine.orm.{$entityManager}_entity_manager";
         if ($container->has($ormManager)) {
             $container->setAlias('dtc_queue.entity_manager', $ormManager);
+        }
+    }
+
+    /**
+     * @param ContainerBuilder $container
+     */
+    protected function addLiveJobs(ContainerBuilder $container) {
+        $jobReflection = new \ReflectionClass($container->getParameter('dtc_queue.class_job'));
+        if ($jobReflection->isInstance(new \Dtc\QueueBundle\Document\Job())) {
+            GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.live_jobs.odm');
+        }
+        if ($jobReflection->isInstance(new \Dtc\QueueBundle\Entity\Job())) {
             GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.live_jobs.orm');
         }
     }

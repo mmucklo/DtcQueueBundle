@@ -4,6 +4,8 @@ namespace Dtc\QueueBundle\ORM;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
+use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\ORM\QueryBuilder;
 use Dtc\QueueBundle\Doctrine\BaseJobManager;
 use Dtc\QueueBundle\Entity\Job;
@@ -267,6 +269,20 @@ class JobManager extends BaseJobManager
         /** @var EntityRepository $repository */
         $repository = $this->getRepository();
         $queryBuilder = $repository->createQueryBuilder('j');
+        $this->addStandardPredicate($queryBuilder);
+        $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
+
+        if ($prioritize) {
+            $queryBuilder->addOrderBy('j.priority', 'DESC');
+            $queryBuilder->addOrderBy('j.whenAt', 'ASC');
+        } else {
+            $queryBuilder->orderBy('j.whenAt', 'ASC');
+        }
+
+        return $queryBuilder;
+    }
+
+    protected function addStandardPredicate(QueryBuilder $queryBuilder) {
         $dateTime = new \DateTime();
         $queryBuilder
             ->where('j.status = :status')->setParameter(':status', BaseJob::STATUS_NEW)
@@ -281,17 +297,6 @@ class JobManager extends BaseJobManager
             ))
             ->setParameter(':whenAt', $dateTime)
             ->setParameter(':expiresAt', $dateTime);
-
-        $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
-
-        if ($prioritize) {
-            $queryBuilder->addOrderBy('j.priority', 'DESC');
-            $queryBuilder->addOrderBy('j.whenAt', 'ASC');
-        } else {
-            $queryBuilder->orderBy('j.whenAt', 'ASC');
-        }
-
-        return $queryBuilder;
     }
 
     protected function takeJob($jobs, $runId = null)
@@ -389,5 +394,72 @@ class JobManager extends BaseJobManager
         }
 
         return $existingJob;
+    }
+
+    public function getWorkersAndMethods() {
+        /** @var EntityRepository $repository */
+        $repository = $this->getRepository();
+        $queryBuilder = $repository->createQueryBuilder('j');
+        $this->addStandardPredicate($queryBuilder);
+        $queryBuilder
+            ->select('DISTINCT j.workerName, j.method');
+
+        $results = $queryBuilder->getQuery()->getArrayResult();
+        if (!$results) {
+            return [];
+        }
+        $workerMethods = [];
+        foreach ($results as $result) {
+            $workerMethods[$result['workerName']][] = $result['method'];
+        }
+        return $workerMethods;
+    }
+
+    public function archiveAllJobs($workerName = null, $methodName = null) {
+        /** @var EntityManager $entityManager */
+        $entityManager = $this->getObjectManager();
+        $repository = $this->getRepository();
+        /** @var QueryBuilder $queryBuilder */
+        $queryBuilder = $repository->createQueryBuilder('j');
+        $queryBuilder->update($this->getJobClass(), 'j')
+            ->set('j.status', ':statusArchive')
+            ->setParameter(':statusArchive', Job::STATUS_ARCHIVE);
+        $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
+        $this->addStandardPredicate($queryBuilder);
+        $resultCount = $queryBuilder->getQuery()->execute();
+        if ($resultCount) {
+            $metaFactory = $entityManager->getMetadataFactory();
+            /** @var ClassMetadata $metadata */
+            $metadata = $metaFactory->getMetadataFor($this->getJobClass());
+            /** @var ClassMetadata $metaDataArchive */
+            $metaDataArchive = $metaFactory->getMetadataFor($this->getJobArchiveClass());
+            $tableName = $metadata->getTableName();
+            $tableNameArchive = $metaDataArchive->getTableName();
+            $fields = $metadata->getFieldNames();
+
+            $columns = [];
+            foreach ($fields as $field) {
+                $mapping = $metadata->getFieldMapping($field);
+                $columns[] = $mapping['columnName'];
+            }
+
+            $clause = implode(',', $columns);
+            $rsm = new ResultSetMapping();
+            $sql = "INSERT into $tableNameArchive ($clause) SELECT $clause FROM $tableName WHERE status = '" . Job::STATUS_ARCHIVE . "'";
+            $query = $entityManager->createNativeQuery($sql, $rsm);
+            $result = $query->getResult();
+        }
+        $repository = $this->getRepository();
+        /** @var QueryBuilder $queryBuilder */
+        $queryBuilder = $repository->createQueryBuilder('j');
+        $queryBuilder->delete($this->getJobClass(), 'j');
+        $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
+        $this->addStandardPredicate($queryBuilder);
+        $queryBuilder->andWhere('j.status', ':statusArchive')
+                ->setParameter(':statusArchive', Job::STATUS_ARCHIVE);
+        $resultCount1 = $queryBuilder->getQuery()->execute();
+        if ($resultCount !== $resultCount1) {
+            throw new \Exception("Can't delete results $resultCount != $resultCount1");
+        }
     }
 }

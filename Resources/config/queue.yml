@@ -36,7 +36,7 @@ services:
 
     dtc_queue.grid_source.live_jobs.odm:
         public: true
-        class: Dtc\QueueBundle\ODM\LiveJobGridSource
+        class: Dtc\QueueBundle\ODM\LiveJobsGridSource
         arguments:
             - "@dtc_queue.job_manager.odm"
         calls:
@@ -45,7 +45,7 @@ services:
 
     dtc_queue.grid_source.live_jobs.orm:
         public: true
-        class: Dtc\QueueBundle\ORM\LiveJobGridSource
+        class: Dtc\QueueBundle\ORM\LiveJobsGridSource
         arguments:
             - "@dtc_queue.job_manager.orm"
         calls:
