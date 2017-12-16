@@ -7,6 +7,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
 class QueueController extends Controller
@@ -53,12 +54,13 @@ class QueueController extends Controller
      * @Route("/archive", name="dtc_queue_archive")
      * @Method({"POST"})
      */
-    public function archive(Request $request) {
+    public function archiveAction(Request $request) {
         $workerName = $request->get('workerName');
         $method = $request->get('method');
 
         $jobManager = $this->get('dtc_queue.job_manager');
         $jobManager->archiveAllJobs($workerName, $method);
+        return new JsonResponse(['success' => true]);
     }
 
     /**

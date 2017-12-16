@@ -5,6 +5,7 @@ namespace Dtc\QueueBundle\ODM;
 use Doctrine\MongoDB\Query\Builder;
 use Dtc\QueueBundle\Doctrine\BaseJobManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Dtc\QueueBundle\Document\Job;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\RetryableJob;
 
@@ -360,5 +361,30 @@ class JobManager extends BaseJobManager
             }
         }
         return $workersMethods;
+    }
+
+    public function archiveAllJobs($workerName = null, $methodName = null)
+    {
+        /** @var DocumentManager $documentManager */
+        $documentManager = $this->getObjectManager();
+        $count = 0;
+        $builder = $this->getJobQueryBuilder($workerName, $methodName, true);
+        $builder
+            ->findAndUpdate()
+            ->returnNew();
+
+        $builder->field('status')->set(Job::STATUS_ARCHIVE);
+        $query = $builder->getQuery();
+        do {
+            $job = $query->execute();
+            if ($job) {
+                $documentManager->remove($job);
+                $count++;
+
+                if ($count % 10 == 0) {
+                    $this->flush();
+                }
+            }
+        } while ($job);
     }
 }

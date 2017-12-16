@@ -5,6 +5,7 @@ namespace Dtc\QueueBundle\ORM;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Query;
 use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\ORM\QueryBuilder;
 use Dtc\QueueBundle\Doctrine\BaseJobManager;
@@ -415,7 +416,8 @@ class JobManager extends BaseJobManager
         return $workerMethods;
     }
 
-    public function archiveAllJobs($workerName = null, $methodName = null) {
+    public function archiveAllJobs($workerName = null, $method = null) {
+        // First mark all Live non-running jobs as Archive
         /** @var EntityManager $entityManager */
         $entityManager = $this->getObjectManager();
         $repository = $this->getRepository();
@@ -424,42 +426,53 @@ class JobManager extends BaseJobManager
         $queryBuilder->update($this->getJobClass(), 'j')
             ->set('j.status', ':statusArchive')
             ->setParameter(':statusArchive', Job::STATUS_ARCHIVE);
-        $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
+        $this->addWorkerNameCriterion($queryBuilder, $workerName, $method);
         $this->addStandardPredicate($queryBuilder);
         $resultCount = $queryBuilder->getQuery()->execute();
+
         if ($resultCount) {
-            $metaFactory = $entityManager->getMetadataFactory();
-            /** @var ClassMetadata $metadata */
-            $metadata = $metaFactory->getMetadataFor($this->getJobClass());
-            /** @var ClassMetadata $metaDataArchive */
-            $metaDataArchive = $metaFactory->getMetadataFor($this->getJobArchiveClass());
-            $tableName = $metadata->getTableName();
-            $tableNameArchive = $metaDataArchive->getTableName();
-            $fields = $metadata->getFieldNames();
-
-            $columns = [];
-            foreach ($fields as $field) {
-                $mapping = $metadata->getFieldMapping($field);
-                $columns[] = $mapping['columnName'];
-            }
-
-            $clause = implode(',', $columns);
-            $rsm = new ResultSetMapping();
-            $sql = "INSERT into $tableNameArchive ($clause) SELECT $clause FROM $tableName WHERE status = '" . Job::STATUS_ARCHIVE . "'";
-            $query = $entityManager->createNativeQuery($sql, $rsm);
-            $result = $query->getResult();
+            $this->runArchive($workerName, $method);
         }
+    }
+
+    /**
+     * Move jobs in 'archive' status to the archive table.
+     *
+     *  This is a bit of a hack to run a lower level query so as to process the INSERT INTO SELECT
+     *   All on the server as "INSERT INTO SELECT" is not supported natively in Doctrine.
+     * @param null $workerName
+     * @param null $methodName
+     */
+    protected function runArchive($workerName = null, $methodName = null) {
+        $entityManager = $this->getObjectManager();
+        $metaFactory = $entityManager->getMetadataFactory();
+        /** @var ClassMetadata $metadata */
+        $metadata = $metaFactory->getMetadataFor($this->getJobClass());
+        /** @var ClassMetadata $metaDataArchive */
+        $metaDataArchive = $metaFactory->getMetadataFor($this->getJobArchiveClass());
+        $tableName = $metadata->getTableName();
+        $tableNameArchive = $metaDataArchive->getTableName();
+        $fields = $metadata->getFieldNames();
+
+        $columns = [];
+        foreach ($fields as $field) {
+            $mapping = $metadata->getFieldMapping($field);
+            $columns[] = $mapping['columnName'];
+        }
+
+        $clause = implode(',', $columns);
+        $sql = "INSERT into $tableNameArchive ($clause) SELECT $clause FROM $tableName WHERE status = '" . Job::STATUS_ARCHIVE . "'";
+        $entityManager->getConnection()->executeUpdate($sql);
+
+        // Delete any jobs that are in archive status
         $repository = $this->getRepository();
         /** @var QueryBuilder $queryBuilder */
         $queryBuilder = $repository->createQueryBuilder('j');
         $queryBuilder->delete($this->getJobClass(), 'j');
         $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
-        $this->addStandardPredicate($queryBuilder);
-        $queryBuilder->andWhere('j.status', ':statusArchive')
-                ->setParameter(':statusArchive', Job::STATUS_ARCHIVE);
-        $resultCount1 = $queryBuilder->getQuery()->execute();
-        if ($resultCount !== $resultCount1) {
-            throw new \Exception("Can't delete results $resultCount != $resultCount1");
-        }
+        $queryBuilder->andWhere('j.status = :statusArchive')
+            ->setParameter(':statusArchive', Job::STATUS_ARCHIVE);
+        $queryBuilder->getQuery()->execute();
+
     }
 }

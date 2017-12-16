@@ -26,7 +26,7 @@
         var methodElement = document.getElementById('method');
         var originalMethodHtml = methodElement.innerHTML;
         var archiveButton = document.getElementById('jobs-archive');
-        archiveButton.addEventListener('click', archiveJobs);
+        archiveButton.addEventListener('click', promptArchive);
         workerNameElement.addEventListener('change', workerNameChange);
         function workerNameChange() {
           var workerName = getSelected(workerNameElement);
@@ -58,6 +58,22 @@
           return optionHtml;
         }
 
+        function promptArchive() {
+          var workerName = getSelected(workerNameElement);
+          var method = getSelected(methodElement);
+          var message = "Are you sure?\n\nThis will archive all non-running jobs";
+          if (workerName) {
+            message += " of worker '" + workerName + "'";
+          }
+          if (method) {
+            message += ", method '" + method + "'";
+          }
+          message += ".";
+          if (confirm(message)) {
+            archiveJobs();
+          }
+        }
+
         function archiveJobs() {
           var workerName = getSelected(workerNameElement);
           var method = getSelected(methodElement);
@@ -75,10 +91,10 @@
           pagination[0].style.visibility = 'hidden';
 
           if (workerName) {
-            formData.set('workerName', workerName);
+            formData.append('workerName', workerName);
           }
           if (method) {
-            formData.set('method', method);
+            formData.append('method', method);
           }
 
           fetch(fetchPath, {
@@ -86,7 +102,7 @@
             method: 'post',
             body: formData
           }).then(function (response) {
-            //window.location.reload();
+            window.location.reload();
           });
         }
     </script>
