@@ -17,7 +17,7 @@
         <select id="method" class="form-control" name="method">
             <option value="">Any</option>
         </select>
-        <button id="jobs-archive" class="btn btn-primary"><i class="fa fa-circle-o-notch fa-spin hidden"></i> Archive</button>
+        <button id="jobs-archive" class="btn btn-primary"><i class="fa fa-circle-o-notch fa-spin hidden"></i> Archive</button> <progress style="display: none" id="jobs-archive-progress"></progress>
     </div>
     <script>
         var fetchPath = '{{ path('dtc_queue_archive') }}';
@@ -26,6 +26,8 @@
         var methodElement = document.getElementById('method');
         var originalMethodHtml = methodElement.innerHTML;
         var archiveButton = document.getElementById('jobs-archive');
+        var progressElement = document.getElementById('jobs-archive-progress');
+
         archiveButton.addEventListener('click', promptArchive);
         workerNameElement.addEventListener('change', workerNameChange);
         function workerNameChange() {
@@ -97,13 +99,49 @@
             formData.append('method', method);
           }
 
+          progressElement.max = "1";
+          progressElement.value = "0";
+          progressElement.style.display = 'inline';
+
           fetch(fetchPath, {
             credentials: 'include',
             method: 'post',
             body: formData
           }).then(function (response) {
-            window.location.reload();
+            processResponse(response.body.getReader());
           });
+
+
+          function processResponse(reader) {
+            reader.read().then(function processResult (result) {
+              if (result.done) {
+                window.location.reload();
+                return;
+              }
+              var progress = (new TextDecoder('utf-8')).decode(result.value);
+              var lines = progress.split(/\n/);
+
+              for (var i = 0, len = lines.length; i < len; i++) {
+                if (lines[i]) {
+                  var json = JSON.parse(lines[i]);
+                  if (json) {
+                    if (json.total !== undefined) {
+                      if (json.total === 0) {
+                        progressElement.value = "1";
+                      }
+                      else {
+                        progressElement.max = json.total.toString();
+                      }
+                    }
+                    else if (json.count) {
+                      progressElement.value = json.count.toString();
+                    }
+                  }
+                }
+              }
+              processResponse(reader);
+            });
+          }
         }
     </script>
 

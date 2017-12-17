@@ -363,7 +363,20 @@ class JobManager extends BaseJobManager
         return $workersMethods;
     }
 
-    public function archiveAllJobs($workerName = null, $methodName = null)
+    public function countLiveJobs($workerName = null, $methodName = null) {
+        /** @var DocumentManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $builder = $objectManager->createQueryBuilder($this->getJobClass());
+
+        $this->addWorkerNameCriterion($builder, $workerName, $methodName);
+        // Filter
+        $this->addStandardPredicates($builder);
+
+        return $builder->getQuery()->count();
+
+    }
+
+    public function archiveAllJobs($workerName = null, $methodName = null, $progressCallback)
     {
         /** @var DocumentManager $documentManager */
         $documentManager = $this->getObjectManager();
@@ -383,8 +396,11 @@ class JobManager extends BaseJobManager
 
                 if ($count % 10 == 0) {
                     $this->flush();
+                    $progressCallback($count);
                 }
             }
         } while ($job);
+        $this->flush();
+        $progressCallback($count);
     }
 }

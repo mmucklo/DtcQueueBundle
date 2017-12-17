@@ -247,15 +247,24 @@ class JobManager extends BaseJobManager
      */
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
-        $queryBuilder = $this->getJobQueryBuilder($workerName, $methodName, $prioritize);
-        $queryBuilder->select('j.id');
-        $queryBuilder->setMaxResults(1);
+        do {
+            $queryBuilder = $this->getJobQueryBuilder($workerName, $methodName, $prioritize);
+            $queryBuilder->select('j.id');
+            $queryBuilder->setMaxResults(100);
 
-        /** @var QueryBuilder $queryBuilder */
-        $query = $queryBuilder->getQuery();
-        $jobs = $query->getResult();
+            /** @var QueryBuilder $queryBuilder */
+            $query = $queryBuilder->getQuery();
+            $jobs = $query->getResult();
+            if ($jobs) {
+                foreach ($jobs as $job) {
+                    if ($job = $this->takeJob($job['id'])) {
+                        return $job;
+                    }
+                }
+            }
+        } while ($jobs);
 
-        return $this->takeJob($jobs, $runId);
+        return null;
     }
 
     /**
@@ -300,36 +309,33 @@ class JobManager extends BaseJobManager
             ->setParameter(':expiresAt', $dateTime);
     }
 
-    protected function takeJob($jobs, $runId = null)
+    protected function takeJob($jobId, $runId = null)
     {
-        if (isset($jobs[0]['id'])) {
-            /** @var EntityRepository $repository */
-            $repository = $this->getRepository();
-            /** @var QueryBuilder $queryBuilder */
-            $queryBuilder = $repository->createQueryBuilder('j');
+        /** @var EntityRepository $repository */
+        $repository = $this->getRepository();
+        /** @var QueryBuilder $queryBuilder */
+        $queryBuilder = $repository->createQueryBuilder('j');
+        $queryBuilder
+            ->update()
+            ->set('j.locked', ':locked')
+            ->setParameter(':locked', true)
+            ->set('j.lockedAt', ':lockedAt')
+            ->setParameter(':lockedAt', new \DateTime())
+            ->set('j.status', ':status')
+            ->setParameter(':status', BaseJob::STATUS_RUNNING);
+        if (null !== $runId) {
             $queryBuilder
-                ->update()
-                ->set('j.locked', ':locked')
-                ->setParameter(':locked', true)
-                ->set('j.lockedAt', ':lockedAt')
-                ->setParameter(':lockedAt', new \DateTime())
-                ->set('j.status', ':status')
-                ->setParameter(':status', BaseJob::STATUS_RUNNING);
-            if (null !== $runId) {
-                $queryBuilder
-                    ->set('j.runId', ':runId')
-                    ->setParameter(':runId', $runId);
-            }
-            $queryBuilder->where('j.id = :id');
-            $queryBuilder->andWhere('j.locked is NULL');
-            $queryBuilder->setParameter(':id', $jobs[0]['id']);
-            $resultCount = $queryBuilder->getQuery()->execute();
-
-            if (1 === $resultCount) {
-                return $repository->find($jobs[0]['id']);
-            }
+                ->set('j.runId', ':runId')
+                ->setParameter(':runId', $runId);
         }
+        $queryBuilder->where('j.id = :id');
+        $queryBuilder->andWhere('j.locked is NULL');
+        $queryBuilder->setParameter(':id', $jobId);
+        $resultCount = $queryBuilder->getQuery()->execute();
 
+        if (1 === $resultCount) {
+            return $repository->find($jobId);
+        }
         return null;
     }
 
@@ -416,22 +422,30 @@ class JobManager extends BaseJobManager
         return $workerMethods;
     }
 
-    public function archiveAllJobs($workerName = null, $method = null) {
+    public function countLiveJobs($workerName = null, $methodName = null) {
+        /** @var EntityRepository $repository */
+        $repository = $this->getRepository();
+        $queryBuilder = $repository->createQueryBuilder('j');
+        $this->addStandardPredicate($queryBuilder);
+        $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
+        $queryBuilder->select('count(j.id)');
+        return $queryBuilder->getQuery()->getSingleScalarResult();
+    }
+
+    public function archiveAllJobs($workerName = null, $methodName = null, $progressCallback) {
         // First mark all Live non-running jobs as Archive
-        /** @var EntityManager $entityManager */
-        $entityManager = $this->getObjectManager();
         $repository = $this->getRepository();
         /** @var QueryBuilder $queryBuilder */
         $queryBuilder = $repository->createQueryBuilder('j');
         $queryBuilder->update($this->getJobClass(), 'j')
             ->set('j.status', ':statusArchive')
             ->setParameter(':statusArchive', Job::STATUS_ARCHIVE);
-        $this->addWorkerNameCriterion($queryBuilder, $workerName, $method);
+        $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
         $this->addStandardPredicate($queryBuilder);
         $resultCount = $queryBuilder->getQuery()->execute();
 
         if ($resultCount) {
-            $this->runArchive($workerName, $method);
+            $this->runArchive($workerName, $methodName, $progressCallback);
         }
     }
 
@@ -443,36 +457,33 @@ class JobManager extends BaseJobManager
      * @param null $workerName
      * @param null $methodName
      */
-    protected function runArchive($workerName = null, $methodName = null) {
+    protected function runArchive($workerName = null, $methodName = null, $progressCallback) {
+        /** @var EntityManager $entityManager */
         $entityManager = $this->getObjectManager();
-        $metaFactory = $entityManager->getMetadataFactory();
-        /** @var ClassMetadata $metadata */
-        $metadata = $metaFactory->getMetadataFor($this->getJobClass());
-        /** @var ClassMetadata $metaDataArchive */
-        $metaDataArchive = $metaFactory->getMetadataFor($this->getJobArchiveClass());
-        $tableName = $metadata->getTableName();
-        $tableNameArchive = $metaDataArchive->getTableName();
-        $fields = $metadata->getFieldNames();
+        $count = 0;
+        do {
+            /** @var EntityRepository $repository */
+            $repository = $this->getRepository();
+            $queryBuilder = $repository->createQueryBuilder('j');
+            $queryBuilder->where('j.status = :status')
+                ->setParameter(':status', Job::STATUS_ARCHIVE)
+                ->setMaxResults(10000);
 
-        $columns = [];
-        foreach ($fields as $field) {
-            $mapping = $metadata->getFieldMapping($field);
-            $columns[] = $mapping['columnName'];
-        }
-
-        $clause = implode(',', $columns);
-        $sql = "INSERT into $tableNameArchive ($clause) SELECT $clause FROM $tableName WHERE status = '" . Job::STATUS_ARCHIVE . "'";
-        $entityManager->getConnection()->executeUpdate($sql);
-
-        // Delete any jobs that are in archive status
-        $repository = $this->getRepository();
-        /** @var QueryBuilder $queryBuilder */
-        $queryBuilder = $repository->createQueryBuilder('j');
-        $queryBuilder->delete($this->getJobClass(), 'j');
-        $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
-        $queryBuilder->andWhere('j.status = :statusArchive')
-            ->setParameter(':statusArchive', Job::STATUS_ARCHIVE);
-        $queryBuilder->getQuery()->execute();
+            $results = $queryBuilder->getQuery()->getArrayResult();
+            foreach ($results as $jobRow) {
+                $job = $repository->find($jobRow['id']);
+                if ($job) {
+                    $entityManager->remove($job);
+                }
+                $count++;
+                if ($count % 10 == 0) {
+                    $this->flush();
+                    $progressCallback($count);
+                }
+            }
+            $this->flush();
+            $progressCallback($count);
+        } while($results && count($results) == 10000);
 
     }
 }

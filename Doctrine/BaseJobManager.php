@@ -441,5 +441,6 @@ abstract class BaseJobManager extends PriorityJobManager
     }
 
     abstract public function getWorkersAndMethods();
-    abstract public function archiveAllJobs($workerName = null, $methodName = null);
+    abstract public function countLiveJobs($workerName = null, $methodName = null);
+    abstract public function archiveAllJobs($workerName = null, $methodName = null, $progressCallback);
 }

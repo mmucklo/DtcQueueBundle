@@ -9,6 +9,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class QueueController extends Controller
 {
@@ -56,11 +57,23 @@ class QueueController extends Controller
      */
     public function archiveAction(Request $request) {
         $workerName = $request->get('workerName');
-        $method = $request->get('method');
+        $methodName = $request->get('method');
 
         $jobManager = $this->get('dtc_queue.job_manager');
-        $jobManager->archiveAllJobs($workerName, $method);
-        return new JsonResponse(['success' => true]);
+        $callback = function ($count) {
+            echo json_encode(['count' => $count]);
+            echo "\n";
+            flush();
+        };
+        return new StreamedResponse(function () use ($jobManager, $callback, $workerName, $methodName) {
+            $total = $jobManager->countLiveJobs($workerName, $methodName);
+            echo json_encode(['total' => $total]);
+            echo "\n";
+            flush();
+            if ($total > 0) {
+                $jobManager->archiveAllJobs($workerName, $methodName, $callback);
+            }
+        });
     }
 
     /**
