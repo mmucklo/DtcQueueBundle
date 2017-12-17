@@ -14,7 +14,6 @@ use Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver;
 
 /**
  * @author David
- *lh//hj
  * This test requires local mongodb running
  */
 class JobManagerTest extends BaseJobManagerTest

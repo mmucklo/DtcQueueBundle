@@ -5,6 +5,7 @@ namespace Dtc\QueueBundle\ORM;
 use Doctrine\ORM\EntityManager;
 use Dtc\GridBundle\Grid\Column\GridColumn;
 use Dtc\GridBundle\Grid\Source\EntityGridSource;
+use Dtc\QueueBundle\Model\BaseJob;
 
 class LiveJobsGridSource extends EntityGridSource
 {
@@ -50,6 +51,7 @@ class LiveJobsGridSource extends EntityGridSource
         $entityManager = $this->jobManager->getObjectManager();
         $queryBuilder = $entityManager->createQueryBuilder()->add('select', 'j');
         $queryBuilder->from($this->jobManager->getJobClass(), 'j');
+        $queryBuilder->where('j.status = :status')->setParameter(':status', BaseJob::STATUS_RUNNING);
         $queryBuilder->orderBy('j.startedAt', 'DESC');
         $queryBuilder->setFirstResult($this->offset)
                      ->setMaxResults($this->limit);

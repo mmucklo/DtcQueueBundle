@@ -1,3 +1,6 @@
+### 3.1.1
+   * Fix a bug in LiveJobsGridSource for ORM
+   * Added more tests
 ### 3.1.0
    * Rename Live Jobs to Waiting Jobs, and add Running Jobs tab
    * New Archive button on the Waiting Jobs administration page to archive all jobs at once

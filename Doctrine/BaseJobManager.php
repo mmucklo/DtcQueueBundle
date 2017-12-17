@@ -34,10 +34,13 @@ abstract class BaseJobManager extends PriorityJobManager
     protected $jobArchiveClass;
 
     /**
-     * @param string $objectName
-     * @param string $archiveObjectName
-     * @param string $runClass
-     * @param string $runArchiveClass
+     * BaseJobManager constructor.
+     *
+     * @param RunManager       $runManager
+     * @param JobTimingManager $jobTimingManager
+     * @param ObjectManager    $objectManager
+     * @param $jobClass
+     * @param $jobArchiveClass
      */
     public function __construct(
         RunManager $runManager,
