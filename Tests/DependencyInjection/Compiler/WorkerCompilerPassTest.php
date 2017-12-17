@@ -2,11 +2,13 @@
 
 namespace Dtc\QueueBundle\Tests\DependencyInjection\Compiler;
 
+use Dtc\GridBundle\Manager\GridSourceManager;
 use Dtc\QueueBundle\DependencyInjection\Compiler\WorkerCompilerPass;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Model\WorkerManager;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\ODM\JobTimingManager;
+use Dtc\QueueBundle\ODM\LiveJobsGridSource;
 use Dtc\QueueBundle\ODM\RunManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use PHPUnit\Framework\TestCase;
@@ -42,12 +44,21 @@ class WorkerCompilerPassTest extends TestCase
         $definition4->setClass(EventDispatcher::class);
         $definition5 = new Definition();
         $definition5->setClass(JobTimingManager::class);
+        $definition6 = new Definition();
+        $definition6->setClass(GridSourceManager::class);
+        $definition7 = new Definition();
+        $definition7->setClass(LiveJobsGridSource::class);
+        $definition8 = new Definition();
+        $definition8->setClass(LiveJobsGridSource::class);
         $container->addDefinitions([
             'dtc_queue.worker_manager' => $definition1,
             'dtc_queue.job_manager.'.$type => $definition2,
             'dtc_queue.job_timing_manager.'.$jobTimingManagerType => $definition5,
             'dtc_queue.run_manager.'.$runManagerType => $definition3,
             'dtc_queue.event_dispatcher' => $definition4,
+            'dtc_grid.manager.source' => $definition6,
+            'dtc_queue.grid_source.live_jobs.odm' => $definition7,
+            'dtc_queue.grid_source.live_jobs.orm' => $definition8,
         ]);
 
         return $container;
