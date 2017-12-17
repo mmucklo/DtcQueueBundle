@@ -76,7 +76,7 @@
       formData.append('method', method);
     }
 
-    progressElement.max = "1";
+    progressElement.max = "10";
     progressElement.value = "0";
     progressElement.style.display = 'inline';
 
@@ -92,6 +92,7 @@
     function processResponse(reader) {
       reader.read().then(function processResult (result) {
         if (result.done) {
+          progressElement.value = progressElement.max;
           window.location.reload();
           return;
         }
@@ -104,7 +105,7 @@
             if (json) {
               if (json.total !== undefined) {
                 if (json.total === 0) {
-                  progressElement.value = "1";
+                  progressElement.value = progressElement.max;
                 }
                 else {
                   progressElement.max = json.total.toString();
