@@ -87,4 +87,15 @@ class JobManagerTest extends BaseJobManagerTest
         self::$jobTimingManagerClass = JobTimingManager::class;
         parent::setUpBeforeClass();
     }
+
+    protected function runCountQuery($class)
+    {
+        /** @var JobManager $jobManager */
+        $jobManager = self::$jobManager;
+
+        /** @var DocumentManager $documentManager */
+        $documentManager = $jobManager->getObjectManager();
+
+        return $documentManager->createQueryBuilder($class)->getQuery()->count();
+    }
 }

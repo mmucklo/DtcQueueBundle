@@ -1,10 +1,27 @@
 {% extends "DtcGridBundle:Page:datatables.html.twig" %}
-{% block title %}DtcQueue - Admin - Live Jobs{% endblock %}
+{% block title %}DtcQueue - Admin - Waiting Jobs{% endblock %}
 {% block grid %}
     {% include 'DtcQueueBundle:Queue:nav.html.twig' %}
 
-    <h3>Live Jobs</h3>
+    <h3>Waiting Jobs</h3>
     {{ dtc_grid.render | raw }}
-    <button class="btn btn-primary grid-delete" onclick="dtc_grid_delete(this)"><i class="fa fa-circle-o-notch fa-spin hidden"></i> Archive</button>
-
+    <div class="archive-jobs form-group form-inline">
+        <label for="workerName">WorkerName: </label>
+        <select id="workerName" class="form-control" name="workerName">
+            <option value="">Any</option>
+            {% for workerName, method in worker_methods %}
+                <option value="{{ workerName }}">{{ workerName }}</option>
+            {% endfor %}
+        </select>
+        <label for="method">Method: </label>
+        <select id="method" class="form-control" name="method">
+            <option value="">Any</option>
+        </select>
+        <button id="jobs-archive" class="btn btn-primary"><i class="fa fa-circle-o-notch fa-spin hidden"></i> Archive</button> <progress style="display: none" id="jobs-archive-progress"></progress>
+    </div>
+    <script>
+        var fetchPath = '{{ path('dtc_queue_archive') }}';
+        var workerMethods = {{ worker_methods|json_encode|raw }};
+    </script>
+    <script src="/bundles/dtcqueue/js/jobs.js?v=2"></script>
 {% endblock %}

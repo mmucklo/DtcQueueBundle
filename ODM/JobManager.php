@@ -5,6 +5,7 @@ namespace Dtc\QueueBundle\ODM;
 use Doctrine\MongoDB\Query\Builder;
 use Dtc\QueueBundle\Doctrine\BaseJobManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Dtc\QueueBundle\Document\Job;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\RetryableJob;
 
@@ -264,14 +265,7 @@ class JobManager extends BaseJobManager
         }
 
         // Filter
-        $date = new \DateTime();
-        $builder
-            ->addAnd(
-                $builder->expr()->addOr($builder->expr()->field('whenAt')->equals(null), $builder->expr()->field('whenAt')->lte($date)),
-                $builder->expr()->addOr($builder->expr()->field('expiresAt')->equals(null), $builder->expr()->field('expiresAt')->gt($date))
-            )
-            ->field('status')->equals(BaseJob::STATUS_NEW)
-            ->field('locked')->equals(null);
+        $this->addStandardPredicates($builder);
 
         return $builder;
     }
@@ -318,5 +312,97 @@ class JobManager extends BaseJobManager
         }
 
         return $oldJob;
+    }
+
+    /**
+     * @param mixed $builder
+     */
+    protected function addStandardPredicates($builder)
+    {
+        $date = new \DateTime();
+        $builder
+            ->addAnd(
+                $builder->expr()->addOr($builder->expr()->field('whenAt')->equals(null), $builder->expr()->field('whenAt')->lte($date)),
+                $builder->expr()->addOr($builder->expr()->field('expiresAt')->equals(null), $builder->expr()->field('expiresAt')->gt($date))
+            )
+            ->field('status')->equals(BaseJob::STATUS_NEW)
+            ->field('locked')->equals(null);
+    }
+
+    public function getWorkersAndMethods()
+    {
+        /** @var DocumentManager $documentManager */
+        $documentManager = $this->getObjectManager();
+
+        if (!method_exists($documentManager, 'createAggregationBuilder')) {
+            return [];
+        }
+
+        $aggregationBuilder = $documentManager->createAggregationBuilder($this->getJobClass());
+
+        $this->addStandardPredicates($aggregationBuilder->match());
+
+        $aggregationBuilder->group()
+            ->field('id')
+            ->expression(
+                $aggregationBuilder->expr()
+                ->field('workerName')->expression('$workerName')
+                ->field('method')->expression('$method')
+            );
+        $results = $aggregationBuilder->execute()->toArray();
+
+        if (!$results) {
+            return [];
+        }
+
+        $workersMethods = [];
+        foreach ($results as $result) {
+            if (isset($result['_id'])) {
+                $workersMethods[$result['_id']['worker_name']][] = $result['_id']['method'];
+            }
+        }
+
+        return $workersMethods;
+    }
+
+    public function countLiveJobs($workerName = null, $methodName = null)
+    {
+        /** @var DocumentManager $objectManager */
+        $objectManager = $this->getObjectManager();
+        $builder = $objectManager->createQueryBuilder($this->getJobClass());
+
+        $this->addWorkerNameCriterion($builder, $workerName, $methodName);
+        // Filter
+        $this->addStandardPredicates($builder);
+
+        return $builder->getQuery()->count();
+    }
+
+    public function archiveAllJobs($workerName = null, $methodName = null, $progressCallback)
+    {
+        /** @var DocumentManager $documentManager */
+        $documentManager = $this->getObjectManager();
+        $count = 0;
+        $builder = $this->getJobQueryBuilder($workerName, $methodName, true);
+        $builder
+            ->findAndUpdate()
+            ->returnNew();
+
+        $builder->field('status')->set(Job::STATUS_ARCHIVE);
+        $query = $builder->getQuery();
+        do {
+            $job = $query->execute();
+            if ($job) {
+                $documentManager->remove($job);
+                ++$count;
+
+                if (0 == $count % 10) {
+                    $this->flush();
+                    $progressCallback($count);
+                }
+            }
+        } while ($job);
+        $this->flush();
+        $progressCallback($count);
     }
 }

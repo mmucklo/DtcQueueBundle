@@ -11,4 +11,5 @@ use Dtc\GridBundle\Annotation as Grid;
  */
 class Job extends BaseJob
 {
+    const STATUS_ARCHIVE = 'archive';
 }

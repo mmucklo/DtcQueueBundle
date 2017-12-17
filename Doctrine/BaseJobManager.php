@@ -39,10 +39,13 @@ abstract class BaseJobManager extends PriorityJobManager
      * @param string $runClass
      * @param string $runArchiveClass
      */
-    public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, ObjectManager $objectManager,
+    public function __construct(
+        RunManager $runManager,
+        JobTimingManager $jobTimingManager,
+        ObjectManager $objectManager,
         $jobClass,
-        $jobArchiveClass)
-    {
+        $jobArchiveClass
+    ) {
         $this->objectManager = $objectManager;
         $this->jobArchiveClass = $jobArchiveClass;
         parent::__construct($runManager, $jobTimingManager, $jobClass);
@@ -87,7 +90,10 @@ abstract class BaseJobManager extends PriorityJobManager
         $countProcessed = 0;
         for ($i = 0; $i < $count; $i += static::FETCH_COUNT) {
             $countProcessed += $this->resetJobsByCriterion(
-                $criterion, static::FETCH_COUNT, $i);
+                $criterion,
+                static::FETCH_COUNT,
+                $i
+            );
         }
 
         return $countProcessed;
@@ -371,8 +377,8 @@ abstract class BaseJobManager extends PriorityJobManager
     private function resetJobsByCriterion(
         array $criterion,
         $limit,
-        $offset)
-    {
+        $offset
+    ) {
         $objectManager = $this->getObjectManager();
         $this->resetSaveOk(__FUNCTION__);
         $objectName = $this->getJobClass();
@@ -439,4 +445,10 @@ abstract class BaseJobManager extends PriorityJobManager
         $this->jobTiminigManager->recordTiming(JobTiming::STATUS_INSERT);
         ++$countProcessed;
     }
+
+    abstract public function getWorkersAndMethods();
+
+    abstract public function countLiveJobs($workerName = null, $methodName = null);
+
+    abstract public function archiveAllJobs($workerName = null, $methodName = null, $progressCallback);
 }

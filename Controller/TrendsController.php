@@ -93,6 +93,24 @@ class TrendsController extends Controller
             return $date1 > $date2;
         });
 
+        $timingsDatesAdjusted = $this->getTimingsDatesAdjusted($timingsDates, $format);
+        $this->setTimingsData($timingStates, $timings, $timingsDates, $params);
+        $params['timings_dates'] = $timingsDates;
+        $params['timings_dates_rfc3339'] = $timingsDatesAdjusted;
+
+        return $params;
+    }
+
+    /**
+     * Timings offset by timezone if necessary.
+     *
+     * @param array $timingsDates
+     * @param $format
+     *
+     * @return array
+     */
+    protected function getTimingsDatesAdjusted(array $timingsDates, $format)
+    {
         $timezoneOffset = $this->container->getParameter('dtc_queue.record_timings_timezone_offset');
         $timingsDatesAdjusted = [];
         foreach ($timingsDates as $dateStr) {
@@ -103,6 +121,11 @@ class TrendsController extends Controller
             $timingsDatesAdjusted[] = $date->format(DATE_RFC3339);
         }
 
+        return $timingsDatesAdjusted;
+    }
+
+    protected function setTimingsData(array $timingStates, array $timings, array $timingsDates, array &$params)
+    {
         foreach (array_keys($timingStates) as $state) {
             if (!isset($timings[$state])) {
                 continue;
@@ -113,10 +136,6 @@ class TrendsController extends Controller
                 $params['timings_data_'.$state][] = isset($timingsData[$date]) ? $timingsData[$date] : 0;
             }
         }
-        $params['timings_dates'] = $timingsDates;
-        $params['timings_dates_rfc3339'] = $timingsDatesAdjusted;
-
-        return $params;
     }
 
     protected function getJobTimingsOdm($type, \DateTime $end, \DateTime $begin = null)
@@ -171,6 +190,8 @@ class TrendsController extends Controller
                 return 'Y-m-d';
             case 'HOUR':
                 return 'Y-m-d H';
+            case 'MINUTE':
+                return 'Y-m-d H:i';
             default:
                 throw new \InvalidArgumentException("Invalid date format type '$type''");
         }

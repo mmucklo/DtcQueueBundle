@@ -12,8 +12,10 @@ class BeanstalkdCompilerPass implements CompilerPassInterface
     public function process(ContainerBuilder $container)
     {
         if ($container->hasParameter('dtc_queue.beanstalkd.host')) {
-            $definition = new Definition('Pheanstalk\\Pheanstalk',
-                [$container->getParameter('dtc_queue.beanstalkd.host')]);
+            $definition = new Definition(
+                'Pheanstalk\\Pheanstalk',
+                [$container->getParameter('dtc_queue.beanstalkd.host')]
+            );
             $container->setDefinition('dtc_queue.beanstalkd', $definition);
             $definition = $container->getDefinition('dtc_queue.job_manager.beanstalkd');
             $definition->addMethodCall('setBeanstalkd', [new Reference('dtc_queue.beanstalkd')]);

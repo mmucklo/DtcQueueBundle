@@ -48,6 +48,16 @@ dtc_queue:
     #   uses, plus direction that the priority argument of such
     #   functions as later()
     priority_direction: desc
+    #
+    # record_timings_timezone_offset
+    #
+    # If the webserver is in one timezone, but the database stores them in another timezone
+    #  You may need to offset positive or negative the hours or fraction of hours between the two.
+    #  For the data on the trends page to appear correctly
+    #
+    #  If you're not recording timings (record_timings: false), then it presently doesn't make a difference what this is set to.
+    #
+    record_timings_timezone_offset: 0
     admin:
         chartjs: https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js
     beanstalkd:

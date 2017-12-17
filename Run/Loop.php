@@ -40,8 +40,8 @@ class Loop
     public function __construct(
         WorkerManager $workerManager,
         JobManagerInterface $jobManager,
-        RunManager $runManager)
-    {
+        RunManager $runManager
+    ) {
         $this->workerManager = $workerManager;
         $this->jobManager = $jobManager;
         $this->runManager = $runManager;
