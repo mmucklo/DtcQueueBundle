@@ -1,5 +1,6 @@
 ### 3.1.0
-   * New Archive button on the Live Jobs administration page to archive all jobs at once
+   * Rename Live Jobs to Waiting Jobs, and add Running Jobs tab
+   * New Archive button on the Waiting Jobs administration page to archive all jobs at once
    * Fix a bug when running doctrine orm and odm simulatenously
 ### 3.0.4
    * Refactoring out the TrendsController from the QueueController, ran php-cs-fixer

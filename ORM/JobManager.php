@@ -447,8 +447,8 @@ class JobManager extends BaseJobManager
         $queryBuilder->update($this->getJobClass(), 'j')
             ->set('j.status', ':statusArchive')
             ->setParameter(':statusArchive', Job::STATUS_ARCHIVE);
-        $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
         $this->addStandardPredicate($queryBuilder);
+        $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
         $resultCount = $queryBuilder->getQuery()->execute();
 
         if ($resultCount) {
