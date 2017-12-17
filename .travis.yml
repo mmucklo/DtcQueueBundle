@@ -27,7 +27,7 @@ before_install:
   - mysql -e 'CREATE DATABASE queue_test;'
 before_script:
   - composer self-update
-  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then extension="mongo"; echo "yes" | pecl install mongo; else extension="mongodb"; (pecl install mongodb || true); fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then pecl install mongodb; fi
   - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then phpversion=$(php --version | grep "PHP 7.0" | cut -f2 -d' '); (echo "extension=mongodb.so" > /home/travis/.phpenv/versions/$phpversion/etc/conf.d/mongodb.ini); fi
   - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.1" ]]; then phpversion=$(php --version | grep "PHP 7.1" | cut -f2 -d' '); (echo "extension=mongodb.so" > /home/travis/.phpenv/versions/$phpversion/etc/conf.d/mongodb.ini); fi
   - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.2" ]]; then phpversion=$(php --version | grep "PHP 7.2" | cut -f2 -d' '); (echo "extension=mongodb.so" > /home/travis/.phpenv/versions/$phpversion/etc/conf.d/mongodb.ini); fi
