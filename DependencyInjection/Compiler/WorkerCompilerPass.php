@@ -34,8 +34,13 @@ class WorkerCompilerPass implements CompilerPassInterface
 
         $managerType = $this->getRunManagerType($container);
         $jobTimingManagerType = $this->getJobTimingManagerType($container);
-        $container->setParameter('dtc_queue.class_job_timing', $this->getClass($container, $jobTimingManagerType, 'job_timing',
-            'JobTiming', JobTiming::class));
+        $container->setParameter('dtc_queue.class_job_timing', $this->getClass(
+            $container,
+            $jobTimingManagerType,
+            'job_timing',
+            'JobTiming',
+            JobTiming::class
+        ));
         $container->setParameter('dtc_queue.class_run', $this->getClass($container, $managerType, 'run', 'Run', Run::class));
         $container->setParameter('dtc_queue.class_run_archive', $this->getClass($container, $managerType, 'run_archive', 'RunArchive', Run::class));
 
@@ -127,13 +132,16 @@ class WorkerCompilerPass implements CompilerPassInterface
     /**
      * @param ContainerBuilder $container
      */
-    protected function addLiveJobs(ContainerBuilder $container) {
+    protected function addLiveJobs(ContainerBuilder $container)
+    {
         $jobReflection = new \ReflectionClass($container->getParameter('dtc_queue.class_job'));
         if ($jobReflection->isInstance(new \Dtc\QueueBundle\Document\Job())) {
-            GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.live_jobs.odm');
+            GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.jobs_waiting.odm');
+            GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.jobs_running.odm');
         }
         if ($jobReflection->isInstance(new \Dtc\QueueBundle\Entity\Job())) {
-            GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.live_jobs.orm');
+            GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.jobs_waiting.orm');
+            GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.jobs_running.orm');
         }
     }
 

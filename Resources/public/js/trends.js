@@ -122,6 +122,9 @@
           case 'HOUR':
             newDates.push(realDate.getFullYear() + '-' + (realDate.getMonth() + 1) + '-' + realDate.getDate() + ' ' + realDate.getHours());
             break;
+          case 'MINUTE':
+            newDates.push(realDate.getFullYear() + '-' + (realDate.getMonth() + 1) + '-' + realDate.getDate() + ' ' + realDate.getHours().toString().padStart(2, '0') + ':' + realDate.getMinutes().toString().padStart('2', '0'));
+            break;
         }
       }
     }

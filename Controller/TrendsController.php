@@ -102,13 +102,15 @@ class TrendsController extends Controller
     }
 
     /**
-     * Timings offset by timezone if necessary
+     * Timings offset by timezone if necessary.
      *
      * @param array $timingsDates
      * @param $format
+     *
      * @return array
      */
-    protected function getTimingsDatesAdjusted(array $timingsDates, $format) {
+    protected function getTimingsDatesAdjusted(array $timingsDates, $format)
+    {
         $timezoneOffset = $this->container->getParameter('dtc_queue.record_timings_timezone_offset');
         $timingsDatesAdjusted = [];
         foreach ($timingsDates as $dateStr) {
@@ -118,10 +120,12 @@ class TrendsController extends Controller
             }
             $timingsDatesAdjusted[] = $date->format(DATE_RFC3339);
         }
+
         return $timingsDatesAdjusted;
     }
 
-    protected function setTimingsData(array $timingStates, array $timings, array $timingsDates, array &$params) {
+    protected function setTimingsData(array $timingStates, array $timings, array $timingsDates, array &$params)
+    {
         foreach (array_keys($timingStates) as $state) {
             if (!isset($timings[$state])) {
                 continue;
@@ -133,8 +137,6 @@ class TrendsController extends Controller
             }
         }
     }
-
-
 
     protected function getJobTimingsOdm($type, \DateTime $end, \DateTime $begin = null)
     {
@@ -188,6 +190,8 @@ class TrendsController extends Controller
                 return 'Y-m-d';
             case 'HOUR':
                 return 'Y-m-d H';
+            case 'MINUTE':
+                return 'Y-m-d H:i';
             default:
                 throw new \InvalidArgumentException("Invalid date format type '$type''");
         }

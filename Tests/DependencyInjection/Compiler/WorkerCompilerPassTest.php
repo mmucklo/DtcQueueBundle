@@ -57,8 +57,10 @@ class WorkerCompilerPassTest extends TestCase
             'dtc_queue.run_manager.'.$runManagerType => $definition3,
             'dtc_queue.event_dispatcher' => $definition4,
             'dtc_grid.manager.source' => $definition6,
-            'dtc_queue.grid_source.live_jobs.odm' => $definition7,
-            'dtc_queue.grid_source.live_jobs.orm' => $definition8,
+            'dtc_queue.grid_source.jobs_waiting.odm' => $definition7,
+            'dtc_queue.grid_source.jobs_waiting.orm' => $definition8,
+            'dtc_queue.grid_source.jobs_running.odm' => $definition7,
+            'dtc_queue.grid_source.jobs_running.orm' => $definition8,
         ]);
 
         return $container;

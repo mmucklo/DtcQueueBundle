@@ -34,7 +34,7 @@ services:
             - "%dtc_queue.class_job_timing%"
             - "%dtc_queue.record_timings%"
 
-    dtc_queue.grid_source.live_jobs.odm:
+    dtc_queue.grid_source.jobs_waiting.odm:
         public: true
         class: Dtc\QueueBundle\ODM\LiveJobsGridSource
         arguments:
@@ -43,7 +43,17 @@ services:
             - [ 'setAnnotationReader', ['@annotation_reader' ]]
             - [ 'setCacheDir', ['%kernel.cache_dir%' ]]
 
-    dtc_queue.grid_source.live_jobs.orm:
+    dtc_queue.grid_source.jobs_running.odm:
+        public: true
+        class: Dtc\QueueBundle\ODM\LiveJobsGridSource
+        arguments:
+            - "@dtc_queue.job_manager.odm"
+        calls:
+            - [ 'setAnnotationReader', ['@annotation_reader' ]]
+            - [ 'setCacheDir', ['%kernel.cache_dir%' ]]
+            - [ 'setRunning', [true ]]
+
+    dtc_queue.grid_source.jobs_waiting.orm:
         public: true
         class: Dtc\QueueBundle\ORM\LiveJobsGridSource
         arguments:
@@ -51,6 +61,16 @@ services:
         calls:
             - [ 'setAnnotationReader', ['@annotation_reader' ]]
             - [ 'setCacheDir', ['%kernel.cache_dir%' ]]
+
+    dtc_queue.grid_source.jobs_running.orm:
+        public: true
+        class: Dtc\QueueBundle\ORM\LiveJobsGridSource
+        arguments:
+            - "@dtc_queue.job_manager.orm"
+        calls:
+            - [ 'setAnnotationReader', ['@annotation_reader' ]]
+            - [ 'setCacheDir', ['%kernel.cache_dir%' ]]
+            - [ 'setRunning', [true ]]
 
     dtc_queue.job_manager.mongodb: # deprecated, remove in 4.0
         alias: dtc_queue.job_manager.odm

@@ -4,9 +4,7 @@ namespace Dtc\QueueBundle\ORM;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Query;
-use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\ORM\QueryBuilder;
 use Dtc\QueueBundle\Doctrine\BaseJobManager;
 use Dtc\QueueBundle\Entity\Job;
@@ -135,9 +133,11 @@ class JobManager extends BaseJobManager
      */
     public function pruneArchivedJobs(\DateTime $olderThan)
     {
-        return $this->removeOlderThan($this->getJobArchiveClass(),
+        return $this->removeOlderThan(
+            $this->getJobArchiveClass(),
                 'updatedAt',
-                $olderThan);
+                $olderThan
+        );
     }
 
     public function getJobCount($workerName = null, $method = null)
@@ -292,7 +292,8 @@ class JobManager extends BaseJobManager
         return $queryBuilder;
     }
 
-    protected function addStandardPredicate(QueryBuilder $queryBuilder) {
+    protected function addStandardPredicate(QueryBuilder $queryBuilder)
+    {
         $dateTime = new \DateTime();
         $queryBuilder
             ->where('j.status = :status')->setParameter(':status', BaseJob::STATUS_NEW)
@@ -336,6 +337,7 @@ class JobManager extends BaseJobManager
         if (1 === $resultCount) {
             return $repository->find($jobId);
         }
+
         return null;
     }
 
@@ -403,7 +405,8 @@ class JobManager extends BaseJobManager
         return $existingJob;
     }
 
-    public function getWorkersAndMethods() {
+    public function getWorkersAndMethods()
+    {
         /** @var EntityRepository $repository */
         $repository = $this->getRepository();
         $queryBuilder = $repository->createQueryBuilder('j');
@@ -419,20 +422,24 @@ class JobManager extends BaseJobManager
         foreach ($results as $result) {
             $workerMethods[$result['workerName']][] = $result['method'];
         }
+
         return $workerMethods;
     }
 
-    public function countLiveJobs($workerName = null, $methodName = null) {
+    public function countLiveJobs($workerName = null, $methodName = null)
+    {
         /** @var EntityRepository $repository */
         $repository = $this->getRepository();
         $queryBuilder = $repository->createQueryBuilder('j');
         $this->addStandardPredicate($queryBuilder);
         $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
         $queryBuilder->select('count(j.id)');
+
         return $queryBuilder->getQuery()->getSingleScalarResult();
     }
 
-    public function archiveAllJobs($workerName = null, $methodName = null, $progressCallback) {
+    public function archiveAllJobs($workerName = null, $methodName = null, $progressCallback)
+    {
         // First mark all Live non-running jobs as Archive
         $repository = $this->getRepository();
         /** @var QueryBuilder $queryBuilder */
@@ -454,10 +461,12 @@ class JobManager extends BaseJobManager
      *
      *  This is a bit of a hack to run a lower level query so as to process the INSERT INTO SELECT
      *   All on the server as "INSERT INTO SELECT" is not supported natively in Doctrine.
+     *
      * @param null $workerName
      * @param null $methodName
      */
-    protected function runArchive($workerName = null, $methodName = null, $progressCallback) {
+    protected function runArchive($workerName = null, $methodName = null, $progressCallback)
+    {
         /** @var EntityManager $entityManager */
         $entityManager = $this->getObjectManager();
         $count = 0;
@@ -475,15 +484,14 @@ class JobManager extends BaseJobManager
                 if ($job) {
                     $entityManager->remove($job);
                 }
-                $count++;
-                if ($count % 10 == 0) {
+                ++$count;
+                if (0 == $count % 10) {
                     $this->flush();
                     $progressCallback($count);
                 }
             }
             $this->flush();
             $progressCallback($count);
-        } while($results && count($results) == 10000);
-
+        } while ($results && 10000 == count($results));
     }
 }

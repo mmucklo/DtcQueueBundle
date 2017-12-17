@@ -266,10 +266,9 @@ class JobManager extends BaseJobManager
 
         // Filter
         $this->addStandardPredicates($builder);
+
         return $builder;
     }
-
-
 
     protected function updateNearestBatch(\Dtc\QueueBundle\Model\Job $job)
     {
@@ -318,7 +317,8 @@ class JobManager extends BaseJobManager
     /**
      * @param mixed $builder
      */
-    protected function addStandardPredicates($builder) {
+    protected function addStandardPredicates($builder)
+    {
         $date = new \DateTime();
         $builder
             ->addAnd(
@@ -329,7 +329,8 @@ class JobManager extends BaseJobManager
             ->field('locked')->equals(null);
     }
 
-    public function getWorkersAndMethods() {
+    public function getWorkersAndMethods()
+    {
         /** @var DocumentManager $documentManager */
         $documentManager = $this->getObjectManager();
 
@@ -339,12 +340,12 @@ class JobManager extends BaseJobManager
 
         $aggregationBuilder = $documentManager->createAggregationBuilder($this->getJobClass());
 
-
         $this->addStandardPredicates($aggregationBuilder->match());
 
         $aggregationBuilder->group()
             ->field('id')
-            ->expression($aggregationBuilder->expr()
+            ->expression(
+                $aggregationBuilder->expr()
                 ->field('workerName')->expression('$workerName')
                 ->field('method')->expression('$method')
             );
@@ -360,10 +361,12 @@ class JobManager extends BaseJobManager
                 $workersMethods[$result['_id']['worker_name']][] = $result['_id']['method'];
             }
         }
+
         return $workersMethods;
     }
 
-    public function countLiveJobs($workerName = null, $methodName = null) {
+    public function countLiveJobs($workerName = null, $methodName = null)
+    {
         /** @var DocumentManager $objectManager */
         $objectManager = $this->getObjectManager();
         $builder = $objectManager->createQueryBuilder($this->getJobClass());
@@ -373,7 +376,6 @@ class JobManager extends BaseJobManager
         $this->addStandardPredicates($builder);
 
         return $builder->getQuery()->count();
-
     }
 
     public function archiveAllJobs($workerName = null, $methodName = null, $progressCallback)
@@ -392,9 +394,9 @@ class JobManager extends BaseJobManager
             $job = $query->execute();
             if ($job) {
                 $documentManager->remove($job);
-                $count++;
+                ++$count;
 
-                if ($count % 10 == 0) {
+                if (0 == $count % 10) {
                     $this->flush();
                     $progressCallback($count);
                 }

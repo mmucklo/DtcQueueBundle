@@ -14,7 +14,8 @@
         <!-- Collect the nav links, forms, and other content for toggling -->
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul class="nav navbar-nav">
-                <li class="{%  if app.request.get('_route') == 'dtc_queue_jobs' %}active{% endif %}"><a href="{{ path('dtc_queue_jobs') }}">Live Jobs{% if app.request.get('_route') == 'dtc_queue_jobs' %} <span class="sr-only">(current)</span>{% endif %}</a></li>
+                <li class="{%  if app.request.get('_route') == 'dtc_queue_jobs' %}active{% endif %}"><a href="{{ path('dtc_queue_jobs') }}">Waiting Jobs{% if app.request.get('_route') == 'dtc_queue_jobs' %} <span class="sr-only">(current)</span>{% endif %}</a></li>
+                <li class="{%  if app.request.get('_route') == 'dtc_queue_jobs_running' %}active{% endif %}"><a href="{{ path('dtc_queue_jobs_running') }}">Running Jobs{% if app.request.get('_route') == 'dtc_queue_jobs_running' %} <span class="sr-only">(current)</span>{% endif %}</a></li>
                 <li class="{%  if app.request.get('_route') == 'dtc_queue_jobs_all' %}active{% endif %}"><a href="{{ path('dtc_queue_jobs_all') }}">All Jobs{% if app.request.get('_route') == 'dtc_queue_jobs_all' %} <span class="sr-only">(current)</span>{% endif %}</a></li>
                 <li class="{%  if app.request.get('_route') == 'dtc_queue_runs' %}active{% endif %}"><a href="{{ path('dtc_queue_runs') }}">Runs{% if app.request.get('_route') == 'dtc_queue_runs' %} <span class="sr-only">(current)</span>{% endif %}</a></li>
                 <li class="{%  if app.request.get('_route') == 'dtc_queue_status' %}active{% endif %}"><a href="{{ path('dtc_queue_queue_status') }}">Status{% if app.request.get('_route') == 'dtc_queue_status' %} <span class="sr-only">(current)</span>{% endif %}</a></li>

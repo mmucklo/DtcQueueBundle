@@ -7,7 +7,6 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -55,7 +54,8 @@ class QueueController extends Controller
      * @Route("/archive", name="dtc_queue_archive")
      * @Method({"POST"})
      */
-    public function archiveAction(Request $request) {
+    public function archiveAction(Request $request)
+    {
         $workerName = $request->get('workerName');
         $methodName = $request->get('method');
 
@@ -65,6 +65,7 @@ class QueueController extends Controller
             echo "\n";
             flush();
         };
+
         return new StreamedResponse(function () use ($jobManager, $callback, $workerName, $methodName) {
             $total = $jobManager->countLiveJobs($workerName, $methodName);
             echo json_encode(['total' => $total]);
@@ -88,12 +89,32 @@ class QueueController extends Controller
         $managerType = $this->container->getParameter('dtc_queue.default_manager');
         $rendererFactory = $this->get('dtc_grid.renderer.factory');
         $renderer = $rendererFactory->create('datatables');
-        $gridSource = $this->get('dtc_queue.grid_source.live_jobs.'.('mongodb' === $managerType ? 'odm' : $managerType));
+        $gridSource = $this->get('dtc_queue.grid_source.jobs_waiting.'.('mongodb' === $managerType ? 'odm' : $managerType));
         $renderer->bind($gridSource);
         $params = $renderer->getParams();
         $this->addCssJs($params);
 
         $params['worker_methods'] = $this->get('dtc_queue.job_manager')->getWorkersAndMethods();
+
+        return $params;
+    }
+
+    /**
+     * List jobs in system by default.
+     *
+     * @Template("@DtcQueue/Queue/jobs_running.html.twig")
+     * @Route("/jobs_running", name="dtc_queue_jobs_running")
+     */
+    public function runningJobsAction()
+    {
+        $this->validateManagerType('dtc_queue.default_manager');
+        $managerType = $this->container->getParameter('dtc_queue.default_manager');
+        $rendererFactory = $this->get('dtc_grid.renderer.factory');
+        $renderer = $rendererFactory->create('datatables');
+        $gridSource = $this->get('dtc_queue.grid_source.jobs_running.'.('mongodb' === $managerType ? 'odm' : $managerType));
+        $renderer->bind($gridSource);
+        $params = $renderer->getParams();
+        $this->addCssJs($params);
 
         return $params;
     }
