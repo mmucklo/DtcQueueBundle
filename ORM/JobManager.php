@@ -4,7 +4,6 @@ namespace Dtc\QueueBundle\ORM;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
-use Doctrine\ORM\Query;
 use Doctrine\ORM\QueryBuilder;
 use Dtc\QueueBundle\Doctrine\BaseJobManager;
 use Dtc\QueueBundle\Entity\Job;
@@ -242,6 +241,7 @@ class JobManager extends BaseJobManager
      * @param string $workerName
      * @param string $methodName
      * @param bool   $prioritize
+     * @param integer $runId
      *
      * @return Job|null
      */
@@ -268,8 +268,8 @@ class JobManager extends BaseJobManager
     }
 
     /**
-     * @param null $workerName
-     * @param null $methodName
+     * @param string|null $workerName
+     * @param string|null $methodName
      * @param bool $prioritize
      *
      * @return QueryBuilder
@@ -346,7 +346,7 @@ class JobManager extends BaseJobManager
      *
      * @param \Dtc\QueueBundle\Model\Job $job
      *
-     * @return mixed|null
+     * @return null|Job
      */
     public function updateNearestBatch(\Dtc\QueueBundle\Model\Job $job)
     {
@@ -375,6 +375,10 @@ class JobManager extends BaseJobManager
         return $existingJob;
     }
 
+    /**
+     * @param integer $newPriority
+     * @param null|\DateTime $newWhenAt
+     */
     protected function updateBatchJob(Job $existingJob, $newPriority, $newWhenAt)
     {
         $existingPriority = $existingJob->getPriority();
@@ -426,6 +430,10 @@ class JobManager extends BaseJobManager
         return $workerMethods;
     }
 
+    /**
+     * @param string $workerName
+     * @param string $methodName
+     */
     public function countLiveJobs($workerName = null, $methodName = null)
     {
         /** @var EntityRepository $repository */
@@ -438,6 +446,11 @@ class JobManager extends BaseJobManager
         return $queryBuilder->getQuery()->getSingleScalarResult();
     }
 
+    /**
+     * @param string $workerName
+     * @param string $methodName
+     * @param \Closure $progressCallback
+     */
     public function archiveAllJobs($workerName = null, $methodName = null, $progressCallback)
     {
         // First mark all Live non-running jobs as Archive

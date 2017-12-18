@@ -365,6 +365,10 @@ class JobManager extends BaseJobManager
         return $workersMethods;
     }
 
+    /**
+     * @param string $workerName
+     * @param string $methodName
+     */
     public function countLiveJobs($workerName = null, $methodName = null)
     {
         /** @var DocumentManager $objectManager */
@@ -378,6 +382,11 @@ class JobManager extends BaseJobManager
         return $builder->getQuery()->count();
     }
 
+    /**
+     * @param string $workerName
+     * @param string $methodName
+     * @param \Closure $progressCallback
+     */
     public function archiveAllJobs($workerName = null, $methodName = null, $progressCallback)
     {
         /** @var DocumentManager $documentManager */

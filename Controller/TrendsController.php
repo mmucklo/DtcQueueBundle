@@ -36,7 +36,6 @@ class TrendsController extends Controller
     /**
      * @Route("/timings", name="dtc_queue_timings")
      *
-     * @param Request $request
      */
     public function getTimingsAction()
     {
@@ -56,6 +55,10 @@ class TrendsController extends Controller
         return new JsonResponse($params);
     }
 
+    /**
+     * @param \DateTime|null $beginDate
+     * @param \DateTime $endDate
+     */
     protected function calculateTimings($type, $beginDate, $endDate)
     {
         $params = [];
@@ -80,7 +83,7 @@ class TrendsController extends Controller
         }
 
         $format = $this->getDateFormat($type);
-        usort($timingsDates, function ($date1str, $date2str) use ($format) {
+        usort($timingsDates, function($date1str, $date2str) use ($format) {
             $date1 = \DateTime::createFromFormat($format, $date1str);
             $date2 = \DateTime::createFromFormat($format, $date2str);
             if (!$date2) {
@@ -105,7 +108,7 @@ class TrendsController extends Controller
      * Timings offset by timezone if necessary.
      *
      * @param array $timingsDates
-     * @param $format
+     * @param string $format
      *
      * @return array
      */
