@@ -49,7 +49,7 @@ class QueueControllerTest extends TestCase
         $container = new Container();
         $container->setParameter('dtc_grid.theme.css', []);
         $container->setParameter('dtc_grid.theme.js', []);
-        $container->setParameter('dtc_grid.jquery', []);
+        $container->setParameter('dtc_grid.jquery', ['url' => 'https://something']);
         $container->setParameter('dtc_queue.class_job', Job::class);
         $container->setParameter('dtc_queue.class_job_archive', JobArchive::class);
         $container->setParameter('dtc_queue.class_run', Run::class);
