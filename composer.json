@@ -30,6 +30,7 @@
         "doctrine/common": "<2.8",
         "doctrine/dbal": "<2.6",
         "doctrine/mongodb-odm": "^1.2",
+        "symfony/templating": "2.*|3.*|4.*",
         "pda/pheanstalk": "^3.1",
         "php-amqplib/php-amqplib": "^2.6",
         "friendsofphp/php-cs-fixer": "dev-master",

@@ -25,6 +25,7 @@ This bundle provides a way to easily create queued background jobs
 - Add workers to your application with very little effort
 - Turn any code into background task with a few lines
 - Atomic operation for jobs
+- ORM and ODM has built-in job-archival for finished jobs
 - Logs errors from worker
 - Command to run and debug jobs from console
 - Works with GridBundle to provide queue management

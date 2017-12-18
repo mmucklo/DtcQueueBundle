@@ -6,17 +6,17 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Persistence\ObjectRepository;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Doctrine\ORM\EntityRepository;
+use Dtc\QueueBundle\Model\ArchivableJobManager;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Model\JobTimingManager;
-use Dtc\QueueBundle\Model\PriorityJobManager;
 use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\Model\RunManager;
 use Dtc\QueueBundle\Util\Util;
 
-abstract class BaseJobManager extends PriorityJobManager
+abstract class BaseJobManager extends ArchivableJobManager
 {
     /** Number of jobs to prune / reset / gather at a time */
     const FETCH_COUNT = 100;
@@ -28,10 +28,6 @@ abstract class BaseJobManager extends PriorityJobManager
      * @var ObjectManager
      */
     protected $objectManager;
-    /**
-     * @var string
-     */
-    protected $jobArchiveClass;
 
     /**
      * BaseJobManager constructor.
@@ -50,8 +46,7 @@ abstract class BaseJobManager extends PriorityJobManager
         $jobArchiveClass
     ) {
         $this->objectManager = $objectManager;
-        $this->jobArchiveClass = $jobArchiveClass;
-        parent::__construct($runManager, $jobTimingManager, $jobClass);
+        parent::__construct($runManager, $jobTimingManager, $jobClass, $jobArchiveClass);
     }
 
     /**
@@ -60,14 +55,6 @@ abstract class BaseJobManager extends PriorityJobManager
     public function getObjectManager()
     {
         return $this->objectManager;
-    }
-
-    /**
-     * @return string
-     */
-    public function getJobArchiveClass()
-    {
-        return $this->jobArchiveClass;
     }
 
     /**

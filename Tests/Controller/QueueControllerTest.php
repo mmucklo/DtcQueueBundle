@@ -23,6 +23,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Loader\YamlFileLoader;
 use Symfony\Component\Routing\Router;
+use Symfony\Component\Templating\TemplateNameParser;
+use Twig\Environment;
 
 class QueueControllerTest extends TestCase
 {
@@ -69,9 +71,8 @@ class QueueControllerTest extends TestCase
                 'jq_grid.css' => [],
                 'jq_grid.js' => [], ]
         );
-        $mockBuilder = self::getMockBuilder(TwigEngine::class);
-        $twigEngineMock = $mockBuilder->getMock();
-        $rendererFactory->setTwigEngine($twigEngineMock);
+        $twigEngine = new TwigEngine(new Environment(new \Twig_Loader_Array()), new TemplateNameParser(), new FileLocator(__DIR__));
+        $rendererFactory->setTwigEngine($twigEngine);
         $container->set('dtc_grid.renderer.factory', $rendererFactory);
         $liveJobsGridSource = new LiveJobsGridSource(JobManagerTest::$jobManager);
         $container->set('dtc_queue.grid_source.jobs_waiting.orm', $liveJobsGridSource);
