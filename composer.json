@@ -1,6 +1,6 @@
 {
     "name": "mmucklo/queue-bundle",
-    "description": "Symfony2/3 Queue Bundle (for background jobs) supporting Mongo (Doctrine ODM), Mysql (and any Doctrine ORM), RabbitMQ, Beanstalkd, and ... {write your own}",
+    "description": "Symfony2/3/4 Queue Bundle (for background jobs) supporting Mongo (Doctrine ODM), Mysql (and any Doctrine ORM), RabbitMQ, Beanstalkd, and ... {write your own}",
     "keywords": ["queue", "Message queue","mysql","doctrine","mongo","mongodb","orm","odm","beanstalkd","rabbit_mq", "rabbitmq", "beanstalk"],
     "type": "symfony-bundle",
     "license": "MIT",
