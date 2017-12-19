@@ -35,13 +35,18 @@
         "php-amqplib/php-amqplib": "^2.6",
         "friendsofphp/php-cs-fixer": "dev-master",
         "phpunit/phpunit": "^5.7.0",
-        "phpunit/php-code-coverage": "^4.0"
+        "phpunit/php-code-coverage": "^4.0",
+        "predis/predis": "^v1.1.1",
+        "snc/redis-bundle": "^2.0"
     },
     "suggest": {
-        "pda/pheanstalk": "For working with beanstalk",
-        "php-amqplib/php-amqplib": "For working with RabbitMQ",
-        "doctrine/orm": "for working with RDBMS",
-        "doctrine/mongodb-odm": "for a mongo db based queue",
+        "snc/redis-bundle": "If using redis",
+        "predis/predis": "If using redis",
+        "ext-redis": "Alternative redis library",
+        "pda/pheanstalk": "If using beanstalkd",
+        "php-amqplib/php-amqplib": "If using RabbitMQ",
+        "doctrine/orm": "If using an RDBMS",
+        "doctrine/mongodb-odm": "If using mongo db",
         "oro/doctrine-extensions": "For YEAR, MONTH, DAY, HOUR, MINUTE date functions if using JobTiming trends",
         "beberlei/DoctrineExtensions": "Alternative for YEAR, MONTH, DAY, HOUR, MINUTE if using JobTiming trends",
         "alcaeus/mongo-php-adapter": "If trying to use MongoDB ODM on PHP 7.0 or greater"

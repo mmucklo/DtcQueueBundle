@@ -8,9 +8,11 @@ interface RedisInterface
 
     public function watch($key);
 
+    public function zPop($key);
+
     public function zRange($key, $start, $stop);
 
-    public function zRem($zkey, $key);
+    public function zRem($zkey, $member);
 
     public function exec();
 
