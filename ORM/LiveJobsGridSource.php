@@ -36,7 +36,7 @@ class LiveJobsGridSource extends EntityGridSource
     }
 
     /**
-     * @param boolean $flag
+     * @param bool $flag
      */
     public function setRunning($flag)
     {

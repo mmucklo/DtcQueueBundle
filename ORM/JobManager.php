@@ -241,7 +241,7 @@ class JobManager extends BaseJobManager
      * @param string $workerName
      * @param string $methodName
      * @param bool   $prioritize
-     * @param integer $runId
+     * @param int    $runId
      *
      * @return Job|null
      */
@@ -270,7 +270,7 @@ class JobManager extends BaseJobManager
     /**
      * @param string|null $workerName
      * @param string|null $methodName
-     * @param bool $prioritize
+     * @param bool        $prioritize
      *
      * @return QueryBuilder
      */
@@ -376,7 +376,7 @@ class JobManager extends BaseJobManager
     }
 
     /**
-     * @param integer $newPriority
+     * @param int            $newPriority
      * @param null|\DateTime $newWhenAt
      */
     protected function updateBatchJob(Job $existingJob, $newPriority, $newWhenAt)
@@ -447,8 +447,8 @@ class JobManager extends BaseJobManager
     }
 
     /**
-     * @param string $workerName
-     * @param string $methodName
+     * @param string   $workerName
+     * @param string   $methodName
      * @param \Closure $progressCallback
      */
     public function archiveAllJobs($workerName = null, $methodName = null, $progressCallback)

@@ -1,3 +1,6 @@
+### 3.1.2
+   * Fix a bug in timings by minute for ORM
+   * Fix a bug in ODM timings
 ### 3.1.1
    * Fix a bug in LiveJobsGridSource for ORM
    * Refactored out some Archive logic into ArchivableJobManager

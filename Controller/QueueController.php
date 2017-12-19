@@ -60,13 +60,13 @@ class QueueController extends Controller
         $methodName = $request->get('method');
 
         $jobManager = $this->get('dtc_queue.job_manager');
-        $callback = function($count) {
+        $callback = function ($count) {
             echo json_encode(['count' => $count]);
             echo "\n";
             flush();
         };
 
-        return new StreamedResponse(function() use ($jobManager, $callback, $workerName, $methodName) {
+        return new StreamedResponse(function () use ($jobManager, $callback, $workerName, $methodName) {
             $total = $jobManager->countLiveJobs($workerName, $methodName);
             echo json_encode(['total' => $total]);
             echo "\n";
