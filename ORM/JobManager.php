@@ -475,8 +475,9 @@ class JobManager extends BaseJobManager
      *  This is a bit of a hack to run a lower level query so as to process the INSERT INTO SELECT
      *   All on the server as "INSERT INTO SELECT" is not supported natively in Doctrine.
      *
-     * @param null $workerName
-     * @param null $methodName
+     * @param string|null $workerName
+     * @param string|null $methodName
+     * @param \Closure $progressCallback
      */
     protected function runArchive($workerName = null, $methodName = null, $progressCallback)
     {

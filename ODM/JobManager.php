@@ -242,8 +242,8 @@ class JobManager extends BaseJobManager
     }
 
     /**
-     * @param null $workerName
-     * @param null $methodName
+     * @param string|null $workerName
+     * @param string|null $methodName
      * @param bool $prioritize
      *
      * @return Builder
