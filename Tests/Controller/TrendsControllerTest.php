@@ -20,6 +20,15 @@ class TrendsControllerTest extends TestCase
         $this->runTimingsActionTests($container);
     }
 
+    public function testTrendsAction()
+    {
+        $container = $this->getContainerOrm();
+        $trendsController = new TrendsController();
+        $trendsController->setContainer($container);
+        $response = $trendsController->trendsAction();
+        $this->runJsCssTest($response);
+    }
+
     public function runTimingsActionTests($container)
     {
         $trendsController = new TrendsController();

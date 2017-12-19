@@ -5,6 +5,7 @@ namespace Dtc\QueueBundle\Tests\Controller;
 use Dtc\QueueBundle\Controller\QueueController;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class QueueControllerTest extends TestCase
@@ -28,12 +29,6 @@ class QueueControllerTest extends TestCase
         $this->runJsCssTest($response);
     }
 
-    public function runJsCssTest($response)
-    {
-        self::assertArrayHasKey('css', $response);
-        self::assertArrayHasKey('js', $response);
-    }
-
     public function testJobsAction()
     {
         $container = $this->getContainerOrm();
@@ -47,6 +42,36 @@ class QueueControllerTest extends TestCase
         $queueController->setContainer($container);
         $response = $queueController->jobsAction();
         $this->runJsCssTest($response);
+    }
+
+    public function testRunsAction()
+    {
+        $container = $this->getContainerOrm();
+        $queueController = new QueueController();
+        $queueController->setContainer($container);
+        $response = $queueController->runsAction();
+        self::assertTrue($response instanceof Response);
+
+        $container = $this->getContainerOdm();
+        $queueController = new QueueController();
+        $queueController->setContainer($container);
+        $response = $queueController->runsAction();
+        self::assertTrue($response instanceof Response);
+    }
+
+    public function testAllJobsAction()
+    {
+        $container = $this->getContainerOrm();
+        $queueController = new QueueController();
+        $queueController->setContainer($container);
+        $response = $queueController->jobsAllAction();
+        self::assertTrue($response instanceof Response);
+
+        $container = $this->getContainerOdm();
+        $queueController = new QueueController();
+        $queueController->setContainer($container);
+        $response = $queueController->jobsAllAction();
+        self::assertTrue($response instanceof Response);
     }
 
     public function testJobsRunningAction()
@@ -74,6 +99,27 @@ class QueueControllerTest extends TestCase
         $queueController = new QueueController();
         $queueController->setContainer($container);
         $response = $queueController->archiveAction(new Request());
+        self::assertNotNull($response);
+        self::assertTrue($response instanceof StreamedResponse);
+
+        $request = new Request();
+        $request->query->set('workerName', 'fibonacci');
+        $request->query->set('method', 'fibonacci');
+        $response = $queueController->archiveAction($request);
+        self::assertNotNull($response);
+        self::assertTrue($response instanceof StreamedResponse);
+
+        $container = $this->getContainerOdm();
+        $queueController = new QueueController();
+        $queueController->setContainer($container);
+        $response = $queueController->archiveAction(new Request());
+        self::assertNotNull($response);
+        self::assertTrue($response instanceof StreamedResponse);
+
+        $request = new Request();
+        $request->query->set('workerName', 'fibonacci');
+        $request->query->set('method', 'fibonacci');
+        $response = $queueController->archiveAction($request);
         self::assertNotNull($response);
         self::assertTrue($response instanceof StreamedResponse);
     }

@@ -7,10 +7,6 @@ use Dtc\GridBundle\Grid\Renderer\RendererFactory;
 use Dtc\GridBundle\Grid\Source\DocumentGridSource;
 use Dtc\GridBundle\Grid\Source\EntityGridSource;
 use Dtc\GridBundle\Manager\GridSourceManager;
-use Dtc\QueueBundle\Entity\Job;
-use Dtc\QueueBundle\Entity\JobArchive;
-use Dtc\QueueBundle\Entity\Run;
-use Dtc\QueueBundle\Entity\RunArchive;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Model\WorkerManager;
 use Dtc\QueueBundle\ORM\LiveJobsGridSource;
@@ -30,29 +26,37 @@ trait ControllerTrait
         JobManagerTest::setUpBeforeClass();
         $jobManager = JobManagerTest::$jobManager;
         $jobTimingManager = JobManagerTest::$jobTimingManager;
+        $runManager = JobManagerTest::$runManager;
 
-        return $this->getContainer($jobManager, $jobTimingManager, LiveJobsGridSource::class, EntityGridSource::class);
+        return $this->getContainer($jobManager, $runManager, $jobTimingManager, LiveJobsGridSource::class, EntityGridSource::class);
+    }
+
+    public function runJsCssTest($response)
+    {
+        static::assertArrayHasKey('css', $response);
+        static::assertArrayHasKey('js', $response);
     }
 
     protected function getContainerOdm()
     {
         \Dtc\QueueBundle\Tests\ODM\JobManagerTest::setUpBeforeClass();
-        $jobManager = JobManagerTest::$jobManager;
-        $jobTimingManager = JobManagerTest::$jobTimingManager;
+        $jobManager = \Dtc\QueueBundle\Tests\ODM\JobManagerTest::$jobManager;
+        $jobTimingManager = \Dtc\QueueBundle\Tests\ODM\JobManagerTest::$jobTimingManager;
+        $runManager = \Dtc\QueueBundle\Tests\ODM\JobManagerTest::$runManager;
 
-        return $this->getContainer($jobManager, $jobTimingManager, \Dtc\QueueBundle\ODM\LiveJobsGridSource::class, DocumentGridSource::class);
+        return $this->getContainer($jobManager, $runManager, $jobTimingManager, \Dtc\QueueBundle\ODM\LiveJobsGridSource::class, DocumentGridSource::class);
     }
 
-    protected function getContainer($jobManager, $jobTimingManager, $liveJobsGridSourceClass, $gridSourceClass)
+    protected function getContainer($jobManager, $runManager, $jobTimingManager, $liveJobsGridSourceClass, $gridSourceClass)
     {
         $container = new Container();
         $container->setParameter('dtc_grid.theme.css', []);
         $container->setParameter('dtc_grid.theme.js', []);
         $container->setParameter('dtc_grid.jquery', ['url' => 'https://something']);
-        $container->setParameter('dtc_queue.class_job', Job::class);
-        $container->setParameter('dtc_queue.class_job_archive', JobArchive::class);
-        $container->setParameter('dtc_queue.class_run', Run::class);
-        $container->setParameter('dtc_queue.class_run_archive', RunArchive::class);
+        $container->setParameter('dtc_queue.class_job', $jobManager->getJobClass());
+        $container->setParameter('dtc_queue.class_job_archive', $jobManager->getJobArchiveClass());
+        $container->setParameter('dtc_queue.class_run', $runManager->getRunClass());
+        $container->setParameter('dtc_queue.class_run_archive', $runManager->getRunArchiveClass());
         $container->setParameter('dtc_queue.admin.chartjs', '');
         $container->setParameter('dtc_queue.default_manager', 'orm');
         $container->setParameter('dtc_queue.record_timings', true);
@@ -73,8 +77,13 @@ trait ControllerTrait
                 'jq_grid.css' => [],
                 'jq_grid.js' => [], ]
         );
-        $twigEngine = new TwigEngine(new Environment(new \Twig_Loader_Array()), new TemplateNameParser(), new FileLocator(__DIR__));
+        $templates = ['@DtcQueue/Queue/grid.html.twig' => file_get_contents(__DIR__.'/../../Resources/views/Queue/grid.html.twig'),
+                        'DtcGridBundle:Page:datatables.html.twig' => file_get_contents(__DIR__.'/../../vendor/mmucklo/grid-bundle/Resources/views/Grid/datatables.html.twig'), ];
+        $twigEngine = new TwigEngine(new Environment(new \Twig_Loader_Array($templates)), new TemplateNameParser(), new FileLocator(__DIR__));
         $rendererFactory->setTwigEngine($twigEngine);
+
+        $container->set('twig', $twigEngine);
+
         $container->set('dtc_grid.renderer.factory', $rendererFactory);
         $liveJobsGridSource = new $liveJobsGridSourceClass($jobManager);
         $container->set('dtc_queue.grid_source.jobs_waiting.orm', $liveJobsGridSource);
@@ -84,7 +93,18 @@ trait ControllerTrait
         $container->set('dtc_queue.job_manager', $jobManager);
         $gridSourceManager = new GridSourceManager(new AnnotationReader(), __DIR__);
         $container->set('dtc_grid.manager.source', $gridSourceManager);
-        $gridSourceManager->add(Job::class, new $gridSourceClass($jobManager->getObjectManager(), $jobManager->getJobClass()));
+        $gridSourceJob = new $gridSourceClass($jobManager->getObjectManager(), $jobManager->getJobClass());
+        $gridSourceJob->autodiscoverColumns();
+        $gridSourceManager->add($jobManager->getJobClass(), $gridSourceJob);
+        $gridSourceJobArchive = new $gridSourceClass($jobManager->getObjectManager(), $jobManager->getJobArchiveClass());
+        $gridSourceJobArchive->autodiscoverColumns();
+        $gridSourceManager->add($jobManager->getJobArchiveClass(), $gridSourceJobArchive);
+        $gridSourceRun = new $gridSourceClass($runManager->getObjectManager(), $runManager->getRunClass());
+        $gridSourceRun->autodiscoverColumns();
+        $gridSourceManager->add($runManager->getRunClass(), $gridSourceRun);
+        $gridSourceRunArchive = new $gridSourceClass($runManager->getObjectManager(), $runManager->getRunArchiveClass());
+        $gridSourceRunArchive->autodiscoverColumns();
+        $gridSourceManager->add($runManager->getRunArchiveClass(), $gridSourceRunArchive);
 
         return $container;
     }
