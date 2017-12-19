@@ -37,7 +37,8 @@
         "phpunit/phpunit": "^5.7.0",
         "phpunit/php-code-coverage": "^4.0",
         "predis/predis": "^v1.1.1",
-        "snc/redis-bundle": "^2.0"
+        "snc/redis-bundle": "^2.0",
+        "beberlei/doctrineextensions": "^1.0"
     },
     "suggest": {
         "snc/redis-bundle": "If using redis",

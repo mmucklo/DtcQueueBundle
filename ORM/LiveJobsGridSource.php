@@ -35,6 +35,9 @@ class LiveJobsGridSource extends EntityGridSource
         return parent::getColumns();
     }
 
+    /**
+     * @param bool $flag
+     */
     public function setRunning($flag)
     {
         $this->running = $flag;
@@ -54,7 +57,7 @@ class LiveJobsGridSource extends EntityGridSource
         $queryBuilder->where('j.status = :status')->setParameter(':status', BaseJob::STATUS_RUNNING);
         $queryBuilder->orderBy('j.startedAt', 'DESC');
         $queryBuilder->setFirstResult($this->offset)
-                     ->setMaxResults($this->limit);
+                        ->setMaxResults($this->limit);
 
         return $queryBuilder;
     }
@@ -68,7 +71,7 @@ class LiveJobsGridSource extends EntityGridSource
         $queryBuilder = $this->jobManager->getJobQueryBuilder();
         $queryBuilder->add('select', 'j');
         $queryBuilder->setFirstResult($this->offset)
-                     ->setMaxResults($this->limit);
+                        ->setMaxResults($this->limit);
 
         return $queryBuilder;
     }

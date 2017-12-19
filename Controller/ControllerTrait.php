@@ -26,6 +26,9 @@ trait ControllerTrait
         }
     }
 
+    /**
+     * @param string $type
+     */
     protected function validateManagerType($type)
     {
         $managerType = $this->container->getParameter($type);

@@ -6,6 +6,11 @@ use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Tools\Setup;
+use DoctrineExtensions\Query\Mysql\Day;
+use DoctrineExtensions\Query\Mysql\Hour;
+use DoctrineExtensions\Query\Mysql\Minute;
+use DoctrineExtensions\Query\Mysql\Month;
+use DoctrineExtensions\Query\Mysql\Year;
 use Dtc\QueueBundle\ORM\RunManager;
 use Dtc\QueueBundle\ORM\JobTimingManager;
 use Dtc\QueueBundle\Tests\Doctrine\BaseJobManagerTest;
@@ -36,6 +41,11 @@ class JobManagerTest extends BaseJobManagerTest
 
         $namingStrategy = new UnderscoreNamingStrategy();
         $config->setNamingStrategy($namingStrategy);
+        $config->addCustomNumericFunction('year', Year::class);
+        $config->addCustomNumericFunction('month', Month::class);
+        $config->addCustomNumericFunction('day', Day::class);
+        $config->addCustomNumericFunction('hour', Hour::class);
+        $config->addCustomNumericFunction('minute', Minute::class);
         $host = getenv('MYSQL_HOST');
         $user = getenv('MYSQL_USER');
         $port = getenv('MYSQL_PORT') ?: 3306;
@@ -47,6 +57,7 @@ class JobManagerTest extends BaseJobManagerTest
             'driver' => 'mysqli',
             'password' => $password,
             'dbname' => $db, ];
+
         self::$objectManager = EntityManager::create($params, $config);
     }
 

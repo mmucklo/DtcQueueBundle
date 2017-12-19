@@ -54,6 +54,9 @@ class WorkerCompilerPass implements CompilerPassInterface
         $this->addLiveJobs($container);
     }
 
+    /**
+     * @param string $type
+     */
     protected function setupAlias(ContainerBuilder $container, $defaultManagerType, $type)
     {
         $definitionName = 'dtc_queue.'.$type.'.'.$defaultManagerType;
@@ -84,7 +87,6 @@ class WorkerCompilerPass implements CompilerPassInterface
 
     /**
      * @param ContainerBuilder $container
-     * @param Reference[]      $jobManagerRef
      * @param string           $jobClass
      */
     protected function setupTaggedServices(ContainerBuilder $container, Definition $definition, $jobClass)
@@ -212,6 +214,11 @@ class WorkerCompilerPass implements CompilerPassInterface
         return $managerType;
     }
 
+    /**
+     * @param string $managerType
+     * @param string $type
+     * @param string $className
+     */
     protected function getClass(ContainerBuilder $container, $managerType, $type, $className, $baseClass)
     {
         $runClass = $container->hasParameter('dtc_queue.class_'.$type) ? $container->getParameter('dtc_queue.class_'.$type) : null;

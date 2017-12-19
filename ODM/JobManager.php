@@ -15,7 +15,7 @@ class JobManager extends BaseJobManager
     const REDUCE_FUNCTION = 'function(k, vals) {
             var result = {};
             for (var index in vals) {
-                var val =  vals[index];
+                var val = vals[index];
                 for (var i in val) {
                     if (result.hasOwnProperty(i)) {
                         result[i] += val[i];
@@ -365,6 +365,10 @@ class JobManager extends BaseJobManager
         return $workersMethods;
     }
 
+    /**
+     * @param string $workerName
+     * @param string $methodName
+     */
     public function countLiveJobs($workerName = null, $methodName = null)
     {
         /** @var DocumentManager $objectManager */
@@ -378,6 +382,11 @@ class JobManager extends BaseJobManager
         return $builder->getQuery()->count();
     }
 
+    /**
+     * @param string   $workerName
+     * @param string   $methodName
+     * @param \Closure $progressCallback
+     */
     public function archiveAllJobs($workerName = null, $methodName = null, $progressCallback)
     {
         /** @var DocumentManager $documentManager */

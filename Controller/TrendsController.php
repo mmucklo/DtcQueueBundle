@@ -35,12 +35,9 @@ class TrendsController extends Controller
 
     /**
      * @Route("/timings", name="dtc_queue_timings")
-     *
-     * @param Request $request
      */
-    public function getTimingsAction()
+    public function getTimingsAction(Request $request)
     {
-        $request = $this->get('request_stack')->getMasterRequest();
         $begin = $request->query->get('begin');
         $end = $request->query->get('end');
         $type = $request->query->get('type', 'HOUR');
@@ -56,6 +53,10 @@ class TrendsController extends Controller
         return new JsonResponse($params);
     }
 
+    /**
+     * @param \DateTime|null $beginDate
+     * @param \DateTime      $endDate
+     */
     protected function calculateTimings($type, $beginDate, $endDate)
     {
         $params = [];
@@ -104,8 +105,8 @@ class TrendsController extends Controller
     /**
      * Timings offset by timezone if necessary.
      *
-     * @param array $timingsDates
-     * @param $format
+     * @param array  $timingsDates
+     * @param string $format
      *
      * @return array
      */
@@ -117,6 +118,9 @@ class TrendsController extends Controller
             $date = \DateTime::createFromFormat($format, $dateStr);
             if (0 !== $timezoneOffset) {
                 $date->setTimestamp($date->getTimestamp() + ($timezoneOffset * 3600));
+            }
+            if (false === $date) {
+                throw new \InvalidArgumentException("'$date' is not in the right format: ".DATE_RFC3339);
             }
             $timingsDatesAdjusted[] = $date->format(DATE_RFC3339);
         }
@@ -154,11 +158,11 @@ class TrendsController extends Controller
         }
 
         // Run a map reduce function get worker and status break down
-        $mapFunc = "function() {
+        $mapFunc = 'function() {
             var dateStr = this.finishedAt.toISOString();
-            dateStr = dateStr.replace(/{$regexInfo['regex']}/,'{$regexInfo['replacement']}');
-            var dateBegin = new Date('{$begin->format('c')}');
-            var dateEnd = new Date('{$end->format('c')}');
+            dateStr = dateStr.replace(/'.$regexInfo['replace']['regex']."/,'".$regexInfo['replace']['replacement']."');
+            var dateBegin = new Date('".$begin->format('c')."');
+            var dateEnd = new Date('".$end->format('c')."');
             if (this.finishedAt >= dateBegin && this.finishedAt <= dateEnd) {
                 var result = {};
                 result[dateStr] = 1;
@@ -270,10 +274,43 @@ class TrendsController extends Controller
 
         $resultHash = [];
         foreach ($result as $row) {
-            $resultHash[$row['status']][$row['thedate']] = intval($row['thecount']);
+            $date = $this->formatOrmDateTime($type, $row['thedate']);
+            $resultHash[$row['status']][$date] = intval($row['thecount']);
         }
 
         return $resultHash;
+    }
+
+    protected function strPadLeft($str)
+    {
+        return str_pad($str, 2, '0', STR_PAD_LEFT);
+    }
+
+    protected function formatOrmDateTime($type, $str)
+    {
+        switch ($type) {
+            case 'MONTH':
+                $parts = explode('-', $str);
+
+                return $parts[0].'-'.$this->strPadLeft($parts[1]);
+            case 'DAY':
+                $parts = explode('-', $str);
+
+                return $parts[0].'-'.$this->strPadLeft($parts[1]).'-'.$this->strPadLeft($parts[2]);
+            case 'HOUR':
+                $parts = explode(' ', $str);
+                $dateParts = explode('-', $parts[0]);
+
+                return $dateParts[0].'-'.$this->strPadLeft($dateParts[1]).'-'.$this->strPadLeft($dateParts[2]).' '.$this->strPadLeft($parts[1]);
+            case 'MINUTE':
+                $parts = explode(' ', $str);
+                $dateParts = explode('-', $parts[0]);
+                $timeParts = explode(':', $parts[1]);
+
+                return $dateParts[0].'-'.$this->strPadLeft($dateParts[1]).'-'.$this->strPadLeft($dateParts[2]).' '.$this->strPadLeft($timeParts[0]).':'.$this->strPadLeft($timeParts[1]);
+        }
+
+        return $str;
     }
 
     protected function validateJobTimingManager()
