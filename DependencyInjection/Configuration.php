@@ -112,7 +112,7 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->prototype('variable')->end()
             ->validate()
-                ->ifTrue(function ($node) {
+                ->ifTrue(function($node) {
                     if (!is_array($node)) {
                         return true;
                     }
@@ -189,7 +189,7 @@ class Configuration implements ConfigurationInterface
             ->append($this->addRabbitMqSslOptions())
             ->append($this->addRabbitMqArgs())
             ->append($this->addRabbitMqExchange())
-            ->validate()->always(function ($node) {
+            ->validate()->always(function($node) {
                 if (empty($node['ssl_options'])) {
                     unset($node['ssl_options']);
                 }
@@ -199,7 +199,7 @@ class Configuration implements ConfigurationInterface
 
                 return $node;
             })->end()
-            ->validate()->ifTrue(function ($node) {
+            ->validate()->ifTrue(function($node) {
                 if (isset($node['ssl_options']) && !$node['ssl']) {
                     return true;
                 }
