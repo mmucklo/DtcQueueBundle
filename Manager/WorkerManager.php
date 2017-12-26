@@ -5,6 +5,11 @@ namespace Dtc\QueueBundle\Manager;
 use Dtc\QueueBundle\EventDispatcher\Event;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Exception\DuplicateWorkerException;
+use Dtc\QueueBundle\Model\BaseJob;
+use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\JobTiming;
+use Dtc\QueueBundle\Model\RetryableJob;
+use Dtc\QueueBundle\Model\Worker;
 use Psr\Log\LoggerInterface;
 
 class WorkerManager
@@ -123,7 +128,7 @@ class WorkerManager
             $message = $exceptionMessage;
         }
 
-        $job->setMessage();
+        $job->setMessage($message);
         $this->jobManager->getJobTimingManager()->recordTiming(JobTiming::STATUS_FINISHED_EXCEPTION);
     }
     

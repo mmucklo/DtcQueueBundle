@@ -2,6 +2,8 @@
 
 namespace Dtc\QueueBundle\Model;
 
+use Dtc\QueueBundle\Manager\JobManagerInterface;
+
 abstract class Worker
 {
     const RESULT_SUCCESS = 0;

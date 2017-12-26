@@ -288,7 +288,6 @@ abstract class BaseJobManager extends ArchivableJobManager
     public function pruneStalledJobs($workerName = null, $method = null)
     {
         $stalledJobs = $this->getStalledJobs($workerName, $method);
-        $objectManager = $this->getObjectManager();
 
         $countProcessed = 0;
         for ($i = 0, $count = count($stalledJobs); $i < $count; $i += static::FETCH_COUNT) {
@@ -296,10 +295,10 @@ abstract class BaseJobManager extends ArchivableJobManager
                 /** @var RetryableJob $job */
                 $job = $stalledJobs[$j];
                 $job->setStalledCount($job->getStalledCount() + 1);
-                $job->setStatus(BaseJob::STATUS);
+                $job->setStatus(BaseJob::STATUS_FAILURE);
                 $job->setMessage('stalled');
                 $this->updateMaxStatus($job, RetryableJob::STATUS_MAX_STALLED, $job->getMaxStalled(), $job->getStalledCount());
-                $objectManager->remove($job);
+                $this->saveHistory($job);
                 ++$countProcessed;
             }
             $this->flush();
@@ -310,10 +309,6 @@ abstract class BaseJobManager extends ArchivableJobManager
 
     public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
     {
-        if ($job->getStatus() === BaseJob::STATUS_FAILURE && $this->resetJob($job)) {
-            return;
-        }
-
         $objectManager = $this->getObjectManager();
         $objectManager->remove($job);
         $objectManager->flush();
@@ -408,21 +403,19 @@ abstract class BaseJobManager extends ArchivableJobManager
      * @param $className
      * @return integer Number of jobs reset
      */
-    protected function resetArchiveJob(RetryableJob $job)
+    protected function resetArchiveJob(RetryableJob $jobArchive)
     {
         $objectManager = $this->getObjectManager();
-        if ($this->updateMaxStatus($job, RetryableJob::STATUS_MAX_RETRIES, $job->getMaxRetries(), $job->getRetries())) {
-            $objectManager->persist($job);
+        if ($this->updateMaxStatus($jobArchive, RetryableJob::STATUS_MAX_RETRIES, $jobArchive->getMaxRetries(), $jobArchive->getRetries())) {
+            $objectManager->persist($jobArchive);
             return 0;
         }
 
         /** @var RetryableJob $job */
         $className = $this->getJobArchiveClass();
         $newJob = new $className();
-        Util::copy($job, $newJob);
-        $job = $newJob;
-
-        $this->resetJob($job);
+        Util::copy($jobArchive, $newJob);
+        $this->resetJob($newJob);
         $objectManager->remove($jobArchive);
         $this->flush();
         return 1;

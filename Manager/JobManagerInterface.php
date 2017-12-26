@@ -2,6 +2,8 @@
 
 namespace Dtc\QueueBundle\Manager;
 
+use Dtc\QueueBundle\Model\Job;
+
 interface JobManagerInterface
 {
     public function resetExceptionJobs($workerName = null, $methodName = null);
@@ -41,6 +43,8 @@ interface JobManagerInterface
      */
     public function getJobTimingManager();
 
+    public function getJobClass();
+        
     /**
      * Removes archived jobs older than $olderThan.
      *

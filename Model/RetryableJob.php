@@ -6,6 +6,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\BaseRetryableJob
 {
     const STATUS_MAX_EXCEPTION = 'max_exception';
     const STATUS_MAX_STALLED = 'max_stallled';
+    const STATUS_STALLED = 'stalled';
 
     protected $maxStalled = 0;
     protected $stalledCount = 0;
@@ -72,7 +73,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\BaseRetryableJob
     /**
      * @return int
      */
-    public function getExceptionCount(): int
+    public function getExceptionCount()
     {
         return $this->exceptionCount;
     }
@@ -80,7 +81,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\BaseRetryableJob
     /**
      * @param int $exceptionCount
      */
-    public function setExceptionCount(int $exceptionCount)
+    public function setExceptionCount($exceptionCount)
     {
         $this->exceptionCount = $exceptionCount;
         return $this;

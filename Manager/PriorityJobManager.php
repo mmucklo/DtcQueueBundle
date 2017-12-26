@@ -4,6 +4,8 @@ namespace Dtc\QueueBundle\Manager;
 
 use Dtc\QueueBundle\Exception\PriorityException;
 use Dtc\QueueBundle\Model\BaseRetryableJob;
+use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\JobTiming;
 
 abstract class PriorityJobManager extends RetryableJobManager
 {

@@ -3,6 +3,8 @@
 namespace Dtc\QueueBundle\Manager;
 
 use Dtc\QueueBundle\Exception\UnsupportedException;
+use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\Run;
 
 class RunManager
 {

@@ -3,18 +3,21 @@
 namespace Dtc\QueueBundle\Manager;
 
 use Doctrine\ORM\Query\Expr\Base;
+use Dtc\QueueBundle\Exception\UnsupportedException;
+use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\BaseRetryableJob;
+use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Model\RetryableJob;
 
-class RetryableJobManager extends AbstractJobManager {
+abstract class RetryableJobManager extends AbstractJobManager {
 
     protected $retryableDefaults;
     public function setRetryableDefaults(array $retryableDefaults) {
         $this->retryableDefaults = $retryableDefaults;
     }
 
-    abstract public function retryableSave();
+    abstract public function retryableSave(BaseRetryableJob $job);
 
     public function save(Job $job) {
         if (!$job instanceof BaseRetryableJob) {
@@ -31,19 +34,44 @@ class RetryableJobManager extends AbstractJobManager {
         return $this->retryableSave($job);
     }
 
-    public function saveHistory() {
+    public function saveHistory(Job $job) {
         if (!$job instanceof BaseRetryableJob) {
             throw new \InvalidArgumentException("job not instance of " . BaseRetryableJob::class);
         }
 
-        if ($job->getStatus() === BaseJob::STATUS_FAILURE) {
-            $job->setFailureCount($job->getFailureCount() + 1);
-            if (!$this->updateMaxStatus($job, BaseRetryableJob::STATUS_MAX_FAILURE, $job->getMaxFailure(), $job->getFailureCount()) &&
-                !$this->updateMaxStatus($job, BaseRetryableJob::STATUS_MAX_RETRIES, $job->getMaxRetries(), $job->getRetries())) {
-                if ($this->resetJob($job)) {
-                    $this->getJobTimingManager()->recordTiming(JobTiming::STATUS_INSERT);
-                    return false;
+        switch ($job->getStatus()) {
+            case BaseJob::STATUS_FAILURE:
+                return $this->updateJobFailure($job);
+                break;
+            case RetryableJob::STATUS_STALLED:
+                if (!$job instanceof RetryableJob) {
+                    throw new UnsupportedException("Status Stalled only availble for sub-classes of " . RetryableJob::class);
                 }
+                return $this->updateJobStalled($job);
+                break;
+        }
+        return true;
+    }
+
+    private function updateJobStalled(RetryableJob $job) {
+        $job->setStalledCount($job->getStalledCount() + 1);
+        if (!$this->updateMaxStatus($job, RetryableJob::STATUS_MAX_STALLED, $job->getMaxStalled(), $job->getStalledCount()) &&
+            !$this->updateMaxStatus($job, BaseRetryableJob::STATUS_MAX_RETRIES, $job->getMaxRetries(), $job->getRetries())) {
+            if ($this->resetJob($job)) {
+                $this->getJobTimingManager()->recordTiming(JobTiming::STATUS_INSERT);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private function updateJobFailure(BaseRetryableJob $job) {
+        $job->setFailureCount($job->getFailureCount() + 1);
+        if (!$this->updateMaxStatus($job, BaseRetryableJob::STATUS_MAX_FAILURE, $job->getMaxFailure(), $job->getFailureCount()) &&
+            !$this->updateMaxStatus($job, BaseRetryableJob::STATUS_MAX_RETRIES, $job->getMaxRetries(), $job->getRetries())) {
+            if ($this->resetJob($job)) {
+                $this->getJobTimingManager()->recordTiming(JobTiming::STATUS_INSERT);
+                return false;
             }
         }
         return true;
@@ -67,7 +95,7 @@ class RetryableJobManager extends AbstractJobManager {
         return false;
     }
 
-    protected function resetRetryableJob(BaseRetryableJob $baseRetryableJob) {
+    protected function resetRetryableJob(BaseRetryableJob $job) {
         if ($this->resetJob($job)) {
             $this->getJobTimingManager()->recordTiming(JobTiming::STATUS_INSERT);
             return false;
@@ -99,12 +127,9 @@ class RetryableJobManager extends AbstractJobManager {
         }
         
         if ($job->getMaxStalled() === null) {
-            if (isset($this->retryableDefaults['stalled_max']) {
+            if (isset($this->retryableDefaults['stalled_max'])) {
                 $job->setMaxStalled($this->retryableDefaults['stalled_max']);
             }
         }
     }
-    
 }
-
-

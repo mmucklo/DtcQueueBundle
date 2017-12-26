@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Manager;
 
 use Dtc\QueueBundle\Exception\UnsupportedException;
+use Dtc\QueueBundle\Model\Job;
 
 abstract class AbstractJobManager implements JobManagerInterface
 {
