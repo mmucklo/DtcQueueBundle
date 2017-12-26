@@ -4,24 +4,18 @@ namespace Dtc\QueueBundle\Model;
 
 abstract class Worker
 {
+    const RESULT_SUCCESS = 0;
+    const RESULT_FAILURE = 1;
+    
     protected $jobManager;
-    protected $jobClass;
-    protected $job;
+    protected $currentJob;
 
-    /**
-     * @return string
-     */
-    public function getJobClass()
-    {
-        return $this->jobClass;
+    public function setCurrentJob(BaseJob $job) {
+        $this->currentJob = $job;
     }
 
-    /**
-     * @param string $jobClass
-     */
-    public function setJobClass($jobClass)
-    {
-        $this->jobClass = $jobClass;
+    public function getCurrentJob() {
+        return $this->currentJob;
     }
 
     /**
@@ -51,8 +45,8 @@ abstract class Worker
             $time = time();
         }
         $dateTime = new \DateTime("@$time");
-
-        return new $this->jobClass($this, $batch, $priority, $dateTime);
+        $jobClass = $this->jobManager->getJobClass();
+        return new $jobClass($this, $batch, $priority, $dateTime);
     }
 
     /**

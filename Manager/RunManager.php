@@ -1,6 +1,6 @@
 <?php
 
-namespace Dtc\QueueBundle\Model;
+namespace Dtc\QueueBundle\Manager;
 
 use Dtc\QueueBundle\Exception\UnsupportedException;
 

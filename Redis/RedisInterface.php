@@ -23,4 +23,6 @@ interface RedisInterface
     public function hSet($hkey, $key, $value);
 
     public function hGet($hkey, $key);
+
+    public function zPopByMaxScore($key, $max);
 }

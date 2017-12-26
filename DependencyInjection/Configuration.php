@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\DependencyInjection;
 
 use Dtc\QueueBundle\Model\PriorityJobManager;
+use Gedmo\Mapping\Annotation\Tree;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -36,29 +37,11 @@ class Configuration implements ConfigurationInterface
                 ->end()
                 ->scalarNode('job_timing_manager')
                 ->end()
-                ->scalarNode('class_job')
-                ->end()
-                ->scalarNode('class_job_archive')
-                ->end()
-                ->scalarNode('class_job_timing')
-                ->end()
-                ->scalarNode('class_run')
-                ->end()
-                ->scalarNode('class_run_archive')
-                ->end()
                 ->booleanNode('record_timings')
                     ->defaultFalse()
                 ->end()
                 ->floatNode('record_timings_timezone_offset')
                     ->defaultValue(0)
-                ->end()
-                ->integerNode('priority_max')
-                    ->defaultValue(255)
-                    ->min(1)
-                ->end()
-                ->enumNode('priority_direction')
-                    ->values([PriorityJobManager::PRIORITY_ASC, PriorityJobManager::PRIORITY_DESC])
-                    ->defaultValue(PriorityJobManager::PRIORITY_DESC)
                 ->end()
                 ->arrayNode('beanstalkd')
                     ->children()
@@ -68,9 +51,64 @@ class Configuration implements ConfigurationInterface
                 ->end()
                 ->append($this->addRabbitMq())
                 ->append($this->addAdmin())
+                ->append($this->addClasses())
+                ->append($this->addPriority())
             ->end();
 
         return $treeBuilder;
+    }
+
+    protected function addRetry() {
+        $treeBuilder = new TreeBuilder();
+        $rootNode = $treeBuilder->root('retry_defaults');
+        $rootNode
+            ->children()
+                ->integerNode('retries_max')
+                    ->defaultValue(3)
+                ->end()
+                ->integerNode('failure_max')
+                    ->defaultValue(2)
+                ->end()
+                ->integerNode('exception_max')
+                    -defaultValue(1)
+                ->end()
+                ->integerNode('stalled_max')
+                    -defaultValue(2)
+                ->end()
+            ->end();
+        return $rootNode;
+        
+    }
+    
+    protected function addPriority() {
+        $treeBuilder = new TreeBuilder();
+        $rootNode = $treeBuilder->root('priority');
+        $rootNode
+            ->children()
+                ->integerNode('max')
+                    ->defaultValue(255)
+                    ->min(1)
+                ->end()
+                ->enumNode('direction')
+                    ->values([PriorityJobManager::PRIORITY_ASC, PriorityJobManager::PRIORITY_DESC])
+                    ->defaultValue(PriorityJobManager::PRIORITY_DESC)
+                ->end()
+            ->end();
+        return $rootNode;
+    }
+
+    protected function addClasses() {
+        $treeBuilder = new TreeBuilder();
+        $rootNode = $treeBuilder->root('class');
+        $rootNode
+            ->children()
+                ->scalarNode('job')->end()
+                ->scalarNode('job_archive')->end()
+                ->scalarNode('job_timing')->end()
+                ->scalarNode('run')->end()
+                ->scalarNode('run_archive')->end()
+            ->end();
+        return $rootNode;
     }
 
     protected function addAdmin()
@@ -84,6 +122,61 @@ class Configuration implements ConfigurationInterface
             ->end();
 
         return $rootNode;
+    }
+
+    protected function addRedis() {
+        $treeBuilder = new TreeBuilder();
+        $rootNode = $treeBuilder->root('redis');
+        $rootNode
+            ->addDefaultsIfNotSet()
+            ->children()
+                ->arrayNode('snc_redis')
+                    ->children()
+                        ->enumNode('type')
+                          ->values(['predis','phpredis'])
+                            ->defaultNull()->end()
+                        ->scalarNode('alias')
+                            ->defaultNull()->end()
+                    ->end()
+                    ->validate()->ifTrue(function ($node) {
+                        if (isset($node['type']) && !isset($node['alias'])) {
+                            return false;
+                        }
+                        if (isset($node['alias']) && !isset($node['type'])) {
+                            return false;
+                        }
+                        return true;
+                    })->thenInvalid('if alias or type is set, then both must be set')->end()
+                ->end()
+                ->arrayNode('predis')
+                    ->children()
+                        ->scalarNode('dsn')->defaultNull()->end()
+                        ->append($this->addPredisArgs())
+                    ->end()
+                ->end()
+            ->end();
+    }
+
+    protected function addPredisArgs() {
+        $treeBuilder = new TreeBuilder();
+        $rootNode = $treeBuilder->root('connection_parameters');
+        $rootNode
+            ->children()
+                ->scalarNode('scheme')->defaultValue('tcp')->end()
+                ->scalarNode('host')->defaultValue('127.0.0.1')->end()
+                ->integerNode('port')->defaultValue(6379)->end()
+                ->scalarNode('path')->defaultNull()->end()
+                ->scalarNode('database')->defaultNull()->end()
+                ->scalarNode('password')->defaultNull()->end()
+                ->booleanNode('async')->defaultFalse()->end()
+                ->booleanNode('persistent')->defaultFalse()->end()
+                ->floatNode('timeout')->defaultValue(5.0)->end()
+                ->floatNode('read_write_timeout')->defaultNull()->end()
+                ->scalarNode('alias')->defaultNull()->end()
+                ->integerNode('weight')->defaultNull()->end()
+                ->booleanNode('iterable_multibulk')->defaultFalse()->end()
+                ->booleanNode('throw_errors')->defaultTrue()->end()
+            ->end();
     }
 
     protected function addRabbitMqOptions()
@@ -184,11 +277,11 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('password')->end()
                 ->scalarNode('vhost')->defaultValue('/')->end()
                 ->booleanNode('ssl')->defaultFalse()->end()
+                ->append($this->addRabbitMqOptions())
+                ->append($this->addRabbitMqSslOptions())
+                ->append($this->addRabbitMqArgs())
+                ->append($this->addRabbitMqExchange())
             ->end()
-            ->append($this->addRabbitMqOptions())
-            ->append($this->addRabbitMqSslOptions())
-            ->append($this->addRabbitMqArgs())
-            ->append($this->addRabbitMqExchange())
             ->validate()->always(function ($node) {
                 if (empty($node['ssl_options'])) {
                     unset($node['ssl_options']);
@@ -199,15 +292,14 @@ class Configuration implements ConfigurationInterface
 
                 return $node;
             })->end()
-            ->validate()->ifTrue(function ($node) {
+           ->validate()->ifTrue(function ($node) {
                 if (isset($node['ssl_options']) && !$node['ssl']) {
                     return true;
                 }
 
                 return false;
             })->thenInvalid('ssl must be true in order to set ssl_options')->end()
-            ->end();
-
+        ->end();
         return $rootNode;
     }
 }

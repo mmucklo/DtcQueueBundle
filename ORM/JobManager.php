@@ -54,13 +54,13 @@ class JobManager extends BaseJobManager
      *
      * @return int Count of jobs pruned
      */
-    public function pruneErroneousJobs($workerName = null, $method = null)
+    public function pruneExceptionJobs($workerName = null, $method = null)
     {
         /** @var EntityManager $objectManager */
         $objectManager = $this->getObjectManager();
         $queryBuilder = $objectManager->createQueryBuilder()->delete($this->getJobArchiveClass(), 'j');
         $queryBuilder->where('j.status = :status')
-            ->setParameter(':status', BaseJob::STATUS_ERROR);
+            ->setParameter(':status', BaseJob::STATUS_EXCEPTION);
 
         $this->addWorkerNameCriterion($queryBuilder, $workerName, $method);
         $query = $queryBuilder->getQuery();
@@ -224,12 +224,14 @@ class JobManager extends BaseJobManager
             if (!isset($result[$method])) {
                 $result[$method] = [BaseJob::STATUS_NEW => 0,
                     BaseJob::STATUS_RUNNING => 0,
-                    RetryableJob::STATUS_EXPIRED => 0,
-                    RetryableJob::STATUS_MAX_ERROR => 0,
-                    RetryableJob::STATUS_MAX_STALLED => 0,
-                    RetryableJob::STATUS_MAX_RETRIES => 0,
                     BaseJob::STATUS_SUCCESS => 0,
-                    BaseJob::STATUS_ERROR => 0, ];
+                    BaseJob::STATUS_FAILURE => 0,
+                    BaseJob::STATUS_EXCEPTION => 0,
+                    RetryableJob::STATUS_EXPIRED => 0,
+                    RetryableJob::STATUS_MAX_FAILURE => 0,
+                    RetryableJob::STATUS_MAX_EXCEPTION => 0,
+                    RetryableJob::STATUS_MAX_STALLED => 0,
+                    RetryableJob::STATUS_MAX_RETRIES => 0 ];
             }
             $result[$method][$item['status']] += intval($item['c']);
         }

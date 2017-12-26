@@ -1,3 +1,12 @@
+### 4.0.0
+   * Moved all Managers into a Manager directory
+   * New STATUS_FAILURE
+   * New Retry on FAILURE
+   * Default retry settings
+   * New RetryableJobManager base class
+   * Changed STATUS_ERROR to STATUS_EXCEPTION
+   
+
 ### 3.1.2
    * Fix a bug in timings by minute for ORM
    * Fix a bug in ODM timings

@@ -3,13 +3,13 @@
 namespace Dtc\QueueBundle\RabbitMQ;
 
 use Dtc\QueueBundle\Model\JobTiming;
-use Dtc\QueueBundle\Model\PriorityJobManager;
+use Dtc\QueueBundle\Manager\PriorityJobManager;
 use Dtc\QueueBundle\Exception\ArgumentsNotSetException;
 use Dtc\QueueBundle\Exception\ClassNotSubclassException;
 use Dtc\QueueBundle\Exception\PriorityException;
 use Dtc\QueueBundle\Exception\UnsupportedException;
-use Dtc\QueueBundle\Model\RunManager;
-use Dtc\QueueBundle\Model\JobTimingManager;
+use Dtc\QueueBundle\Manager\RunManager;
+use Dtc\QueueBundle\Manager\JobTimingManager;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AbstractConnection;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -194,7 +194,7 @@ class JobManager extends PriorityJobManager
 
     protected function verifyGetJobArgs($workerName = null, $methodName = null, $prioritize = true)
     {
-        if (null !== $workerName || null !== $methodName || true !== $prioritize) {
+        if (null !== $workerName || null !== $methodName || (null !== $this->maxPriority && true !== $prioritize)) {
             throw new UnsupportedException('Unsupported');
         }
     }

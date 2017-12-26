@@ -5,9 +5,10 @@ namespace Dtc\QueueBundle\Model;
 abstract class BaseJob
 {
     const STATUS_SUCCESS = 'success';
-    const STATUS_ERROR = 'error';
+    const STATUS_EXCEPTION = 'exception';
     const STATUS_NEW = 'new';
     const STATUS_RUNNING = 'running';
+    const STATUS_FAILURE = 'failure';
 
     /**
      * @var JobManagerInterface

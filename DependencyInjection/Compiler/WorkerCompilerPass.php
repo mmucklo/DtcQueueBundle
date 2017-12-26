@@ -29,20 +29,20 @@ class WorkerCompilerPass implements CompilerPassInterface
 
         $jobClass = $this->getJobClass($container);
         $jobArchiveClass = $this->getJobClassArchive($container);
-        $container->setParameter('dtc_queue.class_job', $jobClass);
-        $container->setParameter('dtc_queue.class_job_archive', $jobArchiveClass);
+        $container->setParameter('dtc_queue.class.job', $jobClass);
+        $container->setParameter('dtc_queue.class.job_archive', $jobArchiveClass);
 
         $managerType = $this->getRunManagerType($container);
         $jobTimingManagerType = $this->getJobTimingManagerType($container);
-        $container->setParameter('dtc_queue.class_job_timing', $this->getClass(
+        $container->setParameter('dtc_queue.class.job_timing', $this->getClass(
             $container,
             $jobTimingManagerType,
             'job_timing',
             'JobTiming',
             JobTiming::class
         ));
-        $container->setParameter('dtc_queue.class_run', $this->getClass($container, $managerType, 'run', 'Run', Run::class));
-        $container->setParameter('dtc_queue.class_run_archive', $this->getClass($container, $managerType, 'run_archive', 'RunArchive', Run::class));
+        $container->setParameter('dtc_queue.class.run', $this->getClass($container, $managerType, 'run', 'Run', Run::class));
+        $container->setParameter('dtc_queue.class.run_archive', $this->getClass($container, $managerType, 'run_archive', 'RunArchive', Run::class));
 
         $this->setupTaggedServices($container, $definition, $jobClass);
         $eventDispatcher = $container->getDefinition('dtc_queue.event_dispatcher');
@@ -136,7 +136,7 @@ class WorkerCompilerPass implements CompilerPassInterface
      */
     protected function addLiveJobs(ContainerBuilder $container)
     {
-        $jobReflection = new \ReflectionClass($container->getParameter('dtc_queue.class_job'));
+        $jobReflection = new \ReflectionClass($container->getParameter('dtc_queue.class.job'));
         if ($jobReflection->isInstance(new \Dtc\QueueBundle\Document\Job())) {
             GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.jobs_waiting.odm');
             GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.jobs_running.odm');
@@ -155,7 +155,6 @@ class WorkerCompilerPass implements CompilerPassInterface
     protected function getDirectory($managerType)
     {
         switch ($managerType) {
-            case 'mongodb': // deprecated remove in 3.0
             case 'odm':
                 return 'Document';
             case 'beanstalkd':
@@ -180,7 +179,7 @@ class WorkerCompilerPass implements CompilerPassInterface
      */
     protected function getJobClass(ContainerBuilder $container)
     {
-        $jobClass = $container->getParameter('dtc_queue.class_job');
+        $jobClass = $container->getParameter('dtc_queue.class.job');
         if (!$jobClass) {
             if ($directory = $this->getDirectory($managerType = $container->getParameter('dtc_queue.default_manager'))) {
                 $jobClass = 'Dtc\QueueBundle\\'.$directory.'\Job';
@@ -221,10 +220,9 @@ class WorkerCompilerPass implements CompilerPassInterface
      */
     protected function getClass(ContainerBuilder $container, $managerType, $type, $className, $baseClass)
     {
-        $runClass = $container->hasParameter('dtc_queue.class_'.$type) ? $container->getParameter('dtc_queue.class_'.$type) : null;
+        $runClass = $container->hasParameter('dtc_queue.class.'.$type) ? $container->getParameter('dtc_queue.class.'.$type) : null;
         if (!$runClass) {
             switch ($container->getParameter($managerType)) {
-                case 'mongodb': // deprecated remove in 3.0
                 case 'odm':
                     $runClass = 'Dtc\\QueueBundle\\Document\\'.$className;
                     break;
@@ -269,10 +267,9 @@ class WorkerCompilerPass implements CompilerPassInterface
      */
     protected function getJobClassArchive(ContainerBuilder $container)
     {
-        $jobArchiveClass = $container->getParameter('dtc_queue.class_job_archive');
+        $jobArchiveClass = $container->getParameter('dtc_queue.class.job_archive');
         if (!$jobArchiveClass) {
             switch ($container->getParameter('dtc_queue.default_manager')) {
-                case 'mongodb': // deprecated remove in 4.0
                 case 'odm':
                     $jobArchiveClass = 'Dtc\\QueueBundle\\Document\\JobArchive';
                     break;

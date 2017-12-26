@@ -2,20 +2,15 @@
 
 namespace Dtc\QueueBundle\Model;
 
-abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
+abstract class RetryableJob extends \Dtc\QueueBundle\Model\BaseRetryableJob
 {
-    const STATUS_MAX_ERROR = 'max_error';
+    const STATUS_MAX_EXCEPTION = 'max_exception';
     const STATUS_MAX_STALLED = 'max_stallled';
-    const STATUS_MAX_RETRIES = 'max_retries';
 
-    protected $maxStalled;
+    protected $maxStalled = 0;
     protected $stalledCount = 0;
-    protected $maxError;
-    protected $errorCount = 0;
-    protected $maxRetries;
-    protected $retries = 0;
-    protected $createdAt;
-    protected $updatedAt;
+    protected $maxException = 0;
+    protected $exceptionCount = 0;
 
     /**
      * @return int|null
@@ -58,116 +53,36 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
     }
 
     /**
-     * @return int|null
+     * @return mixed
      */
-    public function getMaxError()
+    public function getMaxException()
     {
-        return $this->maxError;
+        return $this->maxException;
     }
 
     /**
-     * @param int|null $maxError
-     *
-     * @return RetryableJob
+     * @param mixed $maxException
      */
-    public function setMaxError($maxError)
+    public function setMaxException($maxException)
     {
-        $this->maxError = $maxError;
-
+        $this->maxException = $maxException;
         return $this;
     }
 
     /**
      * @return int
      */
-    public function getErrorCount()
+    public function getExceptionCount(): int
     {
-        return $this->errorCount;
+        return $this->exceptionCount;
     }
 
     /**
-     * @param int $errorCount
-     *
-     * @return RetryableJob
+     * @param int $exceptionCount
      */
-    public function setErrorCount($errorCount)
+    public function setExceptionCount(int $exceptionCount)
     {
-        $this->errorCount = $errorCount;
-
+        $this->exceptionCount = $exceptionCount;
         return $this;
-    }
-
-    /**
-     * @return int
-     */
-    public function getRetries()
-    {
-        return $this->retries;
-    }
-
-    /**
-     * @param int $retries
-     *
-     * @return RetryableJob
-     */
-    public function setRetries($retries)
-    {
-        $this->retries = $retries;
-
-        return $this;
-    }
-
-    /**
-     * @return int|null
-     */
-    public function getMaxRetries()
-    {
-        return $this->maxRetries;
-    }
-
-    /**
-     * @param int|null $maxRetries
-     *
-     * @return RetryableJob
-     */
-    public function setMaxRetries($maxRetries)
-    {
-        $this->maxRetries = $maxRetries;
-
-        return $this;
-    }
-
-    /**
-     * @return \DateTime
-     */
-    public function getCreatedAt()
-    {
-        return $this->createdAt;
-    }
-
-    /**
-     * @return \DateTime
-     */
-    public function getUpdatedAt()
-    {
-        return $this->updatedAt;
-    }
-
-    /**
-     * @param \DateTime $createdAt
-     */
-    public function setCreatedAt(\DateTime $createdAt)
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
-    /**
-     * @param \DateTime $updatedAt
-     */
-    public function setUpdatedAt(\DateTime $updatedAt)
-    {
-        $this->updatedAt = $updatedAt;
     }
 }

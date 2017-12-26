@@ -5,7 +5,7 @@ namespace Dtc\QueueBundle\Doctrine;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Persistence\ObjectRepository;
 use Dtc\QueueBundle\Model\Run;
-use Dtc\QueueBundle\Model\RunManager;
+use Dtc\QueueBundle\Manager\RunManager;
 
 abstract class BaseRunManager extends RunManager
 {

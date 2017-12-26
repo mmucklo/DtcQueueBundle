@@ -2,7 +2,7 @@
 
 namespace Dtc\QueueBundle\Beanstalkd;
 
-use Dtc\QueueBundle\Model\AbstractJobManager;
+use Dtc\QueueBundle\Manager\AbstractJobManager;
 use Dtc\QueueBundle\Model\Job as BaseJob;
 use Dtc\QueueBundle\Exception\UnsupportedException;
 use Pheanstalk\Pheanstalk;

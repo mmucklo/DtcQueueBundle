@@ -47,13 +47,13 @@ class JobManager extends BaseJobManager
      * @param string|null $workerName
      * @param string|null $method
      */
-    public function pruneErroneousJobs($workerName = null, $method = null)
+    public function pruneExceptionJobs($workerName = null, $method = null)
     {
         /** @var DocumentManager $objectManager */
         $objectManager = $this->getObjectManager();
         $qb = $objectManager->createQueryBuilder($this->getJobArchiveClass());
         $qb = $qb->remove();
-        $qb->field('status')->equals(BaseJob::STATUS_ERROR);
+        $qb->field('status')->equals(BaseJob::STATUS_EXCEPTION);
         $this->addWorkerNameCriterion($qb, $workerName, $method);
 
         $query = $qb->getQuery();
@@ -167,14 +167,16 @@ class JobManager extends BaseJobManager
         $results = $query->execute();
 
         $allStatus = array(
-            BaseJob::STATUS_ERROR => 0,
             BaseJob::STATUS_NEW => 0,
-            RetryableJob::STATUS_EXPIRED => 0,
-            RetryableJob::STATUS_MAX_ERROR => 0,
-            RetryableJob::STATUS_MAX_RETRIES => 0,
-            RetryableJob::STATUS_MAX_STALLED => 0,
             BaseJob::STATUS_RUNNING => 0,
             BaseJob::STATUS_SUCCESS => 0,
+            BaseJob::STATUS_FAILURE => 0,
+            BaseJob::STATUS_EXCEPTION => 0,
+            RetryableJob::STATUS_EXPIRED => 0,
+            RetryableJob::STATUS_MAX_FAILURE => 0,
+            RetryableJob::STATUS_MAX_EXCEPTION => 0,
+            RetryableJob::STATUS_MAX_RETRIES => 0,
+            RetryableJob::STATUS_MAX_STALLED => 0,
         );
 
         $status = [];

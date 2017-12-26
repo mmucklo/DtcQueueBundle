@@ -7,9 +7,10 @@ class JobTiming
     const STATUS_INSERT = 0;
     const STATUS_INSERT_DELAYED = 1;
     const STATUS_FINISHED_SUCCESS = 100;
-    const STATUS_FINISHED_ERROR = 101;
+    const STATUS_FINISHED_EXCEPTION = 101;
     const STATUS_FINISHED_EXPIRED = 102;
     const STATUS_FINISHED_STALLED = 103;
+    const STATUS_FINISHED_FAILURE = 104;
 
     protected $finishedAt;
     protected $status;
@@ -22,11 +23,12 @@ class JobTiming
     public static function getStates()
     {
         return [self::STATUS_FINISHED_SUCCESS => ['label' => 'Finished: SUCCESS', 'color' => 'green'],
-            self::STATUS_FINISHED_ERROR => ['label' => 'Finished: ERROR', 'color' => 'red'],
-            self::STATUS_FINISHED_EXPIRED => ['label' => 'Finished: EXPIRED', 'color' => 'orange'],
+            self::STATUS_FINISHED_FAILURE => ['label' => 'Finished: EXCEPTION', 'color' => 'orange'],
+            self::STATUS_FINISHED_EXCEPTION => ['label' => 'Finished: FAILURE', 'color' => 'red'],
+            self::STATUS_FINISHED_EXPIRED => ['label' => 'Finished: EXPIRED', 'color' => 'maroon'],
             self::STATUS_FINISHED_STALLED => ['label' => 'Finished: STALLED', 'color' => 'gold'],
-            self::STATUS_INSERT => ['label' => 'INSERT', 'color' => 'purple'],
-            self::STATUS_INSERT_DELAYED => ['label' => 'INSERT (Delayed)', 'color' => 'navy'], ];
+            self::STATUS_INSERT => ['label' => 'INSERT', 'color' => 'navy'],
+            self::STATUS_INSERT_DELAYED => ['label' => 'INSERT (Delayed)', 'color' => 'purple'], ];
     }
 
     /**

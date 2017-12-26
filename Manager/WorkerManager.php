@@ -1,6 +1,6 @@
 <?php
 
-namespace Dtc\QueueBundle\Model;
+namespace Dtc\QueueBundle\Manager;
 
 use Dtc\QueueBundle\EventDispatcher\Event;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
@@ -107,15 +107,34 @@ class WorkerManager
         $exception = $payload[0];
         $exceptionMessage = get_class($exception)."\n".$exception->getCode().' - '.$exception->getMessage()."\n".$exception->getTraceAsString();
         $this->log('debug', "Failed: {$job->getClassName()}->{$job->getMethod()}");
-        $job->setStatus(BaseJob::STATUS_ERROR);
+        $job->setStatus(BaseJob::STATUS_EXCEPTION);
         if ($job instanceof RetryableJob) {
-            $job->setErrorCount($job->getErrorCount() + 1);
-            if (null !== ($maxError = $job->getMaxError()) && $job->getErrorCount() >= $maxError) {
-                $job->setStatus(RetryableJob::STATUS_MAX_ERROR);
+            $job->setExceptionCount($job->getExceptionCount() + 1);
+            if (null !== ($maxException = $job->getMaxException()) && $job->getExceptionCount() >= $maxException) {
+                $job->setStatus(RetryableJob::STATUS_MAX_EXCEPTION);
             }
         }
-        $job->setMessage($exceptionMessage);
-        $this->jobManager->getJobTimingManager()->recordTiming(JobTiming::STATUS_FINISHED_ERROR);
+
+        $message = $job->getMessage();
+        if ($message) {
+            $message .= "\n\n";
+        }
+        else {
+            $message = $exceptionMessage;
+        }
+
+        $job->setMessage();
+        $this->jobManager->getJobTimingManager()->recordTiming(JobTiming::STATUS_FINISHED_EXCEPTION);
+    }
+    
+    public function processStatus(Job $job, $result) {
+        if ($result === Worker::RESULT_FAILURE) {
+            $job->setStatus(BaseJob::STATUS_FAILURE);
+            $this->jobManager->getJobTimingManager()->recordTiming(JobTiming::STATUS_FINISHED_FAILURE);
+            return;
+        }
+        $job->setStatus(BaseJob::STATUS_SUCCESS);
+        $this->jobManager->getJobTimingManager()->recordTiming(JobTiming::STATUS_FINISHED_SUCCESS);
     }
 
     public function runJob(Job $job)
@@ -125,16 +144,14 @@ class WorkerManager
 
         $start = microtime(true);
         try {
+            /** @var Worker $worker */
             $worker = $this->getWorker($job->getWorkerName());
             $this->log('debug', "Start: {$job->getClassName()}->{$job->getMethod()}", $job->getArgs());
             $job->setStartedAt(new \DateTime());
-            call_user_func_array(array($worker, $job->getMethod()), $job->getArgs());
-
-            // Job finshed successfuly... do we remove the job from database?
-            $job->setStatus(BaseJob::STATUS_SUCCESS);
-
             $job->setMessage(null);
-            $this->jobManager->getJobTimingManager()->recordTiming(JobTiming::STATUS_FINISHED_SUCCESS);
+            $worker->setCurrentJob($job);
+            $result = call_user_func_array(array($worker, $job->getMethod()), $job->getArgs());
+            $this->processStatus($job, $result);
         } catch (\Throwable $exception) {
             $this->handleException([$exception], $job);
         } catch (\Exception $exception) {

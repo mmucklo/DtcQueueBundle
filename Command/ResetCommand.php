@@ -12,16 +12,16 @@ class ResetCommand extends ContainerAwareCommand
     {
         $this
             ->setName('dtc:queue:reset')
-            ->setDescription('Reset jobs with error or stalled status');
+            ->setDescription('Reset jobs with exception or stalled status');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $container = $this->getContainer();
         $jobManager = $container->get('dtc_queue.job_manager');
-        $countError = $jobManager->resetErroneousJobs();
+        $countException = $jobManager->resetExceptionJobs();
         $countStalled = $jobManager->resetStalledJobs();
-        $output->writeln("$countError job(s) in status 'error' reset");
-        $output->writeln("$countStalled job(s) in status 'running' reset");
+        $output->writeln("$countException job(s) in status 'exception' reset");
+        $output->writeln("$countStalled job(s) stalled (in status 'running') reset");
     }
 }

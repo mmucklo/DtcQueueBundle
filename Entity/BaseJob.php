@@ -45,11 +45,6 @@ abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
     protected $args;
 
     /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
-    protected $batch;
-
-    /**
      * @Grid\Column(sortable=true, searchable=true)
      * @ORM\Column(type="boolean", nullable=true)
      */

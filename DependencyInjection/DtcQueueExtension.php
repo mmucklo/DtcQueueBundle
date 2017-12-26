@@ -24,8 +24,9 @@ class DtcQueueExtension extends Extension
         $container->setParameter('dtc_queue.document_manager', $config['document_manager']);
         $container->setParameter('dtc_queue.entity_manager', $config['entity_manager']);
         $container->setParameter('dtc_queue.run_manager', isset($config['run_manager']) ? $config['run_manager'] : $config['default_manager']);
-        $container->setParameter('dtc_queue.priority_max', $config['priority_max']);
-        $container->setParameter('dtc_queue.priority_direction', $config['priority_direction']);
+        $container->setParameter('dtc_queue.priority.direction', $config['priority']['direction']);
+        $container->setParameter('dtc_queue.priority.max', $config['priority']['max']);
+        $container->setParameter('dtc_queue.retry_defaults', $config['retry_defaults']);
         $this->configClasses($config, $container);
         $this->configRecordTimings($config, $container);
         $this->configAdmin($config, $container);
@@ -43,11 +44,11 @@ class DtcQueueExtension extends Extension
 
     protected function configClasses(array $config, ContainerBuilder $container)
     {
-        $container->setParameter('dtc_queue.class_job', isset($config['class_job']) ? $config['class_job'] : null);
-        $container->setParameter('dtc_queue.class_job_archive', isset($config['class_job_archive']) ? $config['class_job_archive'] : null);
-        $container->setParameter('dtc_queue.class_run', isset($config['class_run']) ? $config['class_run'] : null);
-        $container->setParameter('dtc_queue.class_run_archive', isset($config['class_run_archive']) ? $config['class_run_archive'] : null);
-        $container->setParameter('dtc_queue.class_job_timing', isset($config['class_job_timing']) ? $config['class_job_timing'] : null);
+        $container->setParameter('dtc_queue.class.job', isset($config['class']['job']) ? $config['class']['job'] : null);
+        $container->setParameter('dtc_queue.class.job_archive', isset($config['class']['job_archive']) ? $config['class']['job_archive'] : null);
+        $container->setParameter('dtc_queue.class.run', isset($config['class']['run']) ? $config['class']['run'] : null);
+        $container->setParameter('dtc_queue.class.run_archive', isset($config['class']['run_archive']) ? $config['class']['run_archive'] : null);
+        $container->setParameter('dtc_queue.class.job_timing', isset($config['class']['job_timing']) ? $config['class']['job_timing'] : null);
     }
 
     protected function configRecordTimings(array $config, ContainerBuilder $container)

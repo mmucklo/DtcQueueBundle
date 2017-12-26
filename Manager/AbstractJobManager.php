@@ -1,6 +1,6 @@
 <?php
 
-namespace Dtc\QueueBundle\Model;
+namespace Dtc\QueueBundle\Manager;
 
 use Dtc\QueueBundle\Exception\UnsupportedException;
 
@@ -57,12 +57,12 @@ abstract class AbstractJobManager implements JobManagerInterface
         throw new UnsupportedException('Unsupported');
     }
 
-    public function resetErroneousJobs($workerName = null, $methodName = null)
+    public function resetExceptionJobs($workerName = null, $methodName = null)
     {
         throw new UnsupportedException('Unsupported');
     }
 
-    public function pruneErroneousJobs($workerName = null, $methodName = null)
+    public function pruneExceptionJobs($workerName = null, $methodName = null)
     {
         throw new UnsupportedException('Unsupported');
     }

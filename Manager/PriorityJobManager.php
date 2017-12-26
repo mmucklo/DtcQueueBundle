@@ -1,10 +1,11 @@
 <?php
 
-namespace Dtc\QueueBundle\Model;
+namespace Dtc\QueueBundle\Manager;
 
 use Dtc\QueueBundle\Exception\PriorityException;
+use Dtc\QueueBundle\Model\BaseRetryableJob;
 
-abstract class PriorityJobManager extends AbstractJobManager
+abstract class PriorityJobManager extends RetryableJobManager
 {
     const PRIORITY_ASC = 'asc';
     const PRIORITY_DESC = 'desc';
@@ -62,6 +63,12 @@ abstract class PriorityJobManager extends AbstractJobManager
         }
     }
 
+    /**
+     * Returns the prioirty in ASCENDING order regardless of the User's choice of direction
+     *   (for storing RabbitMQ, Mysql, others)
+     * @param $priority
+     * @return mixed
+     */
     protected function calculatePriority($priority)
     {
         if (null === $priority) {
@@ -109,7 +116,7 @@ abstract class PriorityJobManager extends AbstractJobManager
      *
      * @throws PriorityException
      */
-    public function save(Job $job)
+    public function retryableSave(BaseRetryableJob $job)
     {
         $this->validatePriority($job->getPriority());
         if (!$job->getId()) { // An unsaved job needs it's priority potentially adjusted
