@@ -26,7 +26,12 @@ class DtcQueueExtension extends Extension
         $container->setParameter('dtc_queue.run_manager', isset($config['run_manager']) ? $config['run_manager'] : $config['default_manager']);
         $container->setParameter('dtc_queue.priority.direction', $config['priority']['direction']);
         $container->setParameter('dtc_queue.priority.max', $config['priority']['max']);
-        $container->setParameter('dtc_queue.retry_defaults', $config['retry_defaults']);
+        $container->setParameter('dtc_queue.retry.max.retry', $config['retry']['max']['retry']);
+        $container->setParameter('dtc_queue.retry.max.failure', $config['retry']['max']['failure']);
+        $container->setParameter('dtc_queue.retry.max.exception', $config['retry']['max']['exception']);
+        $container->setParameter('dtc_queue.retry.max.stalled', $config['retry']['max']['stalled']);
+        $container->setParameter('dtc_queue.retry.auto.failure', $config['retry']['auto']['failure']);
+        $container->setParameter('dtc_queue.retry.auto.exception', $config['retry']['auto']['exception']);
         $this->configClasses($config, $container);
         $this->configRecordTimings($config, $container);
         $this->configAdmin($config, $container);

@@ -60,24 +60,39 @@ class Configuration implements ConfigurationInterface
 
     protected function addRetry() {
         $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('retry_defaults');
+        $rootNode = $treeBuilder->root('retry');
         $rootNode
             ->children()
-                ->integerNode('retries_max')
-                    ->defaultValue(3)
+                ->arrayNode('max')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->integerNode('retry')
+                            ->defaultValue(3)
+                        ->end()
+                        ->integerNode('failure')
+                            ->defaultValue(2)
+                        ->end()
+                        ->integerNode('exception')
+                            ->defaultValue(1)
+                        ->end()
+                        ->integerNode('stalled')
+                            ->defaultValue(2)
+                        ->end()
+                    ->end()
                 ->end()
-                ->integerNode('failure_max')
-                    ->defaultValue(2)
-                ->end()
-                ->integerNode('exception_max')
-                    -defaultValue(1)
-                ->end()
-                ->integerNode('stalled_max')
-                    -defaultValue(2)
+                ->arrayNode('auto')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->booleanNode('failure')
+                            ->defaultTrue()
+                        ->end()
+                        ->booleanNode('exception')
+                            ->defaultFalse()
+                        ->end()
+                    ->end()
                 ->end()
             ->end();
         return $rootNode;
-        
     }
     
     protected function addPriority() {

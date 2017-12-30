@@ -30,7 +30,6 @@ interface JobManagerInterface
     /**
      * Called after a job has finished - may delete the job / reset the job and/or do other related cleanup
      * @param Job $job
-     * @return bool Whether the job is deletable or not (true - job can be deleted, false - job was reset or reused in some way)
      */
     public function saveHistory(Job $job);
 

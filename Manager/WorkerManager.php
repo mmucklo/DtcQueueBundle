@@ -113,13 +113,6 @@ class WorkerManager
         $exceptionMessage = get_class($exception)."\n".$exception->getCode().' - '.$exception->getMessage()."\n".$exception->getTraceAsString();
         $this->log('debug', "Failed: {$job->getClassName()}->{$job->getMethod()}");
         $job->setStatus(BaseJob::STATUS_EXCEPTION);
-        if ($job instanceof RetryableJob) {
-            $job->setExceptionCount($job->getExceptionCount() + 1);
-            if (null !== ($maxException = $job->getMaxException()) && $job->getExceptionCount() >= $maxException) {
-                $job->setStatus(RetryableJob::STATUS_MAX_EXCEPTION);
-            }
-        }
-
         $message = $job->getMessage();
         if ($message) {
             $message .= "\n\n";

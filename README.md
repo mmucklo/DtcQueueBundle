@@ -53,8 +53,8 @@ Usage
 Create a worker class that will work on the background job.
 
 Example:
-   * __src\Worker\FibonacciWorker.php:__ (symfony 4)
-   * __src\AppBundle\Worker\FibonacciWorker.php:__ (symfony 2/3)
+   * __src/Worker/FibonacciWorker.php:__ (symfony 4)
+   * __src/AppBundle/Worker/FibonacciWorker.php:__ (symfony 2/3)
 ```php
 <?php
 namespace App\Worker; // for symfony 2/3, the namespace would typically be AppBundle\Worker
@@ -65,7 +65,6 @@ class FibonacciWorker
     private $filename;
     public function __construct() {
         $this->filename = '/tmp/fib-result.txt';
-        $this->jobClass = 'Dtc\QueueBundle\Model\Job';
     }
 
     public function fibonacciFile($n) {

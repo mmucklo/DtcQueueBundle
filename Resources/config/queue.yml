@@ -81,6 +81,12 @@ services:
         calls:
             - ["setMaxPriority", ['%dtc_queue.priority.max%']]
             - ["setPriorityDirection", ['%dtc_queue.priority.direction%']]
+            - ["setDefaultMaxRetry", ['%dtc_queue.retry.max.retry%']]
+            - ["setDefaultMaxFailure", ['%dtc_queue.retry.max.failure%']]
+            - ["setDefaultMaxException", ['%dtc_queue.retry.max.exception%']]
+            - ["setDefaultMaxStalled", ['%dtc_queue.retry.max.stalled%']]
+            - ["setAutoRetryOnFailure", ['%dtc_queue.retry.auto.failure%']]
+            - ["setAutoRetryOnException", ['%dtc_queue.retry.auto.exception%']]
 
     dtc_queue.job_manager.beanstalkd:
         public: true
@@ -90,6 +96,12 @@ services:
             - "@dtc_queue.job_timing_manager"
             - '%dtc_queue.class.job%'
             - '%dtc_queue.retry_defaults%'
+        calls:
+            - ["setDefaultMaxRetry", ['%dtc_queue.retry.max.retry%']]
+            - ["setDefaultMaxFailure", ['%dtc_queue.retry.max.failure%']]
+            - ["setDefaultMaxException", ['%dtc_queue.retry.max.exception%']]
+            - ["setDefaultMaxStalled", ['%dtc_queue.retry.max.stalled%']]
+            - ["setAutoRetryOnFailure", ['%dtc_queue.retry.auto.failure%']]
 
     dtc_queue.job_manager.rabbit_mq:
         public: true
@@ -102,6 +114,12 @@ services:
         calls:
             - ["setMaxPriority", ['%dtc_queue.priority.max%']]
             - ["setPriorityDirection", ['%dtc_queue.priority.direction%']]
+            - ["setDefaultMaxRetry", ['%dtc_queue.retry.max.retry%']]
+            - ["setDefaultMaxFailure", ['%dtc_queue.retry.max.failure%']]
+            - ["setDefaultMaxException", ['%dtc_queue.retry.max.exception%']]
+            - ["setDefaultMaxStalled", ['%dtc_queue.retry.max.stalled%']]
+            - ["setAutoRetryOnFailure", ['%dtc_queue.retry.auto.failure%']]
+            - ["setAutoRetryOnException", ['%dtc_queue.retry.auto.exception%']]
 
     dtc_queue.run_manager.orm:
         public: true
@@ -161,6 +179,12 @@ services:
         calls:
             - ["setMaxPriority", ['%dtc_queue.priority.max%']]
             - ["setPriorityDirection", ['%dtc_queue.priority.direction%']]
+            - ["setDefaultMaxRetry", ['%dtc_queue.retry.max.retry%']]
+            - ["setDefaultMaxFailure", ['%dtc_queue.retry.max.failure%']]
+            - ["setDefaultMaxException", ['%dtc_queue.retry.max.exception%']]
+            - ["setDefaultMaxStalled", ['%dtc_queue.retry.max.stalled%']]
+            - ["setAutoRetryOnFailure", ['%dtc_queue.retry.auto.failure%']]
+            - ["setAutoRetryOnException", ['%dtc_queue.retry.auto.exception%']]
 
     dtc_queue.worker_manager:
         public: true
