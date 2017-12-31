@@ -4,9 +4,9 @@ namespace Dtc\QueueBundle\Doctrine;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Dtc\QueueBundle\Model\JobTiming;
-use Dtc\QueueBundle\Model\JobTimingManager;
+use Dtc\QueueBundle\Manager\JobTimingManager;
 
-abstract class BaseJobTimingManager extends JobTimingManager
+abstract class DoctrineJobTimingManager extends JobTimingManager
 {
     /** @var ObjectManager */
     protected $objectManager;

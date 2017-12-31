@@ -81,10 +81,10 @@ services:
         calls:
             - ["setMaxPriority", ['%dtc_queue.priority.max%']]
             - ["setPriorityDirection", ['%dtc_queue.priority.direction%']]
-            - ["setDefaultMaxRetry", ['%dtc_queue.retry.max.retry%']]
-            - ["setDefaultMaxFailure", ['%dtc_queue.retry.max.failure%']]
-            - ["setDefaultMaxException", ['%dtc_queue.retry.max.exception%']]
-            - ["setDefaultMaxStalled", ['%dtc_queue.retry.max.stalled%']]
+            - ["setDefaultMaxRetries", ['%dtc_queue.retry.max.retries%']]
+            - ["setDefaultMaxFailures", ['%dtc_queue.retry.max.failures%']]
+            - ["setDefaultMaxExceptions", ['%dtc_queue.retry.max.exceptions%']]
+            - ["setDefaultMaxStalls", ['%dtc_queue.retry.max.stalls%']]
             - ["setAutoRetryOnFailure", ['%dtc_queue.retry.auto.failure%']]
             - ["setAutoRetryOnException", ['%dtc_queue.retry.auto.exception%']]
 
@@ -97,10 +97,9 @@ services:
             - '%dtc_queue.class.job%'
             - '%dtc_queue.retry_defaults%'
         calls:
-            - ["setDefaultMaxRetry", ['%dtc_queue.retry.max.retry%']]
-            - ["setDefaultMaxFailure", ['%dtc_queue.retry.max.failure%']]
-            - ["setDefaultMaxException", ['%dtc_queue.retry.max.exception%']]
-            - ["setDefaultMaxStalled", ['%dtc_queue.retry.max.stalled%']]
+            - ["setDefaultMaxRetries", ['%dtc_queue.retry.max.retries%']]
+            - ["setDefaultMaxFailures", ['%dtc_queue.retry.max.failures%']]
+            - ["setDefaultMaxExceptions", ['%dtc_queue.retry.max.exceptions%']]
             - ["setAutoRetryOnFailure", ['%dtc_queue.retry.auto.failure%']]
 
     dtc_queue.job_manager.rabbit_mq:
@@ -114,10 +113,9 @@ services:
         calls:
             - ["setMaxPriority", ['%dtc_queue.priority.max%']]
             - ["setPriorityDirection", ['%dtc_queue.priority.direction%']]
-            - ["setDefaultMaxRetry", ['%dtc_queue.retry.max.retry%']]
-            - ["setDefaultMaxFailure", ['%dtc_queue.retry.max.failure%']]
-            - ["setDefaultMaxException", ['%dtc_queue.retry.max.exception%']]
-            - ["setDefaultMaxStalled", ['%dtc_queue.retry.max.stalled%']]
+            - ["setDefaultMaxRetries", ['%dtc_queue.retry.max.retries%']]
+            - ["setDefaultMaxFailures", ['%dtc_queue.retry.max.failures%']]
+            - ["setDefaultMaxExceptions", ['%dtc_queue.retry.max.exceptions%']]
             - ["setAutoRetryOnFailure", ['%dtc_queue.retry.auto.failure%']]
             - ["setAutoRetryOnException", ['%dtc_queue.retry.auto.exception%']]
 
@@ -179,10 +177,10 @@ services:
         calls:
             - ["setMaxPriority", ['%dtc_queue.priority.max%']]
             - ["setPriorityDirection", ['%dtc_queue.priority.direction%']]
-            - ["setDefaultMaxRetry", ['%dtc_queue.retry.max.retry%']]
-            - ["setDefaultMaxFailure", ['%dtc_queue.retry.max.failure%']]
-            - ["setDefaultMaxException", ['%dtc_queue.retry.max.exception%']]
-            - ["setDefaultMaxStalled", ['%dtc_queue.retry.max.stalled%']]
+            - ["setDefaultMaxRetries", ['%dtc_queue.retry.max.retries%']]
+            - ["setDefaultMaxFailures", ['%dtc_queue.retry.max.failures%']]
+            - ["setDefaultMaxExceptions", ['%dtc_queue.retry.max.exceptions%']]
+            - ["setDefaultMaxStalls", ['%dtc_queue.retry.max.stalls%']]
             - ["setAutoRetryOnFailure", ['%dtc_queue.retry.auto.failure%']]
             - ["setAutoRetryOnException", ['%dtc_queue.retry.auto.exception%']]
 

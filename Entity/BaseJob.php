@@ -4,8 +4,9 @@ namespace Dtc\QueueBundle\Entity;
 
 use Dtc\GridBundle\Annotation as Grid;
 use Doctrine\ORM\Mapping as ORM;
+use Dtc\QueueBundle\Doctrine\DoctrineJob;
 
-abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
+abstract class BaseJob extends DoctrineJob
 {
     /**
      * @Grid\Column(order=1,sortable=true,searchable=true)
@@ -126,22 +127,32 @@ abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
     /**
      * @ORM\Column(type="integer")
      */
-    protected $stalledCount = 0;
+    protected $stalls = 0;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    protected $maxStalled;
+    protected $maxStalls;
 
     /**
      * @ORM\Column(type="integer")
      */
-    protected $errorCount = 0;
+    protected $exceptions = 0;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    protected $maxError;
+    protected $maxExceptions;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    protected $failures = 0;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    protected $maxFailures;
 
     /**
      * @ORM\Column(type="integer")

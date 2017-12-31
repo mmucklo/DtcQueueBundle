@@ -4,9 +4,9 @@ namespace Dtc\QueueBundle\ORM;
 
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\QueryBuilder;
-use Dtc\QueueBundle\Doctrine\BaseRunManager;
+use Dtc\QueueBundle\Doctrine\DoctrineRunManager;
 
-class RunManager extends BaseRunManager
+class RunManager extends DoctrineRunManager
 {
     use CommonTrait;
 

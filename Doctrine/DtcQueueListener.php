@@ -7,7 +7,7 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Id\AssignedGenerator;
-use Dtc\QueueBundle\Model\RetryableJob;
+use Dtc\QueueBundle\Model\StallableJob;
 use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\Util\Util;
@@ -77,7 +77,7 @@ class DtcQueueListener
             $metadata = $objectManager->getClassMetadata($className);
             $this->adjustIdGenerator($metadata);
 
-            /** @var RetryableJob $jobArchive */
+            /** @var StallableJob $jobArchive */
             $jobArchive = new $className();
             Util::copy($object, $jobArchive);
             $jobArchive->setUpdatedAt(new \DateTime());
@@ -88,7 +88,7 @@ class DtcQueueListener
     public function preUpdate(LifecycleEventArgs $eventArgs)
     {
         $object = $eventArgs->getObject();
-        if ($object instanceof \Dtc\QueueBundle\Model\RetryableJob) {
+        if ($object instanceof \Dtc\QueueBundle\Model\StallableJob) {
             $dateTime = new \DateTime();
             $object->setUpdatedAt($dateTime);
         }
@@ -98,7 +98,7 @@ class DtcQueueListener
     {
         $object = $eventArgs->getObject();
 
-        if ($object instanceof \Dtc\QueueBundle\Model\RetryableJob) {
+        if ($object instanceof \Dtc\QueueBundle\Model\StallableJob) {
             $dateTime = new \DateTime();
             if (!$object->getCreatedAt()) {
                 $object->setCreatedAt($dateTime);

@@ -2,7 +2,7 @@
 
 namespace Dtc\QueueBundle\Model;
 
-abstract class MessageableJob extends Job
+abstract class MessageableJob extends BaseRetryableJob
 {
     protected function toMessageArray()
     {
@@ -11,6 +11,12 @@ abstract class MessageableJob extends Job
             'args' => $this->getArgs(),
             'method' => $this->getMethod(),
             'expiresAt' => ($expiresAt = $this->getExpiresAt()) ? $expiresAt->format('U.u') : null,
+            'retries' => $this->getRetries(),
+            'maxRetries' => $this->getMaxRetries(),
+            'failures' => $this->getFailures(),
+            'maxFailures' => $this->getMaxFailures(),
+            'exceptions' => $this->getExceptions(),
+            'maxExceptions' => $this->getMaxExceptions(),
         );
     }
 
@@ -44,6 +50,25 @@ abstract class MessageableJob extends Job
         if (isset($arr['method'])) {
             $this->setMethod($arr['method']);
         }
+        if (isset($arr['retries'])) {
+            $this->setRetries($arr['retries']);
+        }
+        if (isset($arr['maxRetries'])) {
+            $this->setMaxRetries($arr['maxRetries']);
+        }
+        if (isset($arr['failures'])) {
+            $this->setFailures($arr['failures']);
+        }
+        if (isset($arr['maxFailures'])) {
+            $this->setMaxFailures($arr['maxFailures']);
+        }
+        if (isset($arr['exceptions'])) {
+            $this->setExceptions($arr['exceptions']);
+        }
+        if (isset($arr['maxExceptions'])) {
+            $this->setMaxExceptions($arr['maxExceptions']);
+        }
+
         if (isset($arr['expiresAt'])) {
             $expiresAt = $arr['expiresAt'];
             if ($expiresAt) {

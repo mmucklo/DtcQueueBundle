@@ -4,12 +4,12 @@ namespace Dtc\QueueBundle\Tests\Doctrine;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ORM\EntityManager;
-use Dtc\QueueBundle\Doctrine\BaseJobManager;
+use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Dtc\QueueBundle\Doctrine\DtcQueueListener;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Tests\Model\PriorityTestTrait;
-use Dtc\QueueBundle\Model\RetryableJob;
+use Dtc\QueueBundle\Model\StallableJob;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest as BaseBaseJobManagerTest;
 use Dtc\QueueBundle\ODM\JobManager;
@@ -53,7 +53,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertEquals(JobManager::PRIORITY_ASC, self::$jobManager->getPriorityDirection());
         self::$jobManager->setPriorityDirection(JobManager::PRIORITY_DESC);
 
-        /** @var BaseJobManager $jobManager */
+        /** @var DoctrineJobManager $jobManager */
         $jobManager = self::$jobManager;
 
         $parameters = new ParameterBag();
@@ -84,7 +84,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
     public function testOrdering()
     {
         // priority when at
-        /** @var BaseJobManager $jobManager */
+        /** @var DoctrineJobManager $jobManager */
         $jobManager = self::$jobManager;
 
         $time1 = time() - 2;
@@ -165,7 +165,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
     public function getJobBy()
     {
-        /** @var BaseJobManager $jobManager */
+        /** @var DoctrineJobManager $jobManager */
         $jobManager = self::$jobManager;
 
         /** @var Job $job */
@@ -467,7 +467,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         if ($endRun) {
             $archivedRun = $objectManager->getRepository(self::$runManager->getRunArchiveClass())->find($runId);
 
-            $minusTime = $time - (BaseJobManager::STALLED_SECONDS + 1);
+            $minusTime = $time - (DoctrineJobManager::STALLED_SECONDS + 1);
             $archivedRun->setEndedAt(new \DateTime("@$minusTime"));
 
             $objectManager->persist($archivedRun);
@@ -716,7 +716,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $archivedRun = $objectManager->getRepository(self::$runManager->getRunArchiveClass())->find($runId);
 
-        $minusTime = $time - (BaseJobManager::STALLED_SECONDS + 1);
+        $minusTime = $time - (DoctrineJobManager::STALLED_SECONDS + 1);
         $archivedRun->setEndedAt(new \DateTime("@$minusTime"));
 
         $objectManager->persist($archivedRun);
@@ -782,7 +782,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $archivedRun = $objectManager->getRepository(self::$runManager->getRunArchiveClass())->find($runId);
 
-        $minusTime = $time - (BaseJobManager::STALLED_SECONDS + 1);
+        $minusTime = $time - (DoctrineJobManager::STALLED_SECONDS + 1);
         $archivedRun->setEndedAt(new \DateTime("@$minusTime"));
 
         $objectManager->persist($archivedRun);
@@ -822,7 +822,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $archivedRun = $objectManager->getRepository(self::$runManager->getRunArchiveClass())->find($runId);
 
-        $minusTime = $time - (BaseJobManager::STALLED_SECONDS + 1);
+        $minusTime = $time - (DoctrineJobManager::STALLED_SECONDS + 1);
         $archivedRun->setEndedAt(new \DateTime("@$minusTime"));
 
         $objectManager->persist($archivedRun);
@@ -1103,7 +1103,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
     protected function getBaseStatus()
     {
-        /** @var BaseJobManager $jobManager */
+        /** @var DoctrineJobManager $jobManager */
         $jobManager = self::$jobManager;
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
@@ -1115,10 +1115,10 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertArrayHasKey(BaseJob::STATUS_ERROR, $fibonacciStatus);
         self::assertArrayHasKey(BaseJob::STATUS_RUNNING, $fibonacciStatus);
         self::assertArrayHasKey(BaseJob::STATUS_SUCCESS, $fibonacciStatus);
-        self::assertArrayHasKey(RetryableJob::STATUS_MAX_STALLED, $fibonacciStatus);
-        self::assertArrayHasKey(RetryableJob::STATUS_MAX_ERROR, $fibonacciStatus);
-        self::assertArrayHasKey(RetryableJob::STATUS_MAX_RETRIES, $fibonacciStatus);
-        self::assertArrayHasKey(RetryableJob::STATUS_EXPIRED, $fibonacciStatus);
+        self::assertArrayHasKey(StallableJob::STATUS_MAX_STALLED, $fibonacciStatus);
+        self::assertArrayHasKey(StallableJob::STATUS_MAX_ERROR, $fibonacciStatus);
+        self::assertArrayHasKey(StallableJob::STATUS_MAX_RETRIES, $fibonacciStatus);
+        self::assertArrayHasKey(StallableJob::STATUS_EXPIRED, $fibonacciStatus);
 
         return [$job, $status];
     }

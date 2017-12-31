@@ -5,13 +5,13 @@ namespace Dtc\QueueBundle\ORM;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
-use Dtc\QueueBundle\Doctrine\BaseJobManager;
+use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Dtc\QueueBundle\Entity\Job;
 use Dtc\QueueBundle\Model\BaseJob;
-use Dtc\QueueBundle\Model\RetryableJob;
+use Dtc\QueueBundle\Model\StallableJob;
 use Symfony\Component\Process\Exception\LogicException;
 
-class JobManager extends BaseJobManager
+class JobManager extends DoctrineJobManager
 {
     use CommonTrait;
     protected static $saveInsertCalled = null;
@@ -227,11 +227,11 @@ class JobManager extends BaseJobManager
                     BaseJob::STATUS_SUCCESS => 0,
                     BaseJob::STATUS_FAILURE => 0,
                     BaseJob::STATUS_EXCEPTION => 0,
-                    RetryableJob::STATUS_EXPIRED => 0,
-                    RetryableJob::STATUS_MAX_FAILURE => 0,
-                    RetryableJob::STATUS_MAX_EXCEPTION => 0,
-                    RetryableJob::STATUS_MAX_STALLED => 0,
-                    RetryableJob::STATUS_MAX_RETRIES => 0 ];
+                    StallableJob::STATUS_EXPIRED => 0,
+                    StallableJob::STATUS_MAX_FAILURE => 0,
+                    StallableJob::STATUS_MAX_EXCEPTION => 0,
+                    StallableJob::STATUS_MAX_STALLED => 0,
+                    StallableJob::STATUS_MAX_RETRIES => 0 ];
             }
             $result[$method][$item['status']] += intval($item['c']);
         }

@@ -4,12 +4,15 @@ namespace Dtc\QueueBundle\Model;
 
 abstract class BaseRetryableJob extends \Dtc\QueueBundle\Model\Job
 {
-    const STATUS_MAX_FAILURE = 'max_failure';
+    const STATUS_MAX_FAILURES = 'max_failures';
     const STATUS_MAX_RETRIES = 'max_retries';
+    const STATUS_MAX_EXCEPTIONS = 'max_exceptions';
 
-    protected $maxFailure = 0;
-    protected $failureCount = 0;
+    protected $maxFailures = 0;
+    protected $failures = 0;
     protected $maxRetries = 0;
+    protected $maxExceptions = 0;
+    protected $exceptions = 0;
     protected $retries = 0;
     protected $createdAt;
     protected $updatedAt;
@@ -17,34 +20,34 @@ abstract class BaseRetryableJob extends \Dtc\QueueBundle\Model\Job
     /**
      * @return mixed
      */
-    public function getMaxFailure()
+    public function getMaxFailures()
     {
-        return $this->maxFailure;
+        return $this->maxFailures;
     }
 
     /**
      * @param mixed $maxFailure
      */
-    public function setMaxFailure($maxFailure)
+    public function setMaxFailures($maxFailures)
     {
-        $this->maxFailure = $maxFailure;
+        $this->maxFailures = $maxFailures;
         return $this;
     }
 
     /**
      * @return int
      */
-    public function getFailureCount(): int
+    public function getFailures()
     {
-        return $this->failureCount;
+        return $this->failures;
     }
 
     /**
-     * @param int $failureCount
+     * @param int $failures
      */
-    public function setFailureCount($failureCount)
+    public function setFailures($failures)
     {
-        $this->failureCount = $failureCount;
+        $this->failures = $failures;
         return $this;
     }
 
@@ -59,7 +62,7 @@ abstract class BaseRetryableJob extends \Dtc\QueueBundle\Model\Job
     /**
      * @param int $retries
      *
-     * @return RetryableJob
+     * @return BaseRetryableJob
      */
     public function setRetries($retries)
     {
@@ -79,7 +82,7 @@ abstract class BaseRetryableJob extends \Dtc\QueueBundle\Model\Job
     /**
      * @param int|null $maxRetries
      *
-     * @return RetryableJob
+     * @return BaseRetryableJob
      */
     public function setMaxRetries($maxRetries)
     {
@@ -120,5 +123,39 @@ abstract class BaseRetryableJob extends \Dtc\QueueBundle\Model\Job
     public function setUpdatedAt(\DateTime $updatedAt)
     {
         $this->updatedAt = $updatedAt;
+        return $this;
+    }
+    /**
+     * @return mixed
+     */
+    public function getMaxExceptions()
+    {
+        return $this->maxExceptions;
+    }
+
+    /**
+     * @param mixed $maxException
+     */
+    public function setMaxExceptions($maxExceptions)
+    {
+        $this->maxExceptions = $maxExceptions;
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getExceptions()
+    {
+        return $this->exceptions;
+    }
+
+    /**
+     * @param int $exceptions
+     */
+    public function setExceptions($exceptions)
+    {
+        $this->exceptions = $exceptions;
+        return $this;
     }
 }

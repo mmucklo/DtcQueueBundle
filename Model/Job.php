@@ -9,14 +9,10 @@ class Job extends BaseJob
     protected $id;
     protected $message;
     protected $crcHash;
-    protected $locked;
-    protected $lockedAt;
     protected $expiresAt;
     protected $delay;
     protected $startedAt;
-    protected $finishedAt;
     protected $maxDuration;
-    protected $elapsed;
     protected $runId;
 
     public function __call($method, $args)
@@ -53,49 +49,12 @@ class Job extends BaseJob
     }
 
     /**
-     * @return bool|null
-     */
-    public function getLocked()
-    {
-        return $this->locked;
-    }
-
-    /**
-     * @return \DateTime|null
-     */
-    public function getLockedAt()
-    {
-        return $this->lockedAt;
-    }
-
-    /**
      * @return \DateTime|null
      */
     public function getExpiresAt()
     {
         return $this->expiresAt;
     }
-
-    /**
-     * @param bool|null $locked
-     */
-    public function setLocked($locked)
-    {
-        $this->locked = $locked;
-
-        return $this;
-    }
-
-    /**
-     * @param \DateTime|null $lockedAt
-     */
-    public function setLockedAt($lockedAt)
-    {
-        $this->lockedAt = $lockedAt;
-
-        return $this;
-    }
-
     /**
      * @param \DateTime $expiresAt
      */
@@ -146,24 +105,6 @@ class Job extends BaseJob
     public function setStartedAt(\DateTime $startedAt = null)
     {
         $this->startedAt = $startedAt;
-
-        return $this;
-    }
-
-    /**
-     * @return \DateTime|null
-     */
-    public function getFinishedAt()
-    {
-        return $this->finishedAt;
-    }
-
-    /**
-     * @param \DateTime|null $finishedAt
-     */
-    public function setFinishedAt($finishedAt)
-    {
-        $this->finishedAt = $finishedAt;
 
         return $this;
     }
@@ -220,24 +161,6 @@ class Job extends BaseJob
     public function setDelay($delay)
     {
         $this->delay = $delay;
-
-        return $this;
-    }
-
-    /**
-     * @return int
-     */
-    public function getElapsed()
-    {
-        return $this->elapsed;
-    }
-
-    /**
-     * @param int $elapsed
-     */
-    public function setElapsed($elapsed)
-    {
-        $this->elapsed = $elapsed;
 
         return $this;
     }

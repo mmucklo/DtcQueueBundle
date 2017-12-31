@@ -7,17 +7,18 @@ use Doctrine\Common\Persistence\ObjectRepository;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Doctrine\ORM\EntityRepository;
 use Dtc\QueueBundle\Manager\ArchivableJobManager;
+use Dtc\QueueBundle\Manager\StallableJobManager;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\BaseRetryableJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Manager\JobTimingManager;
-use Dtc\QueueBundle\Model\RetryableJob;
+use Dtc\QueueBundle\Model\StallableJob;
 use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Util\Util;
 
-abstract class BaseJobManager extends ArchivableJobManager
+abstract class DoctrineJobManager extends ArchivableJobManager
 {
     /** Number of jobs to prune / reset / gather at a time */
     const FETCH_COUNT = 100;
@@ -31,7 +32,7 @@ abstract class BaseJobManager extends ArchivableJobManager
     protected $objectManager;
 
     /**
-     * BaseJobManager constructor.
+     * DoctrineJobManager constructor.
      *
      * @param RunManager       $runManager
      * @param JobTimingManager $jobTimingManager
@@ -166,7 +167,7 @@ abstract class BaseJobManager extends ArchivableJobManager
             $runningJobs = $repository->findBy($criterion, null, static::FETCH_COUNT, $i);
             if (!empty($runningJobs)) {
                 foreach ($runningJobs as $job) {
-                    /** @var RetryableJob $job */
+                    /** @var StallableJob $job */
                     if (null !== $runId = $job->getRunId()) {
                         $runningJobsById[$runId][] = $job;
                     }
@@ -235,33 +236,18 @@ abstract class BaseJobManager extends ArchivableJobManager
         }
     }
 
-
-
-    protected function runStalledLoop($i, $count, array $stalledJobs, &$countProcessed)
+    protected function runStalledLoop($i, $count, array $stalledJobs)
     {
-        $objectManager = $this->getObjectManager();
-        $newCount = 0;
+        $processedCount = 0;
         for ($j = $i, $max = $i + static::FETCH_COUNT; $j < $max && $j < $count; ++$j) {
-            /* RetryableJob $job */
+            /* StallableJob $job */
             $job = $stalledJobs[$j];
-            $job->setStalledCount($job->getStalledCount() + 1);
-            if ($this->updateMaxStatus($job, RetryableJob::STATUS_MAX_STALLED, $job->getMaxStalled(), $job->getStalledCount()) ||
-                $this->updateMaxStatus($job, RetryableJob::STATUS_MAX_RETRIES, $job->getMaxRetries(), $job->getRetries())) {
-                $objectManager->remove($job);
-                $this->jobTiminigManager->recordTiming(JobTiming::STATUS_FINISHED_STALLED);
-                continue;
-            }
-
-            $job->setRetries($job->getRetries() + 1);
-            $job->setStatus(BaseJob::STATUS_NEW);
-            $job->setLocked(null);
-            $job->setLockedAt(null);
-            $objectManager->persist($job);
-            ++$newCount;
-            ++$countProcessed;
+            $job->setStatus(StallableJob::STATUS_STALLED);
+            $this->saveHistory($job);
+            $processedCount++;
         }
 
-        return $newCount;
+        return $processedCount;
     }
 
     public function resetStalledJobs($workerName = null, $method = null)
@@ -270,12 +256,12 @@ abstract class BaseJobManager extends ArchivableJobManager
 
         $countProcessed = 0;
         for ($i = 0, $count = count($stalledJobs); $i < $count; $i += static::FETCH_COUNT) {
-            $newCount = $this->runStalledLoop($i, $count, $stalledJobs, $countProcessed);
-            $this->flush();
-            for ($j = 0; $j < $newCount; ++$j) {
+            $processedCount = $this->runStalledLoop($i, $count, $stalledJobs);
+            for ($j = 0; $j < $processedCount; ++$j) {
                 $this->jobTiminigManager->recordTiming(JobTiming::STATUS_FINISHED_STALLED);
-                $this->jobTiminigManager->recordTiming(JobTiming::STATUS_INSERT);
             }
+            $countProcessed += $processedCount;
+            $this->flush();
         }
 
         return $countProcessed;
@@ -292,13 +278,10 @@ abstract class BaseJobManager extends ArchivableJobManager
         $countProcessed = 0;
         for ($i = 0, $count = count($stalledJobs); $i < $count; $i += static::FETCH_COUNT) {
             for ($j = $i, $max = $i + static::FETCH_COUNT; $j < $max && $j < $count; ++$j) {
-                /** @var RetryableJob $job */
+                /** @var StallableJob $job */
                 $job = $stalledJobs[$j];
-                $job->setStalledCount($job->getStalledCount() + 1);
-                $job->setStatus(BaseJob::STATUS_FAILURE);
-                $job->setMessage('stalled');
-                $this->updateMaxStatus($job, RetryableJob::STATUS_MAX_STALLED, $job->getMaxStalled(), $job->getStalledCount());
-                $this->saveHistory($job);
+                $job->setStatus(StallableJob::STATUS_STALLED);
+                $this->deleteJob($job);
                 ++$countProcessed;
             }
             $this->flush();
@@ -314,17 +297,18 @@ abstract class BaseJobManager extends ArchivableJobManager
         $objectManager->flush();
     }
 
-    public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
+    protected function stallableSaveHistory(StallableJob $job, $retry)
     {
-        if (parent::saveHistory($job)) {
-            $this->deleteJob($job); // Should cause job to be archived
+        if (!$retry) {
+            $this->deleteJob($job);
         }
+        return $retry;
     }
 
-    protected function prioritySave(\Dtc\QueueBundle\Model\Job $job)
+    protected function stallableSave(StallableJob $job)
     {
         // Generate crc hash for the job
-        $hashValues = array($job->getClassName(), $job->getMethod(), $job->getWorkerName(), $job->getArgs());
+        $hashValues = array(get_class($job), $job->getMethod(), $job->getWorkerName(), $job->getArgs());
         $crcHash = hash('sha256', serialize($hashValues));
         $job->setCrcHash($crcHash);
         $objectManager = $this->getObjectManager();
@@ -399,19 +383,19 @@ abstract class BaseJobManager extends ArchivableJobManager
     abstract public function getJobQueryBuilder($workerName = null, $methodName = null, $prioritize = true);
 
     /**
-     * @param RetryableJob $jobArchive
+     * @param StallableJob $jobArchive
      * @param $className
      * @return integer Number of jobs reset
      */
-    protected function resetArchiveJob(RetryableJob $jobArchive)
+    protected function resetArchiveJob(StallableJob $jobArchive)
     {
         $objectManager = $this->getObjectManager();
-        if ($this->updateMaxStatus($jobArchive, RetryableJob::STATUS_MAX_RETRIES, $jobArchive->getMaxRetries(), $jobArchive->getRetries())) {
+        if ($this->updateMaxStatus($jobArchive, StallableJob::STATUS_MAX_RETRIES, $jobArchive->getMaxRetries(), $jobArchive->getRetries())) {
             $objectManager->persist($jobArchive);
             return 0;
         }
 
-        /** @var RetryableJob $job */
+        /** @var StallableJob $job */
         $className = $this->getJobArchiveClass();
         $newJob = new $className();
         Util::copy($jobArchive, $newJob);
@@ -432,7 +416,7 @@ abstract class BaseJobManager extends ArchivableJobManager
         $job->setRetries($job->getRetries() + 1);
         $this->getObjectManager()->persist($job);
         $this->flush();
-        return 1;
+        return true;
     }
 
     abstract public function getWorkersAndMethods();

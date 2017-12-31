@@ -3,11 +3,13 @@
 namespace Dtc\QueueBundle\Beanstalkd;
 
 use Dtc\QueueBundle\Manager\AbstractJobManager;
+use Dtc\QueueBundle\Manager\BaseRetryableJobManager;
+use Dtc\QueueBundle\Model\BaseRetryableJob;
 use Dtc\QueueBundle\Model\Job as BaseJob;
 use Dtc\QueueBundle\Exception\UnsupportedException;
 use Pheanstalk\Pheanstalk;
 
-class JobManager extends AbstractJobManager
+class JobManager extends BaseRetryableJobManager
 {
     const DEFAULT_RESERVE_TIMEOUT = 5; // seconds
 
@@ -33,8 +35,15 @@ class JobManager extends AbstractJobManager
         $this->reserveTimeout = $timeout;
     }
 
-    public function save(\Dtc\QueueBundle\Model\Job $job)
+    public function retryableSave(BaseRetryableJob $job)
     {
+        if (!$job instanceof Job) {
+            throw new \InvalidArgumentException("\$job must be of type: " . Job::class);
+        }
+        return $this->putJob($job);
+    }
+
+    protected function putJob(Job $job) {
         /** @var Job $job */
         $message = $job->toMessage();
         $arguments = [$message, $job->getPriority(), $job->getDelay(), $job->getTtr()];
@@ -50,6 +59,20 @@ class JobManager extends AbstractJobManager
         $job->setBeanJob($this->getBeanJob($jobId, $message));
 
         return $job;
+    }
+
+    protected function resetJob(BaseRetryableJob $job)
+    {
+        if (!$job instanceof Job) {
+            throw new \InvalidArgumentException("\$job must be instance of " . Job::class);
+        }
+        $job->setStatus(BaseJob::STATUS_NEW);
+        $job->setMessage(null);
+        $job->setStartedAt(null);
+        $job->setRetries($job->getRetries() + 1);
+        $this->putJob($job);
+
+        return true;
     }
 
     public function getBeanJob($jobId, $data)
@@ -126,9 +149,9 @@ class JobManager extends AbstractJobManager
     }
 
     // Save History get called upon completion of the job
-    public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
+    public function retryableSaveHistory(BaseRetryableJob $job, $retry)
     {
-        if (BaseJob::STATUS_SUCCESS === $job->getStatus()) {
+        if (!$retry) {
             $this->beanstalkd
                 ->delete($job);
         }

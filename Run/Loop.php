@@ -2,7 +2,7 @@
 
 namespace Dtc\QueueBundle\Run;
 
-use Dtc\QueueBundle\Doctrine\BaseJobManager;
+use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobManagerInterface;
@@ -89,7 +89,7 @@ class Loop
         $run = $this->runManager->runStart($start, null, null, $this->processTimeout);
         $this->lastRun = $run;
 
-        if (!$this->jobManager instanceof BaseJobManager) {
+        if (!$this->jobManager instanceof DoctrineJobManager) {
             throw new ClassNotSubclassException("Can't get job by id when not using a database/datastore backed queue (such as mongodb or an RDBMS)");
         }
 

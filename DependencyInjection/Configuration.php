@@ -2,8 +2,7 @@
 
 namespace Dtc\QueueBundle\DependencyInjection;
 
-use Dtc\QueueBundle\Model\PriorityJobManager;
-use Gedmo\Mapping\Annotation\Tree;
+use Dtc\QueueBundle\Manager\PriorityJobManager;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -66,16 +65,16 @@ class Configuration implements ConfigurationInterface
                 ->arrayNode('max')
                     ->addDefaultsIfNotSet()
                     ->children()
-                        ->integerNode('retry')
+                        ->integerNode('retries')
                             ->defaultValue(3)
                         ->end()
-                        ->integerNode('failure')
+                        ->integerNode('failures')
                             ->defaultValue(2)
                         ->end()
-                        ->integerNode('exception')
+                        ->integerNode('exceptions')
                             ->defaultValue(1)
                         ->end()
-                        ->integerNode('stalled')
+                        ->integerNode('stalls')
                             ->defaultValue(2)
                         ->end()
                     ->end()
@@ -192,6 +191,8 @@ class Configuration implements ConfigurationInterface
                 ->booleanNode('iterable_multibulk')->defaultFalse()->end()
                 ->booleanNode('throw_errors')->defaultTrue()->end()
             ->end();
+
+        return $rootNode;
     }
 
     protected function addRabbitMqOptions()

@@ -7,16 +7,25 @@ use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\BaseRetryableJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
-use Dtc\QueueBundle\Model\RetryableJob;
+use Dtc\QueueBundle\Model\StallableJob;
 
 abstract class BaseRetryableJobManager extends AbstractJobManager {
 
-    protected $defaultMaxRetry;
-    protected $defaultMaxFailure;
+    protected $defaultMaxRetries;
+    protected $defaultMaxFailures;
+    protected $defaultMaxExceptions;
 
     protected $autoRetryOnFailure;
+    protected $autoRetryOnException;
 
-    abstract public function retryableSave(BaseRetryableJob $job);
+    abstract protected function retryableSave(BaseRetryableJob $job);
+
+    /**
+     * @param BaseRetryableJob $job
+     * @param $retry bool
+     * @return
+     */
+    abstract protected function retryableSaveHistory(BaseRetryableJob $job, $retry);
 
     public function save(Job $job) {
         if (!$job instanceof BaseRetryableJob) {
@@ -26,31 +35,45 @@ abstract class BaseRetryableJobManager extends AbstractJobManager {
         if (!$job->getId()) {
             $this->setBaseRetryableJobDefaults($job);
         }
+        $this->recordTiming($job);
 
         return $this->retryableSave($job);
     }
 
     /**
+     * @return bool true if retry
      * @param bool $retry true if the job was retried, false if not
      */
-    abstract protected function retryableSaveHistory($retry);
 
     public function saveHistory(Job $job) {
         if (!$job instanceof BaseRetryableJob) {
             throw new \InvalidArgumentException("job not instance of " . BaseRetryableJob::class);
         }
 
-        $retried = false;
-        if ($job->getStatus() === BaseJob::STATUS_FAILURE) {
-            $retried = $this->updateJobFailure($job);
+        switch ($job->getStatus()) {
+            case StallableJob::STATUS_FAILURE:
+                return $this->retryableSaveHistory($job, $this->updateJobFailure($job));
+            case BaseJob::STATUS_EXCEPTION:
+                return $this->retryableSaveHistory($job, $this->updateJobException($job));
         }
 
-        $this->retryableSaveHistory($retried);
+        return $this->retryableSaveHistory($job, false);
+    }
+
+    protected function updateJobException(BaseRetryableJob $job) {
+        $job->setExceptions($job->getExceptions() + 1);
+        if (!$this->updateMaxStatus($job, StallableJob::STATUS_MAX_EXCEPTIONS, $job->getMaxExceptions(), $job->getExceptions()) &&
+            !$this->updateMaxStatus($job, BaseRetryableJob::STATUS_MAX_RETRIES, $job->getMaxRetries(), $job->getRetries())) {
+            if ($this->autoRetryOnException) {
+                return $this->resetRetryableJob($job);
+            }
+        }
+        return false;
     }
 
     protected function updateJobFailure(BaseRetryableJob $job) {
-        $job->setFailureCount($job->getFailureCount() + 1);
-        if (!$this->updateMaxStatus($job, BaseRetryableJob::STATUS_MAX_FAILURE, $job->getMaxFailure(), $job->getFailureCount()) &&
+        $job->setFailures($job->getFailures() + 1);
+        if (!$this->updateMaxStatus($job, BaseRetryableJob::STATUS_MAX_FAILURES, $job->getMaxFailures(), $job->getFailures()) &&
             !$this->updateMaxStatus($job, BaseRetryableJob::STATUS_MAX_RETRIES, $job->getMaxRetries(), $job->getRetries())) {
             if ($this->autoRetryOnFailure) {
                 return $this->resetRetryableJob($job);
@@ -85,52 +108,56 @@ abstract class BaseRetryableJobManager extends AbstractJobManager {
         return false;
     }
 
+    /**
+     * @param BaseRetryableJob $baseRetryableJob
+     * @return bool true if the job was successfully "reset", i.e. re-queued
+     */
     abstract protected function resetJob(BaseRetryableJob $baseRetryableJob);
 
     protected function setBaseRetryableJobDefaults(BaseRetryableJob $job) {
-        if ($job->getMaxRetries() === null) {
-            if (isset($this->retryableDefaults['retries_max'])) {
-                $job->setMaxRetries($this->retryableDefaults['retries_max']);
-            }
+        if ($job->getMaxExceptions() === null) {
+            $job->setMaxExceptions($this->defaultMaxExceptions);
         }
 
-        if ($job->getMaxFailure() === null) {
-            if (isset($this->retryableDefaults['failure_max'])) {
-                $job->setMaxFailure($this->retryableDefaults['failure_max']);
-            }
+        if ($job->getMaxRetries() === null) {
+            $job->setMaxRetries($this->defaultMaxRetries);
+        }
+
+        if ($job->getMaxFailures() === null) {
+            $job->setMaxFailures($this->defaultMaxFailures);
         }
     }
 
     /**
      * @return int|null
      */
-    public function getDefaultMaxRetry()
+    public function getDefaultMaxRetries()
     {
-        return $this->defaultMaxRetry;
+        return $this->defaultMaxRetries;
     }
 
     /**
      * @param int|null $defaultMaxRetry
      */
-    public function setDefaultMaxRetry($defaultMaxRetry)
+    public function setDefaultMaxRetries($defaultMaxRetries)
     {
-        $this->defaultMaxRetry = $defaultMaxRetry;
+        $this->defaultMaxRetries = $defaultMaxRetries;
     }
 
     /**
      * @return int|null
      */
-    public function getDefaultMaxFailure()
+    public function getDefaultMaxFailures()
     {
-        return $this->defaultMaxFailure;
+        return $this->defaultMaxFailures;
     }
 
     /**
      * @param int|null $defaultMaxFailure
      */
-    public function setDefaultMaxFailure($defaultMaxFailure)
+    public function setDefaultMaxFailures($defaultMaxFailures)
     {
-        $this->defaultMaxFailure = $defaultMaxFailure;
+        $this->defaultMaxFailure = $defaultMaxFailures;
     }
 
     /**
@@ -147,5 +174,47 @@ abstract class BaseRetryableJobManager extends AbstractJobManager {
     public function setAutoRetryOnFailure($autoRetryOnFailure)
     {
         $this->autoRetryOnFailure = $autoRetryOnFailure;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getAutoRetryOnException()
+    {
+        return $this->autoRetryOnException;
+    }
+
+    /**
+     * @param bool $autoRetryOnException
+     */
+    public function setAutoRetryOnException($autoRetryOnException)
+    {
+        $this->autoRetryOnException = $autoRetryOnException;
+    }
+
+    /**
+     * @return int|null
+     */
+    public function getDefaultMaxExceptions()
+    {
+        return $this->defaultMaxExceptions;
+    }
+
+    /**
+     * @param int|null $defaultMaxException
+     */
+    public function setDefaultMaxExceptions($defaultMaxExceptions)
+    {
+        $this->defaultMaxExceptions = $defaultMaxExceptions;
+    }
+
+    protected function recordTiming(Job $job)
+    {
+        $status = JobTiming::STATUS_INSERT;
+        if ($job->getWhenAt() && $job->getWhenAt() > (new \DateTime())) {
+            $status = JobTiming::STATUS_INSERT_DELAYED;
+        }
+
+        $this->getJobTimingManager()->recordTiming($status);
     }
 }

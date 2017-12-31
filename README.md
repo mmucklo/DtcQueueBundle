@@ -231,7 +231,7 @@ dtc_queue:
     run_manager: orm # other possible option is "odm" (i.e. mongodb)
     #
     # (optionally define your own run manager with id: dtc_queue.run_manager.{some_name} and put {some_name} as the run_manager
-    #  although it's required that you at least inherit from Dtc\QueueBundle\Doctrine\BaseJobManager)    
+    DoctrineJobManager
 ```
 
 MongoDB DocumentManager

@@ -7,7 +7,7 @@ use Dtc\QueueBundle\Model\BaseRetryableJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
 
-abstract class PriorityJobManager extends RetryableJobManager
+abstract class PriorityJobManager extends BaseRetryableJobManager
 {
     const PRIORITY_ASC = 'asc';
     const PRIORITY_DESC = 'desc';
@@ -101,24 +101,12 @@ abstract class PriorityJobManager extends RetryableJobManager
 
     abstract protected function prioritySave(Job $job);
 
-    protected function recordTiming(Job $job)
-    {
-        $status = JobTiming::STATUS_INSERT;
-        if ($job->getWhenAt() && $job->getWhenAt() > (new \DateTime())) {
-            $status = JobTiming::STATUS_INSERT_DELAYED;
-        }
-
-        $this->jobTiminigManager->recordTiming($status);
-    }
-
     /**
      * @param Job $job
      *
-     * @return mixed
-     *
      * @throws PriorityException
      */
-    public function retryableSave(BaseRetryableJob $job)
+    protected function retryableSave(BaseRetryableJob $job)
     {
         $this->validatePriority($job->getPriority());
         if (!$job->getId()) { // An unsaved job needs it's priority potentially adjusted
@@ -126,7 +114,6 @@ abstract class PriorityJobManager extends RetryableJobManager
         }
 
         $result = $this->prioritySave($job);
-        $this->recordTiming($job);
 
         return $result;
     }

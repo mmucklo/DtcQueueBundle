@@ -4,8 +4,9 @@ namespace Dtc\QueueBundle\Document;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 use Dtc\GridBundle\Annotation as Grid;
+use Dtc\QueueBundle\Doctrine\DoctrineJob;
 
-abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
+abstract class BaseJob extends DoctrineJob
 {
     /**
      * @Grid\Column(order=1,sortable=true,searchable=true)
@@ -131,24 +132,38 @@ abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
     protected $runId;
 
     /**
+     * @ODM\AlsoLoad(name="stalledCount")
      * @ODM\Field(type="int")
      */
-    protected $stalledCount = 0;
+    protected $stalls = 0;
+
+    /**
+     * @ODM\AlsoLoad(name="maxStalled")
+     * @ODM\Field(type="int", nullable=true)
+     */
+    protected $maxStalls;
+
+    /**
+     * @ODM\Field(type="int")
+     */
+    protected $failures = 0;
 
     /**
      * @ODM\Field(type="int", nullable=true)
      */
-    protected $maxStalled;
+    protected $maxFailures;
 
     /**
+     * @ODM\AlsoLoad(name="errorCount")
      * @ODM\Field(type="int")
      */
-    protected $errorCount = 0;
+    protected $exceptions = 0;
 
     /**
+     * @ODM\AlsoLoad(name="maxError")
      * @ODM\Field(type="int", nullable=true)
      */
-    protected $maxError;
+    protected $maxExceptions;
 
     /**
      * @ODM\Field(type="int")

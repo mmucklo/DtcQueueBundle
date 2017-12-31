@@ -8,7 +8,8 @@ abstract class Worker
 {
     const RESULT_SUCCESS = 0;
     const RESULT_FAILURE = 1;
-    
+
+    /** @var JobManagerInterface */
     protected $jobManager;
     protected $currentJob;
 

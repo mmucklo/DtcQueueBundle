@@ -3,13 +3,13 @@
 namespace Dtc\QueueBundle\ODM;
 
 use Doctrine\MongoDB\Query\Builder;
-use Dtc\QueueBundle\Doctrine\BaseJobManager;
+use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Dtc\QueueBundle\Document\Job;
 use Dtc\QueueBundle\Model\BaseJob;
-use Dtc\QueueBundle\Model\RetryableJob;
+use Dtc\QueueBundle\Model\StallableJob;
 
-class JobManager extends BaseJobManager
+class JobManager extends DoctrineJobManager
 {
     use CommonTrait;
     const REDUCE_FUNCTION = 'function(k, vals) {
@@ -172,11 +172,11 @@ class JobManager extends BaseJobManager
             BaseJob::STATUS_SUCCESS => 0,
             BaseJob::STATUS_FAILURE => 0,
             BaseJob::STATUS_EXCEPTION => 0,
-            RetryableJob::STATUS_EXPIRED => 0,
-            RetryableJob::STATUS_MAX_FAILURE => 0,
-            RetryableJob::STATUS_MAX_EXCEPTION => 0,
-            RetryableJob::STATUS_MAX_RETRIES => 0,
-            RetryableJob::STATUS_MAX_STALLED => 0,
+            StallableJob::STATUS_EXPIRED => 0,
+            StallableJob::STATUS_MAX_FAILURE => 0,
+            StallableJob::STATUS_MAX_EXCEPTION => 0,
+            StallableJob::STATUS_MAX_RETRIES => 0,
+            StallableJob::STATUS_MAX_STALLED => 0,
         );
 
         $status = [];

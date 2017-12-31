@@ -4,7 +4,7 @@ namespace Dtc\QueueBundle\Controller;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ORM\EntityManager;
-use Dtc\QueueBundle\Doctrine\BaseJobTimingManager;
+use Dtc\QueueBundle\Doctrine\DoctrineJobTimingManager;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\ODM\JobTimingManager;
@@ -62,7 +62,7 @@ class TrendsController extends Controller
         $params = [];
         $this->validateJobTimingManager();
 
-        /** @var BaseJobTimingManager $jobTimingManager */
+        /** @var DoctrineJobTimingManager $jobTimingManager */
         $jobTimingManager = $this->get('dtc_queue.job_timing_manager');
         if ($jobTimingManager instanceof JobTimingManager) {
             $timings = $this->getJobTimingsOdm($type, $endDate, $beginDate);
