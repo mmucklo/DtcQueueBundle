@@ -28,7 +28,8 @@ interface JobManagerInterface
     public function save(Job $job);
 
     /**
-     * Called after a job has finished - may delete the job / reset the job and/or do other related cleanup
+     * Called after a job has finished - may delete the job / reset the job and/or do other related cleanup.
+     *
      * @param Job $job
      */
     public function saveHistory(Job $job);
@@ -43,7 +44,7 @@ interface JobManagerInterface
     public function getJobTimingManager();
 
     public function getJobClass();
-        
+
     /**
      * Removes archived jobs older than $olderThan.
      *

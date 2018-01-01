@@ -3,7 +3,7 @@
 namespace Dtc\QueueBundle\Tests\Run;
 
 use Dtc\QueueBundle\Beanstalkd\Job;
-use Dtc\QueueBundle\Model\WorkerManager;
+use Dtc\QueueBundle\Manager\WorkerManager;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\Run\Loop;
 use Dtc\QueueBundle\Tests\Beanstalkd\JobManagerTest;
@@ -20,12 +20,11 @@ class LoopTest extends TestCase
         $eventDispatcher = new EventDispatcher();
         $workerManager = new WorkerManager($jobManager, $eventDispatcher);
         $worker = new FibonacciWorker();
-        $worker->setJobClass(Job::class);
         $workerManager->addWorker($worker);
         $worker->setJobManager($jobManager);
 
         $runClass = \Dtc\QueueBundle\Document\Run::class;
-        $runManager = new \Dtc\QueueBundle\Model\RunManager($runClass);
+        $runManager = new \Dtc\QueueBundle\Manager\RunManager($runClass);
         $loop = new Loop($workerManager, $jobManager, $runManager);
         $job = $worker->later()->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
@@ -82,7 +81,6 @@ class LoopTest extends TestCase
         $eventDispatcher = new EventDispatcher();
         $workerManager = new WorkerManager($jobManager, $eventDispatcher);
         $worker = new FibonacciWorker();
-        $worker->setJobClass(\Dtc\QueueBundle\Document\Job::class);
         $workerManager->addWorker($worker);
         $worker->setJobManager($jobManager);
 

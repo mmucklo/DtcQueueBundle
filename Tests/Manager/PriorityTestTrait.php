@@ -1,8 +1,8 @@
 <?php
 
-namespace Dtc\QueueBundle\Tests\Model;
+namespace Dtc\QueueBundle\Tests\Manager;
 
-use Dtc\QueueBundle\Model\PriorityJobManager;
+use Dtc\QueueBundle\Manager\PriorityJobManager;
 
 trait PriorityTestTrait
 {

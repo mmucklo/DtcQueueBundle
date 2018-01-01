@@ -2,14 +2,13 @@
 
 namespace Dtc\QueueBundle\Beanstalkd;
 
-use Dtc\QueueBundle\Manager\AbstractJobManager;
-use Dtc\QueueBundle\Manager\BaseRetryableJobManager;
-use Dtc\QueueBundle\Model\BaseRetryableJob;
+use Dtc\QueueBundle\Manager\RetryableJobManager;
+use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\Job as BaseJob;
 use Dtc\QueueBundle\Exception\UnsupportedException;
 use Pheanstalk\Pheanstalk;
 
-class JobManager extends BaseRetryableJobManager
+class JobManager extends RetryableJobManager
 {
     const DEFAULT_RESERVE_TIMEOUT = 5; // seconds
 
@@ -35,15 +34,17 @@ class JobManager extends BaseRetryableJobManager
         $this->reserveTimeout = $timeout;
     }
 
-    public function retryableSave(BaseRetryableJob $job)
+    public function retryableSave(RetryableJob $job)
     {
         if (!$job instanceof Job) {
-            throw new \InvalidArgumentException("\$job must be of type: " . Job::class);
+            throw new \InvalidArgumentException('$job must be of type: '.Job::class);
         }
+
         return $this->putJob($job);
     }
 
-    protected function putJob(Job $job) {
+    protected function putJob(Job $job)
+    {
         /** @var Job $job */
         $message = $job->toMessage();
         $arguments = [$message, $job->getPriority(), $job->getDelay(), $job->getTtr()];
@@ -61,15 +62,16 @@ class JobManager extends BaseRetryableJobManager
         return $job;
     }
 
-    protected function resetJob(BaseRetryableJob $job)
+    protected function resetJob(RetryableJob $job)
     {
         if (!$job instanceof Job) {
-            throw new \InvalidArgumentException("\$job must be instance of " . Job::class);
+            throw new \InvalidArgumentException('$job must be instance of '.Job::class);
         }
         $job->setStatus(BaseJob::STATUS_NEW);
         $job->setMessage(null);
         $job->setStartedAt(null);
         $job->setRetries($job->getRetries() + 1);
+        $job->setUpdatedAt(new \DateTime());
         $this->putJob($job);
 
         return true;
@@ -149,7 +151,7 @@ class JobManager extends BaseRetryableJobManager
     }
 
     // Save History get called upon completion of the job
-    public function retryableSaveHistory(BaseRetryableJob $job, $retry)
+    public function retryableSaveHistory(RetryableJob $job, $retry)
     {
         if (!$retry) {
             $this->beanstalkd

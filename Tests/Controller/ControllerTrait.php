@@ -8,7 +8,7 @@ use Dtc\GridBundle\Grid\Source\DocumentGridSource;
 use Dtc\GridBundle\Grid\Source\EntityGridSource;
 use Dtc\GridBundle\Manager\GridSourceManager;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
-use Dtc\QueueBundle\Model\WorkerManager;
+use Dtc\QueueBundle\Manager\WorkerManager;
 use Dtc\QueueBundle\ORM\LiveJobsGridSource;
 use Dtc\QueueBundle\Tests\ORM\JobManagerTest;
 use Symfony\Bundle\TwigBundle\TwigEngine;

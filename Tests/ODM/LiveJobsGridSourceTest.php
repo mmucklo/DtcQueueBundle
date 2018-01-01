@@ -3,7 +3,7 @@
 namespace Dtc\QueueBundle\Tests\ODM;
 
 use Dtc\QueueBundle\ODM\LiveJobsGridSource;
-use Dtc\QueueBundle\Tests\Doctrine\BaseJobManagerTest;
+use Dtc\QueueBundle\Tests\Doctrine\DoctrineJobManagerTest;
 use Dtc\QueueBundle\Tests\Doctrine\BaseLiveJobGridSourceTest;
 
 /**
@@ -13,7 +13,7 @@ class LiveJobsGridSourceTest extends BaseLiveJobGridSourceTest
 {
     protected function getLiveGridSource()
     {
-        $jobManager = BaseJobManagerTest::$jobManager;
+        $jobManager = DoctrineJobManagerTest::$jobManager;
         $liveJobsGridSource = new LiveJobsGridSource($jobManager);
 
         return $liveJobsGridSource;

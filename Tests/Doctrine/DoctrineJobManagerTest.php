@@ -8,10 +8,12 @@ use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Dtc\QueueBundle\Doctrine\DtcQueueListener;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
-use Dtc\QueueBundle\Tests\Model\PriorityTestTrait;
+use Dtc\QueueBundle\Model\RetryableJob;
+use Dtc\QueueBundle\Tests\Manager\AutoRetryTrait;
+use Dtc\QueueBundle\Tests\Manager\PriorityTestTrait;
 use Dtc\QueueBundle\Model\StallableJob;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
-use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest as BaseBaseJobManagerTest;
+use Dtc\QueueBundle\Tests\Manager\BaseJobManagerTest;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\Tests\ORM\JobManagerTest;
 use Symfony\Component\DependencyInjection\Container;
@@ -22,9 +24,10 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
  *
  * This test requires local mongodb running
  */
-abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
+abstract class DoctrineJobManagerTest extends BaseJobManagerTest
 {
     use PriorityTestTrait;
+    use AutoRetryTrait;
 
     protected static $dtcQueueListener;
 
@@ -69,7 +72,6 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         self::$worker = new FibonacciWorker();
 
-        self::$worker->setJobClass($jobManager->getRepository()->getClassName());
         parent::setUpBeforeClass();
     }
 
@@ -329,18 +331,18 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
     abstract protected function runCountQuery($class);
 
-    public function testResetErroneousJobs()
+    public function testResetExceptionJobs()
     {
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
 
-        $id = $this->createErroredJob();
+        $id = $this->createExceptionJob();
         $archiveObjectName = $jobManager->getJobArchiveClass();
         $objectManager = $jobManager->getObjectManager();
         $archiveRepository = $objectManager->getRepository($archiveObjectName);
         $result = $archiveRepository->find($id);
         self::assertNotNull($result);
-        self::assertEquals(BaseJob::STATUS_ERROR, $result->getStatus());
+        self::assertEquals(BaseJob::STATUS_EXCEPTION, $result->getStatus());
         if ($objectManager instanceof EntityManager) {
             JobManagerTest::createObjectManager();
             $jobManager = new self::$jobManagerClass(self::$runManager, self::$jobTimingManager, self::$objectManager, self::$objectName, self::$archiveObjectName);
@@ -348,7 +350,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
             $objectManager = $jobManager->getObjectManager();
         }
 
-        $count = $jobManager->resetErroneousJobs();
+        $count = $jobManager->resetExceptionJobs();
 
         self::assertEquals(1, $count);
         $repository = $jobManager->getRepository();
@@ -365,7 +367,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $objectManager->remove($job);
         $objectManager->flush();
 
-        $id = $this->createErroredJob();
+        $id = $this->createExceptionJob();
         $archiveObjectName = $jobManager->getJobArchiveClass();
         $objectManager = $jobManager->getObjectManager();
         $archiveRepository = $objectManager->getRepository($archiveObjectName);
@@ -374,7 +376,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $result->setRetries(10);
         $objectManager->persist($result);
         $objectManager->flush();
-        $count = $jobManager->resetErroneousJobs();
+        $count = $jobManager->resetExceptionJobs();
         self::assertEquals(0, $count);
         $job = $repository->find($id);
         self::assertNull($job);
@@ -384,7 +386,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $objectManager->flush();
     }
 
-    protected function createErroredJob()
+    protected function createExceptionJob()
     {
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
@@ -404,7 +406,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertNotNull($result);
         self::assertEquals($id, $result->getId());
 
-        $result->setStatus(BaseJob::STATUS_ERROR);
+        $result->setStatus(BaseJob::STATUS_EXCEPTION);
         $result->setLocked(true);
         $result->setLockedAt(new \DateTime());
         $result->setFinishedAt(new \DateTime());
@@ -497,7 +499,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertNull($job->getElapsed());
         self::assertNull($job->getMessage());
         self::assertNull($job->getLocked());
-        self::assertEquals(1, $job->getStalledCount());
+        self::assertEquals(1, $job->getStalls());
 
         $objectManager->remove($job);
         $objectManager->flush();
@@ -531,7 +533,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertNull($job->getElapsed());
         self::assertNull($job->getMessage());
         self::assertNull($job->getLocked());
-        self::assertEquals(1, $job->getStalledCount());
+        self::assertEquals(1, $job->getStalls());
 
         $objectManager->remove($job);
         $objectManager->flush();
@@ -566,8 +568,8 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $id = $this->createStalledJob(true, false);
         $job = $jobManager->getRepository()->find($id);
-        $job->setMaxStalled(10);
-        $job->setStalledCount(10);
+        $job->setMaxStalls(10);
+        $job->setStalls(10);
         $objectManager->persist($job);
         $objectManager->flush();
 
@@ -581,7 +583,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $objectManager->flush();
     }
 
-    public function testPruneErroneousJobs()
+    public function testpruneExceptionJobs()
     {
         $job = $this->getJob();
         $id = $job->getId();
@@ -598,7 +600,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertNotNull($result);
         self::assertEquals($id, $result->getId());
 
-        $result->setStatus(BaseJob::STATUS_ERROR);
+        $result->setStatus(BaseJob::STATUS_EXCEPTION);
         $result->setLocked(true);
         $result->setLockedAt(new \DateTime());
         $result->setFinishedAt(new \DateTime());
@@ -607,15 +609,15 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $objectManager->persist($result);
         $objectManager->flush();
 
-        $count = $jobManager->pruneErroneousJobs('asdf');
+        $count = $jobManager->pruneExceptionJobs('asdf');
         self::assertEquals(0, $count);
-        $count = $jobManager->pruneErroneousJobs(null, 'asdf');
+        $count = $jobManager->pruneExceptionJobs(null, 'asdf');
         self::assertEquals(0, $count);
-        $count = $jobManager->pruneErroneousJobs('fibonacci', 'asdf');
+        $count = $jobManager->pruneExceptionJobs('fibonacci', 'asdf');
         self::assertEquals(0, $count);
-        $count = $jobManager->pruneErroneousJobs('fibonacci', 'asdf');
+        $count = $jobManager->pruneExceptionJobs('fibonacci', 'asdf');
         self::assertEquals(0, $count);
-        $count = $jobManager->pruneErroneousJobs('fibonacci', 'fibonacci');
+        $count = $jobManager->pruneExceptionJobs('fibonacci', 'fibonacci');
         self::assertEquals(1, $count);
         $repository = $jobManager->getRepository();
         $job = $repository->find($id);
@@ -639,7 +641,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertNotNull($result);
         self::assertEquals($id, $result->getId());
 
-        $result->setStatus(BaseJob::STATUS_ERROR);
+        $result->setStatus(BaseJob::STATUS_EXCEPTION);
         $result->setLocked(true);
         $result->setLockedAt(new \DateTime());
         $result->setFinishedAt(new \DateTime());
@@ -663,7 +665,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertNotNull($result);
         self::assertEquals($id, $result->getId());
 
-        $result->setStatus(BaseJob::STATUS_ERROR);
+        $result->setStatus(BaseJob::STATUS_EXCEPTION);
         $result->setLocked(true);
         $result->setLockedAt(new \DateTime());
         $result->setFinishedAt(new \DateTime());
@@ -671,7 +673,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $result->setMessage('soomething');
         $objectManager->persist($result);
         $objectManager->flush();
-        $count = $jobManager->pruneErroneousJobs();
+        $count = $jobManager->pruneExceptionJobs();
         self::assertEquals(2, $count);
     }
 
@@ -738,8 +740,8 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $archivedJob = $jobManager->getObjectManager()->getRepository($jobManager->getJobArchiveClass())->find($id);
 
         self::assertNotNull($archivedJob);
-        self::assertEquals(BaseJob::STATUS_ERROR, $archivedJob->getStatus());
-        self::assertEquals(1, $archivedJob->getStalledCount());
+        self::assertEquals(StallableJob::STATUS_STALLED, $archivedJob->getStatus());
+        self::assertEquals(1, $archivedJob->getStalls());
         $objectManager->remove($archivedJob);
         $objectManager->flush();
 
@@ -1112,13 +1114,14 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $fibonacciStatus = $status['fibonacci->fibonacci()'];
 
         self::assertArrayHasKey(BaseJob::STATUS_NEW, $fibonacciStatus);
-        self::assertArrayHasKey(BaseJob::STATUS_ERROR, $fibonacciStatus);
+        self::assertArrayHasKey(BaseJob::STATUS_EXCEPTION, $fibonacciStatus);
         self::assertArrayHasKey(BaseJob::STATUS_RUNNING, $fibonacciStatus);
         self::assertArrayHasKey(BaseJob::STATUS_SUCCESS, $fibonacciStatus);
-        self::assertArrayHasKey(StallableJob::STATUS_MAX_STALLED, $fibonacciStatus);
-        self::assertArrayHasKey(StallableJob::STATUS_MAX_ERROR, $fibonacciStatus);
-        self::assertArrayHasKey(StallableJob::STATUS_MAX_RETRIES, $fibonacciStatus);
-        self::assertArrayHasKey(StallableJob::STATUS_EXPIRED, $fibonacciStatus);
+        self::assertArrayHasKey(Job::STATUS_EXPIRED, $fibonacciStatus);
+        self::assertArrayHasKey(StallableJob::STATUS_MAX_STALLS, $fibonacciStatus);
+        self::assertArrayHasKey(RetryableJob::STATUS_MAX_EXCEPTIONS, $fibonacciStatus);
+        self::assertArrayHasKey(RetryableJob::STATUS_MAX_FAILURES, $fibonacciStatus);
+        self::assertArrayHasKey(RetryableJob::STATUS_MAX_RETRIES, $fibonacciStatus);
 
         return [$job, $status];
     }

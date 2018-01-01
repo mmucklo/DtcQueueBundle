@@ -5,10 +5,10 @@ namespace Dtc\QueueBundle\Run;
 use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
-use Dtc\QueueBundle\Model\JobManagerInterface;
+use Dtc\QueueBundle\Manager\JobManagerInterface;
 use Dtc\QueueBundle\Model\Run;
-use Dtc\QueueBundle\Model\RunManager;
-use Dtc\QueueBundle\Model\WorkerManager;
+use Dtc\QueueBundle\Manager\RunManager;
+use Dtc\QueueBundle\Manager\WorkerManager;
 use Dtc\QueueBundle\Util\Util;
 use Dtc\QueueBundle\Exception\ClassNotSubclassException;
 use Psr\Log\LoggerInterface;
@@ -311,8 +311,8 @@ class Loop
      */
     protected function reportJob(Job $job)
     {
-        if (BaseJob::STATUS_ERROR == $job->getStatus()) {
-            $message = "Error with job id: {$job->getId()}\n".$job->getMessage();
+        if (BaseJob::STATUS_EXCEPTION == $job->getStatus()) {
+            $message = "Exception with job id: {$job->getId()}\n".$job->getMessage();
             $this->log('error', $message);
         }
 

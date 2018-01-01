@@ -10,14 +10,16 @@ abstract class Worker
     const RESULT_FAILURE = 1;
 
     /** @var JobManagerInterface */
-    protected $jobManager;
-    protected $currentJob;
+    private $jobManager;
+    private $currentJob;
 
-    public function setCurrentJob(BaseJob $job) {
+    public function setCurrentJob(BaseJob $job)
+    {
         $this->currentJob = $job;
     }
 
-    public function getCurrentJob() {
+    public function getCurrentJob()
+    {
         return $this->currentJob;
     }
 
@@ -49,6 +51,7 @@ abstract class Worker
         }
         $dateTime = new \DateTime("@$time");
         $jobClass = $this->jobManager->getJobClass();
+
         return new $jobClass($this, $batch, $priority, $dateTime);
     }
 

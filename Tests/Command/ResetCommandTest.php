@@ -11,7 +11,7 @@ class ResetCommandTest extends TestCase
 
     public function testResetCommand()
     {
-        $this->runResetCommand([], 'resetErroneousJobs');
+        $this->runResetCommand([], 'resetExceptionJobs');
         $this->runResetCommand([], 'resetStalledJobs');
     }
 

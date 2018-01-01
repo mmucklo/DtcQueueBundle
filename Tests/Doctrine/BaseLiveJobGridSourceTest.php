@@ -21,7 +21,7 @@ abstract class BaseLiveJobGridSourceTest extends TestCase
         self::assertEquals(0, $count);
         self::assertEmpty($records);
 
-        $job = new BaseJobManagerTest::$jobClass(BaseJobManagerTest::$worker, false, null);
+        $job = new DoctrineJobManagerTest::$jobClass(DoctrineJobManagerTest::$worker, false, null);
         $job->fibonacci(1);
 
         $count = $liveJobsGridSource->getCount();
@@ -29,7 +29,7 @@ abstract class BaseLiveJobGridSourceTest extends TestCase
         self::assertEquals(1, $count);
         self::assertNotEmpty($records);
 
-        $job = new BaseJobManagerTest::$jobClass(BaseJobManagerTest::$worker, false, null);
+        $job = new DoctrineJobManagerTest::$jobClass(DoctrineJobManagerTest::$worker, false, null);
         $job->fibonacci(1);
 
         $count = $liveJobsGridSource->getCount();
@@ -50,14 +50,14 @@ abstract class BaseLiveJobGridSourceTest extends TestCase
         self::assertEquals(0, $count);
         self::assertEmpty($records);
 
-        BaseJobManagerTest::$jobManager->getJob();
+        DoctrineJobManagerTest::$jobManager->getJob();
 
         $count = $liveJobsGridSource->getCount();
         $records = $liveJobsGridSource->getRecords();
         self::assertEquals(1, $count);
         self::assertNotEmpty($records);
 
-        BaseJobManagerTest::$jobManager->getJob();
+        DoctrineJobManagerTest::$jobManager->getJob();
 
         $count = $liveJobsGridSource->getCount();
         $records = $liveJobsGridSource->getRecords();

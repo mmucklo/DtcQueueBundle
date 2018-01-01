@@ -7,9 +7,8 @@ use Doctrine\Common\Persistence\ObjectRepository;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Doctrine\ORM\EntityRepository;
 use Dtc\QueueBundle\Manager\ArchivableJobManager;
-use Dtc\QueueBundle\Manager\StallableJobManager;
 use Dtc\QueueBundle\Model\BaseJob;
-use Dtc\QueueBundle\Model\BaseRetryableJob;
+use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Manager\JobTimingManager;
@@ -72,7 +71,6 @@ abstract class DoctrineJobManager extends ArchivableJobManager
      */
     abstract protected function countJobsByStatus($objectName, $status, $workerName = null, $method = null);
 
-    
     public function resetExceptionJobs($workerName = null, $method = null)
     {
         $count = $this->countJobsByStatus($this->getJobArchiveClass(), Job::STATUS_EXCEPTION, $workerName, $method);
@@ -238,33 +236,34 @@ abstract class DoctrineJobManager extends ArchivableJobManager
 
     protected function runStalledLoop($i, $count, array $stalledJobs)
     {
-        $processedCount = 0;
+        $resetCount = 0;
         for ($j = $i, $max = $i + static::FETCH_COUNT; $j < $max && $j < $count; ++$j) {
             /* StallableJob $job */
             $job = $stalledJobs[$j];
             $job->setStatus(StallableJob::STATUS_STALLED);
-            $this->saveHistory($job);
-            $processedCount++;
+            if ($this->saveHistory($job)) {
+                ++$resetCount;
+            }
         }
 
-        return $processedCount;
+        return $resetCount;
     }
 
     public function resetStalledJobs($workerName = null, $method = null)
     {
         $stalledJobs = $this->getStalledJobs($workerName, $method);
 
-        $countProcessed = 0;
+        $countReset = 0;
         for ($i = 0, $count = count($stalledJobs); $i < $count; $i += static::FETCH_COUNT) {
-            $processedCount = $this->runStalledLoop($i, $count, $stalledJobs);
-            for ($j = 0; $j < $processedCount; ++$j) {
+            $resetCount = $this->runStalledLoop($i, $count, $stalledJobs);
+            for ($j = $i, $max = $i + static::FETCH_COUNT; $j < $max && $j < $count; ++$j) {
                 $this->jobTiminigManager->recordTiming(JobTiming::STATUS_FINISHED_STALLED);
             }
-            $countProcessed += $processedCount;
+            $countReset += $resetCount;
             $this->flush();
         }
 
-        return $countProcessed;
+        return $countReset;
     }
 
     /**
@@ -281,6 +280,7 @@ abstract class DoctrineJobManager extends ArchivableJobManager
                 /** @var StallableJob $job */
                 $job = $stalledJobs[$j];
                 $job->setStatus(StallableJob::STATUS_STALLED);
+                $job->setStalls(intval($job->getStalls()) + 1);
                 $this->deleteJob($job);
                 ++$countProcessed;
             }
@@ -302,6 +302,7 @@ abstract class DoctrineJobManager extends ArchivableJobManager
         if (!$retry) {
             $this->deleteJob($job);
         }
+
         return $retry;
     }
 
@@ -385,27 +386,34 @@ abstract class DoctrineJobManager extends ArchivableJobManager
     /**
      * @param StallableJob $jobArchive
      * @param $className
-     * @return integer Number of jobs reset
+     *
+     * @return int Number of jobs reset
      */
     protected function resetArchiveJob(StallableJob $jobArchive)
     {
         $objectManager = $this->getObjectManager();
         if ($this->updateMaxStatus($jobArchive, StallableJob::STATUS_MAX_RETRIES, $jobArchive->getMaxRetries(), $jobArchive->getRetries())) {
             $objectManager->persist($jobArchive);
+
             return 0;
         }
 
         /** @var StallableJob $job */
-        $className = $this->getJobArchiveClass();
+        $className = $this->getJobClass();
         $newJob = new $className();
         Util::copy($jobArchive, $newJob);
         $this->resetJob($newJob);
         $objectManager->remove($jobArchive);
         $this->flush();
+
         return 1;
     }
 
-    protected function resetJob(BaseRetryableJob $job) {
+    protected function resetJob(RetryableJob $job)
+    {
+        if (!$job instanceof DoctrineJob) {
+            throw new \InvalidArgumentException('$job should be instance of '.DoctrineJob::class);
+        }
         $job->setStatus(BaseJob::STATUS_NEW);
         $job->setLocked(null);
         $job->setLockedAt(null);
@@ -416,6 +424,7 @@ abstract class DoctrineJobManager extends ArchivableJobManager
         $job->setRetries($job->getRetries() + 1);
         $this->getObjectManager()->persist($job);
         $this->flush();
+
         return true;
     }
 

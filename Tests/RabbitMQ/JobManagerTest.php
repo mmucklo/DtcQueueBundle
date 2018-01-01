@@ -5,13 +5,14 @@ namespace Dtc\QueueBundle\Tests\RabbitMQ;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
-use Dtc\QueueBundle\Model\JobTimingManager;
+use Dtc\QueueBundle\Manager\JobTimingManager;
 use Dtc\QueueBundle\Model\Run;
-use Dtc\QueueBundle\Model\RunManager;
+use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\RabbitMQ\JobManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
-use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest;
-use Dtc\QueueBundle\Tests\Model\PriorityTestTrait;
+use Dtc\QueueBundle\Tests\Manager\AutoRetryTrait;
+use Dtc\QueueBundle\Tests\Manager\BaseJobManagerTest;
+use Dtc\QueueBundle\Tests\Manager\PriorityTestTrait;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 
 /**
@@ -22,12 +23,11 @@ use PhpAmqpLib\Connection\AMQPStreamConnection;
 class JobManagerTest extends BaseJobManagerTest
 {
     use PriorityTestTrait;
+    use AutoRetryTrait;
     public static $connection;
 
     public static function setUpBeforeClass()
     {
-        $className = 'Dtc\QueueBundle\RabbitMQ\Job';
-
         $host = getenv('RABBIT_MQ_HOST');
         $port = 5672;
         $user = 'guest';
@@ -39,7 +39,7 @@ class JobManagerTest extends BaseJobManagerTest
 
         self::$jobTimingManager = new JobTimingManager($jobTimingClass, false);
         self::$runManager = new RunManager($runClass);
-        self::$jobManager = new JobManager(self::$runManager, self::$jobTimingManager, Job::class);
+        self::$jobManager = new JobManager(self::$runManager, self::$jobTimingManager, \Dtc\QueueBundle\RabbitMQ\Job::class);
         self::$jobManager->setAMQPConnection(self::$connection);
         self::$jobManager->setMaxPriority(255);
         self::$jobManager->setQueueArgs('dtc_queue', false, true, false, false);
@@ -48,7 +48,6 @@ class JobManagerTest extends BaseJobManagerTest
         $channel->queue_delete('dtc_queue');
         $channel->close();
         self::$worker = new FibonacciWorker();
-        self::$worker->setJobClass($className);
         self::$jobManager->setupChannel();
         $channel = self::$jobManager->getChannel();
         $drained = 0;

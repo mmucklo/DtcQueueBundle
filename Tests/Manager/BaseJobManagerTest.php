@@ -1,10 +1,10 @@
 <?php
 
-namespace Dtc\QueueBundle\Tests\Model;
+namespace Dtc\QueueBundle\Tests\Manager;
 
-use Dtc\QueueBundle\Model\JobManagerInterface;
-use Dtc\QueueBundle\Model\RunManager;
-use Dtc\QueueBundle\Model\Worker;
+use Dtc\QueueBundle\Manager\JobManagerInterface;
+use Dtc\QueueBundle\Manager\RunManager;
+use Dtc\QueueBundle\Manager\Worker;
 use Dtc\QueueBundle\ODM\JobTimingManager;
 use PHPUnit\Framework\TestCase;
 
@@ -27,7 +27,7 @@ abstract class BaseJobManagerTest extends TestCase
 
     public static function setUpBeforeClass()
     {
-        self::$jobClass = self::$worker->getJobClass();
+        self::$jobClass = self::$jobManager->getJobClass();
         self::$worker->setJobManager(self::$jobManager);
     }
 
@@ -115,9 +115,9 @@ abstract class BaseJobManagerTest extends TestCase
         );
     }
 
-    public function testResetErroneousJobs()
+    public function testResetExceptionJobs()
     {
-        $this->expectingException('resetErroneousJobs');
+        $this->expectingException('resetExceptionJobs');
     }
 
     public function testResetStalledJobs()
@@ -130,9 +130,9 @@ abstract class BaseJobManagerTest extends TestCase
         $this->expectingException('pruneStalledJobs');
     }
 
-    public function testPruneErroneousJobs()
+    public function testPruneExceptionJobs()
     {
-        $this->expectingException('pruneErroneousJobs');
+        $this->expectingException('pruneExceptionJobs');
     }
 
     public function testPruneExpiredJobs()

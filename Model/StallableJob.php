@@ -2,7 +2,7 @@
 
 namespace Dtc\QueueBundle\Model;
 
-abstract class StallableJob extends \Dtc\QueueBundle\Model\BaseRetryableJob
+abstract class StallableJob extends \Dtc\QueueBundle\Model\RetryableJob
 {
     const STATUS_MAX_STALLS = 'max_stalls';
     const STATUS_STALLED = 'stalled';

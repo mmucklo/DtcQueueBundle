@@ -4,10 +4,12 @@ namespace Dtc\QueueBundle\Redis;
 
 use Predis\Client;
 
-class Predis implements RedisInterface {
-
+class Predis implements RedisInterface
+{
     protected $predis;
-    public function __construct(Client $predis) {
+
+    public function __construct(Client $predis)
+    {
         $this->predis = $predis;
     }
 
@@ -59,25 +61,28 @@ class Predis implements RedisInterface {
     public function zPop($key)
     {
         $this->predis->watch($key);
-        $element = $this->predis->zrange($key, 0,0);
+        $element = $this->predis->zrange($key, 0, 0);
         $this->predis->multi();
         $this->predis->zrem($key, $element);
         $result = $this->predis->exec();
-        if ($result !== null) {
+        if (null !== $result) {
             return $element;
         }
+
         return null;
     }
 
-    public function zPopByMaxScore($key, $max) {
+    public function zPopByMaxScore($key, $max)
+    {
         $this->predis->watch($key);
-        $element = $this->predis->zrangebyscore($key, 0,$max, ['limit' => ['offset' => 0, 'count' => 1]]);
+        $element = $this->predis->zrangebyscore($key, 0, $max, ['limit' => ['offset' => 0, 'count' => 1]]);
         $this->predis->multi();
         $this->predis->zrem($key, $element);
         $result = $this->predis->exec();
-        if ($result !== null) {
+        if (null !== $result) {
             return $element;
         }
+
         return null;
     }
 }

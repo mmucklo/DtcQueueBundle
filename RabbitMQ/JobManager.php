@@ -3,7 +3,7 @@
 namespace Dtc\QueueBundle\RabbitMQ;
 
 use Dtc\QueueBundle\Model\BaseJob;
-use Dtc\QueueBundle\Model\BaseRetryableJob;
+use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Manager\PriorityJobManager;
 use Dtc\QueueBundle\Exception\ArgumentsNotSetException;
@@ -56,6 +56,7 @@ class JobManager extends PriorityJobManager
      * @param bool   $durable
      * @param bool   $exclusive
      * @param bool   $autoDelete
+     *
      * @throws PriorityException
      */
     public function setQueueArgs($queue, $passive, $durable, $exclusive, $autoDelete)
@@ -143,10 +144,12 @@ class JobManager extends PriorityJobManager
         $this->setJobId($job);
 
         $this->publishJob($job);
+
         return $job;
     }
 
-    protected function publishJob(Job $job) {
+    protected function publishJob(Job $job)
+    {
         $msg = new AMQPMessage($job->toMessage());
         $this->setMsgPriority($msg, $job);
 
@@ -210,6 +213,7 @@ class JobManager extends PriorityJobManager
      * @param null $workerName
      * @param null $methodName
      * @param bool $prioritize
+     *
      * @throws UnsupportedException
      */
     protected function verifyGetJobArgs($workerName = null, $methodName = null, $prioritize = true)
@@ -221,6 +225,7 @@ class JobManager extends PriorityJobManager
 
     /**
      * @param string $workerName
+     *
      * @throws UnsupportedException
      * @throws ArgumentsNotSetException
      */
@@ -266,22 +271,23 @@ class JobManager extends PriorityJobManager
         return null;
     }
 
-    protected function resetJob(BaseRetryableJob $job)
+    protected function resetJob(RetryableJob $job)
     {
         if (!$job instanceof Job) {
-            throw new \InvalidArgumentException("\$job must be instance of " . Job::class);
+            throw new \InvalidArgumentException('$job must be instance of '.Job::class);
         }
         $job->setStatus(BaseJob::STATUS_NEW);
         $job->setMessage(null);
         $job->setStartedAt(null);
         $job->setRetries($job->getRetries() + 1);
+        $job->setUpdatedAt(new \DateTime());
         $this->publishJob($job);
 
         return true;
     }
 
     // Save History get called upon completion of the job
-    protected function retryableSaveHistory(BaseRetryableJob $job, $retry)
+    protected function retryableSaveHistory(RetryableJob $job, $retry)
     {
         if (!$job instanceof Job) {
             throw new ClassNotSubclassException("Expected \Dtc\QueueBundle\RabbitMQ\Job, got ".get_class($job));

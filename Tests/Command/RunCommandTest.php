@@ -6,7 +6,7 @@ use Dtc\QueueBundle\Command\RunCommand;
 use PHPUnit\Framework\TestCase;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
-use Dtc\QueueBundle\Model\WorkerManager;
+use Dtc\QueueBundle\Manager\WorkerManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Run\Loop;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -27,7 +27,6 @@ class RunCommandTest extends TestCase
         $eventDispatcher = new EventDispatcher();
         $workerManager = new WorkerManager($jobManager, $eventDispatcher);
         $worker = new FibonacciWorker();
-        $worker->setJobClass(\Dtc\QueueBundle\Entity\Job::class);
         $workerManager->addWorker($worker);
         $worker->setJobManager($jobManager);
 

@@ -1,12 +1,39 @@
 ### 4.0.0
-   * Moved all Managers into a Manager directory
+   * Class Moves
+      * All Manager classes and interfaces into their own Manager directory
    * New STATUS_FAILURE
-   * New Retry on FAILURE
-   * Default retry settings
-   * New RetryableJobManager base class
+      * If you return \Dtc\QueueBundle\Model\Worker::RESULT_FAILURE from your Worker's function, it will be recorded as
+         a failure, not an error
+   * BaseJob::STATUS_ERROR => BaseJob::STATUS_EXCEPTION
+      * Exceptions are now recorded as such.
+      * Exception information is recorded in the end of the message of the 
+   * Access signatures change
+      * $jobManager made private in Worker base class.  Still accessible through getJobManager()
+   * Access to Current Job
+      * $this->getCurrentJob() will return the current Job object during a worker's method invocation.
+         * This may be useful if you want to record some message by calling $this->getCurrentJob()->setMessage('some message');
+         * However only Doctrine Jobs are persisted on SUCCESS         
+   * Worker $jobClass removed
+      * $jobClass member variable, and getJobClass() / setJobClass() functions removed.
+      * 
    * Changed STATUS_ERROR to STATUS_EXCEPTION
-   
-
+   * Auto Retry
+      * Jobs that fail will automatically be retried a certain number of times, by being re-enqueued
+      * Tunable Defaults
+         * The number of max retries is tunable
+         * The number of max exceptions, failures is tunable
+         * The number of permitted stalls is also tunable
+         * Exceptions can be auto-retried, but by default are not.
+   * Refactoring
+      * JobManager base class heirarchy has been refactored.
+         * Supports retryable jobs in all JobManager types
+      * Job base class heirarchy refactored
+         * There's now a DoctrineJob which alone contains the Lock/unlock fields as it's only relevant to that Job type
+   * ODM/ORM changes
+      * stalledCount / stalled_count renamed to stalls
+      * errorCount / error_count renamed to exceptions
+      * max_errors renamed to max_exceptions
+      * max_stalled renamed to max_stalls
 ### 3.1.2
    * Fix a bug in timings by minute for ORM
    * Fix a bug in ODM timings

@@ -2,7 +2,7 @@
 
 namespace Dtc\QueueBundle\Model;
 
-abstract class MessageableJob extends BaseRetryableJob
+abstract class MessageableJob extends RetryableJob
 {
     protected function toMessageArray()
     {
@@ -10,6 +10,8 @@ abstract class MessageableJob extends BaseRetryableJob
             'worker' => $this->getWorkerName(),
             'args' => $this->getArgs(),
             'method' => $this->getMethod(),
+            'createdAt' => $this->getCreatedAt()->format('U.u'),
+            'updatedAt' => $this->getUpdatedAt()->format('U.u'),
             'expiresAt' => ($expiresAt = $this->getExpiresAt()) ? $expiresAt->format('U.u') : null,
             'retries' => $this->getRetries(),
             'maxRetries' => $this->getMaxRetries(),
@@ -69,12 +71,15 @@ abstract class MessageableJob extends BaseRetryableJob
             $this->setMaxExceptions($arr['maxExceptions']);
         }
 
-        if (isset($arr['expiresAt'])) {
-            $expiresAt = $arr['expiresAt'];
-            if ($expiresAt) {
-                $dateTime = \DateTime::createFromFormat('U.u', $expiresAt);
-                if ($dateTime) {
-                    $this->setExpiresAt($dateTime);
+        foreach (['expiresAt', 'createdAt', 'updatedAt'] as $dateField) {
+            if (isset($arr[$dateField])) {
+                $timeStr = $arr[$dateField];
+                if ($timeStr) {
+                    $dateTime = \DateTime::createFromFormat('U.u', $timeStr);
+                    if ($dateTime) {
+                        $method = 'set'.ucfirst($dateField);
+                        $this->$method($dateTime);
+                    }
                 }
             }
         }

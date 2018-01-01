@@ -2,9 +2,10 @@
 
 namespace Dtc\QueueBundle\Doctrine;
 
-use Dtc\QueueBundle\Model\ArchivableJob;
+use Dtc\QueueBundle\Model\StallableJob;
 
-abstract class DoctrineJob extends ArchivableJob {
+abstract class DoctrineJob extends StallableJob
+{
     protected $locked;
     protected $lockedAt;
 

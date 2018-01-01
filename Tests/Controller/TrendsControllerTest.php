@@ -42,7 +42,7 @@ class TrendsControllerTest extends TestCase
         $jobTimingManager = $container->get('dtc_queue.job_timing_manager');
         $jobTimingManager->recordTiming(BaseJob::STATUS_SUCCESS, $dateTime);
         $jobTimingManager->recordTiming(BaseJob::STATUS_SUCCESS, $dateTime);
-        $jobTimingManager->recordTiming(BaseJob::STATUS_ERROR, $dateTime);
+        $jobTimingManager->recordTiming(BaseJob::STATUS_EXCEPTION, $dateTime);
 
         $request = new Request();
         $request->query->set('type', 'HOUR');

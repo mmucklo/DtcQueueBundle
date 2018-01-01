@@ -57,7 +57,8 @@ class Configuration implements ConfigurationInterface
         return $treeBuilder;
     }
 
-    protected function addRetry() {
+    protected function addRetry()
+    {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('retry');
         $rootNode
@@ -91,13 +92,16 @@ class Configuration implements ConfigurationInterface
                     ->end()
                 ->end()
             ->end();
+
         return $rootNode;
     }
-    
-    protected function addPriority() {
+
+    protected function addPriority()
+    {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('priority');
         $rootNode
+            ->addDefaultsIfNotSet()
             ->children()
                 ->integerNode('max')
                     ->defaultValue(255)
@@ -108,10 +112,12 @@ class Configuration implements ConfigurationInterface
                     ->defaultValue(PriorityJobManager::PRIORITY_DESC)
                 ->end()
             ->end();
+
         return $rootNode;
     }
 
-    protected function addClasses() {
+    protected function addClasses()
+    {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('class');
         $rootNode
@@ -122,6 +128,7 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('run')->end()
                 ->scalarNode('run_archive')->end()
             ->end();
+
         return $rootNode;
     }
 
@@ -138,7 +145,8 @@ class Configuration implements ConfigurationInterface
         return $rootNode;
     }
 
-    protected function addRedis() {
+    protected function addRedis()
+    {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('redis');
         $rootNode
@@ -147,7 +155,7 @@ class Configuration implements ConfigurationInterface
                 ->arrayNode('snc_redis')
                     ->children()
                         ->enumNode('type')
-                          ->values(['predis','phpredis'])
+                          ->values(['predis', 'phpredis'])
                             ->defaultNull()->end()
                         ->scalarNode('alias')
                             ->defaultNull()->end()
@@ -159,6 +167,7 @@ class Configuration implements ConfigurationInterface
                         if (isset($node['alias']) && !isset($node['type'])) {
                             return false;
                         }
+
                         return true;
                     })->thenInvalid('if alias or type is set, then both must be set')->end()
                 ->end()
@@ -171,7 +180,8 @@ class Configuration implements ConfigurationInterface
             ->end();
     }
 
-    protected function addPredisArgs() {
+    protected function addPredisArgs()
+    {
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('connection_parameters');
         $rootNode
@@ -309,13 +319,14 @@ class Configuration implements ConfigurationInterface
                 return $node;
             })->end()
            ->validate()->ifTrue(function ($node) {
-                if (isset($node['ssl_options']) && !$node['ssl']) {
-                    return true;
-                }
+               if (isset($node['ssl_options']) && !$node['ssl']) {
+                   return true;
+               }
 
-                return false;
-            })->thenInvalid('ssl must be true in order to set ssl_options')->end()
+               return false;
+           })->thenInvalid('ssl must be true in order to set ssl_options')->end()
         ->end();
+
         return $rootNode;
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Dtc\QueueBundle\Model;
 
+use Dtc\QueueBundle\Manager\JobManagerInterface;
+
 abstract class BaseJob
 {
     const STATUS_SUCCESS = 'success';
@@ -23,6 +25,7 @@ abstract class BaseJob
     protected $priority;
     protected $whenAt;
     protected $status;
+    protected $createdAt;
 
     public function __construct(Worker $worker = null, $batch = false, $priority = 10, \DateTime $whenAt = null)
     {
@@ -37,6 +40,8 @@ abstract class BaseJob
         $this->batch = $batch ? true : false;
         $this->priority = $priority;
         $this->status = self::STATUS_NEW;
+        $this->createdAt = new \DateTime();
+        $this->updatedAt = new \DateTime();
     }
 
     /**
@@ -226,5 +231,23 @@ abstract class BaseJob
     public function getJobManager()
     {
         return $this->jobManager;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getCreatedAt()
+    {
+        return $this->createdAt;
+    }
+
+    /**
+     * @param \DateTime $createdAt
+     */
+    public function setCreatedAt(\DateTime $createdAt)
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
     }
 }

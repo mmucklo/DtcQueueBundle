@@ -2,6 +2,8 @@
 
 namespace Dtc\QueueBundle\Model;
 
+use Dtc\QueueBundle\Manager\JobManagerInterface;
+
 class Job extends BaseJob
 {
     const STATUS_EXPIRED = 'expired';
@@ -14,6 +16,8 @@ class Job extends BaseJob
     protected $startedAt;
     protected $maxDuration;
     protected $runId;
+    protected $finishedAt;
+    protected $elapsed;
 
     public function __call($method, $args)
     {
@@ -55,6 +59,7 @@ class Job extends BaseJob
     {
         return $this->expiresAt;
     }
+
     /**
      * @param \DateTime $expiresAt
      */
@@ -179,6 +184,42 @@ class Job extends BaseJob
     public function setRunId($runId)
     {
         $this->runId = $runId;
+
+        return $this;
+    }
+
+    /**
+     * @return \DateTime|null
+     */
+    public function getFinishedAt()
+    {
+        return $this->finishedAt;
+    }
+
+    /**
+     * @param \DateTime|null $finishedAt
+     */
+    public function setFinishedAt($finishedAt)
+    {
+        $this->finishedAt = $finishedAt;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getElapsed()
+    {
+        return $this->elapsed;
+    }
+
+    /**
+     * @param int $elapsed
+     */
+    public function setElapsed($elapsed)
+    {
+        $this->elapsed = $elapsed;
 
         return $this;
     }

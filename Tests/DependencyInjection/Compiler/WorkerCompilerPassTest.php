@@ -32,8 +32,8 @@ class WorkerCompilerPassTest extends TestCase
         $container->setParameter('dtc_queue.default_manager', $type);
         $container->setParameter('dtc_queue.run_manager', $runManagerType);
         $container->setParameter('dtc_queue.job_timing_manager', $jobTimingManagerType);
-        $container->setParameter('dtc_queue.class_job', null);
-        $container->setParameter('dtc_queue.class_job_archive', null);
+        $container->setParameter('dtc_queue.class.job', null);
+        $container->setParameter('dtc_queue.class.job_archive', null);
         $container->setParameter('dtc_queue.document_manager', 'default');
         $container->setParameter('dtc_queue.entity_manager', 'default');
         $definition2 = new Definition();

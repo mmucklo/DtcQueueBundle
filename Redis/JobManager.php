@@ -15,21 +15,25 @@ class JobManager extends PriorityJobManager
     /** @var string */
     protected $hashKeyPrefix;
 
-    public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, $jobClass, $hashKeyPrefix) {
+    public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, $jobClass, $hashKeyPrefix)
+    {
         $this->hashKeyPrefix = $hashKeyPrefix;
         parent::__construct($runManager, $jobTimingManager, $jobClass);
     }
 
-    public function setRedis(RedisInterface $redis) {
+    public function setRedis(RedisInterface $redis)
+    {
         $this->redis = $redis;
     }
 
-    protected function getPriorityQueueHashKey() {
-        return $this->hashKeyPrefix . "_priority";
+    protected function getPriorityQueueHashKey()
+    {
+        return $this->hashKeyPrefix.'_priority';
     }
 
-    protected function getWhenAtQueueHashKey() {
-        return $this->hashKeyPrefix . "_when_at";
+    protected function getWhenAtQueueHashKey()
+    {
+        return $this->hashKeyPrefix.'_when_at';
     }
 
     /**
@@ -69,9 +73,9 @@ class JobManager extends PriorityJobManager
             $job->setId(uniqid($this->hostname.'-'.$this->pid, true));
         }
     }
-    
-    /** 
-     * Returns the prioirty in descending order, except if maxPrioirty is null, then prioirty is 0
+
+    /**
+     * Returns the prioirty in descending order, except if maxPrioirty is null, then prioirty is 0.
      */
     protected function calculatePriority($priority)
     {
@@ -130,18 +134,19 @@ class JobManager extends PriorityJobManager
         return $job;
     }
 
-    protected function getCurTime() {
+    protected function getCurTime()
+    {
         $time = intval(microtime(true) * 1000000);
+
         return $time;
     }
 
-
-    protected function prioritizeReadyJobs() {
+    protected function prioritizeReadyJobs()
+    {
         // Get all ready jobs
         $maxTime = $this->getCurTime();
         $hashKey = $this->getWhenAtQueueHashKey();
         while ($jobDef = $this->redis->zPopByMaxScore($hashKey, $maxTime)) {
-            
         }
     }
 
@@ -185,5 +190,4 @@ class JobManager extends PriorityJobManager
 
         return;
     }
-
 }

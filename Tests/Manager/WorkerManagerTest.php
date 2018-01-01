@@ -1,16 +1,16 @@
 <?php
 
-namespace Dtc\QueueBundle\Tests\Model;
+namespace Dtc\QueueBundle\Tests\Manager;
 
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
-use Dtc\QueueBundle\Model\JobTimingManager;
+use Dtc\QueueBundle\Manager\JobTimingManager;
 use Dtc\QueueBundle\Model\Run;
-use Dtc\QueueBundle\Model\RunManager;
+use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\StaticJobManager;
-use Dtc\QueueBundle\Model\WorkerManager;
+use Dtc\QueueBundle\Manager\WorkerManager;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use PHPUnit\Framework\TestCase;
 
@@ -78,7 +78,7 @@ class WorkerManagerTest extends TestCase
 
         self::assertNotNull($job, 'Job object should not be null');
         self::assertEquals(
-            BaseJob::STATUS_ERROR,
+            BaseJob::STATUS_EXCEPTION,
             $job->getStatus(),
                 'Worker run should be not successful'
         );

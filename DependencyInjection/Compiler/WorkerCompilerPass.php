@@ -105,8 +105,6 @@ class WorkerCompilerPass implements CompilerPassInterface
 
             // Give each worker access to job manager
             $worker->addMethodCall('setJobManager', $jobManagerRef);
-            $worker->addMethodCall('setJobClass', array($jobClass));
-
             $definition->addMethodCall('addWorker', array(new Reference($id)));
         }
     }

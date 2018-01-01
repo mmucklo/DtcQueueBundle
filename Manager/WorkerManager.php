@@ -8,7 +8,6 @@ use Dtc\QueueBundle\Exception\DuplicateWorkerException;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
-use Dtc\QueueBundle\Model\StallableJob;
 use Dtc\QueueBundle\Model\Worker;
 use Psr\Log\LoggerInterface;
 
@@ -116,19 +115,20 @@ class WorkerManager
         $message = $job->getMessage();
         if ($message) {
             $message .= "\n\n";
-        }
-        else {
+        } else {
             $message = $exceptionMessage;
         }
 
         $job->setMessage($message);
         $this->jobManager->getJobTimingManager()->recordTiming(JobTiming::STATUS_FINISHED_EXCEPTION);
     }
-    
-    public function processStatus(Job $job, $result) {
-        if ($result === Worker::RESULT_FAILURE) {
+
+    public function processStatus(Job $job, $result)
+    {
+        if (Worker::RESULT_FAILURE === $result) {
             $job->setStatus(BaseJob::STATUS_FAILURE);
             $this->jobManager->getJobTimingManager()->recordTiming(JobTiming::STATUS_FINISHED_FAILURE);
+
             return;
         }
         $job->setStatus(BaseJob::STATUS_SUCCESS);
