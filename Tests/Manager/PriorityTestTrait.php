@@ -10,9 +10,12 @@ trait PriorityTestTrait
     {
         $jobManager = static::$jobManager;
 
-        while ($jobManager->getJob()) {
+        // Drain the queue
+        $limit = 99999;
+        while ($jobManager->getJob() && $limit--) {
             static::assertTrue(true);
         }
+        self::assertGreaterThan(0, $limit);
 
         // Null vs priority case
 

@@ -7,82 +7,106 @@ use Predis\Client;
 class Predis implements RedisInterface
 {
     protected $predis;
+    protected $maxRetries;
 
-    public function __construct(Client $predis)
+    public function __construct(Client $predis, $maxRetries = 5)
     {
         $this->predis = $predis;
+        $this->maxRetries = $maxRetries;
     }
 
-    public function hGet($hkey, $key)
+    public function zAdd($zkey, $score, $value)
     {
-        return $this->predis->hget($hkey, $key);
+        return $this->predis->zadd($zkey, [$value => $score]);
     }
 
-    public function hSet($hkey, $key, $value)
+    public function set($key, $value)
     {
-        return $this->predis->hset($hkey, $key, $value);
+        return $this->predis->set($key, $value);
     }
 
-    public function zAdd($zkey, $score, $member)
+    public function get($key)
     {
-        return $this->predis->zadd($zkey, [$member => $score]);
+        return $this->predis->get($key);
     }
 
-    public function zRange($key, $start, $stop)
+    public function setEx($key, $seconds, $value)
     {
-        return $this->predis->zrange($key, $start, $stop);
+        return $this->predis->setex($key, $seconds, $value);
     }
 
-    public function zScore($zkey, $member)
+    public function lRem($lKey, $count, $value)
     {
-        return $this->predis->zscore($zkey, $member);
+        return $this->predis->lrem($lKey, $count, $value);
     }
 
-    public function zRem($zkey, $member)
+    public function lPush($lKey, array $values)
     {
-        return $this->predis->zrem($zkey, $member);
+        return $this->predis->lpush($lKey, $values);
     }
 
-    public function exec()
+    public function lRange($lKey, $start, $stop)
     {
-        return $this->predis->exec();
+        return $this->predis->lrange($lKey, $start, $stop);
     }
 
-    public function multi()
+    public function del(array $keys)
     {
-        return $this->predis->multi();
+        return $this->predis->del($keys);
     }
 
-    public function watch($key)
+    public function zRem($zkey, $value)
     {
-        return $this->predis->watch($key);
+        return $this->predis->zrem($zkey, $value);
     }
 
     public function zPop($key)
     {
-        $this->predis->watch($key);
-        $element = $this->predis->zrange($key, 0, 0);
-        $this->predis->multi();
-        $this->predis->zrem($key, $element);
-        $result = $this->predis->exec();
-        if (null !== $result) {
-            return $element;
+        $element = null;
+        $options = [
+            'cas' => true,
+            'watch' => $key,
+            'retry' => $this->maxRetries,
+        ];
+
+        try {
+            $this->predis->transaction($options, function ($tx) use ($key, &$element) {
+                @list($element) = $tx->zrange($key, 0, 0);
+
+                if (isset($element)) {
+                    $tx->multi();
+                    $tx->zrem($key, $element);
+                }
+            });
+        } catch (\Exception $exception) {
+            return null;
         }
 
-        return null;
+        return $element;
     }
 
     public function zPopByMaxScore($key, $max)
     {
-        $this->predis->watch($key);
-        $element = $this->predis->zrangebyscore($key, 0, $max, ['limit' => ['offset' => 0, 'count' => 1]]);
-        $this->predis->multi();
-        $this->predis->zrem($key, $element);
-        $result = $this->predis->exec();
-        if (null !== $result) {
-            return $element;
+        $element = null;
+        $options = [
+            'cas' => true,
+            'watch' => $key,
+            'retry' => $this->maxRetries,
+        ];
+
+        try {
+            $this->predis->transaction($options, function ($tx) use ($key, $max, &$element) {
+                @list($element) = $tx->zrangebyscore($key, 0, $max, ['LIMIT' => [0, 1]]);
+
+                if (isset($element)) {
+                    $tx->multi();
+                    $tx->zrem($key, $element);
+                }
+            });
+        } catch (\Exception $exception) {
+            return null;
         }
 
-        return null;
+        return $element;
     }
 }

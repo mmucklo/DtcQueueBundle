@@ -15,6 +15,7 @@ Supported Queues
 - Mysql / Doctrine 2 supported databases via Doctrine-ORM
 - Beanstalkd via pheanstalk
 - RabbitMQ via php-amqplib
+- Redis support via Predis or PhpRedis
 
 Introduction
 ------------

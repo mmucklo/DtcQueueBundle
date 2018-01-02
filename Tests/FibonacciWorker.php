@@ -11,7 +11,6 @@ class FibonacciWorker extends Worker
     public function __construct()
     {
         $this->filename = '/tmp/fib-result.txt';
-        $this->jobClass = 'Dtc\QueueBundle\Model\Job';
     }
 
     public function fibonacciFile($n)

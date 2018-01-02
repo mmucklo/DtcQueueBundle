@@ -4,12 +4,22 @@ namespace Dtc\QueueBundle\Model;
 
 abstract class MessageableJob extends RetryableJob
 {
+    public function __construct(Worker $worker = null, $batch = false, $priority = 10, \DateTime $whenAt = null)
+    {
+        parent::__construct($worker, $batch, $priority, $whenAt);
+        if (!$this->getWhenAt()) {
+            $this->setWhenAt(new \DateTime('@'.time()));
+        }
+    }
+
     protected function toMessageArray()
     {
         return array(
             'worker' => $this->getWorkerName(),
             'args' => $this->getArgs(),
             'method' => $this->getMethod(),
+            'priority' => $this->getPriority(),
+            'whenAt' => $this->getWhenAt()->format('U.u'),
             'createdAt' => $this->getCreatedAt()->format('U.u'),
             'updatedAt' => $this->getUpdatedAt()->format('U.u'),
             'expiresAt' => ($expiresAt = $this->getExpiresAt()) ? $expiresAt->format('U.u') : null,
@@ -52,6 +62,10 @@ abstract class MessageableJob extends RetryableJob
         if (isset($arr['method'])) {
             $this->setMethod($arr['method']);
         }
+        if (isset($arr['priority'])) {
+            $this->setPriority($arr['priority']);
+        }
+
         if (isset($arr['retries'])) {
             $this->setRetries($arr['retries']);
         }
@@ -71,7 +85,7 @@ abstract class MessageableJob extends RetryableJob
             $this->setMaxExceptions($arr['maxExceptions']);
         }
 
-        foreach (['expiresAt', 'createdAt', 'updatedAt'] as $dateField) {
+        foreach (['expiresAt', 'createdAt', 'updatedAt', 'whenAt'] as $dateField) {
             if (isset($arr[$dateField])) {
                 $timeStr = $arr[$dateField];
                 if ($timeStr) {

@@ -140,6 +140,12 @@ abstract class RetryableJobManager extends AbstractJobManager
         if (null === $job->getMaxFailures()) {
             $job->setMaxFailures($this->defaultMaxFailures);
         }
+
+        if (null === $job->getCrcHash()) {
+            $hashValues = array(get_class($job), $job->getMethod(), $job->getWorkerName(), $job->getArgs());
+            $crcHash = hash('sha256', serialize($hashValues));
+            $job->setCrcHash($crcHash);
+        }
     }
 
     /**

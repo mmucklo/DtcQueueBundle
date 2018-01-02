@@ -2,7 +2,16 @@
 
 namespace Dtc\QueueBundle\Redis;
 
-use Dtc\QueueBundle\Model\PriorityJobManager;
+use Dtc\QueueBundle\Exception\ClassNotSubclassException;
+use Dtc\QueueBundle\Exception\PriorityException;
+use Dtc\QueueBundle\Exception\UnsupportedException;
+use Dtc\QueueBundle\Manager\JobTimingManager;
+use Dtc\QueueBundle\Manager\PriorityJobManager;
+use Dtc\QueueBundle\Manager\RunManager;
+use Dtc\QueueBundle\Model\BaseJob;
+use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\MessageableJobWithId;
+use Dtc\QueueBundle\Model\RetryableJob;
 
 /**
  * For future implementation.
@@ -13,11 +22,17 @@ class JobManager extends PriorityJobManager
     protected $redis;
 
     /** @var string */
-    protected $hashKeyPrefix;
+    protected $cacheKeyPrefix;
 
-    public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, $jobClass, $hashKeyPrefix)
+    protected $hostname;
+    protected $pid;
+
+    public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, $jobClass, $cacheKeyPrefix)
     {
-        $this->hashKeyPrefix = $hashKeyPrefix;
+        $this->cacheKeyPrefix = $cacheKeyPrefix;
+        $this->hostname = gethostname() ?: '';
+        $this->pid = getmypid();
+
         parent::__construct($runManager, $jobTimingManager, $jobClass);
     }
 
@@ -26,14 +41,130 @@ class JobManager extends PriorityJobManager
         $this->redis = $redis;
     }
 
-    protected function getPriorityQueueHashKey()
+    protected function getJobCacheKey($jobId)
     {
-        return $this->hashKeyPrefix.'_priority';
+        return $this->cacheKeyPrefix.'_job_'.$jobId;
     }
 
-    protected function getWhenAtQueueHashKey()
+    protected function getJobCrcHashKey($jobCrc)
     {
-        return $this->hashKeyPrefix.'_when_at';
+        return $this->cacheKeyPrefix.'_job_crc_'.$jobCrc;
+    }
+
+    protected function getPriorityQueueCacheKey()
+    {
+        return $this->cacheKeyPrefix.'_priority';
+    }
+
+    protected function getWhenAtQueueCacheKey()
+    {
+        return $this->cacheKeyPrefix.'_when_at';
+    }
+
+    protected function transferQueues()
+    {
+        // Drains from WhenAt queue into Prioirty Queue
+        $whenQueue = $this->getWhenAtQueueCacheKey();
+        $priorityQueue = $this->getPriorityQueueCacheKey();
+        $time = time();
+        while ($jobId = $this->redis->zPopByMaxScore($whenQueue, $time)) {
+            $jobMessage = $this->redis->get($this->getJobCacheKey($jobId));
+            if ($jobMessage) {
+                $job = new MessageableJobWithId();
+                $job->fromMessage($jobMessage);
+                $this->redis->zAdd($priorityQueue, $job->getPriority(), $job->getId());
+            }
+        }
+    }
+
+    protected function batchSave(MessageableJobWithId $job)
+    {
+        $crcHash = $job->getCrcHash();
+        $crcCacheKey = $this->getJobCrcHashKey($crcHash);
+        $result = $this->redis->lrange($crcCacheKey, 0, 1000);
+        if (is_array($result)) {
+            foreach ($result as $jobId) {
+                $jobCacheKey1 = $this->getJobCacheKey($jobId);
+                if (!($foundJobMessage = $this->redis->get($jobCacheKey1))) {
+                    $this->redis->lRem($crcCacheKey, 1, $jobCacheKey1);
+                    continue;
+                }
+
+                /// There is one?
+                if ($foundJobMessage) {
+                    $foundJob = $this->batchFoundJob($job, $jobCacheKey1, $foundJobMessage);
+                    if ($foundJob) {
+                        return $foundJob;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    protected function batchFoundJob(MessageableJobWithId $job, $foundJobCacheKey, $foundJobMessage)
+    {
+        $when = $job->getWhenAt()->getTimestamp();
+        $crcHash = $job->getCrcHash();
+        $crcCacheKey = $this->getJobCrcHashKey($crcHash);
+
+        $foundJob = new MessageableJobWithId();
+        $foundJob->fromMessage($foundJobMessage);
+        $foundWhen = $foundJob->getWhenAt()->getTimestamp();
+        if ($foundWhen > time() && $foundWhen > $when) {
+            $newFoundWhen = $when;
+        }
+        $foundPriority = $foundJob->getPriority();
+        if ($foundPriority < $job->getPriority()) {
+            $newFoundPriority = $job->getPriority();
+        }
+
+        // Now how do we adjust this job's priority or time?
+        $adjust = false;
+        if (isset($newFoundWhen)) {
+            $foundJob->setWhenAt(new \DateTime("@$newFoundWhen"));
+            $adjust = true;
+        }
+        if (isset($newFoundPriority)) {
+            $foundJob->setPriority($newFoundPriority);
+            $adjust = true;
+        }
+        if (!$adjust) {
+            return $foundJob;
+        }
+
+        $whenQueue = $this->getWhenAtQueueCacheKey();
+        if ($adjust && $this->redis->zRem($whenQueue, $foundJob->getId()) > 0) {
+            if (!$this->insertJob($foundJob)) {
+                // Job is expired
+                $this->redis->lRem($crcCacheKey, 1, $foundJobCacheKey);
+
+                return false;
+            }
+            $this->redis->zAdd($whenQueue, $foundJob->getWhenAt()->getTimestamp(), $foundJob->toMessage());
+
+            return $foundJob;
+        }
+
+        if (null === $this->maxPriority) {
+            return false;
+        }
+
+        $priorityQueue = $this->getPriorityQueueCacheKey();
+        if ($adjust && $this->redis->zRem($priorityQueue, $foundJob->getId()) > 0) {
+            if (!$this->insertJob($foundJob)) {
+                // Job is expired
+                $this->redis->lRem($crcCacheKey, 1, $foundJobCacheKey);
+
+                return false;
+            }
+            $this->redis->zAdd($priorityQueue, $foundJob->getPriority(), $foundJob->toMessage());
+
+            return $foundJob;
+        }
+
+        return false;
     }
 
     /**
@@ -45,21 +176,65 @@ class JobManager extends PriorityJobManager
      */
     public function prioritySave(\Dtc\QueueBundle\Model\Job $job)
     {
-        if (!$job instanceof Job) {
-            throw new ClassNotSubclassException('Must be derived from '.Job::class);
+        if (!$job instanceof MessageableJobWithId) {
+            throw new \InvalidArgumentException('$job must be instance of '.MessageableJobWithId::class);
         }
-
-        $this->setupChannel();
 
         $this->validateSaveable($job);
         $this->setJobId($job);
 
-        $msg = new AMQPMessage($job->toMessage());
-        $this->setMsgPriority($msg, $job);
+        // Add to whenAt or priority queue?  /// optimizaiton...
+        $whenAt = $job->getWhenAt();
+        if (!$whenAt) {
+            $whenAt = new \DateTime('@'.time());
+            $job->setWhenAt($whenAt);
+        }
 
-        $this->channel->basic_publish($msg, $this->exchangeArgs[0]);
+        if (true === $job->getBatch()) {
+            // is there a CRC Hash already for this job
+            if ($oldJob = $this->batchSave($job)) {
+                return $oldJob;
+            }
+        }
+
+        return $this->saveJob($job);
+    }
+
+    protected function saveJob(MessageableJobWithId $job)
+    {
+        $whenQueue = $this->getWhenAtQueueCacheKey();
+        $crcCacheKey = $this->getJobCrcHashKey($job->getCrcHash());
+        // Save Job
+        if (!$this->insertJob($job)) {
+            // job is expired
+            return null;
+        }
+        $jobId = $job->getId();
+        $when = $job->getWhenAt()->getTimestamp();
+        // Add Job to CRC list
+        $this->redis->lPush($crcCacheKey, [$jobId]);
+
+        $this->redis->zAdd($whenQueue, $when, $jobId);
 
         return $job;
+    }
+
+    protected function insertJob(MessageableJobWithId $job)
+    {
+        // Save Job
+        $jobCacheKey = $this->getJobCacheKey($job->getId());
+        if ($expiresAt = $job->getExpiresAt()) {
+            $expiresAtTime = $expiresAt->getTimestamp() - time();
+            if ($expiresAtTime <= 0) {
+                return false; /// ??? job is already expired
+            }
+            $this->redis->setEx($jobCacheKey, $expiresAtTime, $job->toMessage());
+
+            return true;
+        }
+        $this->redis->set($jobCacheKey, $job->toMessage());
+
+        return true;
     }
 
     /**
@@ -75,13 +250,13 @@ class JobManager extends PriorityJobManager
     }
 
     /**
-     * Returns the prioirty in descending order, except if maxPrioirty is null, then prioirty is 0.
+     * Returns the prioirty in DESCENDING order, except if maxPrioirty is null, then prioirty is 0.
      */
     protected function calculatePriority($priority)
     {
         $priority = parent::calculatePriority($priority);
         if (null === $priority) {
-            return 0;
+            return null === $this->maxPriority ? 0 : $this->maxPriority;
         }
 
         if (null === $this->maxPriority) {
@@ -104,8 +279,8 @@ class JobManager extends PriorityJobManager
             throw new PriorityException('This queue does not support priorities');
         }
 
-        if (!$job instanceof Job) {
-            throw new ClassNotSubclassException('Job needs to be instance of '.Job::class);
+        if (!$job instanceof RetryableJob) {
+            throw new ClassNotSubclassException('Job needs to be instance of '.RetryableJob::class);
         }
     }
 
@@ -113,6 +288,25 @@ class JobManager extends PriorityJobManager
     {
         if (null !== $workerName || null !== $methodName || (null !== $this->maxPriority && true !== $prioritize)) {
             throw new UnsupportedException('Unsupported');
+        }
+    }
+
+    public function deleteJob(Job $job)
+    {
+        $jobId = $job->getId();
+        $priorityQueue = $this->getPriorityQueueCacheKey();
+        $whenQueue = $this->getWhenAtQueueCacheKey();
+
+        $deleted = false;
+        if ($this->redis->zRem($priorityQueue, $jobId)) {
+            $deleted = true;
+        } elseif ($this->redis->zRem($whenQueue, $jobId)) {
+            $deleted = true;
+        }
+
+        if ($deleted) {
+            $this->redis->del([$this->getJobCacheKey($jobId)]);
+            $this->redis->lRem($this->getJobCrcHashKey($job->getCrcHash()), 1, $jobId);
         }
     }
 
@@ -124,14 +318,26 @@ class JobManager extends PriorityJobManager
         // First thing migrate any jobs from When queue to Prioirty queue
 
         $this->verifyGetJobArgs($workerName, $methodName, $prioritize);
-        $this->setupChannel();
+        if (null !== $this->maxPriority) {
+            $this->transferQueues();
+            $queue = $this->getPriorityQueueCacheKey();
+        } else {
+            $queue = $this->getWhenAtQueueCacheKey();
+        }
 
-        do {
-            $expiredJob = false;
-            $job = $this->findJob($expiredJob, $runId);
-        } while ($expiredJob);
+        $jobId = $this->redis->zPop($queue);
+        if ($jobId) {
+            $jobMessage = $this->redis->get($this->getJobCacheKey($jobId));
+            $job = new MessageableJobWithId();
+            $job->fromMessage($jobMessage);
+            $crcCacheKey = $this->getJobCrcHashKey($job->getCrcHash());
+            $this->redis->lRem($crcCacheKey, 1, $job->getId());
+            $this->redis->del([$this->getJobCacheKey($job->getId())]);
 
-        return $job;
+            return $job;
+        }
+
+        return null;
     }
 
     protected function getCurTime()
@@ -141,53 +347,22 @@ class JobManager extends PriorityJobManager
         return $time;
     }
 
-    protected function prioritizeReadyJobs()
+    public function resetJob(RetryableJob $job)
     {
-        // Get all ready jobs
-        $maxTime = $this->getCurTime();
-        $hashKey = $this->getWhenAtQueueHashKey();
-        while ($jobDef = $this->redis->zPopByMaxScore($hashKey, $maxTime)) {
+        if (!$job instanceof MessageableJobWithId) {
+            throw new \InvalidArgumentException('$job must be instance of '.MessageableJobWithId::class);
         }
+        $job->setStatus(BaseJob::STATUS_NEW);
+        $job->setMessage(null);
+        $job->setStartedAt(null);
+        $job->setRetries($job->getRetries() + 1);
+        $job->setUpdatedAt(new \DateTime());
+        $this->saveJob($job);
+
+        return true;
     }
 
-    /**
-     * @param bool $expiredJob
-     * @param $runId
-     *
-     * @return Job|null
-     */
-    protected function findJob(&$expiredJob, $runId)
+    public function retryableSaveHistory(RetryableJob $job, $retry)
     {
-        $message = $this->channel->basic_get($this->queueArgs[0]);
-        if ($message) {
-            $job = new Job();
-            $job->fromMessage($message->body);
-            $job->setRunId($runId);
-
-            if (($expiresAt = $job->getExpiresAt()) && $expiresAt->getTimestamp() < time()) {
-                $expiredJob = true;
-                $this->channel->basic_nack($message->delivery_info['delivery_tag']);
-                $this->jobTiminigManager->recordTiming(JobTiming::STATUS_FINISHED_EXPIRED);
-
-                return null;
-            }
-            $job->setDeliveryTag($message->delivery_info['delivery_tag']);
-
-            return $job;
-        }
-
-        return null;
-    }
-
-    // Save History get called upon completion of the job
-    public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
-    {
-        if (!$job instanceof Job) {
-            throw new ClassNotSubclassException("Expected \Dtc\QueueBundle\RabbitMQ\Job, got ".get_class($job));
-        }
-        $deliveryTag = $job->getDeliveryTag();
-        $this->channel->basic_ack($deliveryTag);
-
-        return;
     }
 }

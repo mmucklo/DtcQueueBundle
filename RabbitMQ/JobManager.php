@@ -300,8 +300,6 @@ class JobManager extends PriorityJobManager
 
     public function __destruct()
     {
-        if (null !== $this->channel) {
-            $this->channel->close();
-        }
+        // There's some kind of problem trying to close the channel, otherwise we'd call $this->channel->close() at this point.
     }
 }

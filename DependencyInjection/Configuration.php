@@ -52,6 +52,7 @@ class Configuration implements ConfigurationInterface
                 ->append($this->addAdmin())
                 ->append($this->addClasses())
                 ->append($this->addPriority())
+                ->append($this->addRetry())
             ->end();
 
         return $treeBuilder;
@@ -177,7 +178,24 @@ class Configuration implements ConfigurationInterface
                         ->append($this->addPredisArgs())
                     ->end()
                 ->end()
+                ->append($this->addPhpRedisArgs())
             ->end();
+    }
+
+    protected function addPhpRedisArgs()
+    {
+        $treeBuilder = new TreeBuilder();
+        $rootNode = $treeBuilder->root('php_redis');
+        $rootNode
+            ->children()
+                ->scalarNode('host')->end()
+                ->integerNode('port')->end()
+                ->floatNode('timeout')->end()
+                ->integerNode('retry_interval')->end()
+                ->floatNode('read_timeout')->end()
+            ->end();
+
+        return $rootNode;
     }
 
     protected function addPredisArgs()

@@ -4,25 +4,23 @@ namespace Dtc\QueueBundle\Redis;
 
 interface RedisInterface
 {
-    public function multi();
+    public function zRem($zkey, $value);
 
-    public function watch($key);
-
-    public function zPop($key);
-
-    public function zRange($key, $start, $stop);
-
-    public function zRem($zkey, $member);
-
-    public function exec();
-
-    public function zScore($zkey, $member);
-
-    public function zAdd($zkey, $score, $member);
-
-    public function hSet($hkey, $key, $value);
-
-    public function hGet($hkey, $key);
+    public function zAdd($zkey, $score, $value);
 
     public function zPopByMaxScore($key, $max);
+
+    public function set($key, $value);
+
+    public function get($key);
+
+    public function del(array $keys);
+
+    public function setEx($key, $ttl, $value);
+
+    public function lRange($lKey, $start, $stop);
+
+    public function lRem($lKey, $count, $value);
+
+    public function lPush($lKey, array $values);
 }
