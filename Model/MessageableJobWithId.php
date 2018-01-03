@@ -2,7 +2,7 @@
 
 namespace Dtc\QueueBundle\Model;
 
-class MessageableJobWithId extends MessageableJob
+abstract class MessageableJobWithId extends MessageableJob
 {
     /**
      * @return string A json_encoded version of a queueable version of the object

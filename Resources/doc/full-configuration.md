@@ -19,35 +19,18 @@ dtc_queue:
     #  "default_manager", defaults to what ever run_manager is set to
     job_timing_manager: ~
     # You can override the various base Job classes here:
-    class_job: ~
-    class_job_archive: ~
-    class_run: ~
-    class_run_archive: ~
-    class_job_timing: ~
+    class:
+        job: ~
+        job_archive: ~
+        run: ~
+        run_archive: ~
+        job_timing: ~
     #
     # record_timings
     #
     #  Whether to record job timings in a separate job_timings
     #  table / collection (uses same store as run_manager)
     record_timings: false
-    #
-    # prioirty_max: int
-    #
-    #  255 is the recommended max for RabbitMQ, although Mongo/ORM
-    #  could be set to INT_MAX for their platform
-    priority_max: 255
-    #
-    # priority_direction
-    #
-    #  "desc" means 1 is high priority, "asc" means 1 is low prioirty
-    #
-    #  In the queue and database, priorities will always be stored
-    #   in ascending order, however, (so as to sort null as the lowest)
-    #  
-    #  This is for the direction that a Job's setPriority() method
-    #   uses, plus direction that the priority argument of such
-    #   functions as later()
-    priority_direction: desc
     #
     # record_timings_timezone_offset
     #
@@ -58,6 +41,25 @@ dtc_queue:
     #  If you're not recording timings (record_timings: false), then it presently doesn't make a difference what this is set to.
     #
     record_timings_timezone_offset: 0
+    priority:
+        #
+        # max: int
+        #
+        #  255 is the recommended max for RabbitMQ, although Mongo/ORM
+        #  could be set to INT_MAX for their platform
+        max: 255
+        #
+        # direction
+        #
+        #  "desc" means 1 is high priority, "asc" means 1 is low prioirty
+        #
+        #  In the queue and database, priorities will always be stored
+        #   in ascending order, however, (so as to sort null as the lowest)
+        #  
+        #  This is for the direction that a Job's setPriority() method
+        #   uses, plus direction that the priority argument of such
+        #   functions as later()
+        direction: desc
     admin:
         chartjs: https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js
     beanstalkd:
@@ -78,10 +80,43 @@ dtc_queue:
             durable: true
             exclusive: false
             auto_delete: false
-       exchange_args:
+        exchange_args:
             exchange: dtc_queue_exchange
             type: direct
             passive: false
             durable: true
             auto_delete: false
+    # Redis setup - choose one of [ snc_redis | predis | phpredis ]
+    redis:
+        snc_redis:
+            # type should be one of [ predis| phpredis ]
+            type: ~
+            alias: ~
+        predis:
+            # dsn should be set, or fill in host and port in connection_parameters, but not both
+            dsn: ~
+            connection_parameters:
+                scheme: tcp
+                host: ~
+                port: ~
+                path: ~
+                database: ~
+                password: ~
+                async: false
+                persistent: false
+                timeout: 5.0
+                read_write_timeout: ~
+                alias: ~
+                weight: ~
+                iterable_multibulk: false
+                throw_errors: true
+        phpredis:
+            # minimum fill host and port if needed
+            host: ~
+            port: ~
+            timeout: ~
+            retry_interval: ~
+            read_timeout: ~
+            auth: ~
+
 ```

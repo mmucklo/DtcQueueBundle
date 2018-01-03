@@ -161,6 +161,8 @@ class WorkerCompilerPass implements CompilerPassInterface
                 return 'RabbitMQ';
             case 'orm':
                 return 'Entity';
+            case 'redis':
+                return 'Redis';
         }
 
         return null;

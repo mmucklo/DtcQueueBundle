@@ -5,7 +5,7 @@ namespace Dtc\QueueBundle\Tests\DependencyInjection\Compiler;
 use Dtc\GridBundle\Manager\GridSourceManager;
 use Dtc\QueueBundle\DependencyInjection\Compiler\WorkerCompilerPass;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
-use Dtc\QueueBundle\Model\WorkerManager;
+use Dtc\QueueBundle\Manager\WorkerManager;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\ODM\JobTimingManager;
 use Dtc\QueueBundle\ODM\LiveJobsGridSource;
@@ -105,6 +105,7 @@ class WorkerCompilerPassTest extends TestCase
         $this->runProcessValidWorker('orm', 'odm', 'orm');
         $this->runProcessValidWorker('beanstalkd');
         $this->runProcessValidWorker('rabbit_mq');
+        $this->runProcessValidWorker('redis');
     }
 
     public function testBadManagerType()

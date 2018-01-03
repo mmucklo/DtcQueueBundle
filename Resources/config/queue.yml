@@ -77,7 +77,6 @@ services:
             - '@dtc_queue.document_manager'
             - '%dtc_queue.class.job%'
             - '%dtc_queue.class.job_archive%'
-            - '%dtc_queue.retry_defaults%'
         calls:
             - ["setMaxPriority", ['%dtc_queue.priority.max%']]
             - ["setPriorityDirection", ['%dtc_queue.priority.direction%']]
@@ -95,7 +94,6 @@ services:
             - "@dtc_queue.run_manager"
             - "@dtc_queue.job_timing_manager"
             - '%dtc_queue.class.job%'
-            - '%dtc_queue.retry_defaults%'
         calls:
             - ["setDefaultMaxRetries", ['%dtc_queue.retry.max.retries%']]
             - ["setDefaultMaxFailures", ['%dtc_queue.retry.max.failures%']]
@@ -109,7 +107,6 @@ services:
             - "@dtc_queue.run_manager"
             - "@dtc_queue.job_timing_manager"
             - "%dtc_queue.class.job%"
-            - '%dtc_queue.retry_defaults%'
         calls:
             - ["setMaxPriority", ['%dtc_queue.priority.max%']]
             - ["setPriorityDirection", ['%dtc_queue.priority.direction%']]
@@ -119,6 +116,22 @@ services:
             - ["setAutoRetryOnFailure", ['%dtc_queue.retry.auto.failure%']]
             - ["setAutoRetryOnException", ['%dtc_queue.retry.auto.exception%']]
 
+    dtc_queue.job_manager.redis:
+        public: true
+        class: Dtc\QueueBundle\Redis\JobManager
+        arguments:
+            - "@dtc_queue.run_manager"
+            - "@dtc_queue.job_timing_manager"
+            - "%dtc_queue.class.job%"
+            - "%dtc_queue.redis.prefix%"
+        calls:
+            - ["setMaxPriority", ['%dtc_queue.priority.max%']]
+            - ["setPriorityDirection", ['%dtc_queue.priority.direction%']]
+            - ["setDefaultMaxRetries", ['%dtc_queue.retry.max.retries%']]
+            - ["setDefaultMaxFailures", ['%dtc_queue.retry.max.failures%']]
+            - ["setDefaultMaxExceptions", ['%dtc_queue.retry.max.exceptions%']]
+            - ["setAutoRetryOnFailure", ['%dtc_queue.retry.auto.failure%']]
+            - ["setAutoRetryOnException", ['%dtc_queue.retry.auto.exception%']]
     dtc_queue.run_manager.orm:
         public: true
         class: Dtc\QueueBundle\ORM\RunManager

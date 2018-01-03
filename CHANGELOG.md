@@ -34,6 +34,7 @@
       * errorCount / error_count renamed to exceptions
       * max_errors renamed to max_exceptions
       * max_stalled renamed to max_stalls
+   * Bug fix - add Compiler passes for RabbitMq, and Beanstalk
 ### 3.1.2
    * Fix a bug in timings by minute for ORM
    * Fix a bug in ODM timings

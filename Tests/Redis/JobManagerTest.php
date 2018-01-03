@@ -38,7 +38,7 @@ class JobManagerTest extends BaseJobManagerTest
 
         self::$jobTimingManager = new JobTimingManager($jobTimingClass, false);
         self::$runManager = new RunManager($runClass);
-        self::$jobManager = new JobManager(self::$runManager, self::$jobTimingManager, \Dtc\QueueBundle\Model\MessageableJobWithId::class, 'test_cache_key');
+        self::$jobManager = new JobManager(self::$runManager, self::$jobTimingManager, \Dtc\QueueBundle\Redis\Job::class, 'test_cache_key');
         self::$jobManager->setRedis($predis);
         self::$jobManager->setMaxPriority(255);
         self::$worker = new FibonacciWorker();

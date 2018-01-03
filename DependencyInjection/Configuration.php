@@ -63,6 +63,7 @@ class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('retry');
         $rootNode
+            ->addDefaultsIfNotSet()
             ->children()
                 ->arrayNode('max')
                     ->addDefaultsIfNotSet()
@@ -153,6 +154,7 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->addDefaultsIfNotSet()
             ->children()
+                ->scalarNode('prefix')->defaultValue('dtc_queue_')->end()
                 ->arrayNode('snc_redis')
                     ->children()
                         ->enumNode('type')
@@ -177,9 +179,34 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('dsn')->defaultNull()->end()
                         ->append($this->addPredisArgs())
                     ->end()
+                    ->validate()->ifTrue(function ($node) {
+                        if (isset($node['dsn']) && (isset($node['connection_parameters']['host']) || isset($node['connection_parameters']['port']))) {
+                            return false;
+                        }
+
+                        return true;
+                    })->thenInvalid('if dsn is set, do not use connection_parameters for predis (and vice-versa)')->end()
                 ->end()
                 ->append($this->addPhpRedisArgs())
-            ->end();
+            ->end()
+            ->validate()->ifTrue(function ($node) {
+                if ((isset($node['predis']['dsn']) || isset($node['predis']['connection_parameters']['host'])) &&
+                    (isset($node['snc_redis']['type']) || isset($node['phpredis']['host']))) {
+                    return false;
+                }
+                if (isset($node['snc_redis']['type']) &&
+                    (isset($node['predis']['dsn']) || isset($node['predis']['connection_parameters']['host']) ||
+                    isset($node['phpredis']['host']))) {
+                    return false;
+                }
+                if ((isset($node['phpredis']['host']) || isset($node['phpredis']['port'])) &&
+                    (isset($node['snc_redis']['type']) || isset($node['predis']['dsn']) ||
+                     isset($node['predis']['connection_parameters']['host']))) {
+                    return false;
+                }
+
+                return true;
+            })->thenInvalid('only one of [snc_redis | predis | phpredis] should be set')->end();
     }
 
     protected function addPhpRedisArgs()
@@ -189,11 +216,19 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->scalarNode('host')->end()
-                ->integerNode('port')->end()
-                ->floatNode('timeout')->end()
-                ->integerNode('retry_interval')->end()
-                ->floatNode('read_timeout')->end()
-            ->end();
+                ->integerNode('port')->defaultValue(6379)->end()
+                ->floatNode('timeout')->defaultValue(0)->end()
+                ->integerNode('retry_interval')->defaultNull()->end()
+                ->floatNode('read_timeout')->defaultValue(0)->end()
+                ->scalarNode('auth')->end()
+            ->end()
+            ->validate()->ifTrue(function ($node) {
+                if (!empty($node) && !isset($node['host'])) {
+                    return false;
+                }
+
+                return true;
+            })->thenInvalid('phpredis host should be set')->end();
 
         return $rootNode;
     }
@@ -203,10 +238,11 @@ class Configuration implements ConfigurationInterface
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('connection_parameters');
         $rootNode
+            ->addDefaultsIfNotSet()
             ->children()
                 ->scalarNode('scheme')->defaultValue('tcp')->end()
-                ->scalarNode('host')->defaultValue('127.0.0.1')->end()
-                ->integerNode('port')->defaultValue(6379)->end()
+                ->scalarNode('host')->defaultNull()->end()
+                ->integerNode('port')->defaultNull()->end()
                 ->scalarNode('path')->defaultNull()->end()
                 ->scalarNode('database')->defaultNull()->end()
                 ->scalarNode('password')->defaultNull()->end()
@@ -218,7 +254,17 @@ class Configuration implements ConfigurationInterface
                 ->integerNode('weight')->defaultNull()->end()
                 ->booleanNode('iterable_multibulk')->defaultFalse()->end()
                 ->booleanNode('throw_errors')->defaultTrue()->end()
-            ->end();
+            ->end()
+            ->validate()->ifTrue(function ($node) {
+                if (isset($node['host']) && !isset($node['port'])) {
+                    return false;
+                }
+                if (isset($node['port']) && !isset($node['host'])) {
+                    return false;
+                }
+
+                return true;
+            })->thenInvalid('preids connection_parameters host and port should both be set')->end();
 
         return $rootNode;
     }

@@ -4,7 +4,7 @@
 
 If you set various classes in the configuration
 
-3.0
+3.0 (old)
 ```yaml
 dtc_queue:
    # ...
@@ -14,7 +14,7 @@ dtc_queue:
    priority_direction: ...
 ```
 
-4.0
+4.0 (new)
 ```yaml
 dtc_queue:
    # ...
@@ -28,16 +28,16 @@ dtc_queue:
 ```
 
 * ORM - Job tables will need a migration or table update as several fields have been renamed
-   * RENAMES
+   * **RENAMES**
       * error_count -> exceptions
       * stalled_count -> stalls
       * max_stalled -> max_stalls
       * max_errors -> max_exceptions   
-   * NEW
-      * *failures*
-      * *max_failures*
+   * **NEW**
+      * failures
+      * max_failures
 * Worker updates
-   * Remove all $this->jobClass = // some class
+   * **Important**: Remove all $this->jobClass = // some class
    * Replace any $this->jobClass or $this->getJobClass() function calls with:
       * $this->getJobManager()->getJobClass()
    * Replace any $this->jobManager direct access calls with:
@@ -48,6 +48,5 @@ dtc_queue:
       * resetErroneousJobs -> resetExceptionJobs
    * If you extended any of the Job classes in Model, please note the following
       * locked and lockedAt have been moved to DoctrineJob
-      * finshedAt and elapsed are now in ArchivableJob
-      * stalls and maxStalls are now in StallableJob (used to be stalledCount / maxStalled)
-      * errors and maxErrors are now in RetryableJob
+      * stallCount and maxStalled are now in StallableJob (used to be stalledCount / maxStalled)
+      * errorCount and maxErrors are renamed to exceptions and maxExceptions and are now in RetryableJob

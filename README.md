@@ -8,6 +8,12 @@ DtcQueueBundle
 
 > Allow symfony developers to create background job as easily as: `$worker->later()->process(1,2,3)`
 
+### 4.0 Release (Happy 2018!)
+
+See [changes](CHANGELOG.md)
+
+Upgrading from 3.0: [see UPGRADING-4.0.md](UPGRADING-4.0.md)
+
 Supported Queues
 ----------------
 
@@ -222,7 +228,8 @@ Tracking Runs
 Each runs can be tracked in a table in an ORM / ODM backed datastore.
 
 Ways to configure:
-__config.yml:__
+__app/config/config.yml:__ (symfony 2/3)
+__config/packages/dtc_queue.yaml:__ (symfony 4)
 ```yaml
 dtc_queue:
     # run_manager defaults to whatever default_manager is set to (which defaults to "odm", i.e. mongodb)
@@ -232,14 +239,14 @@ dtc_queue:
     run_manager: orm # other possible option is "odm" (i.e. mongodb)
     #
     # (optionally define your own run manager with id: dtc_queue.run_manager.{some_name} and put {some_name} as the run_manager
-    DoctrineJobManager
 ```
 
 MongoDB DocumentManager
 ------------------------
 Change the document manager
 
-__config.yml:__
+__app/config/config.yml:__ (symfony 2/3)
+__config/packages/dtc_queue.yaml:__ (symfony 4)
 ```yaml
 dtc_queue:
     document_manager: {something} # default is "default"
@@ -248,7 +255,8 @@ dtc_queue:
 Mysql / ORM Setup
 -----------------
 
-__config.yml:__
+__app/config/config.yml:__ (symfony 2/3)
+__config/packages/dtc_queue.yaml:__ (symfony 4)
 ```yaml
 dtc_queue:
     default_manager: orm
@@ -272,10 +280,13 @@ doctrine:
            DtcQueueBundle: ~
 ```
 
+
+
 Beanstalk Configuration
 ------------------------
 
-__config.yml:__
+__app/config/config.yml:__ (symfony 2/3)
+__config/packages/dtc_queue.yaml:__ (symfony 4)
 ```yaml
 dtc_queue:
     beanstalkd:
@@ -287,7 +298,8 @@ dtc_queue:
 RabbitMQ Configuration
 ----------------------
 
-__config.yml:__
+__app/config/config.yml:__ (symfony 2/3)
+__config/packages/dtc_queue.yaml:__ (symfony 4)
 ```yaml
 dtc_queue:
     default_manager: rabbit_mq
@@ -314,11 +326,52 @@ dtc_queue:
             auto_delete: [optional defaults to false]
 ```
 
+Redis Configuration
+-------------------
+
+__app/config/config.yml:__ (symfony 2/3)
+__config/packages/dtc_queue.yaml:__ (symfony 4)
+```yaml
+dtc_queue:
+    default_manager: redis
+    redis:
+        # choose one of the below snc_redis, predis, or phpredis
+        snc_redis:
+           type: predis
+           alias: default
+        predis:
+            # choose one of dns or connection_parameters
+            dsn: redis://localhost
+            connection_parameters:
+                scheme: tcp
+                host: localhost
+                port: 6379
+                path: ~
+                database: ~
+                password: ~
+                async: false
+                persistent: false
+                timeout: 5.0
+                read_write_timeout: ~
+                alias: ~
+                weight: ~
+                iterable_multibulk: false
+                throw_errors: true
+        phpredis:
+            # minimum fill host and port if needed
+            host: localhost
+            port: 6379
+            timeout: 0
+            retry_interval: ~
+            read_timeout: 0
+            auth: ~
+```
+
 Custom Jobs and Managers
 ------------------------
 
-__config.yml:__
-
+__app/config/config.yml:__ (symfony 2/3)
+__config/packages/dtc_queue.yaml:__ (symfony 4)
 ```yaml
 dtc_queue:
     class_job: Some\Job\ClassName [optional]

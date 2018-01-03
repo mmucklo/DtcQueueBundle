@@ -42,6 +42,21 @@ class DtcQueueExtension extends Extension
         $yamlLoader->load('queue.yml');
     }
 
+    protected function configRedis(array $config, ContainerBuilder $container)
+    {
+        $container->setParameter('dtc_queue.redis.prefix', $config['redis']['prefix']);
+        if (isset($config['redis']['snc_redis']['type'])) {
+            $container->setParameter('dtc_queue.redis.snc_redis.type', $config['redis']['snc_redis']['type']);
+            $container->setParameter('dtc_queue.redis.snc_redis.alias', $config['redis']['snc_redis']['alias']);
+        } elseif (isset($config['redis']['predis']['dsn'])) {
+            $container->setParameter('dtc_queue.redis.predis.dsn', $config['redis']['predis']['dsn']);
+        } elseif (isset($config['redis']['predis']['connection_parameters']['host'])) {
+            $container->setParameter('dtc_queue.redis.predis.connection_parameters', $config['redis']['predis']['connection_parameters']);
+        } elseif (isset($config['redis']['phpredis']['host'])) {
+            $container->setParameter('dtc_queue.redis.phpredis', $config['redis']['phpredis']);
+        }
+    }
+
     protected function configAdmin(array $config, ContainerBuilder $container)
     {
         $container->setParameter('dtc_queue.admin.chartjs', $config['admin']['chartjs']);
