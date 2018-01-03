@@ -49,6 +49,7 @@ class Configuration implements ConfigurationInterface
                     ->end()
                 ->end()
                 ->append($this->addRabbitMq())
+                ->append($this->addRedis())
                 ->append($this->addAdmin())
                 ->append($this->addClasses())
                 ->append($this->addPriority())
@@ -207,6 +208,7 @@ class Configuration implements ConfigurationInterface
 
                 return true;
             })->thenInvalid('only one of [snc_redis | predis | phpredis] should be set')->end();
+        return $rootNode;
     }
 
     protected function addPhpRedisArgs()

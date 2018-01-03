@@ -19,6 +19,7 @@ class DtcQueueExtension extends Extension
         $config = $processor->processConfiguration($configuration, $configs);
         $this->configBeanstalkd($config, $container);
         $this->configRabbitMQ($config, $container);
+        $this->configRedis($config, $container);
 
         $container->setParameter('dtc_queue.default_manager', $config['default_manager']);
         $container->setParameter('dtc_queue.document_manager', $config['document_manager']);
@@ -26,10 +27,10 @@ class DtcQueueExtension extends Extension
         $container->setParameter('dtc_queue.run_manager', isset($config['run_manager']) ? $config['run_manager'] : $config['default_manager']);
         $container->setParameter('dtc_queue.priority.direction', $config['priority']['direction']);
         $container->setParameter('dtc_queue.priority.max', $config['priority']['max']);
-        $container->setParameter('dtc_queue.retry.max.retry', $config['retry']['max']['retry']);
-        $container->setParameter('dtc_queue.retry.max.failure', $config['retry']['max']['failure']);
-        $container->setParameter('dtc_queue.retry.max.exception', $config['retry']['max']['exception']);
-        $container->setParameter('dtc_queue.retry.max.stalled', $config['retry']['max']['stalled']);
+        $container->setParameter('dtc_queue.retry.max.retries', $config['retry']['max']['retries']);
+        $container->setParameter('dtc_queue.retry.max.failures', $config['retry']['max']['failures']);
+        $container->setParameter('dtc_queue.retry.max.exceptions', $config['retry']['max']['exceptions']);
+        $container->setParameter('dtc_queue.retry.max.stalls', $config['retry']['max']['stalls']);
         $container->setParameter('dtc_queue.retry.auto.failure', $config['retry']['auto']['failure']);
         $container->setParameter('dtc_queue.retry.auto.exception', $config['retry']['auto']['exception']);
         $this->configClasses($config, $container);
@@ -88,7 +89,7 @@ class DtcQueueExtension extends Extension
                     throw new InvalidConfigurationException('dtc_queue: rabbit_mq must have '.$value.' in config.yml');
                 }
             }
-            $config['rabbit_mq']['queue_args']['max_priority'] = $config['priority_max'];
+            $config['rabbit_mq']['queue_args']['max_priority'] = $config['priority']['max'];
             $container->setParameter('dtc_queue.rabbit_mq', $config['rabbit_mq']);
         }
     }

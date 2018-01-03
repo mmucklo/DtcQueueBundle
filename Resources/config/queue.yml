@@ -186,7 +186,6 @@ services:
             - '@dtc_queue.entity_manager'
             - '%dtc_queue.class.job%'
             - '%dtc_queue.class.job_archive%'
-            - '%dtc_queue.retry_defaults%'
         calls:
             - ["setMaxPriority", ['%dtc_queue.priority.max%']]
             - ["setPriorityDirection", ['%dtc_queue.priority.direction%']]
