@@ -73,7 +73,7 @@ class Configuration implements ConfigurationInterface
                             ->defaultValue(3)
                         ->end()
                         ->integerNode('failures')
-                            ->defaultValue(2)
+                            ->defaultValue(1)
                         ->end()
                         ->integerNode('exceptions')
                             ->defaultValue(1)

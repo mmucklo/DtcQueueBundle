@@ -41,6 +41,20 @@ dtc_queue:
     #  If you're not recording timings (record_timings: false), then it presently doesn't make a difference what this is set to.
     #
     record_timings_timezone_offset: 0
+    retry:
+        max:
+            # maximum total retries
+            retries: 3
+            # maximum total failures
+            failures: 1
+            # maximum total exceptions
+            exceptions: 1
+            # maximum total stalls
+            stalls: 2
+        auto:
+            # auto retry on failure or exception
+            failure: true
+            exception: false
     priority:
         #
         # max: int
