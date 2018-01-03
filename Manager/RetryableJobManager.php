@@ -177,7 +177,7 @@ abstract class RetryableJobManager extends AbstractJobManager
      */
     public function setDefaultMaxFailures($defaultMaxFailures)
     {
-        $this->defaultMaxFailure = $defaultMaxFailures;
+        $this->defaultMaxFailures = $defaultMaxFailures;
     }
 
     /**
