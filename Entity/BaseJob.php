@@ -4,9 +4,9 @@ namespace Dtc\QueueBundle\Entity;
 
 use Dtc\GridBundle\Annotation as Grid;
 use Doctrine\ORM\Mapping as ORM;
-use Dtc\QueueBundle\Doctrine\DoctrineJob;
+use Dtc\QueueBundle\Model\StallableJob;
 
-abstract class BaseJob extends DoctrineJob
+abstract class BaseJob extends StallableJob
 {
     /**
      * @Grid\Column(order=1,sortable=true,searchable=true)
@@ -44,17 +44,6 @@ abstract class BaseJob extends DoctrineJob
      * @ORM\Column(type="text")
      */
     protected $args;
-
-    /**
-     * @Grid\Column(sortable=true, searchable=true)
-     * @ORM\Column(type="boolean", nullable=true)
-     */
-    protected $locked;
-
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    protected $lockedAt;
 
     /**
      * @Grid\Column(sortable=true,searchable=true)

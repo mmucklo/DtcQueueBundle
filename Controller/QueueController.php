@@ -40,8 +40,8 @@ class QueueController extends Controller
     public function jobsAllAction()
     {
         $this->validateManagerType('dtc_queue.default_manager');
-        $class1 = $this->container->getParameter('dtc_queue.class_job');
-        $class2 = $this->container->getParameter('dtc_queue.class_job_archive');
+        $class1 = $this->container->getParameter('dtc_queue.class.job');
+        $class2 = $this->container->getParameter('dtc_queue.class.job_archive');
         $label1 = 'Non-Archived Jobs';
         $label2 = 'Archived Jobs';
 
@@ -159,8 +159,8 @@ class QueueController extends Controller
     public function runsAction()
     {
         $this->validateRunManager();
-        $class1 = $this->container->getParameter('dtc_queue.class_run');
-        $class2 = $this->container->getParameter('dtc_queue.class_run_archive');
+        $class1 = $this->container->getParameter('dtc_queue.class.run');
+        $class2 = $this->container->getParameter('dtc_queue.class.run_archive');
         $label1 = 'Live Runs';
         $label2 = 'Archived Runs';
 

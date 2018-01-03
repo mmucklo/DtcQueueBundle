@@ -177,7 +177,6 @@ class JobManager extends DoctrineJobManager
                 $queryBuilder->expr()->isNull('j.expiresAt'),
                 $queryBuilder->expr()->gt('j.expiresAt', ':expiresAt')
             ))
-            ->andWhere('j.locked is NULL')
             ->setParameter(':whenAt', $dateTime)
             ->setParameter(':expiresAt', $dateTime);
 
@@ -300,7 +299,6 @@ class JobManager extends DoctrineJobManager
         $dateTime = new \DateTime();
         $queryBuilder
             ->where('j.status = :status')->setParameter(':status', BaseJob::STATUS_NEW)
-            ->andWhere('j.locked is NULL')
             ->andWhere($queryBuilder->expr()->orX(
                 $queryBuilder->expr()->isNull('j.whenAt'),
                 $queryBuilder->expr()->lte('j.whenAt', ':whenAt')
@@ -321,10 +319,6 @@ class JobManager extends DoctrineJobManager
         $queryBuilder = $repository->createQueryBuilder('j');
         $queryBuilder
             ->update()
-            ->set('j.locked', ':locked')
-            ->setParameter(':locked', true)
-            ->set('j.lockedAt', ':lockedAt')
-            ->setParameter(':lockedAt', new \DateTime())
             ->set('j.status', ':status')
             ->setParameter(':status', BaseJob::STATUS_RUNNING);
         if (null !== $runId) {
@@ -332,8 +326,9 @@ class JobManager extends DoctrineJobManager
                 ->set('j.runId', ':runId')
                 ->setParameter(':runId', $runId);
         }
+        $queryBuilder->set('j.startedAt', ':startedAt')
+            ->setParameter(':startedAt', new \DateTime());
         $queryBuilder->where('j.id = :id');
-        $queryBuilder->andWhere('j.locked is NULL');
         $queryBuilder->setParameter(':id', $jobId);
         $resultCount = $queryBuilder->getQuery()->execute();
 
@@ -404,7 +399,6 @@ class JobManager extends DoctrineJobManager
                     ->setParameter(':whenAt', $newWhenAt);
             }
             $queryBuilder->where('j.id = :id');
-            $queryBuilder->andWhere('j.locked is NULL');
             $queryBuilder->setParameter(':id', $existingJob->getId());
             $queryBuilder->getQuery()->execute();
         }

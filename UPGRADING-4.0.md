@@ -36,6 +36,9 @@ dtc_queue:
    * **NEW**
       * failures
       * max_failures
+   * **DELETED**
+      * locked
+      * locked_at
 * Worker updates
    * **Important**: Remove all $this->jobClass = // some class
    * Replace any $this->jobClass or $this->getJobClass() function calls with:
@@ -47,6 +50,6 @@ dtc_queue:
       * Base classes have been moved to their own "Manager" folder
       * resetErroneousJobs -> resetExceptionJobs
    * If you extended any of the Job classes in Model, please note the following
-      * locked and lockedAt have been moved to DoctrineJob
+      * locked and lockedAt have been removed (as they were redundant)
       * stallCount and maxStalled are now in StallableJob (used to be stalledCount / maxStalled)
       * errorCount and maxErrors are renamed to exceptions and maxExceptions and are now in RetryableJob

@@ -13,9 +13,10 @@
       * $this->getCurrentJob() will return the current Job object during a worker's method invocation.
          * This may be useful if you want to record some message by calling $this->getCurrentJob()->setMessage('some message');
          * However only Doctrine Jobs are persisted on SUCCESS         
-   * Worker $jobClass removed
-      * $jobClass member variable, and getJobClass() / setJobClass() functions removed.
-      * 
+   * Worker
+      * $jobClass removed
+         * $jobClass member variable, and getJobClass() / setJobClass() functions removed.
+      * $jobManager made private - accesss methods exist
    * Changed STATUS_ERROR to STATUS_EXCEPTION
    * Auto Retry
       * Jobs that fail will automatically be retried a certain number of times, by being re-enqueued
@@ -34,6 +35,7 @@
       * errorCount / error_count renamed to exceptions
       * max_errors renamed to max_exceptions
       * max_stalled renamed to max_stalls
+      * removed locked and locked_at (redundant)
    * Bug fix - add Compiler passes for RabbitMq, and Beanstalk
 ### 3.1.2
    * Fix a bug in timings by minute for ORM

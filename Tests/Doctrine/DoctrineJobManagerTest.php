@@ -358,11 +358,10 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
 
         self::assertNotNull($job);
         self::assertEquals(BaseJob::STATUS_NEW, $job->getStatus());
-        self::assertNull($job->getLockedAt());
+        self::assertNull($job->getStartedAt());
         self::assertNull($job->getFinishedAt());
         self::assertNull($job->getElapsed());
         self::assertNull($job->getMessage());
-        self::assertNull($job->getLocked());
 
         $objectManager->remove($job);
         $objectManager->flush();
@@ -407,8 +406,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         self::assertEquals($id, $result->getId());
 
         $result->setStatus(BaseJob::STATUS_EXCEPTION);
-        $result->setLocked(true);
-        $result->setLockedAt(new \DateTime());
+        $result->setStartedAt(new \DateTime());
         $result->setFinishedAt(new \DateTime());
         $result->setElapsed(12345);
         $result->setMessage('soomething');
@@ -433,10 +431,9 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         $job->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
         $job->setStatus(BaseJob::STATUS_RUNNING);
-        $job->setLocked(true);
         $time = time();
         $date = new \DateTime("@$time");
-        $job->setLockedAt($date);
+        $job->setStartedAt($date);
         $id = $job->getId();
         $job = $jobManager->getRepository()->find($id);
 
@@ -494,11 +491,10 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
 
         self::assertNotNull($job);
         self::assertEquals(BaseJob::STATUS_NEW, $job->getStatus());
-        self::assertNull($job->getLockedAt());
+        self::assertNull($job->getStartedAt());
         self::assertNull($job->getFinishedAt());
         self::assertNull($job->getElapsed());
         self::assertNull($job->getMessage());
-        self::assertNull($job->getLocked());
         self::assertEquals(1, $job->getStalls());
 
         $objectManager->remove($job);
@@ -528,11 +524,10 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
 
         self::assertNotNull($job);
         self::assertEquals(BaseJob::STATUS_NEW, $job->getStatus());
-        self::assertNull($job->getLockedAt());
+        self::assertNull($job->getStartedAt());
         self::assertNull($job->getFinishedAt());
         self::assertNull($job->getElapsed());
         self::assertNull($job->getMessage());
-        self::assertNull($job->getLocked());
         self::assertEquals(1, $job->getStalls());
 
         $objectManager->remove($job);
@@ -601,8 +596,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         self::assertEquals($id, $result->getId());
 
         $result->setStatus(BaseJob::STATUS_EXCEPTION);
-        $result->setLocked(true);
-        $result->setLockedAt(new \DateTime());
+        $result->setStartedAt(new \DateTime());
         $result->setFinishedAt(new \DateTime());
         $result->setElapsed(12345);
         $result->setMessage('soomething');
@@ -642,8 +636,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         self::assertEquals($id, $result->getId());
 
         $result->setStatus(BaseJob::STATUS_EXCEPTION);
-        $result->setLocked(true);
-        $result->setLockedAt(new \DateTime());
+        $result->setStartedAt(new \DateTime());
         $result->setFinishedAt(new \DateTime());
         $result->setElapsed(12345);
         $result->setMessage('soomething');
@@ -666,8 +659,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         self::assertEquals($id, $result->getId());
 
         $result->setStatus(BaseJob::STATUS_EXCEPTION);
-        $result->setLocked(true);
-        $result->setLockedAt(new \DateTime());
+        $result->setStartedAt(new \DateTime());
         $result->setFinishedAt(new \DateTime());
         $result->setElapsed(12345);
         $result->setMessage('soomething');
@@ -688,10 +680,9 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         $job->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
         $job->setStatus(BaseJob::STATUS_RUNNING);
-        $job->setLocked(true);
         $time = time();
         $date = new \DateTime("@$time");
-        $job->setLockedAt($date);
+        $job->setStartedAt($date);
         $id = $job->getId();
         $job = $jobManager->getRepository()->find($id);
 
@@ -754,10 +745,9 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         $job->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
         $job->setStatus(BaseJob::STATUS_RUNNING);
-        $job->setLocked(true);
         $time = time();
         $date = new \DateTime("@$time");
-        $job->setLockedAt($date);
+        $job->setStartedAt($date);
         $id = $job->getId();
         $job = $jobManager->getRepository()->find($id);
 
@@ -794,10 +784,9 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         $job->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
         $job->setStatus(BaseJob::STATUS_RUNNING);
-        $job->setLocked(true);
         $time = time();
         $date = new \DateTime("@$time");
-        $job->setLockedAt($date);
+        $job->setStartedAt($date);
         $id = $job->getId();
         $job = $jobManager->getRepository()->find($id);
 

@@ -411,12 +411,10 @@ abstract class DoctrineJobManager extends ArchivableJobManager
 
     protected function resetJob(RetryableJob $job)
     {
-        if (!$job instanceof DoctrineJob) {
-            throw new \InvalidArgumentException('$job should be instance of '.DoctrineJob::class);
+        if (!$job instanceof StallableJob) {
+            throw new \InvalidArgumentException('$job should be instance of '.StallableJob::class);
         }
         $job->setStatus(BaseJob::STATUS_NEW);
-        $job->setLocked(null);
-        $job->setLockedAt(null);
         $job->setMessage(null);
         $job->setFinishedAt(null);
         $job->setStartedAt(null);

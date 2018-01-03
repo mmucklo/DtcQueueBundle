@@ -53,10 +53,10 @@ trait ControllerTrait
         $container->setParameter('dtc_grid.theme.css', []);
         $container->setParameter('dtc_grid.theme.js', []);
         $container->setParameter('dtc_grid.jquery', ['url' => 'https://something']);
-        $container->setParameter('dtc_queue.class_job', $jobManager->getJobClass());
-        $container->setParameter('dtc_queue.class_job_archive', $jobManager->getJobArchiveClass());
-        $container->setParameter('dtc_queue.class_run', $runManager->getRunClass());
-        $container->setParameter('dtc_queue.class_run_archive', $runManager->getRunArchiveClass());
+        $container->setParameter('dtc_queue.class.job', $jobManager->getJobClass());
+        $container->setParameter('dtc_queue.class.job_archive', $jobManager->getJobArchiveClass());
+        $container->setParameter('dtc_queue.class.run', $runManager->getRunClass());
+        $container->setParameter('dtc_queue.class.run_archive', $runManager->getRunArchiveClass());
         $container->setParameter('dtc_queue.admin.chartjs', '');
         $container->setParameter('dtc_queue.default_manager', 'orm');
         $container->setParameter('dtc_queue.record_timings', true);

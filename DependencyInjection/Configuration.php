@@ -208,6 +208,7 @@ class Configuration implements ConfigurationInterface
 
                 return true;
             })->thenInvalid('only one of [snc_redis | predis | phpredis] should be set')->end();
+
         return $rootNode;
     }
 

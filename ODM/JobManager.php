@@ -134,9 +134,7 @@ class JobManager extends DoctrineJobManager
         $qb
             ->addAnd(
                 $qb->expr()->addOr($qb->expr()->field('expiresAt')->equals(null), $qb->expr()->field('expiresAt')->gt($date))
-            )
-            ->field('locked')->equals(null);
-
+            );
         $query = $qb->getQuery();
 
         return $query->count(true);
@@ -232,8 +230,7 @@ class JobManager extends DoctrineJobManager
         $date = new \DateTime();
         // Update
         $builder
-            ->field('lockedAt')->set($date) // Set started
-            ->field('locked')->set(true)
+            ->field('startedAt')->set($date)
             ->field('status')->set(BaseJob::STATUS_RUNNING)
             ->field('runId')->set($runId);
 
@@ -282,8 +279,7 @@ class JobManager extends DoctrineJobManager
 
         $builder->sort('whenAt', 'asc');
         $builder->field('status')->equals(BaseJob::STATUS_NEW)
-            ->field('crcHash')->equals($job->getCrcHash())
-            ->field('locked')->equals(null);
+            ->field('crcHash')->equals($job->getCrcHash());
         $oldJob = $builder->getQuery()->getSingleResult();
 
         if (!$oldJob) {
@@ -328,8 +324,7 @@ class JobManager extends DoctrineJobManager
                 $builder->expr()->addOr($builder->expr()->field('whenAt')->equals(null), $builder->expr()->field('whenAt')->lte($date)),
                 $builder->expr()->addOr($builder->expr()->field('expiresAt')->equals(null), $builder->expr()->field('expiresAt')->gt($date))
             )
-            ->field('status')->equals(BaseJob::STATUS_NEW)
-            ->field('locked')->equals(null);
+            ->field('status')->equals(BaseJob::STATUS_NEW);
     }
 
     public function getWorkersAndMethods()

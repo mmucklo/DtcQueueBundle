@@ -4,9 +4,9 @@ namespace Dtc\QueueBundle\Document;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 use Dtc\GridBundle\Annotation as Grid;
-use Dtc\QueueBundle\Doctrine\DoctrineJob;
+use Dtc\QueueBundle\Model\StallableJob;
 
-abstract class BaseJob extends DoctrineJob
+abstract class BaseJob extends StallableJob
 {
     /**
      * @Grid\Column(order=1,sortable=true,searchable=true)
@@ -48,17 +48,6 @@ abstract class BaseJob extends DoctrineJob
      * @ODM\Field(type="boolean", nullable=true)
      */
     protected $batch;
-
-    /**
-     * @Grid\Column(sortable=true, searchable=true)
-     * @ODM\Field(type="boolean", nullable=true)
-     */
-    protected $locked;
-
-    /**
-     * @ODM\Field(type="date", nullable=true)
-     */
-    protected $lockedAt;
 
     /**
      * @Grid\Column(sortable=true,searchable=true)
