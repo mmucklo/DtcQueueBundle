@@ -14,8 +14,17 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
     protected $maxExceptions = 0;
     protected $exceptions = 0;
     protected $retries = 0;
-    protected $createdAt;
     protected $updatedAt;
+
+    public function __construct(
+        Worker $worker = null,
+        $batch = false,
+        $priority = 10,
+        \DateTime $whenAt = null
+    ) {
+        parent::__construct($worker, $batch, $priority, $whenAt);
+        $this->setUpdatedAt($this->getCreatedAt());
+    }
 
     /**
      * @return mixed

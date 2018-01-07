@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Model;
 
 use Dtc\QueueBundle\Manager\JobManagerInterface;
+use Dtc\QueueBundle\Util\Util;
 
 abstract class BaseJob
 {
@@ -29,19 +30,23 @@ abstract class BaseJob
 
     public function __construct(Worker $worker = null, $batch = false, $priority = 10, \DateTime $whenAt = null)
     {
-        $this->worker = $worker;
         if ($worker) {
-            $this->jobManager = $worker->getJobManager();
-            $this->className = get_class($worker);
-            $this->workerName = $worker->getName();
+            $this->setWorker($worker);
+            if ($jobManager = $worker->getJobManager()) {
+                $this->setJobManager($jobManager);
+            }
+            $this->setClassName(get_class($worker));
+            $this->setWorkerName($worker->getName());
         }
 
-        $this->whenAt = $whenAt;
-        $this->batch = $batch ? true : false;
-        $this->priority = $priority;
-        $this->status = self::STATUS_NEW;
-        $this->createdAt = new \DateTime();
-        $this->updatedAt = new \DateTime();
+        if ($whenAt) {
+            $this->setWhenAt($whenAt);
+        }
+        $this->setBatch($batch ? true : false);
+        $this->setPriority($priority);
+        $this->setStatus(self::STATUS_NEW);
+        $dateTime = \DateTime::createFromFormat('U.u', Util::getMicrotimeStr());
+        $this->setCreatedAt($dateTime);
     }
 
     /**

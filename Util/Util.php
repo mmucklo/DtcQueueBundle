@@ -98,4 +98,36 @@ class Util
 
         return intval($var);
     }
+
+    public static function getMicrotimeStr()
+    {
+        $parts = explode(' ', microtime());
+        $pos1 = strpos($parts[0], '.');
+
+        $timeU = $parts[1].'.'.substr($parts[0], $pos1 + 1, 6);
+
+        return $timeU;
+    }
+
+    public static function getMicrotimeDecimal()
+    {
+        return self::getMicrotimeDecimalFormat(\DateTime::createFromFormat('U.u', self::getMicrotimeStr()));
+    }
+
+    public static function getMicrotimeDecimalFormat(\DateTime $dateTime)
+    {
+        $dateTimeUs = $dateTime->format('Uu');
+        $dateTimeUs = str_pad($dateTimeUs, 18, '0', STR_PAD_RIGHT);
+
+        return $dateTimeUs;
+    }
+
+    public static function getDateTimeFromDecimalFormat($decimal)
+    {
+        $len = strlen((string) time());
+        $timePart = substr($decimal, 0, $len);
+        $decimalPart = substr($decimal, $len, 6);
+
+        return \DateTime::createFromFormat('U.u', "${timePart}.${decimalPart}");
+    }
 }

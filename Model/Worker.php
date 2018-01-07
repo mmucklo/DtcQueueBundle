@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Model;
 
 use Dtc\QueueBundle\Manager\JobManagerInterface;
+use Dtc\QueueBundle\Util\Util;
 
 abstract class Worker
 {
@@ -46,10 +47,17 @@ abstract class Worker
      */
     public function at($time = null, $batch = false, $priority = null)
     {
+        $timeU = $time;
         if (null === $time) {
-            $time = time();
+            $timeU = Util::getMicrotimeStr();
+        } elseif (false === strpos(strval($time), '.')) {
+            $timeU = strval($time).'.000000';
         }
-        $dateTime = new \DateTime("@$time");
+
+        $dateTime = \DateTime::createFromFormat('U.u', (string) $timeU);
+        if (!$dateTime) {
+            throw new \InvalidArgumentException("Invalid time: $time".($timeU != $time ? " - (micro: $timeU)" : ''));
+        }
         $jobClass = $this->jobManager->getJobClass();
 
         return new $jobClass($this, $batch, $priority, $dateTime);
@@ -66,7 +74,7 @@ abstract class Worker
 
     public function batchOrLaterDelay($delay = 0, $batch = false, $priority = null)
     {
-        $job = $this->at(time() + $delay, $batch, $priority);
+        $job = $this->at(microtime(true) + $delay, $batch, $priority);
         $job->setDelay($delay);
 
         return $job;

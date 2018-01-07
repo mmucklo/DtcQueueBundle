@@ -26,7 +26,7 @@ class TrendsController extends Controller
      */
     public function trendsAction()
     {
-        $recordTimings = $this->container->getParameter('dtc_queue.record_timings');
+        $recordTimings = $this->container->getParameter('dtc_queue.timings.record');
         $params = ['record_timings' => $recordTimings, 'states' => JobTiming::getStates()];
         $this->addCssJs($params);
 
@@ -44,7 +44,7 @@ class TrendsController extends Controller
         $beginDate = \DateTime::createFromFormat('Y-m-d\TH:i:s.uO', $begin) ?: null;
         $endDate = \DateTime::createFromFormat('Y-m-d\TH:i:s.uO', $end) ?: new \DateTime();
 
-        $recordTimings = $this->container->getParameter('dtc_queue.record_timings');
+        $recordTimings = $this->container->getParameter('dtc_queue.timings.record');
         $params = [];
         if ($recordTimings) {
             $params = $this->calculateTimings($type, $beginDate, $endDate);
@@ -63,7 +63,7 @@ class TrendsController extends Controller
         $this->validateJobTimingManager();
 
         /** @var DoctrineJobTimingManager $jobTimingManager */
-        $jobTimingManager = $this->get('dtc_queue.job_timing_manager');
+        $jobTimingManager = $this->get('dtc_queue.manager.job_timing');
         if ($jobTimingManager instanceof JobTimingManager) {
             $timings = $this->getJobTimingsOdm($type, $endDate, $beginDate);
         } else {
@@ -112,11 +112,12 @@ class TrendsController extends Controller
      */
     protected function getTimingsDatesAdjusted(array $timingsDates, $format)
     {
-        $timezoneOffset = $this->container->getParameter('dtc_queue.record_timings_timezone_offset');
+        $timezoneOffset = $this->container->getParameter('dtc_queue.timings.timezone_offset');
         $timingsDatesAdjusted = [];
         foreach ($timingsDates as $dateStr) {
             $date = \DateTime::createFromFormat($format, $dateStr);
             if (0 !== $timezoneOffset) {
+                // This may too simplistic in areas that observe DST - does the database or PHP code observe DST?
                 $date->setTimestamp($date->getTimestamp() + ($timezoneOffset * 3600));
             }
             if (false === $date) {
@@ -145,7 +146,7 @@ class TrendsController extends Controller
     protected function getJobTimingsOdm($type, \DateTime $end, \DateTime $begin = null)
     {
         /** @var JobTimingManager $runManager */
-        $jobTimingManager = $this->get('dtc_queue.job_timing_manager');
+        $jobTimingManager = $this->get('dtc_queue.manager.job_timing');
         $jobTimingClass = $jobTimingManager->getJobTimingClass();
 
         /** @var DocumentManager $documentManager */
@@ -248,7 +249,7 @@ class TrendsController extends Controller
     protected function getJobTimingsOrm($type, \DateTime $end, \DateTime $begin = null)
     {
         /** @var JobTimingManager $jobTimingManager */
-        $jobTimingManager = $this->get('dtc_queue.job_timing_manager');
+        $jobTimingManager = $this->get('dtc_queue.manager.job_timing');
         $jobTimingClass = $jobTimingManager->getJobTimingClass();
         /** @var EntityManager $entityManager */
         $entityManager = $jobTimingManager->getObjectManager();
@@ -311,16 +312,5 @@ class TrendsController extends Controller
         }
 
         return $str;
-    }
-
-    protected function validateJobTimingManager()
-    {
-        if ($this->container->hasParameter('dtc_queue.job_timing_manager')) {
-            $this->validateManagerType('dtc_queue.job_timing_manager');
-        } elseif ($this->container->hasParameter('dtc_queue.job_timing_manager')) {
-            $this->validateManagerType('dtc_queue.run_manager');
-        } else {
-            $this->validateManagerType('dtc_queue.default_manager');
-        }
     }
 }

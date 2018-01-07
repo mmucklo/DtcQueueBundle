@@ -8,21 +8,21 @@ trait ControllerTrait
 {
     protected function validateJobTimingManager()
     {
-        if ($this->container->hasParameter('dtc_queue.job_timing_manager')) {
-            $this->validateManagerType('dtc_queue.job_timing_manager');
-        } elseif ($this->container->hasParameter('dtc_queue.job_timing_manager')) {
-            $this->validateManagerType('dtc_queue.run_manager');
+        if ($this->container->hasParameter('dtc_queue.manager.job_timing')) {
+            $this->validateManagerType('dtc_queue.manager.job_timing');
+        } elseif ($this->container->hasParameter('dtc_queue.manager.job_timing')) {
+            $this->validateManagerType('dtc_queue.manager.run');
         } else {
-            $this->validateManagerType('dtc_queue.default_manager');
+            $this->validateManagerType('dtc_queue.manager.job');
         }
     }
 
     protected function validateRunManager()
     {
         if ($this->container->hasParameter('dtc_queue.job_timing_manager')) {
-            $this->validateManagerType('dtc_queue.run_manager');
+            $this->validateManagerType('dtc_queue.manager.run');
         } else {
-            $this->validateManagerType('dtc_queue.default_manager');
+            $this->validateManagerType('dtc_queue.manager.job');
         }
     }
 

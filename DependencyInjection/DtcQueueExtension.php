@@ -21,10 +21,11 @@ class DtcQueueExtension extends Extension
         $this->configRabbitMQ($config, $container);
         $this->configRedis($config, $container);
 
-        $container->setParameter('dtc_queue.default_manager', $config['default_manager']);
-        $container->setParameter('dtc_queue.document_manager', $config['document_manager']);
-        $container->setParameter('dtc_queue.entity_manager', $config['entity_manager']);
-        $container->setParameter('dtc_queue.run_manager', isset($config['run_manager']) ? $config['run_manager'] : $config['default_manager']);
+        $container->setParameter('dtc_queue.manager.job', $config['manager']['job']);
+        $container->setParameter('dtc_queue.odm.document_manager', $config['odm']['document_manager']);
+        $container->setParameter('dtc_queue.orm.entity_manager', $config['orm']['entity_manager']);
+        $container->setParameter('dtc_queue.manager.run', isset($config['manager']['run']) ? $config['manager']['run'] : $config['manager']['job']);
+        $container->setParameter('dtc_queue.manager.job_timing', isset($config['manager']['job_timing']) ? $config['manager']['job_timing'] : $container->getParameter('dtc_queue.manager.run'));
         $container->setParameter('dtc_queue.priority.direction', $config['priority']['direction']);
         $container->setParameter('dtc_queue.priority.max', $config['priority']['max']);
         $container->setParameter('dtc_queue.retry.max.retries', $config['retry']['max']['retries']);
@@ -41,6 +42,55 @@ class DtcQueueExtension extends Extension
         $yamlLoader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
 
         $yamlLoader->load('queue.yml');
+    }
+
+    protected function configDeprecated(array $config, ContainerBuilder $container)
+    {
+        if (isset($config['default_manager'])) {
+            $container->setParameter('dtc_queue.manager.job', $config['default_manager']);
+        }
+        if (isset($config['run_manager'])) {
+            $container->setParameter('dtc_queue.manager.run', $config['run_manager']);
+        }
+        if (isset($config['job_timing_manager'])) {
+            $container->setParameter('dtc_queue.manager.run', $config['job_timing_manager']);
+        }
+        if (isset($config['document_manager'])) {
+            $container->setParameter('dtc_queue.odm.document_manager', $config['document_manager']);
+        }
+        if (isset($config['entity_manager'])) {
+            $container->setParameter('dtc_queue.odm.entity_manager', $config['entity_manager']);
+        }
+        if (isset($config['class_job'])) {
+            $container->setParameter('dtc_queue.class.job', $config['class_job']);
+        }
+        if (isset($config['class_job_archive'])) {
+            $container->setParameter('dtc_queue.class.job_archive', $config['class_job_archive']);
+        }
+        if (isset($config['class_run'])) {
+            $container->setParameter('dtc_queue.class.run', $config['class_run']);
+        }
+        if (isset($config['class_run_archive'])) {
+            $container->setParameter('dtc_queue.class.run_archive', $config['class_run_archive']);
+        }
+        if (isset($config['class_job_timing'])) {
+            $container->setParameter('dtc_queue.class.job_timing', $config['class_job_timing']);
+        }
+        if (isset($config['record_timings'])) {
+            $container->setParameter('dtc_queue.timings.record', $config['record_timings']);
+        }
+        if (isset($config['record_timings_timezone_offset'])) {
+            $container->setParameter('dtc_queue.timings.timezone_offset', $config['record_timings_timezone_offset']);
+        }
+        if (isset($config['record_timings_timezone_offset'])) {
+            $container->setParameter('dtc_queue.timings.timezone_offset', $config['record_timings_timezone_offset']);
+        }
+        if (isset($config['priority_max'])) {
+            $container->setParameter('dtc_queue.priority.max', $config['priority_max']);
+        }
+        if (isset($config['priority_direction'])) {
+            $container->setParameter('dtc_queue.priority.direction', $config['priority_direction']);
+        }
     }
 
     protected function configRedis(array $config, ContainerBuilder $container)
@@ -74,11 +124,8 @@ class DtcQueueExtension extends Extension
 
     protected function configRecordTimings(array $config, ContainerBuilder $container)
     {
-        $container->setParameter('dtc_queue.record_timings', isset($config['record_timings']) ? $config['record_timings'] : false);
-        $container->setParameter('dtc_queue.record_timings_timezone_offset', $config['record_timings_timezone_offset']);
-        if ($config['record_timings_timezone_offset'] > 24 || $config['record_timings_timezone_offset'] < -24) {
-            throw new \InvalidArgumentException('Invalid record_timings_timezone_offset: '.$config['record_timings_timezone_offset']);
-        }
+        $container->setParameter('dtc_queue.timings.record', isset($config['timings']['record']) ? $config['timings']['record'] : false);
+        $container->setParameter('dtc_queue.timings.timezone_offset', $config['timings']['timezone_offset']);
     }
 
     protected function configRabbitMQ(array $config, ContainerBuilder $container)

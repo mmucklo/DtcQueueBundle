@@ -37,6 +37,10 @@
       * max_stalled renamed to max_stalls
       * removed locked and locked_at (redundant)
    * Bug fix - add Compiler passes for RabbitMq, and Beanstalk
+   * Support for Microseconds in ORM, ODM
+   * Timezone fix for ORM
+      * Will now store a microtime representation in a Decimal column called whenUs
+   * Fix a bug where $runId was not being set when ORM was "taking" a job.
 ### 3.1.2
    * Fix a bug in timings by minute for ORM
    * Fix a bug in ODM timings

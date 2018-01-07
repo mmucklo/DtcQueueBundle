@@ -4,10 +4,12 @@ namespace Dtc\QueueBundle\Entity;
 
 use Dtc\GridBundle\Annotation as Grid;
 use Doctrine\ORM\Mapping as ORM;
+use Dtc\QueueBundle\Model\MicrotimeTrait;
 use Dtc\QueueBundle\Model\StallableJob;
 
 abstract class BaseJob extends StallableJob
 {
+    use MicrotimeTrait;
     /**
      * @Grid\Column(order=1,sortable=true,searchable=true)
      * @ORM\Column(type="bigint")
@@ -57,10 +59,12 @@ abstract class BaseJob extends StallableJob
     protected $crcHash;
 
     /**
+     * whenAt in Microseconds.
+     *
      * @Grid\Column(sortable=true,order=2)
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(type="decimal", precision=18, scale=0, nullable=true)
      */
-    protected $whenAt;
+    protected $whenUs;
 
     /**
      * @Grid\Column(sortable=true)

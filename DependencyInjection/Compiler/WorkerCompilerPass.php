@@ -19,13 +19,13 @@ class WorkerCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
     {
-        if (false === $container->hasDefinition('dtc_queue.worker_manager')) {
+        if (false === $container->hasDefinition('dtc_queue.manager.worker')) {
             return;
         }
 
         $this->setupAliases($container);
 
-        $definition = $container->getDefinition('dtc_queue.worker_manager');
+        $definition = $container->getDefinition('dtc_queue.manager.worker');
 
         $jobClass = $this->getJobClass($container);
         $jobArchiveClass = $this->getJobClassArchive($container);
@@ -77,21 +77,21 @@ class WorkerCompilerPass implements CompilerPassInterface
 
     protected function setupAliases(ContainerBuilder $container)
     {
-        $defaultManagerType = $container->getParameter('dtc_queue.default_manager');
-        $this->setupAlias($container, $defaultManagerType, 'job_manager');
+        $defaultManagerType = $container->getParameter('dtc_queue.manager.job');
+        $this->setupAlias($container, $defaultManagerType, 'manager.job');
         $runManagerType = $container->getParameter($this->getRunManagerType($container));
-        $this->setupAlias($container, $runManagerType, 'run_manager');
+        $this->setupAlias($container, $runManagerType, 'manager.run');
         $jobTimingManagerType = $container->getParameter($this->getJobTimingManagerType($container));
-        $this->setupAlias($container, $jobTimingManagerType, 'job_timing_manager');
+        $this->setupAlias($container, $jobTimingManagerType, 'manager.job_timing');
     }
 
     /**
      * @param ContainerBuilder $container
      * @param string           $jobClass
      */
-    protected function setupTaggedServices(ContainerBuilder $container, Definition $definition, $jobClass)
+    protected function setupTaggedServices(ContainerBuilder $container, Definition $definition)
     {
-        $jobManagerRef = array(new Reference('dtc_queue.job_manager'));
+        $jobManagerRef = array(new Reference('dtc_queue.manager.job'));
         // Add each worker to workerManager, make sure each worker has instance to work
         foreach ($container->findTaggedServiceIds('dtc_queue.worker') as $id => $attributes) {
             $worker = $container->getDefinition($id);
@@ -114,14 +114,14 @@ class WorkerCompilerPass implements CompilerPassInterface
      */
     protected function setupDoctrineManagers(ContainerBuilder $container)
     {
-        $documentManager = $container->getParameter('dtc_queue.document_manager');
+        $documentManager = $container->getParameter('dtc_queue.odm.document_manager');
 
         $odmManager = "doctrine_mongodb.odm.{$documentManager}_document_manager";
         if ($container->has($odmManager)) {
             $container->setAlias('dtc_queue.document_manager', $odmManager);
         }
 
-        $entityManager = $container->getParameter('dtc_queue.entity_manager');
+        $entityManager = $container->getParameter('dtc_queue.orm.entity_manager');
 
         $ormManager = "doctrine.orm.{$entityManager}_entity_manager";
         if ($container->has($ormManager)) {
@@ -181,10 +181,10 @@ class WorkerCompilerPass implements CompilerPassInterface
     {
         $jobClass = $container->getParameter('dtc_queue.class.job');
         if (!$jobClass) {
-            if ($directory = $this->getDirectory($managerType = $container->getParameter('dtc_queue.default_manager'))) {
+            if ($directory = $this->getDirectory($managerType = $container->getParameter('dtc_queue.manager.job'))) {
                 $jobClass = 'Dtc\QueueBundle\\'.$directory.'\Job';
             } else {
-                throw new InvalidConfigurationException('Unknown default_manager type '.$managerType.' - please specify a Job class in the \'class\' configuration parameter');
+                throw new InvalidConfigurationException('Unknown manager.job type '.$managerType.' - please specify a Job class in the \'class\' configuration parameter');
             }
         }
 
@@ -195,9 +195,9 @@ class WorkerCompilerPass implements CompilerPassInterface
 
     protected function getRunManagerType(ContainerBuilder $container)
     {
-        $managerType = 'dtc_queue.default_manager';
-        if ($container->hasParameter('dtc_queue.run_manager')) {
-            $managerType = 'dtc_queue.run_manager';
+        $managerType = 'dtc_queue.manager.job';
+        if ($container->hasParameter('dtc_queue.manager.run')) {
+            $managerType = 'dtc_queue.manager.run';
         }
 
         return $managerType;
@@ -206,8 +206,8 @@ class WorkerCompilerPass implements CompilerPassInterface
     protected function getJobTimingManagerType(ContainerBuilder $container)
     {
         $managerType = $this->getRunManagerType($container);
-        if ($container->hasParameter('dtc_queue.job_timing_manager')) {
-            $managerType = 'dtc_queue.job_timing_manager';
+        if ($container->hasParameter('dtc_queue.manager.job_timing')) {
+            $managerType = 'dtc_queue.manager.job_timing';
         }
 
         return $managerType;
@@ -269,7 +269,7 @@ class WorkerCompilerPass implements CompilerPassInterface
     {
         $jobArchiveClass = $container->getParameter('dtc_queue.class.job_archive');
         if (!$jobArchiveClass) {
-            switch ($container->getParameter('dtc_queue.default_manager')) {
+            switch ($container->getParameter('dtc_queue.manager.job')) {
                 case 'odm':
                     $jobArchiveClass = 'Dtc\\QueueBundle\\Document\\JobArchive';
                     break;

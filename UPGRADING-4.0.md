@@ -7,6 +7,13 @@ If you set various classes in the configuration
 3.0 (old)
 ```yaml
 dtc_queue:
+   document_manager: default
+   entity_manager: default
+   default_manager: odm
+   run_manager: orm
+   job_timing_manager: orm
+   record_timings: true
+   record_timings_timezone_offset: -8
    # ...
    class_job: ...
    class_job_archive: ...
@@ -18,6 +25,17 @@ dtc_queue:
 ```yaml
 dtc_queue:
    # ...
+   orm:
+      entity_manager: default
+   odm:
+      default_manager: default
+   manager:
+      job: odm
+      run: orm
+      job_timing: orm
+   timings:
+      record: true
+      timezone_offset: -8
    class:
        job: ...
        job_archive: ...
@@ -32,13 +50,15 @@ dtc_queue:
       * error_count -> exceptions
       * stalled_count -> stalls
       * max_stalled -> max_stalls
-      * max_errors -> max_exceptions   
+      * max_errors -> max_exceptions
    * **NEW**
       * failures
       * max_failures
+      * when_us
    * **DELETED**
       * locked
       * locked_at
+      * when_at
 * Worker updates
    * **Important**: Remove all $this->jobClass = // some class
    * Replace any $this->jobClass or $this->getJobClass() function calls with:

@@ -11,6 +11,7 @@ use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\RetryableJob;
+use Dtc\QueueBundle\Util\Util;
 
 /**
  * For future implementation.
@@ -55,18 +56,18 @@ class JobManager extends PriorityJobManager
         return $this->cacheKeyPrefix.'_priority';
     }
 
-    protected function getWhenAtQueueCacheKey()
+    protected function getWhenQueueCacheKey()
     {
-        return $this->cacheKeyPrefix.'_when_at';
+        return $this->cacheKeyPrefix.'_when';
     }
 
     protected function transferQueues()
     {
         // Drains from WhenAt queue into Prioirty Queue
-        $whenQueue = $this->getWhenAtQueueCacheKey();
+        $whenQueue = $this->getWhenQueueCacheKey();
         $priorityQueue = $this->getPriorityQueueCacheKey();
-        $time = time();
-        while ($jobId = $this->redis->zPopByMaxScore($whenQueue, $time)) {
+        $microtime = Util::getMicrotimeDecimal();
+        while ($jobId = $this->redis->zPopByMaxScore($whenQueue, $microtime)) {
             $jobMessage = $this->redis->get($this->getJobCacheKey($jobId));
             if ($jobMessage) {
                 $job = new \Dtc\QueueBundle\Redis\Job();
@@ -104,14 +105,18 @@ class JobManager extends PriorityJobManager
 
     protected function batchFoundJob(\Dtc\QueueBundle\Redis\Job $job, $foundJobCacheKey, $foundJobMessage)
     {
-        $when = $job->getWhenAt()->getTimestamp();
+        $when = $job->getWhenUs();
         $crcHash = $job->getCrcHash();
         $crcCacheKey = $this->getJobCrcHashKey($crcHash);
 
         $foundJob = new \Dtc\QueueBundle\Redis\Job();
         $foundJob->fromMessage($foundJobMessage);
-        $foundWhen = $foundJob->getWhenAt()->getTimestamp();
-        if ($foundWhen > time() && $foundWhen > $when) {
+        $foundWhen = $foundJob->getWhenUs();
+
+        // Fix this using bcmath
+        $curtimeU = Util::getMicrotimeDecimal();
+
+        if (bccomp($foundWhen, $curtimeU) > 0 && bccomp($foundWhen, $when) > 1) {
             $newFoundWhen = $when;
         }
         $foundPriority = $foundJob->getPriority();
@@ -122,7 +127,7 @@ class JobManager extends PriorityJobManager
         // Now how do we adjust this job's priority or time?
         $adjust = false;
         if (isset($newFoundWhen)) {
-            $foundJob->setWhenAt(new \DateTime("@$newFoundWhen"));
+            $foundJob->setWhenUs($newFoundWhen);
             $adjust = true;
         }
         if (isset($newFoundPriority)) {
@@ -133,7 +138,7 @@ class JobManager extends PriorityJobManager
             return $foundJob;
         }
 
-        $whenQueue = $this->getWhenAtQueueCacheKey();
+        $whenQueue = $this->getWhenQueueCacheKey();
         if ($adjust && $this->redis->zRem($whenQueue, $foundJob->getId()) > 0) {
             if (!$this->insertJob($foundJob)) {
                 // Job is expired
@@ -141,7 +146,7 @@ class JobManager extends PriorityJobManager
 
                 return false;
             }
-            $this->redis->zAdd($whenQueue, $foundJob->getWhenAt()->getTimestamp(), $foundJob->toMessage());
+            $this->redis->zAdd($whenQueue, $foundJob->getWhenUs(), $foundJob->toMessage());
 
             return $foundJob;
         }
@@ -183,10 +188,10 @@ class JobManager extends PriorityJobManager
         $this->setJobId($job);
 
         // Add to whenAt or priority queue?  /// optimizaiton...
-        $whenAt = $job->getWhenAt();
-        if (!$whenAt) {
-            $whenAt = new \DateTime('@'.time());
-            $job->setWhenAt($whenAt);
+        $whenUs = $job->getWhenUs();
+        if (!$whenUs) {
+            $whenUs = Util::getMicrotimeDecimal();
+            $job->setWhenUs($whenUs);
         }
 
         if (true === $job->getBatch()) {
@@ -201,7 +206,7 @@ class JobManager extends PriorityJobManager
 
     protected function saveJob(\Dtc\QueueBundle\Redis\Job $job)
     {
-        $whenQueue = $this->getWhenAtQueueCacheKey();
+        $whenQueue = $this->getWhenQueueCacheKey();
         $crcCacheKey = $this->getJobCrcHashKey($job->getCrcHash());
         // Save Job
         if (!$this->insertJob($job)) {
@@ -209,7 +214,7 @@ class JobManager extends PriorityJobManager
             return null;
         }
         $jobId = $job->getId();
-        $when = $job->getWhenAt()->getTimestamp();
+        $when = $job->getWhenUs();
         // Add Job to CRC list
         $this->redis->lPush($crcCacheKey, [$jobId]);
 
@@ -294,7 +299,7 @@ class JobManager extends PriorityJobManager
     {
         $jobId = $job->getId();
         $priorityQueue = $this->getPriorityQueueCacheKey();
-        $whenQueue = $this->getWhenAtQueueCacheKey();
+        $whenQueue = $this->getWhenQueueCacheKey();
 
         $deleted = false;
         if ($this->redis->zRem($priorityQueue, $jobId)) {
@@ -320,11 +325,13 @@ class JobManager extends PriorityJobManager
         if (null !== $this->maxPriority) {
             $this->transferQueues();
             $queue = $this->getPriorityQueueCacheKey();
+            $jobId = $this->redis->zPop($queue);
         } else {
-            $queue = $this->getWhenAtQueueCacheKey();
+            $queue = $this->getWhenQueueCacheKey();
+            $microtime = Util::getMicrotimeDecimal();
+            $jobId = $this->redis->zPopByMaxScore($queue, $microtime);
         }
 
-        $jobId = $this->redis->zPop($queue);
         if ($jobId) {
             $jobMessage = $this->redis->get($this->getJobCacheKey($jobId));
             $job = new \Dtc\QueueBundle\Redis\Job();

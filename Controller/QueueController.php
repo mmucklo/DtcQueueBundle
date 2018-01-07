@@ -24,7 +24,7 @@ class QueueController extends Controller
     public function statusAction()
     {
         $params = array();
-        $jobManager = $this->get('dtc_queue.job_manager');
+        $jobManager = $this->get('dtc_queue.manager.job');
 
         $params['status'] = $jobManager->getStatus();
         $this->addCssJs($params);
@@ -39,7 +39,7 @@ class QueueController extends Controller
      */
     public function jobsAllAction()
     {
-        $this->validateManagerType('dtc_queue.default_manager');
+        $this->validateManagerType('dtc_queue.manager.job');
         $class1 = $this->container->getParameter('dtc_queue.class.job');
         $class2 = $this->container->getParameter('dtc_queue.class.job_archive');
         $label1 = 'Non-Archived Jobs';
@@ -59,7 +59,7 @@ class QueueController extends Controller
         $workerName = $request->get('workerName');
         $methodName = $request->get('method');
 
-        $jobManager = $this->get('dtc_queue.job_manager');
+        $jobManager = $this->get('dtc_queue.manager.job');
         $callback = function ($count) {
             echo json_encode(['count' => $count]);
             echo "\n";
@@ -85,8 +85,8 @@ class QueueController extends Controller
      */
     public function jobsAction()
     {
-        $this->validateManagerType('dtc_queue.default_manager');
-        $managerType = $this->container->getParameter('dtc_queue.default_manager');
+        $this->validateManagerType('dtc_queue.manager.job');
+        $managerType = $this->container->getParameter('dtc_queue.manager.job');
         $rendererFactory = $this->get('dtc_grid.renderer.factory');
         $renderer = $rendererFactory->create('datatables');
         $gridSource = $this->get('dtc_queue.grid_source.jobs_waiting.'.('mongodb' === $managerType ? 'odm' : $managerType));
@@ -94,7 +94,7 @@ class QueueController extends Controller
         $params = $renderer->getParams();
         $this->addCssJs($params);
 
-        $params['worker_methods'] = $this->get('dtc_queue.job_manager')->getWorkersAndMethods();
+        $params['worker_methods'] = $this->get('dtc_queue.manager.job')->getWorkersAndMethods();
 
         return $params;
     }
@@ -107,8 +107,8 @@ class QueueController extends Controller
      */
     public function runningJobsAction()
     {
-        $this->validateManagerType('dtc_queue.default_manager');
-        $managerType = $this->container->getParameter('dtc_queue.default_manager');
+        $this->validateManagerType('dtc_queue.manager.job');
+        $managerType = $this->container->getParameter('dtc_queue.manager.job');
         $rendererFactory = $this->get('dtc_grid.renderer.factory');
         $renderer = $rendererFactory->create('datatables');
         $gridSource = $this->get('dtc_queue.grid_source.jobs_running.'.('mongodb' === $managerType ? 'odm' : $managerType));
@@ -177,7 +177,7 @@ class QueueController extends Controller
      */
     public function workersAction()
     {
-        $workerManager = $this->get('dtc_queue.worker_manager');
+        $workerManager = $this->get('dtc_queue.manager.worker');
         $workers = $workerManager->getWorkers();
 
         $workerList = [];

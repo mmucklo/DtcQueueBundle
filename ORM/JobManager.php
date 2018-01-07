@@ -10,6 +10,7 @@ use Dtc\QueueBundle\Entity\Job;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\StallableJob;
+use Dtc\QueueBundle\Util\Util;
 use Symfony\Component\Process\Exception\LogicException;
 
 class JobManager extends DoctrineJobManager
@@ -166,18 +167,21 @@ class JobManager extends DoctrineJobManager
             $where = 'andWhere';
         }
 
-        $dateTime = new \DateTime();
+        $dateTime = \DateTime::createFromFormat('U.u', $timeU = Util::getMicrotimeStr());
+        if (false === $dateTime) {
+            throw new \RuntimeException("Could not create date time from $timeU");
+        }
         // Filter
         $queryBuilder
             ->$where($queryBuilder->expr()->orX(
-                $queryBuilder->expr()->isNull('j.whenAt'),
-                                        $queryBuilder->expr()->lte('j.whenAt', ':whenAt')
+                $queryBuilder->expr()->isNull('j.whenUs'),
+                                        $queryBuilder->expr()->lte('j.whenUs', ':whenUs')
             ))
             ->andWhere($queryBuilder->expr()->orX(
                 $queryBuilder->expr()->isNull('j.expiresAt'),
                 $queryBuilder->expr()->gt('j.expiresAt', ':expiresAt')
             ))
-            ->setParameter(':whenAt', $dateTime)
+            ->setParameter(':whenUs', Util::getMicrotimeDecimalFormat($dateTime))
             ->setParameter(':expiresAt', $dateTime);
 
         $query = $queryBuilder->getQuery();
@@ -259,7 +263,7 @@ class JobManager extends DoctrineJobManager
             $jobs = $query->getResult();
             if ($jobs) {
                 foreach ($jobs as $job) {
-                    if ($job = $this->takeJob($job['id'])) {
+                    if ($job = $this->takeJob($job['id'], $runId)) {
                         return $job;
                     }
                 }
@@ -286,9 +290,9 @@ class JobManager extends DoctrineJobManager
 
         if ($prioritize) {
             $queryBuilder->addOrderBy('j.priority', 'DESC');
-            $queryBuilder->addOrderBy('j.whenAt', 'ASC');
+            $queryBuilder->addOrderBy('j.whenUs', 'ASC');
         } else {
-            $queryBuilder->orderBy('j.whenAt', 'ASC');
+            $queryBuilder->orderBy('j.whenUs', 'ASC');
         }
 
         return $queryBuilder;
@@ -300,14 +304,14 @@ class JobManager extends DoctrineJobManager
         $queryBuilder
             ->where('j.status = :status')->setParameter(':status', BaseJob::STATUS_NEW)
             ->andWhere($queryBuilder->expr()->orX(
-                $queryBuilder->expr()->isNull('j.whenAt'),
-                $queryBuilder->expr()->lte('j.whenAt', ':whenAt')
+                $queryBuilder->expr()->isNull('j.whenUs'),
+                $queryBuilder->expr()->lte('j.whenUs', ':whenUs')
             ))
             ->andWhere($queryBuilder->expr()->orX(
                 $queryBuilder->expr()->isNull('j.expiresAt'),
                 $queryBuilder->expr()->gt('j.expiresAt', ':expiresAt')
             ))
-            ->setParameter(':whenAt', $dateTime)
+            ->setParameter(':whenUs', Util::getMicrotimeDecimalFormat($dateTime))
             ->setParameter(':expiresAt', $dateTime);
     }
 
@@ -355,7 +359,7 @@ class JobManager extends DoctrineJobManager
             ->andWhere('j.status = :status')
             ->setParameter(':status', BaseJob::STATUS_NEW)
             ->setParameter(':crcHash', $job->getCrcHash())
-            ->orderBy('j.whenAt', 'ASC')
+            ->orderBy('j.whenUs', 'ASC')
             ->setMaxResults(1);
         $existingJobs = $queryBuilder->getQuery()->execute();
 
@@ -366,23 +370,27 @@ class JobManager extends DoctrineJobManager
         $existingJob = $existingJobs[0];
 
         $newPriority = max($job->getPriority(), $existingJob->getPriority());
-        $newWhenAt = min($job->getWhenAt(), $existingJob->getWhenAt());
+        $newWhenUs = $existingJob->getWhenUs();
+        $bcResult = bccomp($job->getWhenUs(), $existingJob->getWhenUs());
+        if ($bcResult < 0) {
+            $newWhenUs = $job->getWhenUs();
+        }
 
-        $this->updateBatchJob($existingJob, $newPriority, $newWhenAt);
+        $this->updateBatchJob($existingJob, $newPriority, $newWhenUs);
 
         return $existingJob;
     }
 
     /**
-     * @param int            $newPriority
-     * @param null|\DateTime $newWhenAt
+     * @param int    $newPriority
+     * @param string $newWhenUs
      */
-    protected function updateBatchJob(Job $existingJob, $newPriority, $newWhenAt)
+    protected function updateBatchJob(Job $existingJob, $newPriority, $newWhenUs)
     {
         $existingPriority = $existingJob->getPriority();
-        $existingWhenAt = $existingJob->getWhenAt();
+        $existingWhenUs = $existingJob->getWhenUs();
 
-        if ($newPriority !== $existingPriority || $newWhenAt !== $existingWhenAt) {
+        if ($newPriority !== $existingPriority || $newWhenUs !== $existingWhenUs) {
             /** @var EntityRepository $repository */
             $repository = $this->getRepository();
             /** @var QueryBuilder $queryBuilder */
@@ -393,10 +401,10 @@ class JobManager extends DoctrineJobManager
                 $queryBuilder->set('j.priority', ':priority')
                     ->setParameter(':priority', $newPriority);
             }
-            if ($newWhenAt !== $existingWhenAt) {
-                $existingJob->setWhenAt($newWhenAt);
-                $queryBuilder->set('j.whenAt', ':whenAt')
-                    ->setParameter(':whenAt', $newWhenAt);
+            if ($newWhenUs !== $existingWhenUs) {
+                $existingJob->setWhenUs($newWhenUs);
+                $queryBuilder->set('j.whenUs', ':whenUs')
+                    ->setParameter(':whenUs', $newWhenUs);
             }
             $queryBuilder->where('j.id = :id');
             $queryBuilder->setParameter(':id', $existingJob->getId());

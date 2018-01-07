@@ -39,7 +39,7 @@ class TrendsControllerTest extends TestCase
         self::assertNotFalse($dateTime);
 
         /** @var JobTimingManager $jobTimingManager */
-        $jobTimingManager = $container->get('dtc_queue.job_timing_manager');
+        $jobTimingManager = $container->get('dtc_queue.manager.job_timing');
         $jobTimingManager->recordTiming(BaseJob::STATUS_SUCCESS, $dateTime);
         $jobTimingManager->recordTiming(BaseJob::STATUS_SUCCESS, $dateTime);
         $jobTimingManager->recordTiming(BaseJob::STATUS_EXCEPTION, $dateTime);

@@ -5,6 +5,7 @@ namespace Dtc\QueueBundle\DependencyInjection;
 use Dtc\QueueBundle\Manager\PriorityJobManager;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\HttpKernel\Kernel;
 
 class Configuration implements ConfigurationInterface
 {
@@ -15,48 +16,168 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
+        if (Kernel::VERSION_ID < 30400) {
+            return $this->getConfigTreeBuilderSymfony2();
+        }
+
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('dtc_queue');
 
         $rootNode
             ->children()
-                ->scalarNode('document_manager')
-                    ->defaultValue('default')
-                    ->cannotBeEmpty()
-                ->end()
-                ->scalarNode('entity_manager')
-                    ->defaultValue('default')
-                    ->cannotBeEmpty()
-                ->end()
-                ->scalarNode('default_manager')
-                    ->defaultValue('odm')
-                    ->cannotBeEmpty()
-                ->end()
-                ->scalarNode('run_manager')
-                ->end()
-                ->scalarNode('job_timing_manager')
-                ->end()
-                ->booleanNode('record_timings')
-                    ->defaultFalse()
-                ->end()
-                ->floatNode('record_timings_timezone_offset')
-                    ->defaultValue(0)
-                ->end()
-                ->arrayNode('beanstalkd')
-                    ->children()
-                        ->scalarNode('host')->end()
-                        ->scalarNode('tube')->end()
-                    ->end()
-                ->end()
+                ->append($this->addOrm())
+                ->append($this->addOdm())
+                ->append($this->addManager())
+                ->append($this->addTimings())
+                ->append($this->addBeanstalkd())
                 ->append($this->addRabbitMq())
                 ->append($this->addRedis())
                 ->append($this->addAdmin())
                 ->append($this->addClasses())
                 ->append($this->addPriority())
                 ->append($this->addRetry())
+                ->scalarNode('document_manager')->setDeprecated('The "%node% option is deprecated, Use "odm: { document_manager: ... }" instead.')->end()
+                ->scalarNode('entity_manager')->setDeprecated('The "%node% option is deprecated, Use "odm: { entity_manager: ... }" instead.')->end()
+                ->scalarNode('default_manager')->setDeprecated('The "%node% option is deprecated, Use "manager: { job: ... }" instead.')->end()
+                ->scalarNode('run_manager')->setDeprecated('The "%node% option is deprecated, Use "manager: { run: ... }" instead.')->end()
+                ->scalarNode('job_timing_manager')->setDeprecated('The "%node% option is deprecated, Use "manager: { job_timing: ... }" instead.')->end()
+                ->booleanNode('record_timings')->setDeprecated('The "%node% option is deprecated, Use "timings: { record: ... }" instead.')->end()
+                ->integerNode('record_timings_timezone_offset')->setDeprecated('The "%node% option is deprecated, Use "record: { timezone_offset: ... }" instead.')->end()
+                ->scalarNode('class_job')->setDeprecated('The "%node% option is deprecated, Use "class: { job: ... }" instead.')->end()
+                ->scalarNode('class_job_archive')->setDeprecated('The "%node% option is deprecated, Use "class: { job_archive: ... }" instead.')->end()
+                ->scalarNode('class_run')->setDeprecated('The "%node% option is deprecated, Use "class: { run: ... }" instead.')->end()
+                ->scalarNode('class_run_archive')->setDeprecated('The "%node% option is deprecated, Use "class: { run_archive: ... }" instead.')->end()
+                ->scalarNode('class_job_timing')->setDeprecated('The "%node% option is deprecated, Use "class: { job_timing: ... }" instead.')->end()
+                ->scalarNode('priority_max')->setDeprecated('The "%node% option is deprecated, Use "priority: { max: ... }" instead.')->end()
+                ->scalarNode('priority_direction')->setDeprecated('The "%node% option is deprecated, Use "priority: { direction: ... }" instead.')->end()
             ->end();
 
         return $treeBuilder;
+    }
+
+    public function getConfigTreeBuilderSymfony2()
+    {
+        $treeBuilder = new TreeBuilder();
+        $rootNode = $treeBuilder->root('dtc_queue');
+
+        $rootNode
+            ->children()
+            ->append($this->addOrm())
+            ->append($this->addOdm())
+            ->append($this->addManager())
+            ->append($this->addTimings())
+            ->append($this->addBeanstalkd())
+            ->append($this->addRabbitMq())
+            ->append($this->addRedis())
+            ->append($this->addAdmin())
+            ->append($this->addClasses())
+            ->append($this->addPriority())
+            ->append($this->addRetry())
+            ->scalarNode('document_manager')->end()
+            ->scalarNode('entity_manager')->end()
+            ->scalarNode('default_manager')->end()
+            ->scalarNode('run_manager')->end()
+            ->scalarNode('job_timing_manager')->end()
+            ->booleanNode('record_timings')->end()
+            ->integerNode('record_timings_timezone_offset')->end()
+            ->scalarNode('class_job')->end()
+            ->scalarNode('class_job_archive')->end()
+            ->scalarNode('class_run')->end()
+            ->scalarNode('class_run_archive')->end()
+            ->scalarNode('class_job_timing')->end()
+            ->scalarNode('priority_max')->end()
+            ->scalarNode('priority_direction')->end()
+            ->end();
+
+        return $treeBuilder;
+    }
+
+    protected function addTimings()
+    {
+        $treeBuilder = new TreeBuilder();
+        $rootNode = $treeBuilder->root('timings');
+        $rootNode
+            ->addDefaultsIfNotSet()
+            ->children()
+                ->booleanNode('record')
+                    ->info('Set this to true to record timings (used on the Trends page)')
+                    ->defaultFalse()
+                ->end()
+                ->floatNode('timezone_offset')
+                    ->defaultValue(0)
+                    ->info('Set this some integer offset from GMT in case your database is not storing things in the proper timezone and the dates look off on the Trends page')
+                    ->max(24)
+                    ->min(-24)
+                ->end()
+            ->end();
+
+        return $rootNode;
+    }
+
+    protected function addOrm()
+    {
+        $treeBuilder = new TreeBuilder();
+        $rootNode = $treeBuilder->root('orm');
+        $rootNode
+            ->addDefaultsIfNotSet()
+            ->children()
+                ->scalarNode('entity_manager')
+                    ->info('This only needs to be set if orm is used for any of the managers, and you do not want to use the default entity manager')
+                    ->defaultValue('default')
+                    ->cannotBeEmpty()
+                ->end()
+            ->end();
+
+        return $rootNode;
+    }
+
+    protected function addOdm()
+    {
+        $treeBuilder = new TreeBuilder();
+        $rootNode = $treeBuilder->root('odm');
+        $rootNode
+            ->addDefaultsIfNotSet()
+            ->children()
+                ->scalarNode('document_manager')
+                    ->info('This only needs to be set if odm is used for any of the managers, and you do not want to use the default document manager')
+                    ->defaultValue('default')
+                    ->cannotBeEmpty()
+                ->end()
+            ->end();
+
+        return $rootNode;
+    }
+
+    protected function addManager()
+    {
+        $treeBuilder = new TreeBuilder();
+        $rootNode = $treeBuilder->root('manager');
+        $rootNode
+            ->addDefaultsIfNotSet()
+            ->children()
+                ->scalarNode('job')
+                    ->defaultValue('odm')
+                    ->info('This can be [odm|orm|beanstalkd|rabbit_mq|redis|(your-own-custom-one)]')
+                    ->cannotBeEmpty()
+                ->end()
+                ->scalarNode('run')->end()
+                ->scalarNode('job_timing')->end()
+            ->end();
+
+        return $rootNode;
+    }
+
+    protected function addBeanstalkd()
+    {
+        $treeBuilder = new TreeBuilder();
+        $rootNode = $treeBuilder->root('beanstalkd');
+        $rootNode
+            ->children()
+                ->scalarNode('host')->end()
+                ->scalarNode('tube')->end()
+            ->end();
+
+        return $rootNode;
     }
 
     protected function addRetry()
@@ -70,15 +191,19 @@ class Configuration implements ConfigurationInterface
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->integerNode('retries')
+                            ->info('This the maximum total number of retries of any type.')
                             ->defaultValue(3)
                         ->end()
                         ->integerNode('failures')
+                            ->info('This the maximum total number of failures before a job is marked as hitting the maximum failures.')
                             ->defaultValue(1)
                         ->end()
                         ->integerNode('exceptions')
+                            ->info('This the maximum total number of exceptions before a job is marked as hitting the maximum exceptions.')
                             ->defaultValue(1)
                         ->end()
                         ->integerNode('stalls')
+                            ->info('This the maximum total number of exceptions before a job is marked as hitting the maximum exceptions.')
                             ->defaultValue(2)
                         ->end()
                     ->end()
@@ -87,9 +212,11 @@ class Configuration implements ConfigurationInterface
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->booleanNode('failure')
+                            ->info('Instantly re-queue the job on failure.')
                             ->defaultTrue()
                         ->end()
                         ->booleanNode('exception')
+                            ->info('Instantly re-queue the job on exception.')
                             ->defaultFalse()
                         ->end()
                     ->end()
@@ -108,10 +235,12 @@ class Configuration implements ConfigurationInterface
             ->children()
                 ->integerNode('max')
                     ->defaultValue(255)
+                    ->info('Maximum priority value.')
                     ->min(1)
                 ->end()
                 ->enumNode('direction')
                     ->values([PriorityJobManager::PRIORITY_ASC, PriorityJobManager::PRIORITY_DESC])
+                    ->info('Whether 1 is high priority or low prioirty.  '.PriorityJobManager::PRIORITY_ASC.' means 1 is low, '.PriorityJobManager::PRIORITY_DESC.' means 1 is high.')
                     ->defaultValue(PriorityJobManager::PRIORITY_DESC)
                 ->end()
             ->end();
@@ -125,11 +254,16 @@ class Configuration implements ConfigurationInterface
         $rootNode = $treeBuilder->root('class');
         $rootNode
             ->children()
-                ->scalarNode('job')->end()
-                ->scalarNode('job_archive')->end()
-                ->scalarNode('job_timing')->end()
-                ->scalarNode('run')->end()
-                ->scalarNode('run_archive')->end()
+                ->scalarNode('job')
+                    ->info('If you want to override the Job class, put the class name here.')->end()
+                ->scalarNode('job_archive')
+                    ->info('If you want to override the JobArchive class, put the class name here.')->end()
+                ->scalarNode('job_timing')
+                    ->info('If you want to override the JobTiming class, put the class name here.')->end()
+                ->scalarNode('run')
+                    ->info('If you want to override the Run class, put the class name here.')->end()
+                ->scalarNode('run_archive')
+                    ->info('If you want to override the RunArchive class, put the class name here.')->end()
             ->end();
 
         return $rootNode;
@@ -142,7 +276,10 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->addDefaultsIfNotSet()
             ->children()
-                ->scalarNode('chartjs')->defaultValue('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js')->end()
+                ->scalarNode('chartjs')
+                    ->defaultValue('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js')
+                    ->info('This can be changed to say a locally hosted path or url.')->end()
+                ->end()
             ->end();
 
         return $rootNode;
@@ -159,7 +296,7 @@ class Configuration implements ConfigurationInterface
                 ->arrayNode('snc_redis')
                     ->children()
                         ->enumNode('type')
-                          ->values(['predis', 'phpredis'])
+                            ->values(['predis', 'phpredis'])
                             ->defaultNull()->end()
                         ->scalarNode('alias')
                             ->defaultNull()->end()

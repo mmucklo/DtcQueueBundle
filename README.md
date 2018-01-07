@@ -232,13 +232,14 @@ __app/config/config.yml:__ (symfony 2/3)
 __config/packages/dtc_queue.yaml:__ (symfony 4)
 ```yaml
 dtc_queue:
-    # run_manager defaults to whatever default_manager is set to (which defaults to "odm", i.e. mongodb)
-    #   If you set the default_manager to rabbit_mq, or beanstalkd or something else, you need to set run_manager
-    #   to an ORM / ODM run_manager (or a custom such one) in order to get the runs to save
+    manager:
+        # run defaults to whatever job is set to (which defaults to "odm", i.e. mongodb)
+        #   If you set the job to rabbit_mq, or beanstalkd or something else, you need to set run
+        #   to an ORM / ODM run_manager (or a custom such one) in order to get the runs to save
+        #
+        run: orm # other possible option is "odm" (i.e. mongodb)
     #
-    run_manager: orm # other possible option is "odm" (i.e. mongodb)
-    #
-    # (optionally define your own run manager with id: dtc_queue.run_manager.{some_name} and put {some_name} as the run_manager
+    # (optionally define your own run manager with id: dtc_queue.manager.run.{some_name} and put {some_name} under run:
 ```
 
 MongoDB DocumentManager
@@ -249,24 +250,29 @@ __app/config/config.yml:__ (symfony 2/3)
 __config/packages/dtc_queue.yaml:__ (symfony 4)
 ```yaml
 dtc_queue:
-    document_manager: {something} # default is "default"
+    odm:
+        document_manager: {something} # default is "default"
 ```        
 
 Mysql / ORM Setup
 -----------------
 
+### As of 4.0, ORM requires the [bcmath](http://php.net/manual/en/book.bc.php) extension to be enabled
+
 __app/config/config.yml:__ (symfony 2/3)
 __config/packages/dtc_queue.yaml:__ (symfony 4)
 ```yaml
 dtc_queue:
-    default_manager: orm
+    manager:
+       job: orm
 ```
 
 __Change the EntityManager:__
 
 ```yaml
 dtc_queue:
-    entity_manager: {something} # default is "default"
+    orm:
+        entity_manager: {something} # default is "default"
 ```        
 
 __NOTE:__ You may need to add DtcQueueBundle to your mappings section in config.yml if auto_mapping is not enabled
@@ -292,7 +298,8 @@ dtc_queue:
     beanstalkd:
         host: beanstalkd
         tube: some-tube-name [optional]
-    default_manager: beanstalkd
+    manager:
+        job: beanstalkd
 ```
 
 RabbitMQ Configuration
@@ -302,7 +309,8 @@ __app/config/config.yml:__ (symfony 2/3)
 __config/packages/dtc_queue.yaml:__ (symfony 4)
 ```yaml
 dtc_queue:
-    default_manager: rabbit_mq
+    manager:
+        job: rabbit_mq
     rabbit_mq:
         host: rabbitmq
         port: 5672
@@ -333,7 +341,8 @@ __app/config/config.yml:__ (symfony 2/3)
 __config/packages/dtc_queue.yaml:__ (symfony 4)
 ```yaml
 dtc_queue:
-    default_manager: redis
+    manager:
+        job: redis
     redis:
         # choose one of the below snc_redis, predis, or phpredis
         snc_redis:
@@ -375,10 +384,11 @@ __config/packages/dtc_queue.yaml:__ (symfony 4)
 ```yaml
 dtc_queue:
     class_job: Some\Job\ClassName [optional]
-    default_manager: some_name [optional]
+    manager:
+        job: some_name [optional]
     # (create your own manager service and name or alias it:
     #   dtc_queue.job_manager.<some_name> and put
-    #   <some_name> in the default_manager field above)
+    #   <some_name> in the manager: job field above)
 ```
 
 Rename the Database or Table Name
@@ -413,8 +423,8 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Entity
  * @ORM\Table(name="job_some_other_name", indexes={@ORM\Index(name="job_crc_hash_idx", columns={"crcHash","status"}),
  *                  @ORM\Index(name="job_priority_idx", columns={"priority","whenAt"}),
- *                  @ORM\Index(name="job_when_idx", columns={"whenAt","locked"}),
- *                  @ORM\Index(name="job_status_idx", columns={"status","locked","whenAt"})})
+ *                  @ORM\Index(name="job_when_idx", columns={"whenAt"}),
+ *                  @ORM\Index(name="job_status_idx", columns={"status","whenAt"})})
  */
 class Job extends BaseJob {
 }
