@@ -245,7 +245,7 @@ class JobManager extends DoctrineJobManager
     /**
      * @param string|null $workerName
      * @param string|null $methodName
-     * @param bool $prioritize
+     * @param bool        $prioritize
      *
      * @return Builder
      */

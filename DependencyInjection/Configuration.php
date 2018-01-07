@@ -519,6 +519,7 @@ class Configuration implements ConfigurationInterface
                 if (empty($node['options'])) {
                     unset($node['options']);
                 }
+
                 return $node;
             })->end()
            ->validate()->ifTrue(function ($node) {

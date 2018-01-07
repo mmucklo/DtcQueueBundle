@@ -66,7 +66,7 @@ class QueueController extends Controller
             flush();
         };
 
-        return new StreamedResponse(function() use ($jobManager, $callback, $workerName, $methodName) {
+        return new StreamedResponse(function () use ($jobManager, $callback, $workerName, $methodName) {
             $total = $jobManager->countLiveJobs($workerName, $methodName);
             echo json_encode(['total' => $total]);
             echo "\n";

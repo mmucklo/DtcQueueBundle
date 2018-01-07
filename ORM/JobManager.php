@@ -483,7 +483,7 @@ class JobManager extends DoctrineJobManager
      *
      * @param string|null $workerName
      * @param string|null $methodName
-     * @param \Closure $progressCallback
+     * @param \Closure    $progressCallback
      */
     protected function runArchive($workerName = null, $methodName = null, $progressCallback)
     {
