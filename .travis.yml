@@ -47,7 +47,7 @@ before_script:
   - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then composer require "symfony/http-kernel:3.4.0"; fi
   - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then composer require "symfony/dependency-injection:3.4.0"; fi
   - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then composer require "symfony/config:3.4.0"; fi
-  - php -d memory_limit=-1 `which composer` install
+  - composer --memory=1G install
 
 script:
   - BEANSTALKD_HOST=localhost MONGODB_HOST=localhost RABBIT_MQ_HOST=localhost MYSQL_HOST=localhost MYSQL_USER=root MYSQL_DATABASE=queue_test bin/phpunit --coverage-clover=coverage.clover --log-junit=phpunit.result.xml
