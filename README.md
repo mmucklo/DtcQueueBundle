@@ -28,17 +28,16 @@ Introduction
 
 This bundle provides a way to easily create queued background jobs
 
-- Background tasks with just a few lines of code
-- Add workers to your application with very little effort
-- Turn any code into background task with a few lines
+- Kickoff background tasks with just a few lines of code
+- Add background worker services to your application with very little effort
+  - Turn any code into background task with a few lines
 - Atomic operation for jobs
-- ORM and ODM has built-in job-archival for finished jobs
-- Logs errors from worker
+- **(New in 4.0!)** Auto-retry on failure
 - Command to run and debug jobs from console
-- Works with GridBundle to provide queue management
-- Various safety checks for things such as stalled jobs, errored jobs
-   - Allows for reseting stalled and errored jobs via console commands
-      - If automated, limits can be placed on the number of retries
+- ORM and ODM managers have built-in job-archival for finished jobs
+- Logs errors from worker
+- Various safety checks for things such as stalled jobs, exception jobs
+   - Allows for reseting stalled and exception jobs via console commands
 - Admin interface with an optional performance graph
 
 ![Trends](/Resources/doc/images/trends-example.png?raw=true "DtcQueue Trends")

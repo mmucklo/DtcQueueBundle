@@ -30,9 +30,10 @@ class JobManagerTest extends BaseJobManagerTest
     public static function setUpBeforeClass()
     {
         $host = getenv('REDIS_HOST');
+        $port = getenv('REDIS_PORT') ?: 6379;
         $jobTimingClass = JobTiming::class;
         $runClass = Run::class;
-        $predisClient = new Client(['scheme' => 'tcp', 'host' => $host, 'port' => 6379]);
+        $predisClient = new Client(['scheme' => 'tcp', 'host' => $host, 'port' => $port]);
         $predisClient->flushall();
         $predis = new Predis($predisClient);
 

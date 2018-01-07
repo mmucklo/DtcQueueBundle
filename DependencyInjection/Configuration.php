@@ -200,7 +200,7 @@ class Configuration implements ConfigurationInterface
                         ->end()
                         ->integerNode('exceptions')
                             ->info('This the maximum total number of exceptions before a job is marked as hitting the maximum exceptions.')
-                            ->defaultValue(1)
+                            ->defaultValue(2)
                         ->end()
                         ->integerNode('stalls')
                             ->info('This the maximum total number of exceptions before a job is marked as hitting the maximum exceptions.')
