@@ -8,4 +8,6 @@ use Dtc\QueueBundle\Model\MicrotimeTrait;
 class Job extends MessageableJobWithId
 {
     use MicrotimeTrait;
+
+    protected $whenUs;
 }

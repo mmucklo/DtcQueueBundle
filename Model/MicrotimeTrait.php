@@ -6,8 +6,6 @@ use Dtc\QueueBundle\Util\Util;
 
 trait MicrotimeTrait
 {
-    protected $whenUs;
-
     public function setWhenAt(\DateTime $whenAt)
     {
         parent::setWhenAt($whenAt);
