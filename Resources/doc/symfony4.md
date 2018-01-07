@@ -11,8 +11,12 @@ First -
       * composer require mmucklo/queue-bundle
    
 ### Post install instructions
- 
-   * Inside of config/packages/framework.yaml, make sure you have the twig engine turned on:
+
+   * If you want the admin pages, you'll need to install symfony templating
+      * composer require symfony/templating
+       
+   * Inside of config/packages/framework.yaml, make sure you have the twig templating engine turned on:
+      * (this also requires the symfony/framework package if you haven't already installed it)
 
 ```yaml
 framework:
@@ -45,7 +49,10 @@ __config/packages/dtc_queue.yaml:__
 ```yaml
 dtc_queue:
     default_manager: orm
+    # ...
 ```
+
+See the full list of options in [/Resources/doc/full-configuration.md](/Resources/doc/full-configuration.md)
 
 __NOTE:__ You may need to add DtcQueueBundle to your mappings section in __config/packages/doctrine.yaml__ if auto_mapping is not enabled
 

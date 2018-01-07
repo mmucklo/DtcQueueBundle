@@ -29,6 +29,9 @@ class TrendsControllerTest extends TestCase
         $this->runJsCssTest($response);
     }
 
+    /**
+     * @param \Symfony\Component\DependencyInjection\Container $container
+     */
     public function runTimingsActionTests($container)
     {
         $trendsController = new TrendsController();

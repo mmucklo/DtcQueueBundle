@@ -81,7 +81,7 @@ class TrendsController extends Controller
         }
 
         $format = $this->getDateFormat($type);
-        usort($timingsDates, function ($date1str, $date2str) use ($format) {
+        usort($timingsDates, function($date1str, $date2str) use ($format) {
             $date1 = \DateTime::createFromFormat($format, $date1str);
             $date2 = \DateTime::createFromFormat($format, $date2str);
             if (!$date2) {
