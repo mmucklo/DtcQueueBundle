@@ -231,6 +231,7 @@ class JobManager extends DoctrineJobManager
                     BaseJob::STATUS_SUCCESS => 0,
                     BaseJob::STATUS_FAILURE => 0,
                     BaseJob::STATUS_EXCEPTION => 0,
+                    StallableJob::STATUS_STALLED => 0,
                     \Dtc\QueueBundle\Model\Job::STATUS_EXPIRED => 0,
                     RetryableJob::STATUS_MAX_FAILURES => 0,
                     RetryableJob::STATUS_MAX_EXCEPTIONS => 0,
