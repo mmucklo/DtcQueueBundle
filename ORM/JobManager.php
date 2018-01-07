@@ -257,7 +257,7 @@ class JobManager extends BaseJobManager
             $jobs = $query->getResult();
             if ($jobs) {
                 foreach ($jobs as $job) {
-                    if ($job = $this->takeJob($job['id'])) {
+                    if ($job = $this->takeJob($job['id'], $runId)) {
                         return $job;
                     }
                 }

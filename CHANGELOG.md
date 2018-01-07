@@ -1,3 +1,5 @@
+### 3.1.3
+   * Fix a bug with runIds not being passed in properly
 ### 3.1.2
    * Fix a bug in timings by minute for ORM
    * Fix a bug in ODM timings
