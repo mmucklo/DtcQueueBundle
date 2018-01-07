@@ -310,6 +310,9 @@ class JobManager extends BaseJobManager
             ->setParameter(':expiresAt', $dateTime);
     }
 
+    /**
+     * @param integer $runId
+     */
     protected function takeJob($jobId, $runId = null)
     {
         /** @var EntityRepository $repository */
