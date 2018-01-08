@@ -89,7 +89,7 @@ class DtcQueueListener
     {
         $object = $eventArgs->getObject();
         if ($object instanceof \Dtc\QueueBundle\Model\StallableJob) {
-            $dateTime = new \DateTime();
+            $dateTime = \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
             $object->setUpdatedAt($dateTime);
         }
     }
@@ -99,7 +99,7 @@ class DtcQueueListener
         $object = $eventArgs->getObject();
 
         if ($object instanceof \Dtc\QueueBundle\Model\StallableJob) {
-            $dateTime = new \DateTime();
+            $dateTime = \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
             if (!$object->getCreatedAt()) {
                 $object->setCreatedAt($dateTime);
             }

@@ -5,6 +5,7 @@ namespace Dtc\QueueBundle\Tests\Command;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Dtc\QueueBundle\Command\PruneCommand;
 use Dtc\QueueBundle\Document\Job;
+use Dtc\QueueBundle\Util\Util;
 use PHPUnit\Framework\TestCase;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
@@ -92,7 +93,7 @@ class PruneCommandTest extends TestCase
     protected function getPruneCommandOlderDateSeconds($older, $type = 'old', $call = 'pruneArchivedJobs')
     {
         list($dateDiff, $varianceSeconds) = $this->getPruneCommandOlderDateDiff($older, $type, $call);
-        $date1 = new \DateTime();
+        $date1 = Util::getMicrotimeDateTime();
         $date2 = clone $date1;
         $date2->sub($dateDiff);
 

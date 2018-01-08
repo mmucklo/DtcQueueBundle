@@ -6,6 +6,7 @@ use Dtc\QueueBundle\Manager\RetryableJobManager;
 use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\Job as BaseJob;
 use Dtc\QueueBundle\Exception\UnsupportedException;
+use Dtc\QueueBundle\Util\Util;
 use Pheanstalk\Pheanstalk;
 
 class JobManager extends RetryableJobManager
@@ -71,7 +72,7 @@ class JobManager extends RetryableJobManager
         $job->setMessage(null);
         $job->setStartedAt(null);
         $job->setRetries($job->getRetries() + 1);
-        $job->setUpdatedAt(new \DateTime());
+        $job->setUpdatedAt(Util::getMicrotimeDateTime());
         $this->putJob($job);
 
         return true;

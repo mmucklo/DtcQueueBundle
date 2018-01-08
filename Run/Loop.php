@@ -298,7 +298,7 @@ class Loop
      */
     protected function isFinishedEndTime(\DateTime $endTime)
     {
-        $now = new \DateTime();
+        $now = Util::getMicrotimeDateTime();
         if ($endTime > $now) {
             return false;
         }
@@ -332,7 +332,7 @@ class Loop
         }
 
         if ($this->output) {
-            $date = new \DateTime();
+            $date = \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
             $this->output->write("[$level] [".$date->format('c').'] '.$msg);
             if (!empty($context)) {
                 $this->output->write(print_r($context, true));

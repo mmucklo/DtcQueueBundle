@@ -52,12 +52,14 @@ class Configuration implements ConfigurationInterface
         return $treeBuilder;
     }
 
-    public function setDeprecatedNode($node, $type, $name, $deprecatedMessage) {
+    public function setDeprecatedNode($node, $type, $name, $deprecatedMessage)
+    {
         $node = $node->$type($name);
 
         if (Kernel::VERSION_ID >= 30400) {
             $node = $node->setDeprecated($deprecatedMessage);
         }
+
         return $node->end();
     }
 

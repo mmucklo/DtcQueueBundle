@@ -39,7 +39,7 @@ class JobTest extends TestCase
         $job->setArgs([1, 2, 3]);
         $job->setMethod('asdf');
         $job->setPriority(1234);
-        $date = new \DateTime();
+        $date = \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
         $job->setExpiresAt($date);
         $message = $job->toMessage();
 

@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Command;
 
 use Dtc\QueueBundle\Exception\UnsupportedException;
+use Dtc\QueueBundle\Util\Util;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -101,7 +102,7 @@ class PruneCommand extends ContainerAwareCommand
 
             return 1;
         }
-        $olderThan = new \DateTime();
+        $olderThan = Util::getMicrotimeDateTime();
         if (null === $modifier) {
             $olderThan->setTimestamp($durationOrTimestamp);
         } else {

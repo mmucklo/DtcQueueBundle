@@ -12,6 +12,7 @@ use Dtc\QueueBundle\Exception\PriorityException;
 use Dtc\QueueBundle\Exception\UnsupportedException;
 use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Manager\JobTimingManager;
+use Dtc\QueueBundle\Util\Util;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AbstractConnection;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -280,7 +281,7 @@ class JobManager extends PriorityJobManager
         $job->setMessage(null);
         $job->setStartedAt(null);
         $job->setRetries($job->getRetries() + 1);
-        $job->setUpdatedAt(new \DateTime());
+        $job->setUpdatedAt(Util::getMicrotimeDateTime());
         $this->publishJob($job);
 
         return true;

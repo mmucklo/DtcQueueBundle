@@ -2,13 +2,15 @@
 
 namespace Dtc\QueueBundle\Model;
 
+use Dtc\QueueBundle\Util\Util;
+
 abstract class MessageableJob extends RetryableJob
 {
     public function __construct(Worker $worker = null, $batch = false, $priority = 10, \DateTime $whenAt = null)
     {
         parent::__construct($worker, $batch, $priority, $whenAt);
         if (!$this->getWhenAt()) {
-            $this->setWhenAt(new \DateTime('@'.time()));
+            $this->setWhenAt(Util::getMicrotimeDateTime());
         }
     }
 

@@ -116,7 +116,7 @@ class JobManager extends DoctrineJobManager
         $queryBuilder = $objectManager->createQueryBuilder()->update($this->getJobClass(), 'j');
         $queryBuilder->set('j.status', ':newStatus');
         $queryBuilder->where('j.expiresAt <= :expiresAt')
-            ->setParameter(':expiresAt', new \DateTime());
+            ->setParameter(':expiresAt', Util::getMicrotimeDateTime());
         $queryBuilder->andWhere('j.status = :status')
             ->setParameter(':status', BaseJob::STATUS_NEW)
             ->setParameter(':newStatus', Job::STATUS_EXPIRED);
@@ -167,10 +167,6 @@ class JobManager extends DoctrineJobManager
             $where = 'andWhere';
         }
 
-        $dateTime = \DateTime::createFromFormat('U.u', $timeU = Util::getMicrotimeStr());
-        if (false === $dateTime) {
-            throw new \RuntimeException("Could not create date time from $timeU");
-        }
         // Filter
         $queryBuilder
             ->$where($queryBuilder->expr()->orX(
@@ -181,7 +177,7 @@ class JobManager extends DoctrineJobManager
                 $queryBuilder->expr()->isNull('j.expiresAt'),
                 $queryBuilder->expr()->gt('j.expiresAt', ':expiresAt')
             ))
-            ->setParameter(':whenUs', Util::getMicrotimeDecimalFormat($dateTime))
+            ->setParameter(':whenUs', Util::getMicrotimeDecimal())
             ->setParameter(':expiresAt', $dateTime);
 
         $query = $queryBuilder->getQuery();
@@ -301,7 +297,6 @@ class JobManager extends DoctrineJobManager
 
     protected function addStandardPredicate(QueryBuilder $queryBuilder)
     {
-        $dateTime = new \DateTime();
         $queryBuilder
             ->where('j.status = :status')->setParameter(':status', BaseJob::STATUS_NEW)
             ->andWhere($queryBuilder->expr()->orX(
@@ -312,7 +307,7 @@ class JobManager extends DoctrineJobManager
                 $queryBuilder->expr()->isNull('j.expiresAt'),
                 $queryBuilder->expr()->gt('j.expiresAt', ':expiresAt')
             ))
-            ->setParameter(':whenUs', Util::getMicrotimeDecimalFormat($dateTime))
+            ->setParameter(':whenUs', Util::getMicrotimeDecimal())
             ->setParameter(':expiresAt', $dateTime);
     }
 
@@ -332,7 +327,7 @@ class JobManager extends DoctrineJobManager
                 ->setParameter(':runId', $runId);
         }
         $queryBuilder->set('j.startedAt', ':startedAt')
-            ->setParameter(':startedAt', new \DateTime());
+            ->setParameter(':startedAt', Util::getMicrotimeDateTime());
         $queryBuilder->where('j.id = :id');
         $queryBuilder->setParameter(':id', $jobId);
         $resultCount = $queryBuilder->getQuery()->execute();

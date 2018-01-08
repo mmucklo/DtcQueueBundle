@@ -109,9 +109,24 @@ class Util
         return $timeU;
     }
 
+    /**
+     * @throws \RuntimeException
+     *
+     * @return \DateTime
+     */
+    public static function getMicrotimeDateTime()
+    {
+        $result = \DateTime::createFromFormat('U.u', $microtime = self::getMicrotimeStr());
+        if (!$result) {
+            throw new \RuntimeException("Could not create date time from $microtime");
+        }
+
+        return $result;
+    }
+
     public static function getMicrotimeDecimal()
     {
-        return self::getMicrotimeDecimalFormat(\DateTime::createFromFormat('U.u', self::getMicrotimeStr()));
+        return self::getMicrotimeDecimalFormat(self::getMicrotimeDateTime());
     }
 
     public static function getMicrotimeDecimalFormat(\DateTime $dateTime)

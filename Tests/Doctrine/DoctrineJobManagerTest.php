@@ -16,6 +16,7 @@ use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\Manager\BaseJobManagerTest;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\Tests\ORM\JobManagerTest;
+use Dtc\QueueBundle\Util\Util;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 
@@ -406,7 +407,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         self::assertEquals($id, $result->getId());
 
         $result->setStatus(BaseJob::STATUS_EXCEPTION);
-        $result->setStartedAt(new \DateTime());
+        $result->setStartedAt(Util::getMicrotimeDateTime());
         $result->setFinishedAt(new \DateTime());
         $result->setElapsed(12345);
         $result->setMessage('soomething');
@@ -867,9 +868,9 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
 
         $job1 = $worker->later(100)->fibonacci(1);
 
-        $time1 = new \DateTime('@'.time());
+        $time1 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
         $job2 = $worker->batchLater(0)->fibonacci(1);
-        $time2 = new \DateTime();
+        $time2 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
 
         self::assertEquals($job1, $job2);
         self::assertGreaterThanOrEqual($time1, $job2->getWhenAt());
@@ -886,9 +887,9 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
 
         $job1 = $worker->later(100)->setPriority(3)->fibonacci(1);
         $priority1 = $job1->getPriority();
-        $time1 = new \DateTime('@'.time());
+        $time1 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
         $job2 = $worker->batchLater(0)->setPriority(1)->fibonacci(1);
-        $time2 = new \DateTime();
+        $time2 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
         self::assertEquals($job1, $job2);
         self::assertNotEquals($priority1, $job2->getPriority());
 

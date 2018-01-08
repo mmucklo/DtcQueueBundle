@@ -362,7 +362,7 @@ class JobManager extends PriorityJobManager
         $job->setMessage(null);
         $job->setStartedAt(null);
         $job->setRetries($job->getRetries() + 1);
-        $job->setUpdatedAt(new \DateTime());
+        $job->setUpdatedAt(Util::getMicrotimeDateTime());
         $this->saveJob($job);
 
         return true;

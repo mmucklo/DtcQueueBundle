@@ -42,7 +42,7 @@ class TrendsController extends Controller
         $end = $request->query->get('end');
         $type = $request->query->get('type', 'HOUR');
         $beginDate = \DateTime::createFromFormat('Y-m-d\TH:i:s.uO', $begin) ?: null;
-        $endDate = \DateTime::createFromFormat('Y-m-d\TH:i:s.uO', $end) ?: new \DateTime();
+        $endDate = \DateTime::createFromFormat('Y-m-d\TH:i:s.uO', $end) ?: \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
 
         $recordTimings = $this->container->getParameter('dtc_queue.timings.record');
         $params = [];

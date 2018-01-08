@@ -42,12 +42,11 @@ class JobTest extends TestCase
         $job->setMethod('asdf');
         $job->setPriority(1234);
         $job->setId(4213);
-        $date = new \DateTime();
+        $date = \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
         $job->setExpiresAt($date);
         $message = $job->toMessage();
 
         $job2 = new Job();
-        $priority2 = $job2->getPriority();
         $job2->fromMessage($message);
 
         self::assertEquals($job->getId(), $job2->getId());

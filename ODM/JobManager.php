@@ -9,6 +9,7 @@ use Dtc\QueueBundle\Document\Job;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\StallableJob;
+use Dtc\QueueBundle\Util\Util;
 
 class JobManager extends DoctrineJobManager
 {
@@ -94,7 +95,7 @@ class JobManager extends DoctrineJobManager
         $objectManager = $this->getObjectManager();
         $qb = $objectManager->createQueryBuilder($this->getJobClass());
         $qb = $qb->updateMany();
-        $qb->field('expiresAt')->lte(new \DateTime());
+        $qb->field('expiresAt')->lte(Util::getMicrotimeDateTime());
         $qb->field('status')->equals(BaseJob::STATUS_NEW);
         $this->addWorkerNameCriterion($qb, $workerName, $method);
         $qb->field('status')->set(\Dtc\QueueBundle\Model\Job::STATUS_EXPIRED);
@@ -130,7 +131,7 @@ class JobManager extends DoctrineJobManager
         $this->addWorkerNameCriterion($qb, $workerName, $method);
 
         // Filter
-        $date = new \DateTime();
+        $date = Util::getMicrotimeDateTime();
         $qb
             ->addAnd(
                 $qb->expr()->addOr($qb->expr()->field('expiresAt')->equals(null), $qb->expr()->field('expiresAt')->gt($date))
@@ -228,7 +229,7 @@ class JobManager extends DoctrineJobManager
             ->findAndUpdate()
             ->returnNew();
 
-        $date = new \DateTime();
+        $date = Util::getMicrotimeDateTime();
         // Update
         $builder
             ->field('startedAt')->set($date)
@@ -319,7 +320,7 @@ class JobManager extends DoctrineJobManager
      */
     protected function addStandardPredicates($builder)
     {
-        $date = new \DateTime();
+        $date = Util::getMicrotimeDateTime();
         $builder
             ->addAnd(
                 $builder->expr()->addOr($builder->expr()->field('whenAt')->equals(null), $builder->expr()->field('whenAt')->lte($date)),

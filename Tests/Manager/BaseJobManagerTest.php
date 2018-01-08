@@ -185,6 +185,12 @@ abstract class BaseJobManagerTest extends TestCase
         $jobsTotal = 100; // have to trim this down as Travis is slow.
         self::$jobManager->enableSorting = false; // Ignore priority
 
+        $limit = 10000;
+        while ($job = self::$jobManager->getJob() && --$limit) {
+            // Dequeue all existing jobs
+        }
+        self::assertGreaterThan(0, $limit);
+
         for ($i = 0; $i < $jobsTotal; ++$i) {
             self::$worker->later()->fibonacci(1);
         }
@@ -208,7 +214,7 @@ abstract class BaseJobManagerTest extends TestCase
         }
         $total = microtime(true) - $start;
         echo "Total of {$jobsTotal} jobs dequeued in {$total} seconds\n";
-        self::assertNotNull($job, 'The last job in queue...');
+        self::assertNotNull($job, 'The last job in queue is null');
 
         $nextJob = self::$jobManager->getJob();
         self::assertNull($nextJob, "Shouldn't be any jobs left in queue");

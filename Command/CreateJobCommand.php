@@ -37,7 +37,7 @@ class CreateJobCommand extends ContainerAwareCommand
             throw new WorkerNotRegisteredException("Worker `{$workerName}` is not registered.");
         }
 
-        $when = new \DateTime();
+        $when = \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
         $batch = true;
         $priority = 1;
 

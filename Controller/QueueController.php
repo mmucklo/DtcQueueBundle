@@ -66,7 +66,7 @@ class QueueController extends Controller
             flush();
         };
 
-        return new StreamedResponse(function () use ($jobManager, $callback, $workerName, $methodName) {
+        $streamingResponse = new StreamedResponse(function () use ($jobManager, $callback, $workerName, $methodName) {
             $total = $jobManager->countLiveJobs($workerName, $methodName);
             echo json_encode(['total' => $total]);
             echo "\n";
@@ -75,6 +75,9 @@ class QueueController extends Controller
                 $jobManager->archiveAllJobs($workerName, $methodName, $callback);
             }
         });
+        $streamingResponse->headers->set('Content-Type', 'application/x-ndjson');
+
+        return $streamingResponse;
     }
 
     /**

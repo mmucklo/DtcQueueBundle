@@ -28,7 +28,7 @@ abstract class DoctrineJobTimingManager extends JobTimingManager
     public function performRecording($status, \DateTime $finishedAt = null)
     {
         if (null === $finishedAt) {
-            $finishedAt = new \DateTime();
+            $finishedAt = \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
         }
 
         /** @var JobTiming $jobTiming */
