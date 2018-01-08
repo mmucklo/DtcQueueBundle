@@ -66,7 +66,7 @@ class Loop
     /**
      * @param int $processTimeout
      */
-    public function setProcessTimeout(int $processTimeout)
+    public function setProcessTimeout($processTimeout)
     {
         $this->processTimeout = $processTimeout;
     }
