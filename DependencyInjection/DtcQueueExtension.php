@@ -37,6 +37,7 @@ class DtcQueueExtension extends Extension
         $this->configClasses($config, $container);
         $this->configRecordTimings($config, $container);
         $this->configAdmin($config, $container);
+        $this->configDeprecated($config, $container);
 
         // Load Grid if Dtc\GridBundle Bundle is registered
         $yamlLoader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
@@ -61,6 +62,12 @@ class DtcQueueExtension extends Extension
         if (isset($config['entity_manager'])) {
             $container->setParameter('dtc_queue.odm.entity_manager', $config['entity_manager']);
         }
+        $this->configClassDeprecated($config, $container);
+        $this->configOtherDeprecated($config, $container);
+    }
+
+    protected function configClassDeprecated(array $config, ContainerBuilder $container)
+    {
         if (isset($config['class_job'])) {
             $container->setParameter('dtc_queue.class.job', $config['class_job']);
         }
@@ -76,6 +83,10 @@ class DtcQueueExtension extends Extension
         if (isset($config['class_job_timing'])) {
             $container->setParameter('dtc_queue.class.job_timing', $config['class_job_timing']);
         }
+    }
+
+    protected function configOtherDeprecated(array $config, ContainerBuilder $container)
+    {
         if (isset($config['record_timings'])) {
             $container->setParameter('dtc_queue.timings.record', $config['record_timings']);
         }

@@ -16,14 +16,10 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        if (Kernel::VERSION_ID < 30400) {
-            return $this->getConfigTreeBuilderSymfony2();
-        }
-
         $treeBuilder = new TreeBuilder();
         $rootNode = $treeBuilder->root('dtc_queue');
 
-        $rootNode
+        $node = $rootNode
             ->children()
                 ->append($this->addOrm())
                 ->append($this->addOdm())
@@ -35,61 +31,34 @@ class Configuration implements ConfigurationInterface
                 ->append($this->addAdmin())
                 ->append($this->addClasses())
                 ->append($this->addPriority())
-                ->append($this->addRetry())
-                ->scalarNode('document_manager')->setDeprecated('The "%node% option is deprecated, Use "odm: { document_manager: ... }" instead.')->end()
-                ->scalarNode('entity_manager')->setDeprecated('The "%node% option is deprecated, Use "odm: { entity_manager: ... }" instead.')->end()
-                ->scalarNode('default_manager')->setDeprecated('The "%node% option is deprecated, Use "manager: { job: ... }" instead.')->end()
-                ->scalarNode('run_manager')->setDeprecated('The "%node% option is deprecated, Use "manager: { run: ... }" instead.')->end()
-                ->scalarNode('job_timing_manager')->setDeprecated('The "%node% option is deprecated, Use "manager: { job_timing: ... }" instead.')->end()
-                ->booleanNode('record_timings')->setDeprecated('The "%node% option is deprecated, Use "timings: { record: ... }" instead.')->end()
-                ->integerNode('record_timings_timezone_offset')->setDeprecated('The "%node% option is deprecated, Use "record: { timezone_offset: ... }" instead.')->end()
-                ->scalarNode('class_job')->setDeprecated('The "%node% option is deprecated, Use "class: { job: ... }" instead.')->end()
-                ->scalarNode('class_job_archive')->setDeprecated('The "%node% option is deprecated, Use "class: { job_archive: ... }" instead.')->end()
-                ->scalarNode('class_run')->setDeprecated('The "%node% option is deprecated, Use "class: { run: ... }" instead.')->end()
-                ->scalarNode('class_run_archive')->setDeprecated('The "%node% option is deprecated, Use "class: { run_archive: ... }" instead.')->end()
-                ->scalarNode('class_job_timing')->setDeprecated('The "%node% option is deprecated, Use "class: { job_timing: ... }" instead.')->end()
-                ->scalarNode('priority_max')->setDeprecated('The "%node% option is deprecated, Use "priority: { max: ... }" instead.')->end()
-                ->scalarNode('priority_direction')->setDeprecated('The "%node% option is deprecated, Use "priority: { direction: ... }" instead.')->end()
-            ->end();
+                ->append($this->addRetry());
+
+        $node = $this->setDeprecatedNode($node, 'scalarNode', 'document_manager', 'The "%node% option is deprecated, Use "odm: { document_manager: ... }" instead.');
+        $node = $this->setDeprecatedNode($node, 'scalarNode', 'entity_manager', 'The "%node% option is deprecated, Use "odm: { entity_manager: ... }" instead.');
+        $node = $this->setDeprecatedNode($node, 'scalarNode', 'default_manager', 'The "%node% option is deprecated, Use "manager: { job: ... }" instead.');
+        $node = $this->setDeprecatedNode($node, 'scalarNode', 'run_manager', 'The "%node% option is deprecated, Use "manager: { run: ... }" instead.');
+        $node = $this->setDeprecatedNode($node, 'scalarNode', 'job_timing_manager', 'The "%node% option is deprecated, Use "manager: { job_timing: ... }" instead.');
+        $node = $this->setDeprecatedNode($node, 'booleanNode', 'record_timings', 'The "%node% option is deprecated, Use "timings: { record: ... }" instead.');
+        $node = $this->setDeprecatedNode($node, 'integerNode', 'record_timings_timezone_offset', 'The "%node% option is deprecated, Use "record: { timezone_offset: ... }" instead.');
+        $node = $this->setDeprecatedNode($node, 'scalarNode', 'class_job', 'The "%node% option is deprecated, Use "class: { job: ... }" instead.');
+        $node = $this->setDeprecatedNode($node, 'scalarNode', 'class_job_archive', 'The "%node% option is deprecated, Use "class: { job_archive: ... }" instead.');
+        $node = $this->setDeprecatedNode($node, 'scalarNode', 'class_run', 'The "%node% option is deprecated, Use "class: { run: ... }" instead.');
+        $node = $this->setDeprecatedNode($node, 'scalarNode', 'class_run_archive', 'The "%node% option is deprecated, Use "class: { run_archive: ... }" instead.');
+        $node = $this->setDeprecatedNode($node, 'scalarNode', 'class_job_timing', 'The "%node% option is deprecated, Use "class: { job_timing: ... }" instead.');
+        $node = $this->setDeprecatedNode($node, 'scalarNode', 'priority_max', 'The "%node% option is deprecated, Use "priority: { max: ... }" instead.');
+        $node = $this->setDeprecatedNode($node, 'scalarNode', 'priority_direction', 'The "%node% option is deprecated, Use "priority: { direction: ... }" instead.');
+        $node->end();
 
         return $treeBuilder;
     }
 
-    public function getConfigTreeBuilderSymfony2()
-    {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('dtc_queue');
+    public function setDeprecatedNode($node, $type, $name, $deprecatedMessage) {
+        $node = $node->$type($name);
 
-        $rootNode
-            ->children()
-            ->append($this->addOrm())
-            ->append($this->addOdm())
-            ->append($this->addManager())
-            ->append($this->addTimings())
-            ->append($this->addBeanstalkd())
-            ->append($this->addRabbitMq())
-            ->append($this->addRedis())
-            ->append($this->addAdmin())
-            ->append($this->addClasses())
-            ->append($this->addPriority())
-            ->append($this->addRetry())
-            ->scalarNode('document_manager')->end()
-            ->scalarNode('entity_manager')->end()
-            ->scalarNode('default_manager')->end()
-            ->scalarNode('run_manager')->end()
-            ->scalarNode('job_timing_manager')->end()
-            ->booleanNode('record_timings')->end()
-            ->integerNode('record_timings_timezone_offset')->end()
-            ->scalarNode('class_job')->end()
-            ->scalarNode('class_job_archive')->end()
-            ->scalarNode('class_run')->end()
-            ->scalarNode('class_run_archive')->end()
-            ->scalarNode('class_job_timing')->end()
-            ->scalarNode('priority_max')->end()
-            ->scalarNode('priority_direction')->end()
-            ->end();
-
-        return $treeBuilder;
+        if (Kernel::VERSION_ID >= 30400) {
+            $node = $node->setDeprecated($deprecatedMessage);
+        }
+        return $node->end();
     }
 
     protected function addTimings()
