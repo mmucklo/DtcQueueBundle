@@ -178,7 +178,7 @@ class JobManager extends DoctrineJobManager
                 $queryBuilder->expr()->gt('j.expiresAt', ':expiresAt')
             ))
             ->setParameter(':whenUs', Util::getMicrotimeDecimal())
-            ->setParameter(':expiresAt', $dateTime);
+            ->setParameter(':expiresAt', Util::getMicrotimeDateTime());
 
         $query = $queryBuilder->getQuery();
 

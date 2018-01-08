@@ -868,7 +868,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
 
         $job1 = $worker->later(100)->fibonacci(1);
 
-        $time1 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
+        $time1 = new \DateTime();
         $job2 = $worker->batchLater(0)->fibonacci(1);
         $time2 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
 
