@@ -5,6 +5,7 @@ namespace Dtc\QueueBundle\Manager;
 use Dtc\QueueBundle\Exception\UnsupportedException;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\Run;
+use Dtc\QueueBundle\Util\Util;
 
 class RunManager
 {
@@ -93,7 +94,7 @@ class RunManager
         $runClass = $this->getRunClass();
         /** @var Run $run */
         $run = new $runClass();
-        $startDate = \DateTime::createFromFormat('U.u', $start);
+        $startDate = Util::getMicrotimeDateTime();
         $run->setLastHeartbeatAt($startDate);
         $run->setStartedAt($startDate);
         if (null !== $maxCount) {
