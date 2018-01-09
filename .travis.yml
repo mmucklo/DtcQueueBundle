@@ -53,7 +53,7 @@ before_script:
   - php -d memory_limit=-1 composer.phar install
 
 script:
-  - REDIS_HOST=localhost BEANSTALKD_HOST=localhost MONGODB_HOST=localhost RABBIT_MQ_HOST=localhost MYSQL_HOST=localhost MYSQL_USER=root MYSQL_DATABASE=queue_test bin/phpunit --coverage-clover=coverage.clover --log-junit=phpunit.result.xml
+  - REDIS_HOST=localhost BEANSTALKD_HOST=localhost MONGODB_HOST=localhost RABBIT_MQ_HOST=localhost MYSQL_HOST=localhost MYSQL_USER=root MYSQL_DATABASE=queue_test php -d memory_limit=-1 bin/phpunit --coverage-clover=coverage.clover --log-junit=phpunit.result.xml
   - wget https://scrutinizer-ci.com/ocular.phar || true
   - php ocular.phar code-coverage:upload --format=php-clover coverage.clover || true
   - echo $(ls -l)
