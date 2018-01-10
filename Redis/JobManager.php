@@ -9,7 +9,6 @@ use Dtc\QueueBundle\Manager\JobTimingManager;
 use Dtc\QueueBundle\Manager\PriorityJobManager;
 use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Model\BaseJob;
-use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Util\Util;
 
@@ -295,7 +294,7 @@ class JobManager extends PriorityJobManager
         }
     }
 
-    public function deleteJob(Job $job)
+    public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
     {
         $jobId = $job->getId();
         $priorityQueue = $this->getPriorityQueueCacheKey();
