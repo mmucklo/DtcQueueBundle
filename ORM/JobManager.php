@@ -314,6 +314,9 @@ class JobManager extends DoctrineJobManager
             ->setParameter(':expiresAt', $dateTime);
     }
 
+    /**
+     * @param integer $runId
+     */
     protected function takeJob($jobId, $runId = null)
     {
         /** @var EntityRepository $repository */

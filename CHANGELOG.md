@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ### 4.0.0
    * Redis support
    * Auto Retry
@@ -42,6 +43,8 @@
    * Timezone fix for ORM
       * Will now store a microtime representation in a Decimal column called whenUs
    * Fix a bug where $runId was not being set when ORM was "taking" a job.
+### 3.1.3
+   * Fix a bug with runIds not being passed in properly
 ### 3.1.2
    * Fix a bug in timings by minute for ORM
    * Fix a bug in ODM timings
