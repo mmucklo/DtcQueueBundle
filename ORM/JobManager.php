@@ -297,6 +297,9 @@ class JobManager extends DoctrineJobManager
 
     protected function addStandardPredicate(QueryBuilder $queryBuilder)
     {
+        $dateTime = Util::getMicrotimeDateTime();
+        $decimal = Util::getMicrotimeDecimalFormat($dateTime);
+
         $queryBuilder
             ->where('j.status = :status')->setParameter(':status', BaseJob::STATUS_NEW)
             ->andWhere($queryBuilder->expr()->orX(
@@ -307,7 +310,7 @@ class JobManager extends DoctrineJobManager
                 $queryBuilder->expr()->isNull('j.expiresAt'),
                 $queryBuilder->expr()->gt('j.expiresAt', ':expiresAt')
             ))
-            ->setParameter(':whenUs', Util::getMicrotimeDecimal())
+            ->setParameter(':whenUs', $decimal)
             ->setParameter(':expiresAt', $dateTime);
     }
 
