@@ -71,6 +71,7 @@ trait CommandTrait
             $result = $command->run($input, $output);
         } catch (\Exception $exception) {
             TestCase::fail("Shouldn't throw exception: ".get_class($exception).' - '.$exception->getMessage());
+
             return;
         }
         TestCase::assertEquals($expectedResult, $result);

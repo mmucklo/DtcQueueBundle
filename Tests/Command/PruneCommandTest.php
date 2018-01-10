@@ -142,7 +142,7 @@ class PruneCommandTest extends TestCase
     protected function runPruneCommandOlderSeconds($older, $expected, $type = 'old', $call = 'pruneArchivedJobs')
     {
         list($result, $variance) = $this->getPruneCommandOlderDateSeconds($older, $type, $call);
-        self::assertGreaterThanOrEqual($expected, intval($result));
+        self::assertGreaterThanOrEqual($expected - $variance, intval($result));
         self::assertLessThanOrEqual($expected + $variance, intval($result));
     }
 

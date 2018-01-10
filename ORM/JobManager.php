@@ -315,7 +315,7 @@ class JobManager extends DoctrineJobManager
     }
 
     /**
-     * @param integer $runId
+     * @param int $runId
      */
     protected function takeJob($jobId, $runId = null)
     {
