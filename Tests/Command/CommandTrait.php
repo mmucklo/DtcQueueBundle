@@ -69,10 +69,11 @@ trait CommandTrait
         list($command, $input, $output) = $this->prepCommand($commandClass, $container, $params);
         try {
             $result = $command->run($input, $output);
-            TestCase::assertEquals($expectedResult, $result);
         } catch (\Exception $exception) {
             TestCase::fail("Shouldn't throw exception: ".get_class($exception).' - '.$exception->getMessage());
+            return;
         }
+        TestCase::assertEquals($expectedResult, $result);
     }
 
     protected function runStubCommand($className, $params, $call, $expectedResult = 0)
