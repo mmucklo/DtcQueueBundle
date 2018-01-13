@@ -80,7 +80,7 @@ class PruneCommandTest extends TestCase
         $dateVal2 = new \DateTime("@$endTime");
         $dateDiff = $dateVal2->diff($dateVal);
 
-        return [$dateDiff, $endTime - $startTime];
+        return [$dateDiff, ($endTime - $startTime) + 1];
     }
 
     protected function getPruneCommandOlderDateDays($older, $type = 'old', $call = 'pruneArchivedJobs')
