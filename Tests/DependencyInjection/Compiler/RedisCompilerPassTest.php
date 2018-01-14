@@ -61,6 +61,7 @@ class RedisCompilerPassTest extends TestCase
     public function testPredis()
     {
         $container = new ContainerBuilder();
+        $count = count($container->getDefinitions());
         $definition = new Definition();
         $definition->setClass(JobManager::class);
         $container->addDefinitions(['dtc_queue.job_manager.redis' => $definition]);
@@ -76,6 +77,7 @@ class RedisCompilerPassTest extends TestCase
         self::assertCount(1, $definition->getMethodCalls());
 
         $container = new ContainerBuilder();
+        $count = count($container->getDefinitions());
         $definition = new Definition();
         $definition->setClass(JobManager::class);
         $container->addDefinitions(['dtc_queue.job_manager.redis' => $definition]);
@@ -94,6 +96,7 @@ class RedisCompilerPassTest extends TestCase
     public function testPhpRedis()
     {
         $container = new ContainerBuilder();
+        $count = count($container->getDefinitions());
         $dtcQueueExtension = new DtcQueueExtension();
         $configs = ['config' => ['redis' => ['phpredis' => ['host' => 'localhost']]]];
         $dtcQueueExtension->load($configs, $container);
