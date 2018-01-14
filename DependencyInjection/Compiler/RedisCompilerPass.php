@@ -16,13 +16,21 @@ class RedisCompilerPass implements CompilerPassInterface
 
             return;
         }
+
         if ($container->hasParameter('dtc_queue.redis.predis.dsn')) {
             $this->processPredisDsn($container);
 
             return;
         }
+
         if ($container->hasParameter('dtc_queue.redis.predis.connection_parameters')) {
             $this->processPredisConnectionParameters($container);
+
+            return;
+        }
+
+        if ($container->hasParameter('dtc_queue.redis.phpredis.host')) {
+            $this->processPhpRedis($container);
 
             return;
         }

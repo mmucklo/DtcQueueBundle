@@ -68,6 +68,23 @@ abstract class MessageableJob extends RetryableJob
             $this->setPriority($arr['priority']);
         }
 
+        $this->fromMessageArrayRetries($arr);
+        foreach (['expiresAt', 'createdAt', 'updatedAt', 'whenAt'] as $dateField) {
+            if (isset($arr[$dateField])) {
+                $timeStr = $arr[$dateField];
+                if ($timeStr) {
+                    $dateTime = \DateTime::createFromFormat('U.u', $timeStr);
+                    if ($dateTime) {
+                        $method = 'set'.ucfirst($dateField);
+                        $this->$method($dateTime);
+                    }
+                }
+            }
+        }
+    }
+
+    protected function fromMessagearrayRetries(array $arr)
+    {
         if (isset($arr['retries'])) {
             $this->setRetries($arr['retries']);
         }
@@ -85,19 +102,6 @@ abstract class MessageableJob extends RetryableJob
         }
         if (isset($arr['maxExceptions'])) {
             $this->setMaxExceptions($arr['maxExceptions']);
-        }
-
-        foreach (['expiresAt', 'createdAt', 'updatedAt', 'whenAt'] as $dateField) {
-            if (isset($arr[$dateField])) {
-                $timeStr = $arr[$dateField];
-                if ($timeStr) {
-                    $dateTime = \DateTime::createFromFormat('U.u', $timeStr);
-                    if ($dateTime) {
-                        $method = 'set'.ucfirst($dateField);
-                        $this->$method($dateTime);
-                    }
-                }
-            }
         }
     }
 }

@@ -10,6 +10,8 @@ use PHPUnit\Framework\TestCase;
 
 abstract class BaseJobManagerTest extends TestCase
 {
+    const PERFORMANCE_TOTAL_JOBS = 100;
+
     /** @var Worker */
     public static $worker;
 
@@ -173,24 +175,10 @@ abstract class BaseJobManagerTest extends TestCase
         self::assertFalse($failed);
     }
 
-    /**
-     * @outputBuffering disabled
-     */
-    public function testPerformance()
+    public function performanceEnqueue()
     {
-        echo "\n".static::class.": Testing Performance\n";
-        flush();
-
+        $jobsTotal = static::PERFORMANCE_TOTAL_JOBS;
         $start = microtime(true);
-        $jobsTotal = 100; // have to trim this down as Travis is slow.
-        self::$jobManager->enableSorting = false; // Ignore priority
-
-        $limit = 10000;
-        while ($job = self::$jobManager->getJob() && --$limit) {
-            // Dequeue all existing jobs
-        }
-        self::assertGreaterThan(0, $limit);
-
         for ($i = 0; $i < $jobsTotal; ++$i) {
             self::$worker->later()->fibonacci(1);
         }
@@ -206,7 +194,39 @@ abstract class BaseJobManagerTest extends TestCase
                 throw $e;
             }
         }
+    }
 
+    /**
+     * @outputBuffering disabled
+     */
+    public function testPerformance()
+    {
+        echo "\n".static::class.": Testing Performance\n";
+        flush();
+        $reflection = new \ReflectionObject(self::$jobManager);
+        if ($reflection->hasProperty('enableSorting')) {
+            $oldEnableSorting = self::$jobManager->enableSorting;
+            self::$jobManager->enableSorting = false; // Ignore priority
+        }
+
+        // Dequeue all outstanding jobs
+        $limit = 10000;
+        while ($job = self::$jobManager->getJob() && $limit) {
+            $limit -= 1;
+        }
+        self::assertGreaterThan(0, $limit);
+
+        $this->performanceEnqueue();
+        $this->performanceDequeue();
+
+        if ($reflection->hasProperty('enableSorting')) {
+            self::$jobManager->enableSorting = $oldEnableSorting; // Ignore priority
+        }
+    }
+
+    public function performanceDequeue()
+    {
+        $jobsTotal = static::PERFORMANCE_TOTAL_JOBS;
         $start = microtime(true);
         $job = null;
         for ($i = 0; $i < $jobsTotal; ++$i) {

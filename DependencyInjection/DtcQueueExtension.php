@@ -114,8 +114,19 @@ class DtcQueueExtension extends Extension
             $container->setParameter('dtc_queue.redis.predis.dsn', $config['redis']['predis']['dsn']);
         } elseif (isset($config['redis']['predis']['connection_parameters']['host'])) {
             $container->setParameter('dtc_queue.redis.predis.connection_parameters', $config['redis']['predis']['connection_parameters']);
-        } elseif (isset($config['redis']['phpredis']['host'])) {
-            $container->setParameter('dtc_queue.redis.phpredis', $config['redis']['phpredis']);
+        }
+        $this->configPhpRedis($config, $container);
+    }
+
+    protected function configPhpRedis(array $config, ContainerBuilder $container)
+    {
+        $container->setParameter('dtc_queue.redis.phpredis.host', isset($config['redis']['phpredis']['host']) ? $config['redis']['phpredis']['host'] : null);
+        $container->setParameter('dtc_queue.redis.phpredis.port', isset($config['redis']['phpredis']['port']) ? $config['redis']['phpredis']['port'] : null);
+        $container->setParameter('dtc_queue.redis.phpredis.timeout', isset($config['redis']['phpredis']['timeout']) ? $config['redis']['phpredis']['timeout'] : null);
+        $container->setParameter('dtc_queue.redis.phpredis.retry_interval', isset($config['redis']['phpredis']['retry_interval']) ? $config['redis']['phpredis']['retry_interval'] : null);
+        $container->setParameter('dtc_queue.redis.phpredis.read_timeout', isset($config['redis']['phpredis']['read_timeout']) ? $config['redis']['phpredis']['read_timeout'] : null);
+        if (isset($config['redis']['phpredis']['auth'])) {
+            $container->setParameter('dtc_queue.redis.phpredis.auth', $config['redis']['phpredis']['auth']);
         }
     }
 

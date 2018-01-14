@@ -84,6 +84,70 @@ class DtcQueueExtensionTest extends TestCase
         return $containerBuilder;
     }
 
+    public function testSncRedis()
+    {
+        $configs = ['config' => ['redis' => ['snc_redis' => ['type' => 'asdf']]]];
+        $this->tryBadConfigs($configs);
+
+        $configs = ['config' => ['redis' => ['snc_redis' => ['type' => 'predis']]]];
+        $this->tryBadConfigs($configs);
+
+        $configs = ['config' => ['redis' => ['snc_redis' => ['alias' => 'asdf']]]];
+        $this->tryBadConfigs($configs);
+
+        $configs = ['config' => ['redis' => ['snc_redis' => ['alias' => 'default', 'type' => 'predis']]]];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('default', $containerBuilder->getParameter('dtc_queue.redis.snc_redis.alias'));
+        self::assertEquals('predis', $containerBuilder->getParameter('dtc_queue.redis.snc_redis.type'));
+    }
+
+    public function testPredis()
+    {
+        $configs = ['config' => ['redis' => ['predis' => ['dsn' => 'redis://localhost']]]];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('redis://localhost', $containerBuilder->getParameter('dtc_queue.redis.predis.dsn'));
+        self::assertFalse($containerBuilder->hasParameter('dtc_queue.redis.snc_redis.alias'));
+
+        $configs = [
+            'config' => [
+                'redis' => [
+                    'predis' => [
+                        'connection_parameters' => [
+                            'host' => 'localhost',
+                            'port' => 6379,
+                        ],
+                    ],
+                ],
+            ],
+        ];
+        $containerBuilder = $this->tryConfigs($configs);
+        $this->arrayTest($containerBuilder, 'dtc_queue.redis.predis.connection_parameters', 'host', 'localhost');
+        $this->arrayTest($containerBuilder, 'dtc_queue.redis.predis.connection_parameters', 'port', 6379);
+        $this->arrayTest($containerBuilder, 'dtc_queue.redis.predis.connection_parameters', 'timeout', 5.0);
+        $this->arrayTest($containerBuilder, 'dtc_queue.redis.predis.connection_parameters', 'scheme', 'tcp');
+    }
+
+    public function testPhpRedis()
+    {
+        $configs = ['config' => ['redis' => ['phpredis' => ['host' => 'localhost', 'port' => 6379]]]];
+        $containerBuilder = $this->tryConfigs($configs);
+        $this->assertEquals('localhost', $containerBuilder->getParameter('dtc_queue.redis.phpredis.host'));
+        $this->assertEquals(6379, $containerBuilder->getParameter('dtc_queue.redis.phpredis.port'));
+        $this->assertEquals(0, $containerBuilder->getParameter('dtc_queue.redis.phpredis.timeout'));
+        $this->assertEquals(0, $containerBuilder->getParameter('dtc_queue.redis.phpredis.read_timeout'));
+        $this->assertEquals(null, $containerBuilder->getParameter('dtc_queue.redis.phpredis.retry_interval'));
+        $this->assertFalse($containerBuilder->hasParameter('dtc_queue.redis.phpredis.auth'));
+
+        $configs = ['config' => ['redis' => ['phpredis' => ['host' => 'localhost', 'port' => 6379, 'read_timeout' => 12.32, 'timeout' => 1.3, 'retry_interval' => 1, 'auth' => 'asdf']]]];
+        $containerBuilder = $this->tryConfigs($configs);
+        $this->assertEquals('localhost', $containerBuilder->getParameter('dtc_queue.redis.phpredis.host'));
+        $this->assertEquals(6379, $containerBuilder->getParameter('dtc_queue.redis.phpredis.port'));
+        $this->assertEquals(1.3, $containerBuilder->getParameter('dtc_queue.redis.phpredis.timeout'));
+        $this->assertEquals(12.32, $containerBuilder->getParameter('dtc_queue.redis.phpredis.read_timeout'));
+        $this->assertEquals(1, $containerBuilder->getParameter('dtc_queue.redis.phpredis.retry_interval'));
+        $this->assertEquals('asdf', $containerBuilder->getParameter('dtc_queue.redis.phpredis.auth'));
+    }
+
     public function testRabbitMq()
     {
         $configs = ['config' => ['rabbit_mq' => []]];

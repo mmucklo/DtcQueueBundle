@@ -274,13 +274,13 @@ class Configuration implements ConfigurationInterface
                     ->end()
                     ->validate()->ifTrue(function ($node) {
                         if (isset($node['type']) && !isset($node['alias'])) {
-                            return false;
+                            return true;
                         }
                         if (isset($node['alias']) && !isset($node['type'])) {
-                            return false;
+                            return true;
                         }
 
-                        return true;
+                        return false;
                     })->thenInvalid('if alias or type is set, then both must be set')->end()
                 ->end()
                 ->arrayNode('predis')
@@ -290,10 +290,10 @@ class Configuration implements ConfigurationInterface
                     ->end()
                     ->validate()->ifTrue(function ($node) {
                         if (isset($node['dsn']) && (isset($node['connection_parameters']['host']) || isset($node['connection_parameters']['port']))) {
-                            return false;
+                            return true;
                         }
 
-                        return true;
+                        return false;
                     })->thenInvalid('if dsn is set, do not use connection_parameters for predis (and vice-versa)')->end()
                 ->end()
                 ->append($this->addPhpRedisArgs())
@@ -301,20 +301,20 @@ class Configuration implements ConfigurationInterface
             ->validate()->ifTrue(function ($node) {
                 if ((isset($node['predis']['dsn']) || isset($node['predis']['connection_parameters']['host'])) &&
                     (isset($node['snc_redis']['type']) || isset($node['phpredis']['host']))) {
-                    return false;
+                    return true;
                 }
                 if (isset($node['snc_redis']['type']) &&
                     (isset($node['predis']['dsn']) || isset($node['predis']['connection_parameters']['host']) ||
                     isset($node['phpredis']['host']))) {
-                    return false;
+                    return true;
                 }
-                if ((isset($node['phpredis']['host']) || isset($node['phpredis']['port'])) &&
+                if (isset($node['phpredis']['host']) &&
                     (isset($node['snc_redis']['type']) || isset($node['predis']['dsn']) ||
                      isset($node['predis']['connection_parameters']['host']))) {
-                    return false;
+                    return true;
                 }
 
-                return true;
+                return false;
             })->thenInvalid('only one of [snc_redis | predis | phpredis] should be set')->end();
 
         return $rootNode;
@@ -323,8 +323,9 @@ class Configuration implements ConfigurationInterface
     protected function addPhpRedisArgs()
     {
         $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('php_redis');
+        $rootNode = $treeBuilder->root('phpredis');
         $rootNode
+            ->addDefaultsIfNotSet()
             ->children()
                 ->scalarNode('host')->end()
                 ->integerNode('port')->defaultValue(6379)->end()
@@ -335,10 +336,10 @@ class Configuration implements ConfigurationInterface
             ->end()
             ->validate()->ifTrue(function ($node) {
                 if (!empty($node) && !isset($node['host'])) {
-                    return false;
+                    return true;
                 }
 
-                return true;
+                return false;
             })->thenInvalid('phpredis host should be set')->end();
 
         return $rootNode;
@@ -368,13 +369,13 @@ class Configuration implements ConfigurationInterface
             ->end()
             ->validate()->ifTrue(function ($node) {
                 if (isset($node['host']) && !isset($node['port'])) {
-                    return false;
+                    return true;
                 }
                 if (isset($node['port']) && !isset($node['host'])) {
-                    return false;
+                    return true;
                 }
 
-                return true;
+                return false;
             })->thenInvalid('preids connection_parameters host and port should both be set')->end();
 
         return $rootNode;
