@@ -302,6 +302,26 @@ class Configuration implements ConfigurationInterface
         return $rootNode;
     }
 
+    protected function checkPredis(array $node)
+    {
+        if ((isset($node['predis']['dsn']) || isset($node['predis']['connection_parameters']['host'])) &&
+            (isset($node['snc_redis']['type']) || isset($node['phpredis']['host']))) {
+            return true;
+        }
+
+        return false;
+    }
+
+    protected function checkSncPhpRedis(array $node)
+    {
+        if (isset($node['snc_redis']['type']) &&
+            isset($node['phpredis']['host'])) {
+            return true;
+        }
+
+        return false;
+    }
+
     protected function addRedis()
     {
         $treeBuilder = new TreeBuilder();
@@ -315,12 +335,10 @@ class Configuration implements ConfigurationInterface
                 ->append($this->addPhpRedisArgs())
             ->end()
             ->validate()->ifTrue(function ($node) {
-                if ((isset($node['predis']['dsn']) || isset($node['predis']['connection_parameters']['host'])) &&
-                    (isset($node['snc_redis']['type']) || isset($node['phpredis']['host']))) {
+                if ($this->checkPredis($node)) {
                     return true;
                 }
-                if (isset($node['snc_redis']['type']) &&
-                    isset($node['phpredis']['host'])) {
+                if ($this->checkSncPhpRedis($node)) {
                     return true;
                 }
 
