@@ -190,6 +190,7 @@ class JobManager extends PriorityJobManager
 
     /**
      * @param string $queue
+     * @param boolean $adjust
      */
     private function adjustJob($adjust, $queue, Job $foundJob, $foundJobCacheKey, $crcCacheKey, $zScore)
     {
@@ -364,7 +365,7 @@ class JobManager extends PriorityJobManager
      *
      * @throws UnsupportedException
      *
-     * @return \Dtc\QueueBundle\Model\Job|null
+     * @return Job|null
      */
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
