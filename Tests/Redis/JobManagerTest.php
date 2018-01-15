@@ -141,7 +141,7 @@ class JobManagerTest extends BaseJobManagerTest
         self::assertNull($job);
 
         $job1 = $worker->later(100)->fibonacci(1);
-        $time1 = new \DateTime();
+        $time1 = new \DateTime('@'.time());
         $job2 = $worker->batchLater(0)->fibonacci(1);
         $time2 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
 
