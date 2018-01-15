@@ -35,7 +35,7 @@ class CountCommand extends ContainerAwareCommand
         $output->writeln($msg);
 
         foreach ($status as $func => $info) {
-            $msg = sprintf($format, $func, $info['success'], $info['new'], $info['running'], $info['error']);
+            $msg = sprintf($format, $func, $info['success'], $info['new'], $info['running'], $info['exception']);
             $output->writeln($msg);
         }
 
