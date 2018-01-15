@@ -1,3 +1,5 @@
+### 4.0.2
+   * Fix issue #36 (a bug with the count command)
 ### 4.0.1
    * A bunch of definitions were set wrong and the work for 4.0.0 and some how escaped testing
 ### 4.0.0
