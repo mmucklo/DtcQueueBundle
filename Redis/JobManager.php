@@ -26,6 +26,9 @@ class JobManager extends PriorityJobManager
     protected $hostname;
     protected $pid;
 
+    /**
+     * @param string $cacheKeyPrefix
+     */
     public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, $jobClass, $cacheKeyPrefix)
     {
         $this->cacheKeyPrefix = $cacheKeyPrefix;
@@ -45,6 +48,9 @@ class JobManager extends PriorityJobManager
         return $this->cacheKeyPrefix.'_job_'.$jobId;
     }
 
+    /**
+     * @param string $jobCrc
+     */
     protected function getJobCrcHashKey($jobCrc)
     {
         return $this->cacheKeyPrefix.'_job_crc_'.$jobCrc;
@@ -107,6 +113,10 @@ class JobManager extends PriorityJobManager
         return null;
     }
 
+    /**
+     * @param string $foundJobCacheKey
+     * @param boolean $foundJobMessage
+     */
     protected function batchFoundJob(\Dtc\QueueBundle\Redis\Job $job, $foundJobCacheKey, $foundJobMessage)
     {
         $when = $job->getWhenUs();
@@ -132,6 +142,10 @@ class JobManager extends PriorityJobManager
         return $this->finishBatchFoundJob($foundJob, $foundJobCacheKey, $crcCacheKey, $newFoundWhen, $newFoundPriority);
     }
 
+    /**
+     * @param string $crcCacheKey
+     * @param integer|null $newFoundPriority
+     */
     protected function finishBatchFoundJob(Job $foundJob, $foundJobCacheKey, $crcCacheKey, $newFoundWhen, $newFoundPriority)
     {
         // Now how do we adjust this job's priority or time?
@@ -151,6 +165,9 @@ class JobManager extends PriorityJobManager
         return $this->addFoundJob($adjust, $foundJob, $foundJobCacheKey, $crcCacheKey);
     }
 
+    /**
+     * @param boolean $adjust
+     */
     protected function addFoundJob($adjust, Job $foundJob, $foundJobCacheKey, $crcCacheKey)
     {
         $whenQueue = $this->getWhenQueueCacheKey();
@@ -168,6 +185,9 @@ class JobManager extends PriorityJobManager
         return $result ?: false;
     }
 
+    /**
+     * @param string $queue
+     */
     private function adjustJob($adjust, $queue, Job $foundJob, $foundJobCacheKey, $crcCacheKey, $zScore)
     {
         if ($adjust && $this->redis->zRem($queue, $foundJob->getId()) > 0) {
@@ -188,7 +208,7 @@ class JobManager extends PriorityJobManager
     /**
      * @param \Dtc\QueueBundle\Model\Job $job
      *
-     * @return \Dtc\QueueBundle\Model\Job
+     * @return Job|null
      *
      * @throws ClassNotSubclassException
      */
@@ -307,6 +327,9 @@ class JobManager extends PriorityJobManager
         }
     }
 
+    /**
+     * @param string $workerName
+     */
     protected function verifyGetJobArgs($workerName = null, $methodName = null, $prioritize = true)
     {
         if (null !== $workerName || null !== $methodName || (null !== $this->maxPriority && true !== $prioritize)) {

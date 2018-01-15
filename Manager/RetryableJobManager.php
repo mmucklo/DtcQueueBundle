@@ -20,7 +20,7 @@ abstract class RetryableJobManager extends AbstractJobManager
 
     /**
      * @param RetryableJob $job
-     * @param $retry bool
+     * @param boolean $retry bool
      *
      * @return
      */
@@ -65,6 +65,10 @@ abstract class RetryableJobManager extends AbstractJobManager
         return $this->updateJobMax($job, 'Exceptions', RetryableJob::STATUS_MAX_EXCEPTIONS, $this->autoRetryOnException);
     }
 
+    /**
+     * @param string $type
+     * @param boolean $autoRetry
+     */
     protected function updateJobMax(RetryableJob $job, $type, $maxStatus, $autoRetry)
     {
         $setMethod = 'set'.$type;
@@ -171,7 +175,7 @@ abstract class RetryableJobManager extends AbstractJobManager
     }
 
     /**
-     * @param int|null $defaultMaxFailure
+     * @param integer|null $defaultMaxFailures
      */
     public function setDefaultMaxFailures($defaultMaxFailures)
     {
@@ -219,7 +223,7 @@ abstract class RetryableJobManager extends AbstractJobManager
     }
 
     /**
-     * @param int|null $defaultMaxException
+     * @param integer|null $defaultMaxExceptions
      */
     public function setDefaultMaxExceptions($defaultMaxExceptions)
     {

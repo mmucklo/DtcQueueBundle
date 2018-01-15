@@ -90,7 +90,7 @@ class Predis implements RedisInterface
         ];
 
         try {
-            $this->predis->transaction($options, function ($tx) use ($key, &$element) {
+            $this->predis->transaction($options, function($tx) use ($key, &$element) {
                 @list($element) = $tx->zrange($key, 0, 0);
 
                 if (isset($element)) {
@@ -115,7 +115,7 @@ class Predis implements RedisInterface
         ];
 
         try {
-            $this->predis->transaction($options, function ($tx) use ($key, $max, &$element) {
+            $this->predis->transaction($options, function($tx) use ($key, $max, &$element) {
                 @list($element) = $tx->zrangebyscore($key, 0, $max, ['LIMIT' => [0, 1]]);
 
                 if (isset($element)) {

@@ -268,7 +268,7 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('alias')
                     ->defaultNull()->end()
             ->end()
-            ->validate()->ifTrue(function ($node) {
+            ->validate()->ifTrue(function($node) {
                 if (isset($node['type']) && !isset($node['alias'])) {
                     return true;
                 }
@@ -291,7 +291,7 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('dsn')->defaultNull()->end()
                 ->append($this->addPredisArgs())
             ->end()
-            ->validate()->ifTrue(function ($node) {
+            ->validate()->ifTrue(function($node) {
                 if (isset($node['dsn']) && (isset($node['connection_parameters']['host']) || isset($node['connection_parameters']['port']))) {
                     return true;
                 }
@@ -314,7 +314,7 @@ class Configuration implements ConfigurationInterface
                 ->append($this->addPredis())
                 ->append($this->addPhpRedisArgs())
             ->end()
-            ->validate()->ifTrue(function ($node) {
+            ->validate()->ifTrue(function($node) {
                 if ((isset($node['predis']['dsn']) || isset($node['predis']['connection_parameters']['host'])) &&
                     (isset($node['snc_redis']['type']) || isset($node['phpredis']['host']))) {
                     return true;
@@ -344,7 +344,7 @@ class Configuration implements ConfigurationInterface
                 ->floatNode('read_timeout')->defaultValue(0)->end()
                 ->scalarNode('auth')->end()
             ->end()
-            ->validate()->ifTrue(function ($node) {
+            ->validate()->ifTrue(function($node) {
                 if (!empty($node) && !isset($node['host'])) {
                     return true;
                 }
@@ -377,7 +377,7 @@ class Configuration implements ConfigurationInterface
                 ->booleanNode('iterable_multibulk')->defaultFalse()->end()
                 ->booleanNode('throw_errors')->defaultTrue()->end()
             ->end()
-            ->validate()->ifTrue(function ($node) {
+            ->validate()->ifTrue(function($node) {
                 if (isset($node['host']) && !isset($node['port'])) {
                     return true;
                 }
@@ -417,7 +417,7 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->prototype('variable')->end()
             ->validate()
-                ->ifTrue(function ($node) {
+                ->ifTrue(function($node) {
                     if (!is_array($node)) {
                         return true;
                     }
@@ -494,7 +494,7 @@ class Configuration implements ConfigurationInterface
                 ->append($this->addRabbitMqArgs())
                 ->append($this->addRabbitMqExchange())
             ->end()
-            ->validate()->always(function ($node) {
+            ->validate()->always(function($node) {
                 if (empty($node['ssl_options'])) {
                     unset($node['ssl_options']);
                 }
@@ -504,13 +504,13 @@ class Configuration implements ConfigurationInterface
 
                 return $node;
             })->end()
-           ->validate()->ifTrue(function ($node) {
-               if (isset($node['ssl_options']) && !$node['ssl']) {
-                   return true;
-               }
+            ->validate()->ifTrue(function ($node) {
+                if (isset($node['ssl_options']) && !$node['ssl']) {
+                    return true;
+                }
 
-               return false;
-           })->thenInvalid('ssl must be true in order to set ssl_options')->end()
+                return false;
+            })->thenInvalid('ssl must be true in order to set ssl_options')->end()
         ->end();
 
         return $rootNode;

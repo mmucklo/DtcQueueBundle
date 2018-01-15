@@ -292,7 +292,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         self::assertEquals(1, $count);
         $allCount = $this->runCountQuery($jobManager->getJobClass());
         $counter = 0;
-        $countJobs = function ($count) use (&$counter) {
+        $countJobs = function($count) use (&$counter) {
             $counter += $count;
         };
         $jobManager->archiveAllJobs(null, null, $countJobs);
