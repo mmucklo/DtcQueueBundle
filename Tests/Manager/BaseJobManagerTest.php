@@ -4,7 +4,7 @@ namespace Dtc\QueueBundle\Tests\Manager;
 
 use Dtc\QueueBundle\Manager\JobManagerInterface;
 use Dtc\QueueBundle\Manager\RunManager;
-use Dtc\QueueBundle\Manager\Worker;
+use Dtc\QueueBundle\Model\Worker;
 use Dtc\QueueBundle\ODM\JobTimingManager;
 use PHPUnit\Framework\TestCase;
 

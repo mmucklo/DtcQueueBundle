@@ -5,6 +5,7 @@ namespace Dtc\QueueBundle\Redis;
 use Dtc\QueueBundle\Exception\ClassNotSubclassException;
 use Dtc\QueueBundle\Exception\PriorityException;
 use Dtc\QueueBundle\Exception\UnsupportedException;
+use Dtc\QueueBundle\Manager\JobIdTrait;
 use Dtc\QueueBundle\Manager\JobTimingManager;
 use Dtc\QueueBundle\Manager\PriorityJobManager;
 use Dtc\QueueBundle\Manager\RunManager;
@@ -17,6 +18,8 @@ use Dtc\QueueBundle\Util\Util;
  */
 class JobManager extends PriorityJobManager
 {
+    use JobIdTrait;
+
     /** @var RedisInterface */
     protected $redis;
 
@@ -75,7 +78,7 @@ class JobManager extends PriorityJobManager
         while ($jobId = $this->redis->zPopByMaxScore($whenQueue, $microtime)) {
             $jobMessage = $this->redis->get($this->getJobCacheKey($jobId));
             if ($jobMessage) {
-                $job = new \Dtc\QueueBundle\Redis\Job();
+                $job = new Job();
                 $job->fromMessage($jobMessage);
                 $this->redis->zAdd($priorityQueue, $job->getPriority(), $job->getId());
             }
@@ -87,7 +90,7 @@ class JobManager extends PriorityJobManager
      *
      * @return Job|null
      */
-    protected function batchSave(\Dtc\QueueBundle\Redis\Job $job)
+    protected function batchSave(Job $job)
     {
         $crcHash = $job->getCrcHash();
         $crcCacheKey = $this->getJobCrcHashKey($crcHash);
@@ -117,13 +120,13 @@ class JobManager extends PriorityJobManager
      * @param string $foundJobCacheKey
      * @param boolean $foundJobMessage
      */
-    protected function batchFoundJob(\Dtc\QueueBundle\Redis\Job $job, $foundJobCacheKey, $foundJobMessage)
+    protected function batchFoundJob(Job $job, $foundJobCacheKey, $foundJobMessage)
     {
         $when = $job->getWhenUs();
         $crcHash = $job->getCrcHash();
         $crcCacheKey = $this->getJobCrcHashKey($crcHash);
 
-        $foundJob = new \Dtc\QueueBundle\Redis\Job();
+        $foundJob = new Job();
         $foundJob->fromMessage($foundJobMessage);
         $foundWhen = $foundJob->getWhenUs();
 
@@ -211,11 +214,12 @@ class JobManager extends PriorityJobManager
      * @return Job|null
      *
      * @throws ClassNotSubclassException
+     * @throws PriorityException
      */
     public function prioritySave(\Dtc\QueueBundle\Model\Job $job)
     {
-        if (!$job instanceof \Dtc\QueueBundle\Redis\Job) {
-            throw new \InvalidArgumentException('$job must be instance of '.\Dtc\QueueBundle\Redis\Job::class);
+        if (!$job instanceof Job) {
+            throw new \InvalidArgumentException('$job must be instance of '.Job::class);
         }
 
         $this->validateSaveable($job);
@@ -238,7 +242,7 @@ class JobManager extends PriorityJobManager
         return $this->saveJob($job);
     }
 
-    protected function saveJob(\Dtc\QueueBundle\Redis\Job $job)
+    protected function saveJob(Job $job)
     {
         $whenQueue = $this->getWhenQueueCacheKey();
         $crcCacheKey = $this->getJobCrcHashKey($job->getCrcHash());
@@ -262,7 +266,7 @@ class JobManager extends PriorityJobManager
      *
      * @return bool false if the job is already expired, true otherwise
      */
-    protected function insertJob(\Dtc\QueueBundle\Redis\Job $job)
+    protected function insertJob(Job $job)
     {
         // Save Job
         $jobCacheKey = $this->getJobCacheKey($job->getId());
@@ -281,19 +285,11 @@ class JobManager extends PriorityJobManager
     }
 
     /**
-     * Attach a unique id to a job since RabbitMQ will not.
-     *
-     * @param \Dtc\QueueBundle\Model\Job $job
-     */
-    protected function setJobId(\Dtc\QueueBundle\Model\Job $job)
-    {
-        if (!$job->getId()) {
-            $job->setId(uniqid($this->hostname.'-'.$this->pid, true));
-        }
-    }
-
-    /**
      * Returns the prioirty in DESCENDING order, except if maxPrioirty is null, then prioirty is 0.
+     *
+     * @param int|null $priority
+     *
+     * @return int
      */
     protected function calculatePriority($priority)
     {
@@ -328,7 +324,11 @@ class JobManager extends PriorityJobManager
     }
 
     /**
-     * @param string $workerName
+     * @param string|null $workerName
+     * @param string|null $methodName
+     * @param bool $prioritize
+     *
+     * @throws UnsupportedException
      */
     protected function verifyGetJobArgs($workerName = null, $methodName = null, $prioritize = true)
     {
@@ -357,7 +357,14 @@ class JobManager extends PriorityJobManager
     }
 
     /**
-     * @param string $workerName
+     * @param string|null $workerName
+     * @param string|null $methodName
+     * @param bool        $prioritize
+     * @param mixed       $runId
+     *
+     * @throws UnsupportedException
+     *
+     * @return \Dtc\QueueBundle\Model\Job|null
      */
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
@@ -376,7 +383,7 @@ class JobManager extends PriorityJobManager
 
         if ($jobId) {
             $jobMessage = $this->redis->get($this->getJobCacheKey($jobId));
-            $job = new \Dtc\QueueBundle\Redis\Job();
+            $job = new Job();
             $job->fromMessage($jobMessage);
             $crcCacheKey = $this->getJobCrcHashKey($job->getCrcHash());
             $this->redis->lRem($crcCacheKey, 1, $job->getId());
@@ -397,8 +404,8 @@ class JobManager extends PriorityJobManager
 
     public function resetJob(RetryableJob $job)
     {
-        if (!$job instanceof \Dtc\QueueBundle\Redis\Job) {
-            throw new \InvalidArgumentException('$job must be instance of '.\Dtc\QueueBundle\Redis\Job::class);
+        if (!$job instanceof Job) {
+            throw new \InvalidArgumentException('$job must be instance of '.Job::class);
         }
         $job->setStatus(BaseJob::STATUS_NEW);
         $job->setMessage(null);

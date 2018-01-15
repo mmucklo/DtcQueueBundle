@@ -35,7 +35,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
     }
 
     /**
-     * @param mixed $maxFailures
+     * @param int $maxFailures
      */
     public function setMaxFailures($maxFailures)
     {
@@ -129,7 +129,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
     }
 
     /**
-     * @param mixed $maxExceptions
+     * @param int $maxExceptions
      */
     public function setMaxExceptions($maxExceptions)
     {

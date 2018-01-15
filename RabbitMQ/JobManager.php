@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\RabbitMQ;
 
 use Dtc\QueueBundle\Model\BaseJob;
+use Dtc\QueueBundle\Manager\JobIdTrait;
 use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Manager\PriorityJobManager;
@@ -19,6 +20,8 @@ use PhpAmqpLib\Message\AMQPMessage;
 
 class JobManager extends PriorityJobManager
 {
+    use JobIdTrait;
+
     /** @var AMQPChannel */
     protected $channel;
 
@@ -155,18 +158,6 @@ class JobManager extends PriorityJobManager
         $this->setMsgPriority($msg, $job);
 
         $this->channel->basic_publish($msg, $this->exchangeArgs[0]);
-    }
-
-    /**
-     * Attach a unique id to a job since RabbitMQ will not.
-     *
-     * @param \Dtc\QueueBundle\Model\Job $job
-     */
-    protected function setJobId(\Dtc\QueueBundle\Model\Job $job)
-    {
-        if (!$job->getId()) {
-            $job->setId(uniqid($this->hostname.'-'.$this->pid, true));
-        }
     }
 
     /**
