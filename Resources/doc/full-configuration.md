@@ -2,45 +2,63 @@ Full Configuration
 ==================
 ```yaml
 dtc_queue:
-    document_manager: default
-    entity_manager: default
-    # default_manager
-    #
-    #  builtins: orm, odm, beanstalkd, rabbit_mq
-    default_manager: odm
-    #
-    # run_manager: can be set to any of the same options as
-    #
-    #  "default_manager", defaults to what ever default_manager is set to
-    run_manager: ~
-    #
-    # job_timing_manager: can be set to any of the same options as
-    #
-    #  "default_manager", defaults to what ever run_manager is set to
-    job_timing_manager: ~
-    # You can override the various base Job classes here:
+    orm:
+        entity_manager: default
+    odm:
+        default_manager: default
+    manager:
+        # job - builtins: orm, odm, beanstalkd, rabbit_mq, redis
+        job: odm
+        # run - defaults to whatever job is set to 
+        run: ~
+        # job_timing - defaults to whatever run is set to
+        job_timing: ~
+    timings:
+        # record
+        #
+        #  Whether to record job timings in a separate job_timings
+        #  table / collection (uses same store as run_manager unless otherwise specified above)
+        record: false
+        #
+        # timezone_offset
+        #
+        # If the webserver is in one timezone, but the database stores them in another timezone
+        #  You may need to offset positive or negative the hours or fraction of hours between the two.
+        #  For the data on the trends page to appear correctly
+        #
+        #  If you're not recording timings (record_timings: false), then it presently doesn't make a difference what
+        #  this is set to.
+        #
+        timezone_offset: 0
     class:
+        # Here's where you can override the classes used for job, job_archive, etc.
+        #
+        #  This could be usefull, say if you are using orm or odm, and want to extend the job entity class and modify
+        #   the collection or table name, or what not
         job: ~
         job_archive: ~
         run: ~
         run_archive: ~
         job_timing: ~
-    #
-    # record_timings
-    #
-    #  Whether to record job timings in a separate job_timings
-    #  table / collection (uses same store as run_manager)
-    record_timings: false
-    #
-    # record_timings_timezone_offset
-    #
-    # If the webserver is in one timezone, but the database stores them in another timezone
-    #  You may need to offset positive or negative the hours or fraction of hours between the two.
-    #  For the data on the trends page to appear correctly
-    #
-    #  If you're not recording timings (record_timings: false), then it presently doesn't make a difference what this is set to.
-    #
-    record_timings_timezone_offset: 0
+    priority:
+       #
+       # max: int
+       #
+       #  255 is the recommended max for RabbitMQ, although Mongo/ORM
+       #  could be set to INT_MAX for their platform
+       max: 255
+       #
+       # direction
+       #
+       #  "desc" means 1 is high priority, "asc" means 1 is low prioirty
+       #
+       #  In the queue and database, priorities will always be stored
+       #   in ascending order, however, (so as to sort null as the lowest)
+       #  
+       #  This is for the direction that a Job's setPriority() method
+       #   uses, plus direction that the priority argument of such
+       #   functions as later()
+       direction: desc
     retry:
         max:
             # maximum total retries
@@ -55,25 +73,6 @@ dtc_queue:
             # auto retry on failure or exception
             failure: true
             exception: false
-    priority:
-        #
-        # max: int
-        #
-        #  255 is the recommended max for RabbitMQ, although Mongo/ORM
-        #  could be set to INT_MAX for their platform
-        max: 255
-        #
-        # direction
-        #
-        #  "desc" means 1 is high priority, "asc" means 1 is low prioirty
-        #
-        #  In the queue and database, priorities will always be stored
-        #   in ascending order, however, (so as to sort null as the lowest)
-        #  
-        #  This is for the direction that a Job's setPriority() method
-        #   uses, plus direction that the priority argument of such
-        #   functions as later()
-        direction: desc
     admin:
         chartjs: https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js
     beanstalkd:

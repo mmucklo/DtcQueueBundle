@@ -396,13 +396,6 @@ class JobManager extends PriorityJobManager
         return null;
     }
 
-    protected function getCurTime()
-    {
-        $time = intval(microtime(true) * 1000000);
-
-        return $time;
-    }
-
     public function resetJob(RetryableJob $job)
     {
         if (!$job instanceof Job) {
