@@ -56,7 +56,7 @@ class RedisCompilerPass implements CompilerPassInterface
         );
         $container->setDefinition('dtc_queue.'.$type, $definition);
 
-        $definition = $container->getDefinition('dtc_queue.job_manager.redis');
+        $definition = $container->getDefinition('dtc_queue.manager.job.redis');
         $definition->addMethodCall('setRedis', [new Reference('dtc_queue.'.$type)]);
     }
 
