@@ -320,13 +320,7 @@ class Configuration implements ConfigurationInterface
                     return true;
                 }
                 if (isset($node['snc_redis']['type']) &&
-                    (isset($node['predis']['dsn']) || isset($node['predis']['connection_parameters']['host']) ||
-                    isset($node['phpredis']['host']))) {
-                    return true;
-                }
-                if (isset($node['phpredis']['host']) &&
-                    (isset($node['snc_redis']['type']) || isset($node['predis']['dsn']) ||
-                     isset($node['predis']['connection_parameters']['host']))) {
+                    isset($node['phpredis']['host'])) {
                     return true;
                 }
 
