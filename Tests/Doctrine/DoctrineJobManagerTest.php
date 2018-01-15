@@ -51,17 +51,16 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
     {
         self::$jobTimingManager = new self::$jobTimingManagerClass(self::$objectManager, self::$jobTimingClass, true);
         self::$runManager = new self::$runManagerClass(self::$objectManager, self::$runClass, self::$runArchiveClass);
-        self::$jobManager = new self::$jobManagerClass(self::$runManager, self::$jobTimingManager, self::$objectManager, self::$objectName, self::$archiveObjectName);
-        self::$jobManager->setMaxPriority(255);
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
+        $jobManager = new self::$jobManagerClass(self::$runManager, self::$jobTimingManager, self::$objectManager, self::$objectName, self::$archiveObjectName);
+        self::$jobManager = $jobManager;
+        $jobManager->setMaxPriority(255);
 
-        self::assertEquals(255, self::$jobManager->getMaxPriority());
-        self::assertEquals(JobManager::PRIORITY_DESC, self::$jobManager->getPriorityDirection());
-        self::$jobManager->setPriorityDirection(JobManager::PRIORITY_ASC);
-        self::assertEquals(JobManager::PRIORITY_ASC, self::$jobManager->getPriorityDirection());
-        self::$jobManager->setPriorityDirection(JobManager::PRIORITY_DESC);
-
-        /** @var DoctrineJobManager $jobManager */
-        $jobManager = self::$jobManager;
+        self::assertEquals(255, $jobManager->getMaxPriority());
+        self::assertEquals(JobManager::PRIORITY_DESC, $jobManager->getPriorityDirection());
+        $jobManager->setPriorityDirection(JobManager::PRIORITY_ASC);
+        self::assertEquals(JobManager::PRIORITY_ASC, $jobManager->getPriorityDirection());
+        $jobManager->setPriorityDirection(JobManager::PRIORITY_DESC);
 
         $parameters = new ParameterBag();
 
@@ -69,7 +68,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         $container->set('dtc_queue.job_manager', $jobManager);
         $container->set('dtc_queue.run_manager', self::$runManager);
 
-        self::$dtcQueueListener = new DtcQueueListener(self::$jobManager->getJobArchiveClass(), self::$runManager->getRunArchiveClass());
+        self::$dtcQueueListener = new DtcQueueListener($jobManager->getJobArchiveClass(), self::$runManager->getRunArchiveClass());
         self::$objectManager->getEventManager()->addEventListener('preUpdate', self::$dtcQueueListener);
         self::$objectManager->getEventManager()->addEventListener('prePersist', self::$dtcQueueListener);
         self::$objectManager->getEventManager()->addEventListener('preRemove', self::$dtcQueueListener);
@@ -504,6 +503,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         $objectManager->remove($job);
         $objectManager->flush();
 
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
         $id = $this->createStalledJob(true, true);
 
@@ -828,12 +828,15 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
 
     public function testBatchJobs()
     {
-        $jobs = self::$jobManager->getRepository()->findAll();
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
+        $jobManager = self::$jobManager;
+
+        $jobs = $jobManager->getRepository()->findAll();
         foreach ($jobs as $job) {
-            self::$jobManager->getObjectManager()->remove($job);
+            $jobManager->getObjectManager()->remove($job);
         }
-        self::$jobManager->getObjectManager()->flush();
-        self::$jobManager->getObjectManager()->clear();
+        $jobManager->getObjectManager()->flush();
+        $jobManager->getObjectManager()->clear();
 
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $worker = self::$worker;
@@ -841,13 +844,13 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         $job2 = $worker->batchLater()->fibonacci(1);
         self::assertEquals($job1, $job2);
 
-        $jobs = self::$jobManager->getRepository()->findAll();
+        $jobs = $jobManager->getRepository()->findAll();
         self::assertCount(1, $jobs);
         self::assertEquals($job1, $jobs[0]);
         self::assertNull($jobs[0]->getPriority());
-        self::$jobManager->getObjectManager()->remove($jobs[0]);
-        self::$jobManager->getObjectManager()->flush();
-        self::$jobManager->getObjectManager()->clear();
+        $jobManager->getObjectManager()->remove($jobs[0]);
+        $jobManager->getObjectManager()->flush();
+        $jobManager->getObjectManager()->clear();
 
         $job1 = $worker->later()->fibonacci(1);
         self::assertNull($job1->getPriority());
@@ -855,19 +858,19 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         self::assertEquals($job1, $job2);
         self::assertNotNull($job2->getPriority());
 
-        $jobs = self::$jobManager->getRepository()->findAll();
+        $jobs = $jobManager->getRepository()->findAll();
         self::assertCount(1, $jobs);
         self::assertEquals($job1, $jobs[0]);
         self::assertNotNull($jobs[0]->getPriority());
 
         // Not
-        $jobs = self::$jobManager->getRepository()->findAll();
+        $jobs = $jobManager->getRepository()->findAll();
         foreach ($jobs as $job) {
-            self::$jobManager->getObjectManager()->remove($job);
+            $jobManager->getObjectManager()->remove($job);
         }
-        self::$jobManager->getObjectManager()->remove($jobs[0]);
-        self::$jobManager->getObjectManager()->flush();
-        self::$jobManager->getObjectManager()->clear();
+        $jobManager->getObjectManager()->remove($jobs[0]);
+        $jobManager->getObjectManager()->flush();
+        $jobManager->getObjectManager()->clear();
 
         $job1 = $worker->later(100)->fibonacci(1);
 
@@ -879,14 +882,14 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         self::assertGreaterThanOrEqual($time1, $job2->getWhenAt());
         self::assertLessThanOrEqual($time2, $job2->getWhenAt());
 
-        $jobs = self::$jobManager->getRepository()->findAll();
+        $jobs = $jobManager->getRepository()->findAll();
         self::assertCount(1, $jobs);
         self::assertEquals($job1, $jobs[0]);
         self::assertGreaterThanOrEqual($time1, $jobs[0]->getWhenAt());
         self::assertLessThanOrEqual($time2, $jobs[0]->getWhenAt());
-        self::$jobManager->getObjectManager()->remove($jobs[0]);
-        self::$jobManager->getObjectManager()->flush();
-        self::$jobManager->getObjectManager()->clear();
+        $jobManager->getObjectManager()->remove($jobs[0]);
+        $jobManager->getObjectManager()->flush();
+        $jobManager->getObjectManager()->clear();
 
         $job1 = $worker->later(100)->setPriority(3)->fibonacci(1);
         $priority1 = $job1->getPriority();
@@ -1086,19 +1089,22 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
 
     public function testPerformance()
     {
-        $jobs = self::$jobManager->getRepository()->findAll();
-        foreach ($jobs as $job) {
-            self::$jobManager->getObjectManager()->remove($job);
-        }
-        self::$jobManager->getObjectManager()->flush();
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
+        $jobManager = self::$jobManager;
 
-        self::$jobManager->getObjectManager()->clear();
+        $jobs = $jobManager->getRepository()->findAll();
+        foreach ($jobs as $job) {
+            $jobManager->getObjectManager()->remove($job);
+        }
+        $jobManager->getObjectManager()->flush();
+
+        $jobManager->getObjectManager()->clear();
         parent::testPerformance();
     }
 
     protected function getBaseStatus()
     {
-        /** @var DoctrineJobManager $jobManager */
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
@@ -1127,6 +1133,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         $fibonacciStatus2 = $status2['fibonacci->fibonacci()'];
 
         self::assertEquals($fibonacciStatus1[BaseJob::STATUS_NEW] + 1, $fibonacciStatus2[BaseJob::STATUS_NEW]);
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
         $objectManager = $jobManager->getObjectManager();
         $objectManager->remove($job1);

@@ -84,22 +84,6 @@ abstract class PriorityJobManager extends RetryableJobManager
         return $priority;
     }
 
-    protected function findHigherPriority($priority1, $priority2)
-    {
-        if (null === $priority1) {
-            return $priority2;
-        }
-        if (null === $priority2) {
-            return $priority1;
-        }
-
-        if (self::PRIORITY_DESC === $this->priorityDirection) {
-            return min($priority1, $priority2);
-        } else {
-            return max($priority1, $priority2);
-        }
-    }
-
     abstract protected function prioritySave(Job $job);
 
     /**
