@@ -114,15 +114,21 @@ class JobManager extends PriorityJobManager
 
         // Fix this using bcmath
         $curtimeU = Util::getMicrotimeDecimal();
-
-        if (bccomp($foundWhen, $curtimeU) > 0 && bccomp($foundWhen, $when) > 1) {
+        $newFoundWhen = null;
+        if (bccomp($foundWhen, $curtimeU) > 0 && bccomp($foundWhen, $when) >= 1) {
             $newFoundWhen = $when;
         }
         $foundPriority = $foundJob->getPriority();
-        if ($foundPriority < $job->getPriority()) {
+        $newFoundPriority = null;
+        if ($foundPriority > $job->getPriority()) {
             $newFoundPriority = $job->getPriority();
         }
 
+        return $this->finishBatchFoundJob($foundJob, $foundJobCacheKey, $crcCacheKey, $newFoundWhen, $newFoundPriority);
+    }
+
+    protected function finishBatchFoundJob(Job $foundJob, $foundJobCacheKey, $crcCacheKey, $newFoundWhen, $newFoundPriority)
+    {
         // Now how do we adjust this job's priority or time?
         $adjust = false;
         if (isset($newFoundWhen)) {

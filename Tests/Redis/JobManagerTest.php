@@ -14,6 +14,7 @@ use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\Manager\AutoRetryTrait;
 use Dtc\QueueBundle\Tests\Manager\BaseJobManagerTest;
 use Dtc\QueueBundle\Tests\Manager\PriorityTestTrait;
+use Dtc\QueueBundle\Util\Util;
 use Predis\Client;
 
 /**
@@ -100,6 +101,74 @@ class JobManagerTest extends BaseJobManagerTest
             $jobInQueue->getId(),
             'Job id returned by manager should be the same'
         );
+    }
+
+    public function testBatchJobs()
+    {
+        $limit = 10000;
+        while ($limit && self::$jobManager->getJob()) {
+            --$limit;
+        }
+        self::assertGreaterThan(0, $limit);
+
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
+        $worker = self::$worker;
+        $job1 = $worker->later()->fibonacci(1);
+        $job2 = $worker->batchLater()->fibonacci(1);
+
+        self::assertEquals($job1->getId(), $job2->getId());
+
+        $job = self::$jobManager->getJob();
+        self::assertEquals($job1->getId(), $job->getId());
+        self::assertEquals($job1->getPriority(), $job->getPriority());
+
+        $job = self::$jobManager->getJob();
+        self::assertNull($job);
+
+        $job1 = $worker->later()->fibonacci(1);
+        $job2 = $worker->batchLater()->setPriority(3)->fibonacci(1);
+        self::assertEquals($job1->getId(), $job2->getId());
+        self::assertNotEquals($job1->getPriority(), $job2->getPriority());
+
+        $job = self::$jobManager->getJob();
+        self::assertNotNull($job);
+        self::assertEquals($job1->getId(), $job->getId());
+        self::assertEquals($job->getPriority(), $job2->getPriority());
+
+        $job = self::$jobManager->getJob();
+        self::assertNull($job);
+
+        $job1 = $worker->later(100)->fibonacci(1);
+        $time1 = new \DateTime();
+        $job2 = $worker->batchLater(0)->fibonacci(1);
+        $time2 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
+
+        self::assertEquals($job1->getId(), $job2->getId());
+        self::assertGreaterThanOrEqual($time1, $job2->getWhenAt());
+        self::assertLessThanOrEqual($time2, $job2->getWhenAt());
+
+        $job = self::$jobManager->getJob();
+        self::assertNotNull($job);
+        self::assertEquals($job1->getId(), $job->getId());
+        self::assertNotNull($job->getPriority());
+        self::assertGreaterThanOrEqual($time1, $job->getWhenAt());
+        self::assertLessThanOrEqual($time2, $job->getWhenAt());
+
+        $job1 = $worker->later(100)->setPriority(3)->fibonacci(1);
+        $priority1 = $job1->getPriority();
+        $time1 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
+        $job2 = $worker->batchLater(0)->setPriority(1)->fibonacci(1);
+        $time2 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
+        self::assertEquals($job1->getId(), $job2->getId());
+        self::assertNotEquals($priority1, $job2->getPriority());
+
+        self::assertGreaterThanOrEqual($time1, $job2->getWhenAt());
+        self::assertLessThanOrEqual($time2, $job2->getWhenAt());
+
+        $limit = 10000;
+        while ($limit && self::$jobManager->getJob()) {
+            --$limit;
+        }
     }
 
     public function testSaveJob()
