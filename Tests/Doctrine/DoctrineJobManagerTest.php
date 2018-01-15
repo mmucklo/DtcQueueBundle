@@ -6,6 +6,7 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ORM\EntityManager;
 use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Dtc\QueueBundle\Doctrine\DtcQueueListener;
+use Dtc\QueueBundle\Manager\StallableJobManager;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\RetryableJob;
@@ -15,6 +16,7 @@ use Dtc\QueueBundle\Model\StallableJob;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\Manager\BaseJobManagerTest;
 use Dtc\QueueBundle\ODM\JobManager;
+use Dtc\QueueBundle\Tests\Manager\RetryableTrait;
 use Dtc\QueueBundle\Tests\ORM\JobManagerTest;
 use Dtc\QueueBundle\Util\Util;
 use Symfony\Component\DependencyInjection\Container;
@@ -29,6 +31,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
 {
     use PriorityTestTrait;
     use AutoRetryTrait;
+    use RetryableTrait;
 
     protected static $dtcQueueListener;
 
@@ -1128,5 +1131,17 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         $objectManager = $jobManager->getObjectManager();
         $objectManager->remove($job1);
         $objectManager->remove($job2);
+    }
+
+    public function testStallableJobManager()
+    {
+        /** @var StallableJobManager $jobManager */
+        $jobManager = self::$jobManager;
+
+        $defaultMaxStalls = $jobManager->getDefaultMaxStalls();
+        $jobManager->setDefaultMaxStalls(123);
+        self::assertEquals(123, $jobManager->getDefaultMaxStalls());
+        $jobManager->setDefaultMaxStalls($defaultMaxStalls);
+        self::assertEquals($defaultMaxStalls, $jobManager->getDefaultMaxStalls());
     }
 }

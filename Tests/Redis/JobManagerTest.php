@@ -14,6 +14,7 @@ use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\Manager\AutoRetryTrait;
 use Dtc\QueueBundle\Tests\Manager\BaseJobManagerTest;
 use Dtc\QueueBundle\Tests\Manager\PriorityTestTrait;
+use Dtc\QueueBundle\Tests\Manager\RetryableTrait;
 use Dtc\QueueBundle\Util\Util;
 use Predis\Client;
 
@@ -26,6 +27,7 @@ class JobManagerTest extends BaseJobManagerTest
 {
     use PriorityTestTrait;
     use AutoRetryTrait;
+    use RetryableTrait;
     public static $connection;
 
     public static function setUpBeforeClass()

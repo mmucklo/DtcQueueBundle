@@ -8,6 +8,7 @@ use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\Manager\AutoRetryTrait;
 use Dtc\QueueBundle\Tests\Manager\BaseJobManagerTest;
+use Dtc\QueueBundle\Tests\Manager\RetryableTrait;
 use Pheanstalk\Pheanstalk;
 
 /**
@@ -18,6 +19,7 @@ use Pheanstalk\Pheanstalk;
 class JobManagerTest extends BaseJobManagerTest
 {
     use AutoRetryTrait;
+    use RetryableTrait;
     public static $beanstalkd;
 
     public static function setUpBeforeClass()
