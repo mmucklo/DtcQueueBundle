@@ -36,10 +36,12 @@ class RunManager
      * @param \DateTime $olderThan
      *
      * @return int Number of archived runs pruned
+     *
+     * @throws UnsupportedException
      */
     public function pruneArchivedRuns(\DateTime $olderThan)
     {
-        throw new UnsupportedException('not supported');
+        throw new UnsupportedException('not supported - '.$olderThan->getTimestamp());
     }
 
     /**
