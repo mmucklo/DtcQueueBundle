@@ -137,37 +137,41 @@ class JobManager extends PriorityJobManager
             return $foundJob;
         }
 
+        return $this->addFoundJob($adjust, $foundJob, $foundJobCacheKey, $crcCacheKey);
+    }
+
+    protected function addFoundJob($adjust, Job $foundJob, $foundJobCacheKey, $crcCacheKey)
+    {
         $whenQueue = $this->getWhenQueueCacheKey();
-        if ($adjust && $this->redis->zRem($whenQueue, $foundJob->getId()) > 0) {
-            if (!$this->insertJob($foundJob)) {
-                // Job is expired
-                $this->redis->lRem($crcCacheKey, 1, $foundJobCacheKey);
-
-                return false;
-            }
-            $this->redis->zAdd($whenQueue, $foundJob->getWhenUs(), $foundJob->toMessage());
-
-            return $foundJob;
+        $result = $this->adjustJob($adjust, $whenQueue, $foundJob, $foundJobCacheKey, $crcCacheKey, $foundJob->getWhenUs());
+        if (null !== $result) {
+            return $result;
         }
-
         if (null === $this->maxPriority) {
             return false;
         }
 
         $priorityQueue = $this->getPriorityQueueCacheKey();
-        if ($adjust && $this->redis->zRem($priorityQueue, $foundJob->getId()) > 0) {
+        $result = $this->adjustJob($adjust, $priorityQueue, $foundJob, $foundJobCacheKey, $crcCacheKey, $foundJob->getPriority());
+
+        return $result ?: false;
+    }
+
+    private function adjustJob($adjust, $queue, Job $foundJob, $foundJobCacheKey, $crcCacheKey, $zScore)
+    {
+        if ($adjust && $this->redis->zRem($queue, $foundJob->getId()) > 0) {
             if (!$this->insertJob($foundJob)) {
                 // Job is expired
                 $this->redis->lRem($crcCacheKey, 1, $foundJobCacheKey);
 
                 return false;
             }
-            $this->redis->zAdd($priorityQueue, $foundJob->getPriority(), $foundJob->toMessage());
+            $this->redis->zAdd($queue, $zScore, $foundJob->getId());
 
             return $foundJob;
         }
 
-        return false;
+        return null;
     }
 
     /**
@@ -222,6 +226,11 @@ class JobManager extends PriorityJobManager
         return $job;
     }
 
+    /**
+     * @param Job $job
+     *
+     * @return bool false if the job is already expired, true otherwise
+     */
     protected function insertJob(\Dtc\QueueBundle\Redis\Job $job)
     {
         // Save Job
