@@ -59,4 +59,4 @@ script:
   - echo $(ls -l)
   - echo $(pwd)
   - echo $(ls -l phpunit.result.xml)
-  - whichsonar=$(which sonar-scanner) && if [ -n "$whichsonar" -a "$TRAVIS_BRANCH" = "master" ]; then sonar-scanner; fi
+  - (whichsonar=$(which sonar-scanner) && if [ -n "$whichsonar" -a "$TRAVIS_BRANCH" = "master" ]; then sonar-scanner; fi) || true
