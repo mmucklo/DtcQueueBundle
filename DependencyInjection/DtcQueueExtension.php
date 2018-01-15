@@ -54,13 +54,13 @@ class DtcQueueExtension extends Extension
             $container->setParameter('dtc_queue.manager.run', $config['run_manager']);
         }
         if (isset($config['job_timing_manager'])) {
-            $container->setParameter('dtc_queue.manager.run', $config['job_timing_manager']);
+            $container->setParameter('dtc_queue.manager.job_timing', $config['job_timing_manager']);
         }
         if (isset($config['document_manager'])) {
             $container->setParameter('dtc_queue.odm.document_manager', $config['document_manager']);
         }
         if (isset($config['entity_manager'])) {
-            $container->setParameter('dtc_queue.odm.entity_manager', $config['entity_manager']);
+            $container->setParameter('dtc_queue.orm.entity_manager', $config['entity_manager']);
         }
         $this->configClassDeprecated($config, $container);
         $this->configOtherDeprecated($config, $container);

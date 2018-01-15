@@ -27,7 +27,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getMaxFailures()
     {
@@ -121,7 +121,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
     }
 
     /**
-     * @return integer
+     * @return int
      */
     public function getMaxExceptions()
     {

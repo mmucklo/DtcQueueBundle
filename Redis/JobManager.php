@@ -118,7 +118,7 @@ class JobManager extends PriorityJobManager
 
     /**
      * @param string $foundJobCacheKey
-     * @param boolean $foundJobMessage
+     * @param bool   $foundJobMessage
      */
     protected function batchFoundJob(Job $job, $foundJobCacheKey, $foundJobMessage)
     {
@@ -146,8 +146,8 @@ class JobManager extends PriorityJobManager
     }
 
     /**
-     * @param string $crcCacheKey
-     * @param integer|null $newFoundPriority
+     * @param string   $crcCacheKey
+     * @param int|null $newFoundPriority
      */
     protected function finishBatchFoundJob(Job $foundJob, $foundJobCacheKey, $crcCacheKey, $newFoundWhen, $newFoundPriority)
     {
@@ -169,7 +169,7 @@ class JobManager extends PriorityJobManager
     }
 
     /**
-     * @param boolean $adjust
+     * @param bool $adjust
      */
     protected function addFoundJob($adjust, Job $foundJob, $foundJobCacheKey, $crcCacheKey)
     {
@@ -326,7 +326,7 @@ class JobManager extends PriorityJobManager
     /**
      * @param string|null $workerName
      * @param string|null $methodName
-     * @param bool $prioritize
+     * @param bool        $prioritize
      *
      * @throws UnsupportedException
      */

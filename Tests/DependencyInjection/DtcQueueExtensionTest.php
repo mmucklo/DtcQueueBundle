@@ -181,6 +181,69 @@ class DtcQueueExtensionTest extends TestCase
         $this->arrayTest($containerBuilder, 'dtc_queue.rabbit_mq', 'ssl_options', ['peer_fingerprint' => ['something' => 'else']]);
     }
 
+    public function testDeprecated()
+    {
+        $configs = ['config' => ['default_manager' => 'odm']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('odm', $containerBuilder->getParameter('dtc_queue.manager.job'));
+
+        $configs = ['config' => ['document_manager' => 'something']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('something', $containerBuilder->getParameter('dtc_queue.odm.document_manager'));
+
+        $configs = ['config' => ['entity_manager' => 'something']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('something', $containerBuilder->getParameter('dtc_queue.orm.entity_manager'));
+
+        $configs = ['config' => ['run_manager' => 'orm']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('orm', $containerBuilder->getParameter('dtc_queue.manager.run'));
+
+        $configs = ['config' => ['job_timing_manager' => 'orm']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('orm', $containerBuilder->getParameter('dtc_queue.manager.job_timing'));
+
+        $configs = ['config' => ['record_timings' => true]];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertTrue($containerBuilder->getParameter('dtc_queue.timings.record'));
+
+        $configs = ['config' => ['record_timings_timezone_offset' => 4.5]];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals(4.5, $containerBuilder->getParameter('dtc_queue.timings.timezone_offset'));
+
+        $configs = ['config' => ['class_job' => '\Dtc\QueueBundle\Model\RetryableJob']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('\Dtc\QueueBundle\Model\RetryableJob', $containerBuilder->getParameter('dtc_queue.class.job'));
+
+        $configs = ['config' => ['class_job_archive' => '\Dtc\QueueBundle\Model\RetryableJob']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('\Dtc\QueueBundle\Model\RetryableJob', $containerBuilder->getParameter('dtc_queue.class.job_archive'));
+
+        $configs = ['config' => ['class_run' => '\Dtc\QueueBundle\Document\RunArchive']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('\Dtc\QueueBundle\Document\RunArchive', $containerBuilder->getParameter('dtc_queue.class.run'));
+
+        $configs = ['config' => ['class_run_archive' => '\Dtc\QueueBundle\Document\RunArchive']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('\Dtc\QueueBundle\Document\RunArchive', $containerBuilder->getParameter('dtc_queue.class.run_archive'));
+
+        $configs = ['config' => ['class_job_timing' => '\Dtc\QueueBundle\Document\JobTiming']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('\Dtc\QueueBundle\Document\JobTiming', $containerBuilder->getParameter('dtc_queue.class.job_timing'));
+
+        $configs = ['config' => ['priority_max' => 10002]];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals(10002, $containerBuilder->getParameter('dtc_queue.priority.max'));
+
+        $configs = ['config' => ['priority_direction' => PriorityJobManager::PRIORITY_DESC]];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals(PriorityJobManager::PRIORITY_DESC, $containerBuilder->getParameter('dtc_queue.priority.direction'));
+
+        $configs = ['config' => ['priority_direction' => PriorityJobManager::PRIORITY_ASC]];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals(PriorityJobManager::PRIORITY_ASC, $containerBuilder->getParameter('dtc_queue.priority.direction'));
+    }
+
     /**
      * @param ContainerBuilder $containerBuilder
      * @param string           $parameter
