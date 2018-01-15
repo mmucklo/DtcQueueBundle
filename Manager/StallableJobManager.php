@@ -83,7 +83,7 @@ abstract class StallableJobManager extends PriorityJobManager
     }
 
     /**
-     * @param int|null $defaultMaxStalled
+     * @param integer|null $defaultMaxStalls
      */
     public function setDefaultMaxStalls($defaultMaxStalls)
     {
