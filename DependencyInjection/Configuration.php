@@ -256,6 +256,52 @@ class Configuration implements ConfigurationInterface
         return $rootNode;
     }
 
+    protected function addSncRedis()
+    {
+        $treeBuilder = new TreeBuilder();
+        $rootNode = $treeBuilder->root('snc_redis');
+        $rootNode
+            ->children()
+                ->enumNode('type')
+                    ->values(['predis', 'phpredis'])
+                    ->defaultNull()->end()
+                ->scalarNode('alias')
+                    ->defaultNull()->end()
+            ->end()
+            ->validate()->ifTrue(function ($node) {
+                if (isset($node['type']) && !isset($node['alias'])) {
+                    return true;
+                }
+                if (isset($node['alias']) && !isset($node['type'])) {
+                    return true;
+                }
+
+                return false;
+            })->thenInvalid('if alias or type is set, then both must be set')->end();
+
+        return $rootNode;
+    }
+
+    protected function addPredis()
+    {
+        $treeBuilder = new TreeBuilder();
+        $rootNode = $treeBuilder->root('predis');
+        $rootNode
+            ->children()
+                ->scalarNode('dsn')->defaultNull()->end()
+                ->append($this->addPredisArgs())
+            ->end()
+            ->validate()->ifTrue(function ($node) {
+                if (isset($node['dsn']) && (isset($node['connection_parameters']['host']) || isset($node['connection_parameters']['port']))) {
+                    return true;
+                }
+
+                return false;
+            })->thenInvalid('if dsn is set, do not use connection_parameters for predis (and vice-versa)')->end();
+
+        return $rootNode;
+    }
+
     protected function addRedis()
     {
         $treeBuilder = new TreeBuilder();
@@ -264,38 +310,8 @@ class Configuration implements ConfigurationInterface
             ->addDefaultsIfNotSet()
             ->children()
                 ->scalarNode('prefix')->defaultValue('dtc_queue_')->end()
-                ->arrayNode('snc_redis')
-                    ->children()
-                        ->enumNode('type')
-                            ->values(['predis', 'phpredis'])
-                            ->defaultNull()->end()
-                        ->scalarNode('alias')
-                            ->defaultNull()->end()
-                    ->end()
-                    ->validate()->ifTrue(function ($node) {
-                        if (isset($node['type']) && !isset($node['alias'])) {
-                            return true;
-                        }
-                        if (isset($node['alias']) && !isset($node['type'])) {
-                            return true;
-                        }
-
-                        return false;
-                    })->thenInvalid('if alias or type is set, then both must be set')->end()
-                ->end()
-                ->arrayNode('predis')
-                    ->children()
-                        ->scalarNode('dsn')->defaultNull()->end()
-                        ->append($this->addPredisArgs())
-                    ->end()
-                    ->validate()->ifTrue(function ($node) {
-                        if (isset($node['dsn']) && (isset($node['connection_parameters']['host']) || isset($node['connection_parameters']['port']))) {
-                            return true;
-                        }
-
-                        return false;
-                    })->thenInvalid('if dsn is set, do not use connection_parameters for predis (and vice-versa)')->end()
-                ->end()
+                ->append($this->addSncRedis())
+                ->append($this->addPredis())
                 ->append($this->addPhpRedisArgs())
             ->end()
             ->validate()->ifTrue(function ($node) {

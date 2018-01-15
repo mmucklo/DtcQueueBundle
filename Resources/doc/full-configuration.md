@@ -102,6 +102,8 @@ dtc_queue:
             auto_delete: false
     # Redis setup - choose one of [ snc_redis | predis | phpredis ]
     redis:
+        # What to prefix the redis entries with
+        prefix: dtc_queue_
         snc_redis:
             # type should be one of [ predis| phpredis ]
             type: ~
