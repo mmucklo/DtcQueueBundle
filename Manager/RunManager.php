@@ -42,6 +42,13 @@ class RunManager
         throw new UnsupportedException('not supported');
     }
 
+    /**
+     * Prunes stalled runs.
+     *
+     * @return int Number of stalled runs pruned
+     *
+     * @throws UnsupportedException
+     */
     public function pruneStalledRuns()
     {
         throw new UnsupportedException('not supported');
@@ -64,6 +71,10 @@ class RunManager
         $this->persistRun($run);
     }
 
+    /**
+     * @param Run    $run
+     * @param string $action
+     */
     protected function persistRun(Run $run, $action = 'persist')
     {
         // To be overridden

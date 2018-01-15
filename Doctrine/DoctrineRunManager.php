@@ -91,8 +91,13 @@ abstract class DoctrineRunManager extends RunManager
         $this->getObjectManager()->flush();
     }
 
+    /**
+     * @param Run    $run
+     * @param string $action
+     */
     protected function persistRun(Run $run, $action = 'persist')
     {
+        parent::persistRun($run, $action);
         $objectManager = $this->getObjectManager();
         $objectManager->$action($run);
         $objectManager->flush();

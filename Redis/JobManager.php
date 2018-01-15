@@ -190,7 +190,7 @@ class JobManager extends PriorityJobManager
 
     /**
      * @param string $queue
-     * @param boolean $adjust
+     * @param bool   $adjust
      */
     private function adjustJob($adjust, $queue, Job $foundJob, $foundJobCacheKey, $crcCacheKey, $zScore)
     {
