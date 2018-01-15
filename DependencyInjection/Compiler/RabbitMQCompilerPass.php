@@ -25,7 +25,7 @@ class RabbitMQCompilerPass implements CompilerPassInterface
             $this->setupRabbitMQOptions($container, $arguments, $class);
             $definition = new Definition($class, $arguments);
             $container->setDefinition('dtc_queue.rabbit_mq', $definition);
-            $definition = $container->getDefinition('dtc_queue.job_manager.rabbit_mq');
+            $definition = $container->getDefinition('dtc_queue.manager.job.rabbit_mq');
             $definition->addMethodCall('setAMQPConnection', [new Reference('dtc_queue.rabbit_mq')]);
             $definition->addMethodCall('setQueueArgs', array_values($rabbitMqConfig['queue_args']));
             $definition->addMethodCall('setExchangeArgs', array_values($rabbitMqConfig['exchange_args']));
