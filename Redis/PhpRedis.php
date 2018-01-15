@@ -35,7 +35,7 @@ class PhpRedis implements RedisInterface
 
     public function lRem($lKey, $count, $value)
     {
-        return $this->redis->lrem($lKey, $count, $value);
+        return $this->redis->lrem($lKey, $value, $count);
     }
 
     public function lPush($lKey, array $values)

@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Redis;
 
 use Predis\Client;
+use Predis\Response\Status;
 
 class Predis implements RedisInterface
 {
@@ -22,17 +23,36 @@ class Predis implements RedisInterface
 
     public function set($key, $value)
     {
-        return $this->predis->set($key, $value);
+        /** @var Status $result */
+        $result = $this->predis->set($key, $value);
+        if ('OK' == $result->getPayload()) {
+            return true;
+        }
+
+        return false;
     }
 
     public function get($key)
     {
-        return $this->predis->get($key);
+        $this->predis->multi();
+        $this->predis->exists($key);
+        $this->predis->get($key);
+        list($exists, $result) = $this->predis->exec();
+        if (!$exists) {
+            return false;
+        }
+
+        return $result;
     }
 
     public function setEx($key, $seconds, $value)
     {
-        return $this->predis->setex($key, $seconds, $value);
+        $result = $this->predis->setex($key, $seconds, $value);
+        if ('OK' == $result->getPayload()) {
+            return true;
+        }
+
+        return false;
     }
 
     public function lRem($lKey, $count, $value)
