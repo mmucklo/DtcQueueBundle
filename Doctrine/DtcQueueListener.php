@@ -57,10 +57,10 @@ class DtcQueueListener
     protected function adjustIdGenerator(\Doctrine\Common\Persistence\Mapping\ClassMetadata $metadata)
     {
         $objectManager = $this->objectManager;
-        if ($objectManager instanceof EntityManager) {
+        if ($objectManager instanceof EntityManager && $metadata instanceof \Doctrine\ORM\Mapping\ClassMetadata) {
             $metadata->setIdGeneratorType(\Doctrine\ORM\Mapping\ClassMetadata::GENERATOR_TYPE_NONE);
             $metadata->setIdGenerator(new AssignedGenerator());
-        } elseif ($objectManager instanceof DocumentManager) {
+        } elseif ($objectManager instanceof DocumentManager && $metadata instanceof ClassMetadata) {
             $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
         }
     }

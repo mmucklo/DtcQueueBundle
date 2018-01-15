@@ -39,7 +39,7 @@ abstract class StallableJob extends \Dtc\QueueBundle\Model\RetryableJob
     }
 
     /**
-     * @param int $stalledCount
+     * @param int $stalls
      *
      * @return StallableJob
      */

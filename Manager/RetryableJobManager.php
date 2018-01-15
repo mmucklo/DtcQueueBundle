@@ -43,8 +43,6 @@ abstract class RetryableJobManager extends AbstractJobManager
 
     /**
      * @return bool true if retry
-     *
-     * @param bool $retry true if the job was retried, false if not
      */
     public function saveHistory(Job $job)
     {
@@ -92,9 +90,9 @@ abstract class RetryableJobManager extends AbstractJobManager
      * Determine if we've hit a max retry condition.
      *
      * @param RetryableJob $job
-     * @param $status
-     * @param null $max
-     * @param int  $count
+     * @param int          $status
+     * @param int|null     $max
+     * @param int          $count
      *
      * @return bool
      */
@@ -121,7 +119,7 @@ abstract class RetryableJobManager extends AbstractJobManager
     }
 
     /**
-     * @param RetryableJob $retryableJob
+     * @param RetryableJob $job
      *
      * @return bool true if the job was successfully "reset", i.e. re-queued
      */
@@ -157,7 +155,7 @@ abstract class RetryableJobManager extends AbstractJobManager
     }
 
     /**
-     * @param int|null $defaultMaxRetry
+     * @param int|null $defaultMaxRetries
      */
     public function setDefaultMaxRetries($defaultMaxRetries)
     {

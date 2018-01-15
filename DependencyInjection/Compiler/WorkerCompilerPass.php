@@ -44,7 +44,7 @@ class WorkerCompilerPass implements CompilerPassInterface
         $container->setParameter('dtc_queue.class.run', $this->getClass($container, $managerType, 'run', 'Run', Run::class));
         $container->setParameter('dtc_queue.class.run_archive', $this->getClass($container, $managerType, 'run_archive', 'RunArchive', Run::class));
 
-        $this->setupTaggedServices($container, $definition, $jobClass);
+        $this->setupTaggedServices($container, $definition);
         $eventDispatcher = $container->getDefinition('dtc_queue.event_dispatcher');
         foreach ($container->findTaggedServiceIds('dtc_queue.event_subscriber') as $id => $attributes) {
             $eventSubscriber = $container->getDefinition($id);
@@ -87,7 +87,7 @@ class WorkerCompilerPass implements CompilerPassInterface
 
     /**
      * @param ContainerBuilder $container
-     * @param string           $jobClass
+     * @param Definition       $definition
      */
     protected function setupTaggedServices(ContainerBuilder $container, Definition $definition)
     {

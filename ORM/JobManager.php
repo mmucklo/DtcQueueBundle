@@ -7,6 +7,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
 use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Dtc\QueueBundle\Entity\Job;
+use Dtc\QueueBundle\Exception\UnsupportedException;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\StallableJob;
@@ -354,6 +355,10 @@ class JobManager extends DoctrineJobManager
      */
     public function updateNearestBatch(\Dtc\QueueBundle\Model\Job $job)
     {
+        if (!$job instanceof Job) {
+            throw new UnsupportedException('$job must be instance of '.Job::class);
+        }
+
         /** @var QueryBuilder $queryBuilder */
         $queryBuilder = $this->getRepository()->createQueryBuilder('j');
         $queryBuilder->select()
@@ -368,6 +373,7 @@ class JobManager extends DoctrineJobManager
         if (empty($existingJobs)) {
             return null;
         }
+
         /** @var Job $existingJob */
         $existingJob = $existingJobs[0];
 
@@ -426,7 +432,7 @@ class JobManager extends DoctrineJobManager
             ->select('DISTINCT j.workerName, j.method');
 
         $results = $queryBuilder->getQuery()->getArrayResult();
-        if (!$results) {
+        if (empty($results)) {
             return [];
         }
         $workerMethods = [];
@@ -513,6 +519,6 @@ class JobManager extends DoctrineJobManager
             }
             $this->flush();
             $progressCallback($count);
-        } while ($results && 10000 == count($results));
+        } while (!empty($results) && 10000 == count($results));
     }
 }

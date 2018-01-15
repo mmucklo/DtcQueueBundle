@@ -211,9 +211,9 @@ class JobManager extends PriorityJobManager
     }
 
     /**
-     * @param null $workerName
-     * @param null $methodName
-     * @param bool $prioritize
+     * @param string|null $workerName
+     * @param string|null $methodName
+     * @param bool        $prioritize
      *
      * @throws UnsupportedException
      */
@@ -225,7 +225,8 @@ class JobManager extends PriorityJobManager
     }
 
     /**
-     * @param string $workerName
+     * @param string|null $workerName
+     * @param string|null $methodName
      *
      * @throws UnsupportedException
      * @throws ArgumentsNotSetException

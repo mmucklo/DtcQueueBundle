@@ -113,7 +113,7 @@ class WorkerManager
         $this->log('debug', "Failed: {$job->getClassName()}->{$job->getMethod()}");
         $job->setStatus(BaseJob::STATUS_EXCEPTION);
         $message = $job->getMessage();
-        if ($message) {
+        if (null !== $message) {
             $message .= "\n\n";
         } else {
             $message = $exceptionMessage;

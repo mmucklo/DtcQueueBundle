@@ -18,8 +18,9 @@ trait MicrotimeTrait
      */
     public function getWhenAt()
     {
-        if ($this->whenUs) {
-            return Util::getDateTimeFromDecimalFormat($this->whenUs);
+        $whenUs = isset($this->whenUs) ? $this->whenUs : null;
+        if ($whenUs) {
+            return Util::getDateTimeFromDecimalFormat($whenUs);
         }
 
         return null;
@@ -40,6 +41,6 @@ trait MicrotimeTrait
      */
     public function getWhenUs()
     {
-        return $this->whenUs;
+        return isset($this->whenUs) ? $this->whenUs : null;
     }
 }

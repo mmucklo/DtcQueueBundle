@@ -76,6 +76,11 @@ class JobManager extends PriorityJobManager
         }
     }
 
+    /**
+     * @param Job $job
+     *
+     * @return Job|null
+     */
     protected function batchSave(\Dtc\QueueBundle\Redis\Job $job)
     {
         $crcHash = $job->getCrcHash();

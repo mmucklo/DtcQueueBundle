@@ -45,7 +45,7 @@ abstract class BaseJob
         $this->setBatch($batch ? true : false);
         $this->setPriority($priority);
         $this->setStatus(self::STATUS_NEW);
-        $dateTime = \DateTime::createFromFormat('U.u', Util::getMicrotimeStr());
+        $dateTime = Util::getMicrotimeDateTime();
         $this->setCreatedAt($dateTime);
     }
 

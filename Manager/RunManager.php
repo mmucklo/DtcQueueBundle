@@ -93,7 +93,10 @@ class RunManager
         $runClass = $this->getRunClass();
         /** @var Run $run */
         $run = new $runClass();
-        $startDate = \DateTime::createFromFormat('U.u', number_format($start, 6, '.', ''));
+        $startDate = \DateTime::createFromFormat('U.u', $formattedStart = number_format($start, 6, '.', ''));
+        if (false === $startDate) {
+            throw new \RuntimeException("Could not create date from $start formatted as $formattedStart");
+        }
         $run->setLastHeartbeatAt($startDate);
         $run->setStartedAt($startDate);
         if (null !== $maxCount) {
