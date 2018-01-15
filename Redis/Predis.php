@@ -4,6 +4,7 @@ namespace Dtc\QueueBundle\Redis;
 
 use Predis\Client;
 use Predis\Response\Status;
+use Predis\Transaction\MultiExec;
 
 class Predis implements RedisInterface
 {
@@ -90,8 +91,8 @@ class Predis implements RedisInterface
         ];
 
         try {
-            $this->predis->transaction($options, function ($tx) use ($key, &$element) {
-                @list($element) = $tx->zrange($key, 0, 0);
+            $this->predis->transaction($options, function (MultiExec $tx) use ($key, &$element) {
+                list($element) = $tx->zrange($key, 0, 0);
 
                 if (isset($element)) {
                     $tx->multi();
@@ -115,8 +116,8 @@ class Predis implements RedisInterface
         ];
 
         try {
-            $this->predis->transaction($options, function ($tx) use ($key, $max, &$element) {
-                @list($element) = $tx->zrangebyscore($key, 0, $max, ['LIMIT' => [0, 1]]);
+            $this->predis->transaction($options, function (MultiExec $tx) use ($key, $max, &$element) {
+                list($element) = $tx->zrangebyscore($key, 0, $max, ['LIMIT' => [0, 1]]);
 
                 if (isset($element)) {
                     $tx->multi();

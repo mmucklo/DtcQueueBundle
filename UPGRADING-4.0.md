@@ -1,10 +1,8 @@
 # 4.0
 
-* Configuration changes:
+## Configuration changes:
 
-If you set various classes in the configuration
-
-3.0 (old)
+### 3.0 (old, deprecated)
 ```yaml
 dtc_queue:
    document_manager: default
@@ -21,7 +19,7 @@ dtc_queue:
    priority_direction: ...
 ```
 
-4.0 (new)
+### 4.0 (new)
 ```yaml
 dtc_queue:
    # ...
@@ -45,7 +43,11 @@ dtc_queue:
        direction: ...
 ```
 
-* ORM - Job tables will need a migration or table update as several fields have been renamed
+## ORM
+_(Mysql, etc.)_
+
+Job tables will need a migration or table update as several fields have been renamed
+
    * **RENAMES**
       * error_count -> exceptions
       * stalled_count -> stalls
@@ -59,13 +61,15 @@ dtc_queue:
       * locked
       * locked_at
       * when_at
-* Worker updates
+
+## Worker updates
    * **Important**: Remove all $this->jobClass = // some class
    * Replace any $this->jobClass or $this->getJobClass() function calls with:
       * $this->getJobManager()->getJobClass()
    * Replace any $this->jobManager direct access calls with:
       * $this->getJobManager()
-* Refactoring
+
+## Refactoring
    * If you extended JobManager, please note the following
       * Base classes have been moved to their own "Manager" folder
       * resetErroneousJobs -> resetExceptionJobs
