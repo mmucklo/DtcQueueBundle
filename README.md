@@ -386,7 +386,7 @@ dtc_queue:
     manager:
         job: some_name [optional]
     # (create your own manager service and name or alias it:
-    #   dtc_queue.job_manager.<some_name> and put
+    #   dtc_queue.manager.job.<some_name> and put
     #   <some_name> in the manager: job field above)
 ```
 

@@ -53,7 +53,7 @@ services:
         public: true
         class: Dtc\QueueBundle\ORM\LiveJobsGridSource
         arguments:
-            - "@dtc_queue.job_manager.orm"
+            - "@dtc_queue.manager.job.orm"
         calls:
             - [ 'setAnnotationReader', ['@annotation_reader' ]]
             - [ 'setCacheDir', ['%kernel.cache_dir%' ]]
@@ -62,7 +62,7 @@ services:
         public: true
         class: Dtc\QueueBundle\ORM\LiveJobsGridSource
         arguments:
-            - "@dtc_queue.job_manager.orm"
+            - "@dtc_queue.manager.job.orm"
         calls:
             - [ 'setAnnotationReader', ['@annotation_reader' ]]
             - [ 'setCacheDir', ['%kernel.cache_dir%' ]]
@@ -100,7 +100,7 @@ services:
             - ["setDefaultMaxExceptions", ['%dtc_queue.retry.max.exceptions%']]
             - ["setAutoRetryOnFailure", ['%dtc_queue.retry.auto.failure%']]
 
-    dtc_queue.job_manager.rabbit_mq:
+    dtc_queue.manager.job.rabbit_mq:
         public: true
         class: Dtc\QueueBundle\RabbitMQ\JobManager
         arguments:
@@ -116,7 +116,7 @@ services:
             - ["setAutoRetryOnFailure", ['%dtc_queue.retry.auto.failure%']]
             - ["setAutoRetryOnException", ['%dtc_queue.retry.auto.exception%']]
 
-    dtc_queue.job_manager.redis:
+    dtc_queue.manager.job.redis:
         public: true
         class: Dtc\QueueBundle\Redis\JobManager
         arguments:
@@ -132,7 +132,7 @@ services:
             - ["setDefaultMaxExceptions", ['%dtc_queue.retry.max.exceptions%']]
             - ["setAutoRetryOnFailure", ['%dtc_queue.retry.auto.failure%']]
             - ["setAutoRetryOnException", ['%dtc_queue.retry.auto.exception%']]
-    dtc_queue.run_manager.orm:
+    dtc_queue.manager.run.orm:
         public: true
         class: Dtc\QueueBundle\ORM\RunManager
         arguments:
@@ -140,7 +140,7 @@ services:
             - "%dtc_queue.class.run%"
             - "%dtc_queue.class.run_archive%"
 
-    dtc_queue.job_timing_manager.orm:
+    dtc_queue.manager.job_timing.orm:
         public: true
         class: Dtc\QueueBundle\ORM\JobTimingManager
         arguments:
@@ -148,36 +148,36 @@ services:
             - "%dtc_queue.class.job_timing%"
             - "%dtc_queue.timings.record%"
 
-    dtc_queue.run_manager.beanstalkd:
+    dtc_queue.manager.run.beanstalkd:
         public: true
-        alias: dtc_queue.run_manager_base
+        alias: dtc_queue.manager.run.base
 
-    dtc_queue.run_manager.rabbit_mq:
+    dtc_queue.manager.run.rabbit_mq:
         public: true
-        alias: dtc_queue.run_manager_base
+        alias: dtc_queue.manager.run.base
 
-    dtc_queue.job_timing_manager.beanstalkd:
+    dtc_queue.manager.job_timing.beanstalkd:
         public: true
-        alias: dtc_queue.job_timing_manager_base
+        alias: dtc_queue.manager.job_timing.base
 
-    dtc_queue.job_timing_manager.rabbit_mq:
+    dtc_queue.manager.job_timing.rabbit_mq:
         public: true
-        alias: dtc_queue.job_timing_manager_base
+        alias: dtc_queue.manager.job_timing.base
 
-    dtc_queue.run_manager_base:
+    dtc_queue.manager.run.base:
         public: true
         class: Dtc\QueueBundle\Manager\RunManager
         arguments:
             - "%dtc_queue.class.run%"
 
-    dtc_queue.job_timing_manager_base:
+    dtc_queue.manager.job_timing.base:
         public: true
         class: Dtc\QueueBundle\Manager\JobTimingManager
         arguments:
             - "%dtc_queue.class.job_timing%"
             - "%dtc_queue.timings.record%"
 
-    dtc_queue.job_manager.orm:
+    dtc_queue.manager.job.orm:
         public: true
         class: Dtc\QueueBundle\ORM\JobManager
         arguments:

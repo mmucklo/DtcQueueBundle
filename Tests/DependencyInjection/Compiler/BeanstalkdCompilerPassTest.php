@@ -23,7 +23,7 @@ class BeanstalkdCompilerPassTest extends TestCase
         $count = count($container->getDefinitions());
         $definition = new Definition();
         $definition->setClass(JobManager::class);
-        $container->addDefinitions(['dtc_queue.job_manager.beanstalkd' => $definition]);
+        $container->addDefinitions(['dtc_queue.manager.job.beanstalkd' => $definition]);
         $container->setParameter('dtc_queue.beanstalkd.host', 'somehost');
         $compilerPass = new BeanstalkdCompilerPass();
         $compilerPass->process($container);
@@ -31,14 +31,14 @@ class BeanstalkdCompilerPassTest extends TestCase
         self::assertGreaterThan($count, count($container->getDefinitions()));
         self::assertTrue($container->hasDefinition('dtc_queue.beanstalkd'));
 
-        $definition = $container->getDefinition('dtc_queue.job_manager.beanstalkd');
+        $definition = $container->getDefinition('dtc_queue.manager.job.beanstalkd');
         self::assertNotEmpty($definition->getMethodCalls());
         self::assertCount(1, $definition->getMethodCalls());
 
         $container = new ContainerBuilder();
         $definition = new Definition();
         $definition->setClass(JobManager::class);
-        $container->addDefinitions(['dtc_queue.job_manager.beanstalkd' => $definition]);
+        $container->addDefinitions(['dtc_queue.manager.job.beanstalkd' => $definition]);
         $container->setParameter('dtc_queue.beanstalkd.host', 'somehost');
         $container->setParameter('dtc_queue.beanstalkd.tube', 'seomthing');
         $compilerPass = new BeanstalkdCompilerPass();
@@ -47,7 +47,7 @@ class BeanstalkdCompilerPassTest extends TestCase
         self::assertNotEmpty($container->getDefinitions());
         self::assertTrue($container->hasDefinition('dtc_queue.beanstalkd'));
 
-        $definition = $container->getDefinition('dtc_queue.job_manager.beanstalkd');
+        $definition = $container->getDefinition('dtc_queue.manager.job.beanstalkd');
         self::assertNotEmpty($definition->getMethodCalls());
         self::assertCount(2, $definition->getMethodCalls());
     }

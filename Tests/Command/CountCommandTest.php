@@ -22,7 +22,7 @@ class CountCommandTest extends TestCase
         $container = new Container();
         $jobTimingManager = new JobTimingManager(JobTiming::class, false);
         $runManager = new RunManager($jobTimingManager, Run::class);
-        $container->set('dtc_queue.job_manager', new StubJobManager($runManager, $jobTimingManager, Job::class));
+        $container->set('dtc_queue.manager.job', new StubJobManager($runManager, $jobTimingManager, Job::class));
         $this->runCommandException(CountCommand::class, $container, []);
     }
 
@@ -31,7 +31,7 @@ class CountCommandTest extends TestCase
         JobManagerTest::setUpBeforeClass();
         $jobManager = JobManagerTest::$jobManager;
         $container = new Container();
-        $container->set('dtc_queue.job_manager', $jobManager);
+        $container->set('dtc_queue.manager.job', $jobManager);
         $this->runCommand(CountCommand::class, $container, []);
     }
 
@@ -40,7 +40,7 @@ class CountCommandTest extends TestCase
         \Dtc\QueueBundle\Tests\ODM\JobManagerTest::setUpBeforeClass();
         $jobManager = \Dtc\QueueBundle\Tests\ODM\JobManagerTest::$jobManager;
         $container = new Container();
-        $container->set('dtc_queue.job_manager', $jobManager);
+        $container->set('dtc_queue.manager.job', $jobManager);
         $this->runCommand(CountCommand::class, $container, []);
     }
 
@@ -49,7 +49,7 @@ class CountCommandTest extends TestCase
         \Dtc\QueueBundle\Tests\ORM\JobManagerTest::setUpBeforeClass();
         $jobManager = \Dtc\QueueBundle\Tests\ORM\JobManagerTest::$jobManager;
         $container = new Container();
-        $container->set('dtc_queue.job_manager', $jobManager);
+        $container->set('dtc_queue.manager.job', $jobManager);
         $this->runCommand(CountCommand::class, $container, []);
     }
 }

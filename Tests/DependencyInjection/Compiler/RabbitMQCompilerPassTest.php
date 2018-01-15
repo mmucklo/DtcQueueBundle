@@ -69,7 +69,7 @@ class RabbitMQCompilerPassTest extends TestCase
         $container->setParameter('dtc_queue.rabbit_mq', $options);
         $definition = new Definition();
         $definition->setClass(JobManager::class);
-        $container->addDefinitions(['dtc_queue.job_manager.rabbit_mq' => $definition]);
+        $container->addDefinitions(['dtc_queue.manager.job.rabbit_mq' => $definition]);
         $compilerPass = new RabbitMQCompilerPass();
         $compilerPass->process($container);
 

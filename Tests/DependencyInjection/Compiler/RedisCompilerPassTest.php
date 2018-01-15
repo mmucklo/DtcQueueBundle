@@ -27,7 +27,7 @@ class RedisCompilerPassTest extends TestCase
         $count = count($container->getDefinitions());
         $definition = new Definition();
         $definition->setClass(JobManager::class);
-        $container->addDefinitions(['dtc_queue.job_manager.redis' => $definition]);
+        $container->addDefinitions(['dtc_queue.manager.job.redis' => $definition]);
         $container->setParameter('dtc_queue.redis.snc_redis.type', 'predis');
         $container->setParameter('dtc_queue.redis.snc_redis.alias', 'default');
         $compilerPass = new RedisCompilerPass();
@@ -36,7 +36,7 @@ class RedisCompilerPassTest extends TestCase
         self::assertGreaterThan($count, count($container->getDefinitions()));
         self::assertTrue($container->hasDefinition('dtc_queue.predis'));
 
-        $definition = $container->getDefinition('dtc_queue.job_manager.redis');
+        $definition = $container->getDefinition('dtc_queue.manager.job.redis');
         self::assertNotEmpty($definition->getMethodCalls());
         self::assertCount(1, $definition->getMethodCalls());
 
@@ -44,7 +44,7 @@ class RedisCompilerPassTest extends TestCase
         $count = count($container->getDefinitions());
         $definition = new Definition();
         $definition->setClass(JobManager::class);
-        $container->addDefinitions(['dtc_queue.job_manager.redis' => $definition]);
+        $container->addDefinitions(['dtc_queue.manager.job.redis' => $definition]);
         $container->setParameter('dtc_queue.redis.snc_redis.type', 'phpredis');
         $container->setParameter('dtc_queue.redis.snc_redis.alias', 'default');
         $compilerPass = new RedisCompilerPass();
@@ -53,7 +53,7 @@ class RedisCompilerPassTest extends TestCase
         self::assertGreaterThan($count, count($container->getDefinitions()));
         self::assertTrue($container->hasDefinition('dtc_queue.phpredis'));
 
-        $definition = $container->getDefinition('dtc_queue.job_manager.redis');
+        $definition = $container->getDefinition('dtc_queue.manager.job.redis');
         self::assertNotEmpty($definition->getMethodCalls());
         self::assertCount(1, $definition->getMethodCalls());
     }
@@ -64,7 +64,7 @@ class RedisCompilerPassTest extends TestCase
         $count = count($container->getDefinitions());
         $definition = new Definition();
         $definition->setClass(JobManager::class);
-        $container->addDefinitions(['dtc_queue.job_manager.redis' => $definition]);
+        $container->addDefinitions(['dtc_queue.manager.job.redis' => $definition]);
         $container->setParameter('dtc_queue.redis.predis.dsn', 'redis://localhost');
         $compilerPass = new RedisCompilerPass();
         $compilerPass->process($container);
@@ -72,7 +72,7 @@ class RedisCompilerPassTest extends TestCase
         self::assertGreaterThan($count, count($container->getDefinitions()));
         self::assertTrue($container->hasDefinition('dtc_queue.predis'));
 
-        $definition = $container->getDefinition('dtc_queue.job_manager.redis');
+        $definition = $container->getDefinition('dtc_queue.manager.job.redis');
         self::assertNotEmpty($definition->getMethodCalls());
         self::assertCount(1, $definition->getMethodCalls());
 
@@ -80,7 +80,7 @@ class RedisCompilerPassTest extends TestCase
         $count = count($container->getDefinitions());
         $definition = new Definition();
         $definition->setClass(JobManager::class);
-        $container->addDefinitions(['dtc_queue.job_manager.redis' => $definition]);
+        $container->addDefinitions(['dtc_queue.manager.job.redis' => $definition]);
         $container->setParameter('dtc_queue.redis.predis.connection_parameters', ['host' => 'localhost', 'port' => 6379]);
         $compilerPass = new RedisCompilerPass();
         $compilerPass->process($container);
@@ -88,7 +88,7 @@ class RedisCompilerPassTest extends TestCase
         self::assertGreaterThan($count, count($container->getDefinitions()));
         self::assertTrue($container->hasDefinition('dtc_queue.predis'));
 
-        $definition = $container->getDefinition('dtc_queue.job_manager.redis');
+        $definition = $container->getDefinition('dtc_queue.manager.job.redis');
         self::assertNotEmpty($definition->getMethodCalls());
         self::assertCount(1, $definition->getMethodCalls());
     }
@@ -103,14 +103,14 @@ class RedisCompilerPassTest extends TestCase
 
         $definition = new Definition();
         $definition->setClass(JobManager::class);
-        $container->addDefinitions(['dtc_queue.job_manager.redis' => $definition]);
+        $container->addDefinitions(['dtc_queue.manager.job.redis' => $definition]);
         $compilerPass = new RedisCompilerPass();
         $compilerPass->process($container);
 
         self::assertGreaterThan($count, count($container->getDefinitions()));
         self::assertTrue($container->hasDefinition('dtc_queue.phpredis'));
 
-        $definition = $container->getDefinition('dtc_queue.job_manager.redis');
+        $definition = $container->getDefinition('dtc_queue.manager.job.redis');
         self::assertNotEmpty($definition->getMethodCalls());
         self::assertCount(1, $definition->getMethodCalls());
     }

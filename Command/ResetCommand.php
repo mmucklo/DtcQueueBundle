@@ -18,7 +18,7 @@ class ResetCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $container = $this->getContainer();
-        $jobManager = $container->get('dtc_queue.job_manager');
+        $jobManager = $container->get('dtc_queue.manager.job');
         $countException = $jobManager->resetExceptionJobs();
         $countStalled = $jobManager->resetStalledJobs();
         $output->writeln("$countException job(s) in status 'exception' reset");

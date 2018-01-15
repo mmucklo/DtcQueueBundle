@@ -30,7 +30,7 @@ class PruneCommandTest extends TestCase
         $worker->setJobManager($jobManager);
 
         $container = new Container();
-        $container->set('dtc_queue.job_manager', $jobManager);
+        $container->set('dtc_queue.manager.job', $jobManager);
 
         /** @var Job $job */
         $time = time() - 1;

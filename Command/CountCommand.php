@@ -19,7 +19,7 @@ class CountCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $container = $this->getContainer();
-        $jobManager = $container->get('dtc_queue.job_manager');
+        $jobManager = $container->get('dtc_queue.manager.job');
 
         if ($jobManager instanceof JobManager) {
             $output->writeln(print_r($jobManager->getStats(), true));

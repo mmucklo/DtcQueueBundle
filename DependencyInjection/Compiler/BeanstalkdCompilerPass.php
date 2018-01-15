@@ -17,7 +17,7 @@ class BeanstalkdCompilerPass implements CompilerPassInterface
                 [$container->getParameter('dtc_queue.beanstalkd.host')]
             );
             $container->setDefinition('dtc_queue.beanstalkd', $definition);
-            $definition = $container->getDefinition('dtc_queue.job_manager.beanstalkd');
+            $definition = $container->getDefinition('dtc_queue.manager.job.beanstalkd');
             $definition->addMethodCall('setBeanstalkd', [new Reference('dtc_queue.beanstalkd')]);
             if ($container->hasParameter('dtc_queue.beanstalkd.tube')) {
                 $definition->addMethodCall('setTube', [$container->getParameter('dtc_queue.beanstalkd.tube')]);

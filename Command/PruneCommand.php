@@ -26,7 +26,7 @@ class PruneCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $container = $this->getContainer();
-        $jobManager = $container->get('dtc_queue.job_manager');
+        $jobManager = $container->get('dtc_queue.manager.job');
         $type = $input->getArgument('type');
         switch ($type) {
             case 'error':
@@ -47,7 +47,7 @@ class PruneCommand extends ContainerAwareCommand
     public function executeStalledOther(InputInterface $input, OutputInterface $output)
     {
         $container = $this->getContainer();
-        $jobManager = $container->get('dtc_queue.job_manager');
+        $jobManager = $container->get('dtc_queue.manager.job');
         $type = $input->getArgument('type');
         switch ($type) {
             case 'stalled':
@@ -55,7 +55,7 @@ class PruneCommand extends ContainerAwareCommand
                 $output->writeln("$count Stalled Job(s) pruned");
                 break;
             case 'stalled_runs':
-                $count = $container->get('dtc_queue.run_manager')->pruneStalledRuns();
+                $count = $container->get('dtc_queue.manager.run')->pruneStalledRuns();
                 $output->writeln("$count Stalled Job(s) pruned");
                 break;
             default:
@@ -128,15 +128,15 @@ class PruneCommand extends ContainerAwareCommand
         $typeName = null;
         switch ($type) {
             case 'old':
-                $count = $container->get('dtc_queue.job_manager')->pruneArchivedJobs($olderThan);
+                $count = $container->get('dtc_queue.manager.job')->pruneArchivedJobs($olderThan);
                 $typeName = 'Job';
                 break;
             case 'old_runs':
-                $count = $container->get('dtc_queue.run_manager')->pruneArchivedRuns($olderThan);
+                $count = $container->get('dtc_queue.manager.run')->pruneArchivedRuns($olderThan);
                 $typeName = 'Run';
                 break;
             case 'old_job_timings':
-                $count = $container->get('dtc_queue.run_manager')->pruneJobTimings($olderThan);
+                $count = $container->get('dtc_queue.manager.run')->pruneJobTimings($olderThan);
                 $typeName = 'Job Timing';
                 break;
             default:

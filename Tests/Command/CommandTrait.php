@@ -88,8 +88,8 @@ trait CommandTrait
         $runManager = new StubRunManager($jobTimingManager, \Dtc\QueueBundle\Model\Run::class);
         $jobManager = new StubJobManager($runManager, $jobTimingManager, Job::class);
         $container = new Container();
-        $container->set('dtc_queue.job_manager', $jobManager);
-        $container->set('dtc_queue.run_manager', $runManager);
+        $container->set('dtc_queue.manager.job', $jobManager);
+        $container->set('dtc_queue.manager.run', $runManager);
         $this->runCommandExpect($className, $container, $params, $expectedResult);
         $manager = "${managerType}Manager";
         if (0 === $expectedResult) {

@@ -24,8 +24,8 @@ class CreateJobCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $container = $this->getContainer();
-        $jobManager = $container->get('dtc_queue.job_manager');
-        $workerManager = $container->get('dtc_queue.worker_manager');
+        $jobManager = $container->get('dtc_queue.manager.job');
+        $workerManager = $container->get('dtc_queue.manager.worker');
 
         $workerName = $input->getArgument('worker_name');
         $methodName = $input->getArgument('method');

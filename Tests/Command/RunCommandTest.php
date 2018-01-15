@@ -33,7 +33,7 @@ class RunCommandTest extends TestCase
         $loop = new Loop($workerManager, $jobManager, $runManager);
         $container = new Container();
         $container->set('dtc_queue.run.loop', $loop);
-        $container->set('dtc_queue.run_manager', $runManager);
+        $container->set('dtc_queue.manager.run', $runManager);
         $worker->later()->fibonacci(1);
 
         $this->runRunCommand($loop, $container, [], 1);

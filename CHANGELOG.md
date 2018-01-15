@@ -1,4 +1,5 @@
-<<<<<<< HEAD
+### 4.0.1
+   * A bunch of definitions were set wrong and the work for 4.0.0 and some how escaped testing
 ### 4.0.0
    * Redis support
    * Auto Retry

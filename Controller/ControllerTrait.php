@@ -19,7 +19,7 @@ trait ControllerTrait
 
     protected function validateRunManager()
     {
-        if ($this->container->hasParameter('dtc_queue.job_timing_manager')) {
+        if ($this->container->hasParameter('dtc_queue.manager.job_timing')) {
             $this->validateManagerType('dtc_queue.manager.run');
         } else {
             $this->validateManagerType('dtc_queue.manager.job');
