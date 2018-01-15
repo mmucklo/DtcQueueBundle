@@ -3,7 +3,7 @@
 ### 4.0.2
    * Fix issue #36 (a bug with the count command)
 ### 4.0.1
-   * A bunch of definitions were set wrong and the work for 4.0.0 and some how escaped testing
+   * A bunch of definitions were set wrong for 4.0.0 and some how escaped testing
 ### 4.0.0
    * Redis support
    * Auto Retry
@@ -16,7 +16,7 @@
    * Worker class changes
       * Access signatures change
          * $jobManager made private in Worker base class.  Still accessible through getJobManager()
-      * Access to Current Job
+      * Access to Current Job (inspired by the fork of @wzele)
          * $this->getCurrentJob() will return the current Job object during a worker's method invocation.
             * This may be useful if you want to record some message by calling $this->getCurrentJob()->setMessage('some message');
             * However only Doctrine Jobs are persisted on SUCCESS         
