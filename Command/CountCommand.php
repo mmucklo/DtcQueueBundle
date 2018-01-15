@@ -31,7 +31,7 @@ class CountCommand extends ContainerAwareCommand
 
         $format = '%-50s %8s %8s %8s %8s';
         $status = $jobManager->getStatus();
-        $msg = sprintf($format, 'Job name', 'Success', 'New', 'Running', 'Error');
+        $msg = sprintf($format, 'Job name', 'Success', 'New', 'Running', 'Exception');
         $output->writeln($msg);
 
         foreach ($status as $func => $info) {
