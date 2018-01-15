@@ -2,20 +2,26 @@
 
 namespace Dtc\QueueBundle\RabbitMQ;
 
+use Dtc\QueueBundle\Model\BaseJob;
+use Dtc\QueueBundle\Manager\JobIdTrait;
+use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\JobTiming;
-use Dtc\QueueBundle\Model\PriorityJobManager;
+use Dtc\QueueBundle\Manager\PriorityJobManager;
 use Dtc\QueueBundle\Exception\ArgumentsNotSetException;
 use Dtc\QueueBundle\Exception\ClassNotSubclassException;
 use Dtc\QueueBundle\Exception\PriorityException;
 use Dtc\QueueBundle\Exception\UnsupportedException;
-use Dtc\QueueBundle\Model\RunManager;
-use Dtc\QueueBundle\Model\JobTimingManager;
+use Dtc\QueueBundle\Manager\RunManager;
+use Dtc\QueueBundle\Manager\JobTimingManager;
+use Dtc\QueueBundle\Util\Util;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AbstractConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
 class JobManager extends PriorityJobManager
 {
+    use JobIdTrait;
+
     /** @var AMQPChannel */
     protected $channel;
 
@@ -54,6 +60,8 @@ class JobManager extends PriorityJobManager
      * @param bool   $durable
      * @param bool   $exclusive
      * @param bool   $autoDelete
+     *
+     * @throws PriorityException
      */
     public function setQueueArgs($queue, $passive, $durable, $exclusive, $autoDelete)
     {
@@ -82,6 +90,9 @@ class JobManager extends PriorityJobManager
         return $this->channel;
     }
 
+    /**
+     * @throws ArgumentsNotSetException
+     */
     protected function checkChannelArgs()
     {
         if (empty($this->queueArgs)) {
@@ -103,6 +114,9 @@ class JobManager extends PriorityJobManager
         $this->channel->queue_bind($this->queueArgs[0], $this->exchangeArgs[0]);
     }
 
+    /**
+     * @throws ArgumentsNotSetException
+     */
     public function setupChannel()
     {
         $this->checkChannelArgs();
@@ -119,6 +133,8 @@ class JobManager extends PriorityJobManager
      * @return \Dtc\QueueBundle\Model\Job
      *
      * @throws ClassNotSubclassException
+     * @throws PriorityException
+     * @throws ArgumentsNotSetException
      */
     public function prioritySave(\Dtc\QueueBundle\Model\Job $job)
     {
@@ -131,24 +147,17 @@ class JobManager extends PriorityJobManager
         $this->validateSaveable($job);
         $this->setJobId($job);
 
-        $msg = new AMQPMessage($job->toMessage());
-        $this->setMsgPriority($msg, $job);
-
-        $this->channel->basic_publish($msg, $this->exchangeArgs[0]);
+        $this->publishJob($job);
 
         return $job;
     }
 
-    /**
-     * Attach a unique id to a job since RabbitMQ will not.
-     *
-     * @param \Dtc\QueueBundle\Model\Job $job
-     */
-    protected function setJobId(\Dtc\QueueBundle\Model\Job $job)
+    protected function publishJob(Job $job)
     {
-        if (!$job->getId()) {
-            $job->setId(uniqid($this->hostname.'-'.$this->pid, true));
-        }
+        $msg = new AMQPMessage($job->toMessage());
+        $this->setMsgPriority($msg, $job);
+
+        $this->channel->basic_publish($msg, $this->exchangeArgs[0]);
     }
 
     /**
@@ -192,15 +201,26 @@ class JobManager extends PriorityJobManager
         }
     }
 
+    /**
+     * @param string|null $workerName
+     * @param string|null $methodName
+     * @param bool        $prioritize
+     *
+     * @throws UnsupportedException
+     */
     protected function verifyGetJobArgs($workerName = null, $methodName = null, $prioritize = true)
     {
-        if (null !== $workerName || null !== $methodName || true !== $prioritize) {
+        if (null !== $workerName || null !== $methodName || (null !== $this->maxPriority && true !== $prioritize)) {
             throw new UnsupportedException('Unsupported');
         }
     }
 
     /**
-     * @param string $workerName
+     * @param string|null $workerName
+     * @param string|null $methodName
+     *
+     * @throws UnsupportedException
+     * @throws ArgumentsNotSetException
      */
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
@@ -244,8 +264,23 @@ class JobManager extends PriorityJobManager
         return null;
     }
 
+    protected function resetJob(RetryableJob $job)
+    {
+        if (!$job instanceof Job) {
+            throw new \InvalidArgumentException('$job must be instance of '.Job::class);
+        }
+        $job->setStatus(BaseJob::STATUS_NEW);
+        $job->setMessage(null);
+        $job->setStartedAt(null);
+        $job->setRetries($job->getRetries() + 1);
+        $job->setUpdatedAt(Util::getMicrotimeDateTime());
+        $this->publishJob($job);
+
+        return true;
+    }
+
     // Save History get called upon completion of the job
-    public function saveHistory(\Dtc\QueueBundle\Model\Job $job)
+    protected function retryableSaveHistory(RetryableJob $job, $retry)
     {
         if (!$job instanceof Job) {
             throw new ClassNotSubclassException("Expected \Dtc\QueueBundle\RabbitMQ\Job, got ".get_class($job));
@@ -258,8 +293,6 @@ class JobManager extends PriorityJobManager
 
     public function __destruct()
     {
-        if (null !== $this->channel) {
-            $this->channel->close();
-        }
+        // There's some kind of problem trying to close the channel, otherwise we'd call $this->channel->close() at this point.
     }
 }

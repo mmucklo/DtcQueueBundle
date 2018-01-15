@@ -8,6 +8,12 @@ DtcQueueBundle
 
 > Allow symfony developers to create background job as easily as: `$worker->later()->process(1,2,3)`
 
+### 4.0 Release (Happy 2018!)
+
+See [changes](CHANGELOG.md)
+
+Upgrading from 3.0: [see UPGRADING-4.0.md](UPGRADING-4.0.md)
+
 Supported Queues
 ----------------
 
@@ -15,23 +21,23 @@ Supported Queues
 - Mysql / Doctrine 2 supported databases via Doctrine-ORM
 - Beanstalkd via pheanstalk
 - RabbitMQ via php-amqplib
+- **(New in 4.0!)** Redis support via Predis or PhpRedis
 
 Introduction
 ------------
 
 This bundle provides a way to easily create queued background jobs
 
-- Background tasks with just a few lines of code
-- Add workers to your application with very little effort
-- Turn any code into background task with a few lines
+- Kickoff background tasks with just a few lines of code
+- Add background worker services to your application with very little effort
+  - Turn any code into background task with a few lines
 - Atomic operation for jobs
-- ORM and ODM has built-in job-archival for finished jobs
-- Logs errors from worker
+- **(New in 4.0!)** Auto-retry on failure
 - Command to run and debug jobs from console
-- Works with GridBundle to provide queue management
-- Various safety checks for things such as stalled jobs, errored jobs
-   - Allows for reseting stalled and errored jobs via console commands
-      - If automated, limits can be placed on the number of retries
+- ORM and ODM managers have built-in job-archival for finished jobs
+- Logs errors from worker
+- Various safety checks for things such as stalled jobs, exception jobs
+   - Allows for reseting stalled and exception jobs via console commands
 - Admin interface with an optional performance graph
 
 ![Trends](/Resources/doc/images/trends-example.png?raw=true "DtcQueue Trends")
@@ -53,8 +59,8 @@ Usage
 Create a worker class that will work on the background job.
 
 Example:
-   * __src\Worker\FibonacciWorker.php:__ (symfony 4)
-   * __src\AppBundle\Worker\FibonacciWorker.php:__ (symfony 2/3)
+   * __src/Worker/FibonacciWorker.php:__ (symfony 4)
+   * __src/AppBundle/Worker/FibonacciWorker.php:__ (symfony 2/3)
 ```php
 <?php
 namespace App\Worker; // for symfony 2/3, the namespace would typically be AppBundle\Worker
@@ -65,7 +71,6 @@ class FibonacciWorker
     private $filename;
     public function __construct() {
         $this->filename = '/tmp/fib-result.txt';
-        $this->jobClass = 'Dtc\QueueBundle\Model\Job';
     }
 
     public function fibonacciFile($n) {
@@ -222,43 +227,51 @@ Tracking Runs
 Each runs can be tracked in a table in an ORM / ODM backed datastore.
 
 Ways to configure:
-__config.yml:__
+__app/config/config.yml:__ (symfony 2/3)
+__config/packages/dtc_queue.yaml:__ (symfony 4)
 ```yaml
 dtc_queue:
-    # run_manager defaults to whatever default_manager is set to (which defaults to "odm", i.e. mongodb)
-    #   If you set the default_manager to rabbit_mq, or beanstalkd or something else, you need to set run_manager
-    #   to an ORM / ODM run_manager (or a custom such one) in order to get the runs to save
+    manager:
+        # run defaults to whatever job is set to (which defaults to "odm", i.e. mongodb)
+        #   If you set the job to rabbit_mq, or beanstalkd or something else, you need to set run
+        #   to an ORM / ODM run_manager (or a custom such one) in order to get the runs to save
+        #
+        run: orm # other possible option is "odm" (i.e. mongodb)
     #
-    run_manager: orm # other possible option is "odm" (i.e. mongodb)
-    #
-    # (optionally define your own run manager with id: dtc_queue.run_manager.{some_name} and put {some_name} as the run_manager
-    #  although it's required that you at least inherit from Dtc\QueueBundle\Doctrine\BaseJobManager)    
+    # (optionally define your own run manager with id: dtc_queue.manager.run.{some_name} and put {some_name} under run:
 ```
 
 MongoDB DocumentManager
 ------------------------
 Change the document manager
 
-__config.yml:__
+__app/config/config.yml:__ (symfony 2/3)
+__config/packages/dtc_queue.yaml:__ (symfony 4)
 ```yaml
 dtc_queue:
-    document_manager: {something} # default is "default"
+    odm:
+        document_manager: {something} # default is "default"
 ```        
 
 Mysql / ORM Setup
 -----------------
 
-__config.yml:__
+### As of 4.0, ORM requires the [bcmath](http://php.net/manual/en/book.bc.php) extension to be enabled
+
+__app/config/config.yml:__ (symfony 2/3)
+__config/packages/dtc_queue.yaml:__ (symfony 4)
 ```yaml
 dtc_queue:
-    default_manager: orm
+    manager:
+       job: orm
 ```
 
 __Change the EntityManager:__
 
 ```yaml
 dtc_queue:
-    entity_manager: {something} # default is "default"
+    orm:
+        entity_manager: {something} # default is "default"
 ```        
 
 __NOTE:__ You may need to add DtcQueueBundle to your mappings section in config.yml if auto_mapping is not enabled
@@ -272,25 +285,31 @@ doctrine:
            DtcQueueBundle: ~
 ```
 
+
+
 Beanstalk Configuration
 ------------------------
 
-__config.yml:__
+__app/config/config.yml:__ (symfony 2/3)
+__config/packages/dtc_queue.yaml:__ (symfony 4)
 ```yaml
 dtc_queue:
     beanstalkd:
         host: beanstalkd
         tube: some-tube-name [optional]
-    default_manager: beanstalkd
+    manager:
+        job: beanstalkd
 ```
 
 RabbitMQ Configuration
 ----------------------
 
-__config.yml:__
+__app/config/config.yml:__ (symfony 2/3)
+__config/packages/dtc_queue.yaml:__ (symfony 4)
 ```yaml
 dtc_queue:
-    default_manager: rabbit_mq
+    manager:
+        job: rabbit_mq
     rabbit_mq:
         host: rabbitmq
         port: 5672
@@ -314,18 +333,61 @@ dtc_queue:
             auto_delete: [optional defaults to false]
 ```
 
+Redis Configuration
+-------------------
+
+__app/config/config.yml:__ (symfony 2/3)
+__config/packages/dtc_queue.yaml:__ (symfony 4)
+```yaml
+dtc_queue:
+    manager:
+        job: redis
+    redis:
+        # choose one of the below snc_redis, predis, or phpredis
+        snc_redis:
+           type: predis
+           alias: default
+        predis:
+            # choose one of dns or connection_parameters
+            dsn: redis://localhost
+            connection_parameters:
+                scheme: tcp
+                host: localhost
+                port: 6379
+                path: ~
+                database: ~
+                password: ~
+                async: false
+                persistent: false
+                timeout: 5.0
+                read_write_timeout: ~
+                alias: ~
+                weight: ~
+                iterable_multibulk: false
+                throw_errors: true
+        phpredis:
+            # minimum fill host and port if needed
+            host: localhost
+            port: 6379
+            timeout: 0
+            retry_interval: ~
+            read_timeout: 0
+            auth: ~
+```
+
 Custom Jobs and Managers
 ------------------------
 
-__config.yml:__
-
+__app/config/config.yml:__ (symfony 2/3)
+__config/packages/dtc_queue.yaml:__ (symfony 4)
 ```yaml
 dtc_queue:
     class_job: Some\Job\ClassName [optional]
-    default_manager: some_name [optional]
+    manager:
+        job: some_name [optional]
     # (create your own manager service and name or alias it:
     #   dtc_queue.job_manager.<some_name> and put
-    #   <some_name> in the default_manager field above)
+    #   <some_name> in the manager: job field above)
 ```
 
 Rename the Database or Table Name
@@ -360,8 +422,8 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Entity
  * @ORM\Table(name="job_some_other_name", indexes={@ORM\Index(name="job_crc_hash_idx", columns={"crcHash","status"}),
  *                  @ORM\Index(name="job_priority_idx", columns={"priority","whenAt"}),
- *                  @ORM\Index(name="job_when_idx", columns={"whenAt","locked"}),
- *                  @ORM\Index(name="job_status_idx", columns={"status","locked","whenAt"})})
+ *                  @ORM\Index(name="job_when_idx", columns={"whenAt"}),
+ *                  @ORM\Index(name="job_status_idx", columns={"status","whenAt"})})
  */
 class Job extends BaseJob {
 }

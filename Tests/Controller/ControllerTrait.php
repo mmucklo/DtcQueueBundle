@@ -8,7 +8,7 @@ use Dtc\GridBundle\Grid\Source\DocumentGridSource;
 use Dtc\GridBundle\Grid\Source\EntityGridSource;
 use Dtc\GridBundle\Manager\GridSourceManager;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
-use Dtc\QueueBundle\Model\WorkerManager;
+use Dtc\QueueBundle\Manager\WorkerManager;
 use Dtc\QueueBundle\ORM\LiveJobsGridSource;
 use Dtc\QueueBundle\Tests\ORM\JobManagerTest;
 use Symfony\Bundle\TwigBundle\TwigEngine;
@@ -53,17 +53,17 @@ trait ControllerTrait
         $container->setParameter('dtc_grid.theme.css', []);
         $container->setParameter('dtc_grid.theme.js', []);
         $container->setParameter('dtc_grid.jquery', ['url' => 'https://something']);
-        $container->setParameter('dtc_queue.class_job', $jobManager->getJobClass());
-        $container->setParameter('dtc_queue.class_job_archive', $jobManager->getJobArchiveClass());
-        $container->setParameter('dtc_queue.class_run', $runManager->getRunClass());
-        $container->setParameter('dtc_queue.class_run_archive', $runManager->getRunArchiveClass());
+        $container->setParameter('dtc_queue.class.job', $jobManager->getJobClass());
+        $container->setParameter('dtc_queue.class.job_archive', $jobManager->getJobArchiveClass());
+        $container->setParameter('dtc_queue.class.run', $runManager->getRunClass());
+        $container->setParameter('dtc_queue.class.run_archive', $runManager->getRunArchiveClass());
         $container->setParameter('dtc_queue.admin.chartjs', '');
-        $container->setParameter('dtc_queue.default_manager', 'orm');
-        $container->setParameter('dtc_queue.record_timings', true);
-        $container->setParameter('dtc_queue.record_timings_timezone_offset', 0);
-        $container->set('dtc_queue.job_manager', $jobManager);
-        $container->set('dtc_queue.job_timing_manager', $jobTimingManager);
-        $container->set('dtc_queue.worker_manager', new WorkerManager($jobManager, new EventDispatcher()));
+        $container->setParameter('dtc_queue.manager.job', 'orm');
+        $container->setParameter('dtc_queue.timings.record', true);
+        $container->setParameter('dtc_queue.timings.timezone_offset', 0);
+        $container->set('dtc_queue.manager.job', $jobManager);
+        $container->set('dtc_queue.manager.job_timing', $jobTimingManager);
+        $container->set('dtc_queue.manager.worker', new WorkerManager($jobManager, new EventDispatcher()));
         $rendererFactory = new RendererFactory(
             new Router(new YamlFileLoader(new FileLocator(__DIR__)), 'test.yml'),
             [
@@ -90,7 +90,7 @@ trait ControllerTrait
         $liveJobsGridSource = new $liveJobsGridSourceClass($jobManager);
         $liveJobsGridSource->setRunning(true);
         $container->set('dtc_queue.grid_source.jobs_running.orm', $liveJobsGridSource);
-        $container->set('dtc_queue.job_manager', $jobManager);
+        $container->set('dtc_queue.manager.job', $jobManager);
         $gridSourceManager = new GridSourceManager(new AnnotationReader(), __DIR__);
         $container->set('dtc_grid.manager.source', $gridSourceManager);
         $gridSourceJob = new $gridSourceClass($jobManager->getObjectManager(), $jobManager->getJobClass());

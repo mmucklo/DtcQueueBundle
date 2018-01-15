@@ -1,10 +1,12 @@
 <?php
 
-namespace Dtc\QueueBundle\Model;
+namespace Dtc\QueueBundle\Manager;
 
 use Dtc\QueueBundle\Exception\PriorityException;
+use Dtc\QueueBundle\Model\RetryableJob;
+use Dtc\QueueBundle\Model\Job;
 
-abstract class PriorityJobManager extends AbstractJobManager
+abstract class PriorityJobManager extends RetryableJobManager
 {
     const PRIORITY_ASC = 'asc';
     const PRIORITY_DESC = 'desc';
@@ -62,6 +64,14 @@ abstract class PriorityJobManager extends AbstractJobManager
         }
     }
 
+    /**
+     * Returns the prioirty in ASCENDING order regardless of the User's choice of direction
+     *   (for storing RabbitMQ, Mysql, others).
+     *
+     * @param $priority
+     *
+     * @return mixed
+     */
     protected function calculatePriority($priority)
     {
         if (null === $priority) {
@@ -74,42 +84,14 @@ abstract class PriorityJobManager extends AbstractJobManager
         return $priority;
     }
 
-    protected function findHigherPriority($priority1, $priority2)
-    {
-        if (null === $priority1) {
-            return $priority2;
-        }
-        if (null === $priority2) {
-            return $priority1;
-        }
-
-        if (self::PRIORITY_DESC === $this->priorityDirection) {
-            return min($priority1, $priority2);
-        } else {
-            return max($priority1, $priority2);
-        }
-    }
-
     abstract protected function prioritySave(Job $job);
-
-    protected function recordTiming(Job $job)
-    {
-        $status = JobTiming::STATUS_INSERT;
-        if ($job->getWhenAt() && $job->getWhenAt() > (new \DateTime())) {
-            $status = JobTiming::STATUS_INSERT_DELAYED;
-        }
-
-        $this->jobTiminigManager->recordTiming($status);
-    }
 
     /**
      * @param Job $job
      *
-     * @return mixed
-     *
      * @throws PriorityException
      */
-    public function save(Job $job)
+    protected function retryableSave(RetryableJob $job)
     {
         $this->validatePriority($job->getPriority());
         if (!$job->getId()) { // An unsaved job needs it's priority potentially adjusted
@@ -117,7 +99,6 @@ abstract class PriorityJobManager extends AbstractJobManager
         }
 
         $result = $this->prioritySave($job);
-        $this->recordTiming($job);
 
         return $result;
     }

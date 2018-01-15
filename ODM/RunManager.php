@@ -4,9 +4,9 @@ namespace Dtc\QueueBundle\ODM;
 
 use Doctrine\MongoDB\Query\Builder;
 use Doctrine\ODM\MongoDB\DocumentManager;
-use Dtc\QueueBundle\Doctrine\BaseRunManager;
+use Dtc\QueueBundle\Doctrine\DoctrineRunManager;
 
-class RunManager extends BaseRunManager
+class RunManager extends DoctrineRunManager
 {
     use CommonTrait;
 

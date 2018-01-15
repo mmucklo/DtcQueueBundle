@@ -36,11 +36,6 @@ class JobArchive extends BaseJob
     protected $elapsed;
 
     /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
-    protected $locked;
-
-    /**
      * When the job started.
      *
      * @ORM\Column(type="datetime", nullable=true)
@@ -48,9 +43,9 @@ class JobArchive extends BaseJob
     protected $startedAt;
 
     /**
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(type="decimal", precision=18, scale=0, nullable=true)
      */
-    protected $whenAt;
+    protected $whenUs;
 
     /**
      * @ORM\Column(type="integer", nullable=true)

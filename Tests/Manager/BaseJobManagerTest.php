@@ -1,15 +1,17 @@
 <?php
 
-namespace Dtc\QueueBundle\Tests\Model;
+namespace Dtc\QueueBundle\Tests\Manager;
 
-use Dtc\QueueBundle\Model\JobManagerInterface;
-use Dtc\QueueBundle\Model\RunManager;
+use Dtc\QueueBundle\Manager\JobManagerInterface;
+use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Model\Worker;
 use Dtc\QueueBundle\ODM\JobTimingManager;
 use PHPUnit\Framework\TestCase;
 
 abstract class BaseJobManagerTest extends TestCase
 {
+    const PERFORMANCE_TOTAL_JOBS = 100;
+
     /** @var Worker */
     public static $worker;
 
@@ -27,7 +29,7 @@ abstract class BaseJobManagerTest extends TestCase
 
     public static function setUpBeforeClass()
     {
-        self::$jobClass = self::$worker->getJobClass();
+        self::$jobClass = self::$jobManager->getJobClass();
         self::$worker->setJobManager(self::$jobManager);
     }
 
@@ -115,9 +117,9 @@ abstract class BaseJobManagerTest extends TestCase
         );
     }
 
-    public function testResetErroneousJobs()
+    public function testResetExceptionJobs()
     {
-        $this->expectingException('resetErroneousJobs');
+        $this->expectingException('resetExceptionJobs');
     }
 
     public function testResetStalledJobs()
@@ -130,9 +132,9 @@ abstract class BaseJobManagerTest extends TestCase
         $this->expectingException('pruneStalledJobs');
     }
 
-    public function testPruneErroneousJobs()
+    public function testPruneExceptionJobs()
     {
-        $this->expectingException('pruneErroneousJobs');
+        $this->expectingException('pruneExceptionJobs');
     }
 
     public function testPruneExpiredJobs()
@@ -173,18 +175,10 @@ abstract class BaseJobManagerTest extends TestCase
         self::assertFalse($failed);
     }
 
-    /**
-     * @outputBuffering disabled
-     */
-    public function testPerformance()
+    public function performanceEnqueue()
     {
-        echo "\n".static::class.": Testing Performance\n";
-        flush();
-
+        $jobsTotal = static::PERFORMANCE_TOTAL_JOBS;
         $start = microtime(true);
-        $jobsTotal = 100; // have to trim this down as Travis is slow.
-        self::$jobManager->enableSorting = false; // Ignore priority
-
         for ($i = 0; $i < $jobsTotal; ++$i) {
             self::$worker->later()->fibonacci(1);
         }
@@ -200,7 +194,39 @@ abstract class BaseJobManagerTest extends TestCase
                 throw $e;
             }
         }
+    }
 
+    /**
+     * @outputBuffering disabled
+     */
+    public function testPerformance()
+    {
+        echo "\n".static::class.": Testing Performance\n";
+        flush();
+        $reflection = new \ReflectionObject(self::$jobManager);
+        if ($reflection->hasProperty('enableSorting')) {
+            $oldEnableSorting = self::$jobManager->enableSorting;
+            self::$jobManager->enableSorting = false; // Ignore priority
+        }
+
+        // Dequeue all outstanding jobs
+        $limit = 10000;
+        while ($job = self::$jobManager->getJob() && $limit) {
+            $limit -= 1;
+        }
+        self::assertGreaterThan(0, $limit);
+
+        $this->performanceEnqueue();
+        $this->performanceDequeue();
+
+        if ($reflection->hasProperty('enableSorting')) {
+            self::$jobManager->enableSorting = $oldEnableSorting; // Ignore priority
+        }
+    }
+
+    public function performanceDequeue()
+    {
+        $jobsTotal = static::PERFORMANCE_TOTAL_JOBS;
         $start = microtime(true);
         $job = null;
         for ($i = 0; $i < $jobsTotal; ++$i) {
@@ -208,7 +234,7 @@ abstract class BaseJobManagerTest extends TestCase
         }
         $total = microtime(true) - $start;
         echo "Total of {$jobsTotal} jobs dequeued in {$total} seconds\n";
-        self::assertNotNull($job, 'The last job in queue...');
+        self::assertNotNull($job, 'The last job in queue is null');
 
         $nextJob = self::$jobManager->getJob();
         self::assertNull($nextJob, "Shouldn't be any jobs left in queue");

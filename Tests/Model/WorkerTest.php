@@ -4,14 +4,16 @@ namespace Dtc\QueueBundle\Tests\Model;
 
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
-use Dtc\QueueBundle\Model\JobTimingManager;
+use Dtc\QueueBundle\Manager\JobTimingManager;
 use Dtc\QueueBundle\Model\Run;
-use Dtc\QueueBundle\Model\RunManager;
+use Dtc\QueueBundle\Manager\RunManager;
+use Dtc\QueueBundle\Model\Worker;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\StaticJobManager;
 
 class WorkerTest extends \PHPUnit_Framework_TestCase
 {
+    /** @var Worker */
     protected $worker;
     protected $jobManager;
 
@@ -22,6 +24,11 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         $this->jobManager = new StaticJobManager($runManager, $jobTimingManager, Job::class);
         $this->worker = new FibonacciWorker();
         $this->worker->setJobManager($this->jobManager);
+    }
+
+    public function testGetJobManager()
+    {
+        self::assertNotNull($this->worker->getJobManager());
     }
 
     public function testAt()
@@ -44,6 +51,20 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
             $failed = true;
         } catch (\Exception $e) {
             self::assertTrue(true);
+        }
+        self::assertFalse($failed);
+
+        $dateTime = new \DateTime();
+        $job = $this->worker->at()->fibonacci(20);
+        self::assertGreaterThanOrEqual($dateTime, $job->getWhenAt());
+        self::assertFalse($job->getBatch());
+
+        $failed = false;
+        try {
+            $this->worker->at('abcd')->fibonacci(20);
+            $failed = true;
+        } catch (\InvalidArgumentException $exception) {
+            self::assertNotNull($exception);
         }
         self::assertFalse($failed);
     }

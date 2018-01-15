@@ -2,7 +2,7 @@
 
 namespace Dtc\QueueBundle\Tests;
 
-use Dtc\QueueBundle\Model\RunManager;
+use Dtc\QueueBundle\Manager\RunManager;
 
 class StubRunManager extends RunManager
 {

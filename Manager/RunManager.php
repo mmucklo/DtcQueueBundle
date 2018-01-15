@@ -1,8 +1,10 @@
 <?php
 
-namespace Dtc\QueueBundle\Model;
+namespace Dtc\QueueBundle\Manager;
 
 use Dtc\QueueBundle\Exception\UnsupportedException;
+use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\Run;
 
 class RunManager
 {
@@ -34,12 +36,21 @@ class RunManager
      * @param \DateTime $olderThan
      *
      * @return int Number of archived runs pruned
+     *
+     * @throws UnsupportedException
      */
     public function pruneArchivedRuns(\DateTime $olderThan)
     {
-        throw new UnsupportedException('not supported');
+        throw new UnsupportedException('not supported - '.$olderThan->getTimestamp());
     }
 
+    /**
+     * Prunes stalled runs.
+     *
+     * @return int Number of stalled runs pruned
+     *
+     * @throws UnsupportedException
+     */
     public function pruneStalledRuns()
     {
         throw new UnsupportedException('not supported');
@@ -62,6 +73,10 @@ class RunManager
         $this->persistRun($run);
     }
 
+    /**
+     * @param Run    $run
+     * @param string $action
+     */
     protected function persistRun(Run $run, $action = 'persist')
     {
         // To be overridden
@@ -91,7 +106,10 @@ class RunManager
         $runClass = $this->getRunClass();
         /** @var Run $run */
         $run = new $runClass();
-        $startDate = \DateTime::createFromFormat('U.u', $start);
+        $startDate = \DateTime::createFromFormat('U.u', $formattedStart = number_format($start, 6, '.', ''));
+        if (false === $startDate) {
+            throw new \RuntimeException("Could not create date from $start formatted as $formattedStart");
+        }
         $run->setLastHeartbeatAt($startDate);
         $run->setStartedAt($startDate);
         if (null !== $maxCount) {

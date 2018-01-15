@@ -3,7 +3,7 @@
 namespace Dtc\QueueBundle\Tests\DependencyInjection;
 
 use Dtc\QueueBundle\DependencyInjection\DtcQueueExtension;
-use Dtc\QueueBundle\Model\PriorityJobManager;
+use Dtc\QueueBundle\Manager\PriorityJobManager;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -46,21 +46,21 @@ class DtcQueueExtensionTest extends TestCase
     {
         $configs = [];
         $containerBuilder = $this->tryConfigs($configs);
-        self::assertEquals(255, $containerBuilder->getParameter('dtc_queue.priority_max'));
-        self::assertEquals(PriorityJobManager::PRIORITY_DESC, $containerBuilder->getParameter('dtc_queue.priority_direction'));
-        $configs = ['config' => ['priority_max' => 200]];
+        self::assertEquals(255, $containerBuilder->getParameter('dtc_queue.priority.max'));
+        self::assertEquals(PriorityJobManager::PRIORITY_DESC, $containerBuilder->getParameter('dtc_queue.priority.direction'));
+        $configs = ['config' => ['priority' => ['max' => 200]]];
         $containerBuilder = $this->tryConfigs($configs);
-        self::assertEquals(200, $containerBuilder->getParameter('dtc_queue.priority_max'));
-        $configs = ['config' => ['priority_max' => null]];
+        self::assertEquals(200, $containerBuilder->getParameter('dtc_queue.priority.max'));
+        $configs = ['config' => ['priority' => ['max' => null]]];
         $this->tryBadConfigs($configs);
-        $configs = ['config' => ['priority_max' => 0]];
+        $configs = ['config' => ['priority' => ['max' => 0]]];
         $this->tryBadConfigs($configs);
-        $configs = ['config' => ['priority_direction' => 'asdf']];
+        $configs = ['config' => ['priority' => ['direction' => 'asdf']]];
         $this->tryBadConfigs($configs);
 
-        $configs = ['config' => ['priority_direction' => PriorityJobManager::PRIORITY_ASC]];
+        $configs = ['config' => ['priority' => ['direction' => PriorityJobManager::PRIORITY_ASC]]];
         $containerBuilder = $this->tryConfigs($configs);
-        self::assertEquals(PriorityJobManager::PRIORITY_ASC, $containerBuilder->getParameter('dtc_queue.priority_direction'));
+        self::assertEquals(PriorityJobManager::PRIORITY_ASC, $containerBuilder->getParameter('dtc_queue.priority.direction'));
     }
 
     protected function tryConfigs(array $configs, $good = true)
@@ -82,6 +82,70 @@ class DtcQueueExtensionTest extends TestCase
         self::assertFalse($failed);
 
         return $containerBuilder;
+    }
+
+    public function testSncRedis()
+    {
+        $configs = ['config' => ['redis' => ['snc_redis' => ['type' => 'asdf']]]];
+        $this->tryBadConfigs($configs);
+
+        $configs = ['config' => ['redis' => ['snc_redis' => ['type' => 'predis']]]];
+        $this->tryBadConfigs($configs);
+
+        $configs = ['config' => ['redis' => ['snc_redis' => ['alias' => 'asdf']]]];
+        $this->tryBadConfigs($configs);
+
+        $configs = ['config' => ['redis' => ['snc_redis' => ['alias' => 'default', 'type' => 'predis']]]];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('default', $containerBuilder->getParameter('dtc_queue.redis.snc_redis.alias'));
+        self::assertEquals('predis', $containerBuilder->getParameter('dtc_queue.redis.snc_redis.type'));
+    }
+
+    public function testPredis()
+    {
+        $configs = ['config' => ['redis' => ['predis' => ['dsn' => 'redis://localhost']]]];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('redis://localhost', $containerBuilder->getParameter('dtc_queue.redis.predis.dsn'));
+        self::assertFalse($containerBuilder->hasParameter('dtc_queue.redis.snc_redis.alias'));
+
+        $configs = [
+            'config' => [
+                'redis' => [
+                    'predis' => [
+                        'connection_parameters' => [
+                            'host' => 'localhost',
+                            'port' => 6379,
+                        ],
+                    ],
+                ],
+            ],
+        ];
+        $containerBuilder = $this->tryConfigs($configs);
+        $this->arrayTest($containerBuilder, 'dtc_queue.redis.predis.connection_parameters', 'host', 'localhost');
+        $this->arrayTest($containerBuilder, 'dtc_queue.redis.predis.connection_parameters', 'port', 6379);
+        $this->arrayTest($containerBuilder, 'dtc_queue.redis.predis.connection_parameters', 'timeout', 5.0);
+        $this->arrayTest($containerBuilder, 'dtc_queue.redis.predis.connection_parameters', 'scheme', 'tcp');
+    }
+
+    public function testPhpRedis()
+    {
+        $configs = ['config' => ['redis' => ['phpredis' => ['host' => 'localhost', 'port' => 6379]]]];
+        $containerBuilder = $this->tryConfigs($configs);
+        $this->assertEquals('localhost', $containerBuilder->getParameter('dtc_queue.redis.phpredis.host'));
+        $this->assertEquals(6379, $containerBuilder->getParameter('dtc_queue.redis.phpredis.port'));
+        $this->assertEquals(0, $containerBuilder->getParameter('dtc_queue.redis.phpredis.timeout'));
+        $this->assertEquals(0, $containerBuilder->getParameter('dtc_queue.redis.phpredis.read_timeout'));
+        $this->assertEquals(null, $containerBuilder->getParameter('dtc_queue.redis.phpredis.retry_interval'));
+        $this->assertFalse($containerBuilder->hasParameter('dtc_queue.redis.phpredis.auth'));
+
+        $configs = ['config' => ['redis' => ['phpredis' => ['host' => 'localhost', 'port' => 6379, 'read_timeout' => 12.32, 'timeout' => 1.3, 'retry_interval' => 1, 'auth' => 'asdf']]]];
+        $containerBuilder = $this->tryConfigs($configs);
+        $this->assertEquals('localhost', $containerBuilder->getParameter('dtc_queue.redis.phpredis.host'));
+        $this->assertEquals(6379, $containerBuilder->getParameter('dtc_queue.redis.phpredis.port'));
+        $this->assertEquals(1.3, $containerBuilder->getParameter('dtc_queue.redis.phpredis.timeout'));
+        $this->assertEquals(12.32, $containerBuilder->getParameter('dtc_queue.redis.phpredis.read_timeout'));
+        $this->assertEquals(1, $containerBuilder->getParameter('dtc_queue.redis.phpredis.retry_interval'));
+        $this->assertEquals('asdf', $containerBuilder->getParameter('dtc_queue.redis.phpredis.auth'));
     }
 
     public function testRabbitMq()
@@ -115,6 +179,69 @@ class DtcQueueExtensionTest extends TestCase
         $configs = ['config' => ['rabbit_mq' => ['host' => 'somehost', 'port' => 1234, 'user' => 'auser', 'ssl' => true, 'ssl_options' => ['peer_fingerprint' => ['something' => 'else']], 'password' => 'pass']]];
         $containerBuilder = $this->tryConfigs($configs);
         $this->arrayTest($containerBuilder, 'dtc_queue.rabbit_mq', 'ssl_options', ['peer_fingerprint' => ['something' => 'else']]);
+    }
+
+    public function testDeprecated()
+    {
+        $configs = ['config' => ['default_manager' => 'odm']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('odm', $containerBuilder->getParameter('dtc_queue.manager.job'));
+
+        $configs = ['config' => ['document_manager' => 'something']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('something', $containerBuilder->getParameter('dtc_queue.odm.document_manager'));
+
+        $configs = ['config' => ['entity_manager' => 'something']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('something', $containerBuilder->getParameter('dtc_queue.orm.entity_manager'));
+
+        $configs = ['config' => ['run_manager' => 'orm']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('orm', $containerBuilder->getParameter('dtc_queue.manager.run'));
+
+        $configs = ['config' => ['job_timing_manager' => 'orm']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('orm', $containerBuilder->getParameter('dtc_queue.manager.job_timing'));
+
+        $configs = ['config' => ['record_timings' => true]];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertTrue($containerBuilder->getParameter('dtc_queue.timings.record'));
+
+        $configs = ['config' => ['record_timings_timezone_offset' => 4.5]];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals(4.5, $containerBuilder->getParameter('dtc_queue.timings.timezone_offset'));
+
+        $configs = ['config' => ['class_job' => '\Dtc\QueueBundle\Model\RetryableJob']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('\Dtc\QueueBundle\Model\RetryableJob', $containerBuilder->getParameter('dtc_queue.class.job'));
+
+        $configs = ['config' => ['class_job_archive' => '\Dtc\QueueBundle\Model\RetryableJob']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('\Dtc\QueueBundle\Model\RetryableJob', $containerBuilder->getParameter('dtc_queue.class.job_archive'));
+
+        $configs = ['config' => ['class_run' => '\Dtc\QueueBundle\Document\RunArchive']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('\Dtc\QueueBundle\Document\RunArchive', $containerBuilder->getParameter('dtc_queue.class.run'));
+
+        $configs = ['config' => ['class_run_archive' => '\Dtc\QueueBundle\Document\RunArchive']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('\Dtc\QueueBundle\Document\RunArchive', $containerBuilder->getParameter('dtc_queue.class.run_archive'));
+
+        $configs = ['config' => ['class_job_timing' => '\Dtc\QueueBundle\Document\JobTiming']];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals('\Dtc\QueueBundle\Document\JobTiming', $containerBuilder->getParameter('dtc_queue.class.job_timing'));
+
+        $configs = ['config' => ['priority_max' => 10002]];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals(10002, $containerBuilder->getParameter('dtc_queue.priority.max'));
+
+        $configs = ['config' => ['priority_direction' => PriorityJobManager::PRIORITY_DESC]];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals(PriorityJobManager::PRIORITY_DESC, $containerBuilder->getParameter('dtc_queue.priority.direction'));
+
+        $configs = ['config' => ['priority_direction' => PriorityJobManager::PRIORITY_ASC]];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertEquals(PriorityJobManager::PRIORITY_ASC, $containerBuilder->getParameter('dtc_queue.priority.direction'));
     }
 
     /**

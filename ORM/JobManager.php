@@ -5,13 +5,16 @@ namespace Dtc\QueueBundle\ORM;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
-use Dtc\QueueBundle\Doctrine\BaseJobManager;
+use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Dtc\QueueBundle\Entity\Job;
+use Dtc\QueueBundle\Exception\UnsupportedException;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\RetryableJob;
+use Dtc\QueueBundle\Model\StallableJob;
+use Dtc\QueueBundle\Util\Util;
 use Symfony\Component\Process\Exception\LogicException;
 
-class JobManager extends BaseJobManager
+class JobManager extends DoctrineJobManager
 {
     use CommonTrait;
     protected static $saveInsertCalled = null;
@@ -54,13 +57,13 @@ class JobManager extends BaseJobManager
      *
      * @return int Count of jobs pruned
      */
-    public function pruneErroneousJobs($workerName = null, $method = null)
+    public function pruneExceptionJobs($workerName = null, $method = null)
     {
         /** @var EntityManager $objectManager */
         $objectManager = $this->getObjectManager();
         $queryBuilder = $objectManager->createQueryBuilder()->delete($this->getJobArchiveClass(), 'j');
         $queryBuilder->where('j.status = :status')
-            ->setParameter(':status', BaseJob::STATUS_ERROR);
+            ->setParameter(':status', BaseJob::STATUS_EXCEPTION);
 
         $this->addWorkerNameCriterion($queryBuilder, $workerName, $method);
         $query = $queryBuilder->getQuery();
@@ -114,7 +117,7 @@ class JobManager extends BaseJobManager
         $queryBuilder = $objectManager->createQueryBuilder()->update($this->getJobClass(), 'j');
         $queryBuilder->set('j.status', ':newStatus');
         $queryBuilder->where('j.expiresAt <= :expiresAt')
-            ->setParameter(':expiresAt', new \DateTime());
+            ->setParameter(':expiresAt', Util::getMicrotimeDateTime());
         $queryBuilder->andWhere('j.status = :status')
             ->setParameter(':status', BaseJob::STATUS_NEW)
             ->setParameter(':newStatus', Job::STATUS_EXPIRED);
@@ -165,20 +168,18 @@ class JobManager extends BaseJobManager
             $where = 'andWhere';
         }
 
-        $dateTime = new \DateTime();
         // Filter
         $queryBuilder
             ->$where($queryBuilder->expr()->orX(
-                $queryBuilder->expr()->isNull('j.whenAt'),
-                                        $queryBuilder->expr()->lte('j.whenAt', ':whenAt')
+                $queryBuilder->expr()->isNull('j.whenUs'),
+                                        $queryBuilder->expr()->lte('j.whenUs', ':whenUs')
             ))
             ->andWhere($queryBuilder->expr()->orX(
                 $queryBuilder->expr()->isNull('j.expiresAt'),
                 $queryBuilder->expr()->gt('j.expiresAt', ':expiresAt')
             ))
-            ->andWhere('j.locked is NULL')
-            ->setParameter(':whenAt', $dateTime)
-            ->setParameter(':expiresAt', $dateTime);
+            ->setParameter(':whenUs', Util::getMicrotimeDecimal())
+            ->setParameter(':expiresAt', Util::getMicrotimeDateTime());
 
         $query = $queryBuilder->getQuery();
 
@@ -224,12 +225,15 @@ class JobManager extends BaseJobManager
             if (!isset($result[$method])) {
                 $result[$method] = [BaseJob::STATUS_NEW => 0,
                     BaseJob::STATUS_RUNNING => 0,
-                    RetryableJob::STATUS_EXPIRED => 0,
-                    RetryableJob::STATUS_MAX_ERROR => 0,
-                    RetryableJob::STATUS_MAX_STALLED => 0,
-                    RetryableJob::STATUS_MAX_RETRIES => 0,
                     BaseJob::STATUS_SUCCESS => 0,
-                    BaseJob::STATUS_ERROR => 0, ];
+                    BaseJob::STATUS_FAILURE => 0,
+                    BaseJob::STATUS_EXCEPTION => 0,
+                    StallableJob::STATUS_STALLED => 0,
+                    \Dtc\QueueBundle\Model\Job::STATUS_EXPIRED => 0,
+                    RetryableJob::STATUS_MAX_FAILURES => 0,
+                    RetryableJob::STATUS_MAX_EXCEPTIONS => 0,
+                    StallableJob::STATUS_MAX_STALLS => 0,
+                    RetryableJob::STATUS_MAX_RETRIES => 0, ];
             }
             $result[$method][$item['status']] += intval($item['c']);
         }
@@ -284,9 +288,9 @@ class JobManager extends BaseJobManager
 
         if ($prioritize) {
             $queryBuilder->addOrderBy('j.priority', 'DESC');
-            $queryBuilder->addOrderBy('j.whenAt', 'ASC');
+            $queryBuilder->addOrderBy('j.whenUs', 'ASC');
         } else {
-            $queryBuilder->orderBy('j.whenAt', 'ASC');
+            $queryBuilder->orderBy('j.whenUs', 'ASC');
         }
 
         return $queryBuilder;
@@ -294,24 +298,25 @@ class JobManager extends BaseJobManager
 
     protected function addStandardPredicate(QueryBuilder $queryBuilder)
     {
-        $dateTime = new \DateTime();
+        $dateTime = Util::getMicrotimeDateTime();
+        $decimal = Util::getMicrotimeDecimalFormat($dateTime);
+
         $queryBuilder
             ->where('j.status = :status')->setParameter(':status', BaseJob::STATUS_NEW)
-            ->andWhere('j.locked is NULL')
             ->andWhere($queryBuilder->expr()->orX(
-                $queryBuilder->expr()->isNull('j.whenAt'),
-                $queryBuilder->expr()->lte('j.whenAt', ':whenAt')
+                $queryBuilder->expr()->isNull('j.whenUs'),
+                $queryBuilder->expr()->lte('j.whenUs', ':whenUs')
             ))
             ->andWhere($queryBuilder->expr()->orX(
                 $queryBuilder->expr()->isNull('j.expiresAt'),
                 $queryBuilder->expr()->gt('j.expiresAt', ':expiresAt')
             ))
-            ->setParameter(':whenAt', $dateTime)
+            ->setParameter(':whenUs', $decimal)
             ->setParameter(':expiresAt', $dateTime);
     }
 
     /**
-     * @param integer $runId
+     * @param int $runId
      */
     protected function takeJob($jobId, $runId = null)
     {
@@ -321,10 +326,6 @@ class JobManager extends BaseJobManager
         $queryBuilder = $repository->createQueryBuilder('j');
         $queryBuilder
             ->update()
-            ->set('j.locked', ':locked')
-            ->setParameter(':locked', true)
-            ->set('j.lockedAt', ':lockedAt')
-            ->setParameter(':lockedAt', new \DateTime())
             ->set('j.status', ':status')
             ->setParameter(':status', BaseJob::STATUS_RUNNING);
         if (null !== $runId) {
@@ -332,8 +333,9 @@ class JobManager extends BaseJobManager
                 ->set('j.runId', ':runId')
                 ->setParameter(':runId', $runId);
         }
+        $queryBuilder->set('j.startedAt', ':startedAt')
+            ->setParameter(':startedAt', Util::getMicrotimeDateTime());
         $queryBuilder->where('j.id = :id');
-        $queryBuilder->andWhere('j.locked is NULL');
         $queryBuilder->setParameter(':id', $jobId);
         $resultCount = $queryBuilder->getQuery()->execute();
 
@@ -353,6 +355,10 @@ class JobManager extends BaseJobManager
      */
     public function updateNearestBatch(\Dtc\QueueBundle\Model\Job $job)
     {
+        if (!$job instanceof Job) {
+            throw new UnsupportedException('$job must be instance of '.Job::class);
+        }
+
         /** @var QueryBuilder $queryBuilder */
         $queryBuilder = $this->getRepository()->createQueryBuilder('j');
         $queryBuilder->select()
@@ -360,34 +366,39 @@ class JobManager extends BaseJobManager
             ->andWhere('j.status = :status')
             ->setParameter(':status', BaseJob::STATUS_NEW)
             ->setParameter(':crcHash', $job->getCrcHash())
-            ->orderBy('j.whenAt', 'ASC')
+            ->orderBy('j.whenUs', 'ASC')
             ->setMaxResults(1);
         $existingJobs = $queryBuilder->getQuery()->execute();
 
         if (empty($existingJobs)) {
             return null;
         }
+
         /** @var Job $existingJob */
         $existingJob = $existingJobs[0];
 
         $newPriority = max($job->getPriority(), $existingJob->getPriority());
-        $newWhenAt = min($job->getWhenAt(), $existingJob->getWhenAt());
+        $newWhenUs = $existingJob->getWhenUs();
+        $bcResult = bccomp($job->getWhenUs(), $existingJob->getWhenUs());
+        if ($bcResult < 0) {
+            $newWhenUs = $job->getWhenUs();
+        }
 
-        $this->updateBatchJob($existingJob, $newPriority, $newWhenAt);
+        $this->updateBatchJob($existingJob, $newPriority, $newWhenUs);
 
         return $existingJob;
     }
 
     /**
-     * @param int            $newPriority
-     * @param null|\DateTime $newWhenAt
+     * @param int    $newPriority
+     * @param string $newWhenUs
      */
-    protected function updateBatchJob(Job $existingJob, $newPriority, $newWhenAt)
+    protected function updateBatchJob(Job $existingJob, $newPriority, $newWhenUs)
     {
         $existingPriority = $existingJob->getPriority();
-        $existingWhenAt = $existingJob->getWhenAt();
+        $existingWhenUs = $existingJob->getWhenUs();
 
-        if ($newPriority !== $existingPriority || $newWhenAt !== $existingWhenAt) {
+        if ($newPriority !== $existingPriority || $newWhenUs !== $existingWhenUs) {
             /** @var EntityRepository $repository */
             $repository = $this->getRepository();
             /** @var QueryBuilder $queryBuilder */
@@ -398,13 +409,12 @@ class JobManager extends BaseJobManager
                 $queryBuilder->set('j.priority', ':priority')
                     ->setParameter(':priority', $newPriority);
             }
-            if ($newWhenAt !== $existingWhenAt) {
-                $existingJob->setWhenAt($newWhenAt);
-                $queryBuilder->set('j.whenAt', ':whenAt')
-                    ->setParameter(':whenAt', $newWhenAt);
+            if ($newWhenUs !== $existingWhenUs) {
+                $existingJob->setWhenUs($newWhenUs);
+                $queryBuilder->set('j.whenUs', ':whenUs')
+                    ->setParameter(':whenUs', $newWhenUs);
             }
             $queryBuilder->where('j.id = :id');
-            $queryBuilder->andWhere('j.locked is NULL');
             $queryBuilder->setParameter(':id', $existingJob->getId());
             $queryBuilder->getQuery()->execute();
         }
@@ -422,7 +432,7 @@ class JobManager extends BaseJobManager
             ->select('DISTINCT j.workerName, j.method');
 
         $results = $queryBuilder->getQuery()->getArrayResult();
-        if (!$results) {
+        if (empty($results)) {
             return [];
         }
         $workerMethods = [];
@@ -480,7 +490,7 @@ class JobManager extends BaseJobManager
      *
      * @param string|null $workerName
      * @param string|null $methodName
-     * @param \Closure $progressCallback
+     * @param \Closure    $progressCallback
      */
     protected function runArchive($workerName = null, $methodName = null, $progressCallback)
     {
@@ -509,6 +519,6 @@ class JobManager extends BaseJobManager
             }
             $this->flush();
             $progressCallback($count);
-        } while ($results && 10000 == count($results));
+        } while (!empty($results) && 10000 == count($results));
     }
 }

@@ -4,7 +4,7 @@ namespace Dtc\QueueBundle\Tests\Command;
 
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
-use Dtc\QueueBundle\Model\JobTimingManager;
+use Dtc\QueueBundle\Manager\JobTimingManager;
 use Dtc\QueueBundle\Tests\StubJobManager;
 use Dtc\QueueBundle\Tests\StubRunManager;
 use PHPUnit\Framework\TestCase;
@@ -69,10 +69,12 @@ trait CommandTrait
         list($command, $input, $output) = $this->prepCommand($commandClass, $container, $params);
         try {
             $result = $command->run($input, $output);
-            TestCase::assertEquals($expectedResult, $result);
         } catch (\Exception $exception) {
             TestCase::fail("Shouldn't throw exception: ".get_class($exception).' - '.$exception->getMessage());
+
+            return;
         }
+        TestCase::assertEquals($expectedResult, $result);
     }
 
     protected function runStubCommand($className, $params, $call, $expectedResult = 0)

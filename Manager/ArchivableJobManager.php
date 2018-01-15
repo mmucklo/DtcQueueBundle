@@ -1,8 +1,8 @@
 <?php
 
-namespace Dtc\QueueBundle\Model;
+namespace Dtc\QueueBundle\Manager;
 
-abstract class ArchivableJobManager extends PriorityJobManager
+abstract class ArchivableJobManager extends StallableJobManager
 {
     /**
      * @var string
@@ -10,7 +10,7 @@ abstract class ArchivableJobManager extends PriorityJobManager
     protected $jobArchiveClass;
 
     /**
-     * BaseJobManager constructor.
+     * DoctrineJobManager constructor.
      *
      * @param RunManager       $runManager
      * @param JobTimingManager $jobTimingManager

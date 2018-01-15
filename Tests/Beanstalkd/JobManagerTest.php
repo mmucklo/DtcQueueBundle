@@ -3,10 +3,12 @@
 namespace Dtc\QueueBundle\Tests\Beanstalkd;
 
 use Dtc\QueueBundle\Beanstalkd\JobManager;
-use Dtc\QueueBundle\Model\JobTimingManager;
-use Dtc\QueueBundle\Model\RunManager;
+use Dtc\QueueBundle\Manager\JobTimingManager;
+use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
-use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest;
+use Dtc\QueueBundle\Tests\Manager\AutoRetryTrait;
+use Dtc\QueueBundle\Tests\Manager\BaseJobManagerTest;
+use Dtc\QueueBundle\Tests\Manager\RetryableTrait;
 use Pheanstalk\Pheanstalk;
 
 /**
@@ -16,6 +18,8 @@ use Pheanstalk\Pheanstalk;
  */
 class JobManagerTest extends BaseJobManagerTest
 {
+    use AutoRetryTrait;
+    use RetryableTrait;
     public static $beanstalkd;
 
     public static function setUpBeforeClass()
@@ -31,7 +35,6 @@ class JobManagerTest extends BaseJobManagerTest
         self::$jobManager = new JobManager(self::$runManager, self::$jobTimingManager, $className);
         self::$jobManager->setBeanstalkd(self::$beanstalkd);
         self::$worker = new FibonacciWorker();
-        self::$worker->setJobClass($className);
 
         $drained = 0;
         do {

@@ -1,12 +1,14 @@
 <?php
 
-namespace Dtc\QueueBundle\Model;
+namespace Dtc\QueueBundle\Manager;
+
+use Dtc\QueueBundle\Model\Job;
 
 interface JobManagerInterface
 {
-    public function resetErroneousJobs($workerName = null, $methodName = null);
+    public function resetExceptionJobs($workerName = null, $methodName = null);
 
-    public function pruneErroneousJobs($workerName = null, $methodName = null);
+    public function pruneExceptionJobs($workerName = null, $methodName = null);
 
     /**
      * Prunes (or archived) jobs that are expired.
@@ -25,6 +27,11 @@ interface JobManagerInterface
 
     public function save(Job $job);
 
+    /**
+     * Called after a job has finished - may delete the job / reset the job and/or do other related cleanup.
+     *
+     * @param Job $job
+     */
     public function saveHistory(Job $job);
 
     public function resetStalledJobs($workerName = null, $method = null);
@@ -35,6 +42,8 @@ interface JobManagerInterface
      * @return JobTimingManager
      */
     public function getJobTimingManager();
+
+    public function getJobClass();
 
     /**
      * Removes archived jobs older than $olderThan.

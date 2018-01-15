@@ -5,7 +5,7 @@ namespace Dtc\QueueBundle\Tests\DependencyInjection\Compiler;
 use Dtc\GridBundle\Manager\GridSourceManager;
 use Dtc\QueueBundle\DependencyInjection\Compiler\WorkerCompilerPass;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
-use Dtc\QueueBundle\Model\WorkerManager;
+use Dtc\QueueBundle\Manager\WorkerManager;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\ODM\JobTimingManager;
 use Dtc\QueueBundle\ODM\LiveJobsGridSource;
@@ -29,13 +29,13 @@ class WorkerCompilerPassTest extends TestCase
         $container = new ContainerBuilder();
         $definition1 = new Definition();
         $definition1->setClass(WorkerManager::class);
-        $container->setParameter('dtc_queue.default_manager', $type);
-        $container->setParameter('dtc_queue.run_manager', $runManagerType);
-        $container->setParameter('dtc_queue.job_timing_manager', $jobTimingManagerType);
-        $container->setParameter('dtc_queue.class_job', null);
-        $container->setParameter('dtc_queue.class_job_archive', null);
-        $container->setParameter('dtc_queue.document_manager', 'default');
-        $container->setParameter('dtc_queue.entity_manager', 'default');
+        $container->setParameter('dtc_queue.manager.job', $type);
+        $container->setParameter('dtc_queue.manager.run', $runManagerType);
+        $container->setParameter('dtc_queue.manager.job_timing', $jobTimingManagerType);
+        $container->setParameter('dtc_queue.class.job', null);
+        $container->setParameter('dtc_queue.class.job_archive', null);
+        $container->setParameter('dtc_queue.odm.document_manager', 'default');
+        $container->setParameter('dtc_queue.orm.entity_manager', 'default');
         $definition2 = new Definition();
         $definition2->setClass(JobManager::class);
         $definition3 = new Definition();
@@ -51,10 +51,10 @@ class WorkerCompilerPassTest extends TestCase
         $definition8 = new Definition();
         $definition8->setClass(LiveJobsGridSource::class);
         $container->addDefinitions([
-            'dtc_queue.worker_manager' => $definition1,
-            'dtc_queue.job_manager.'.$type => $definition2,
-            'dtc_queue.job_timing_manager.'.$jobTimingManagerType => $definition5,
-            'dtc_queue.run_manager.'.$runManagerType => $definition3,
+            'dtc_queue.manager.worker' => $definition1,
+            'dtc_queue.manager.job.'.$type => $definition2,
+            'dtc_queue.manager.job_timing.'.$jobTimingManagerType => $definition5,
+            'dtc_queue.manager.run.'.$runManagerType => $definition3,
             'dtc_queue.event_dispatcher' => $definition4,
             'dtc_grid.manager.source' => $definition6,
             'dtc_queue.grid_source.jobs_waiting.odm' => $definition7,
@@ -105,6 +105,7 @@ class WorkerCompilerPassTest extends TestCase
         $this->runProcessValidWorker('orm', 'odm', 'orm');
         $this->runProcessValidWorker('beanstalkd');
         $this->runProcessValidWorker('rabbit_mq');
+        $this->runProcessValidWorker('redis');
     }
 
     public function testBadManagerType()

@@ -2,7 +2,7 @@
 
 namespace Dtc\QueueBundle\Tests;
 
-use Dtc\QueueBundle\Model\AbstractJobManager;
+use Dtc\QueueBundle\Manager\AbstractJobManager;
 use Dtc\QueueBundle\Model\Job;
 
 class StubJobManager extends AbstractJobManager
@@ -59,7 +59,7 @@ class StubJobManager extends AbstractJobManager
         return $this->recordArgs(__FUNCTION__, func_get_args());
     }
 
-    public function resetErroneousJobs($workerName = null, $methodName = null)
+    public function resetExceptionJobs($workerName = null, $methodName = null)
     {
         return $this->recordArgs(__FUNCTION__, func_get_args());
     }

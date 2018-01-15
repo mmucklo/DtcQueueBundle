@@ -34,7 +34,7 @@ class JobTest extends TestCase
         self::assertEquals($job->getMethod(), $job2->getMethod());
         self::assertEquals($job->getWorkerName(), $job2->getWorkerName());
         self::assertEquals($job->getArgs(), $job2->getArgs());
-        self::assertEquals($priority2, $job2->getPriority());
+        self::assertEquals($job->getPriority(), $job2->getPriority());
 
         $worker = new FibonacciWorker();
         $job = new Job($worker, false, null);
@@ -42,19 +42,18 @@ class JobTest extends TestCase
         $job->setMethod('asdf');
         $job->setPriority(1234);
         $job->setId(4213);
-        $date = new \DateTime();
+        $date = \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
         $job->setExpiresAt($date);
         $message = $job->toMessage();
 
         $job2 = new Job();
-        $priority2 = $job2->getPriority();
         $job2->fromMessage($message);
 
         self::assertEquals($job->getId(), $job2->getId());
         self::assertEquals($job->getMethod(), $job2->getMethod());
         self::assertEquals($job->getWorkerName(), $job2->getWorkerName());
         self::assertEquals($job->getArgs(), $job2->getArgs());
-        self::assertEquals($priority2, $job2->getPriority());
+        self::assertEquals($job->getPriority(), $job2->getPriority());
         self::assertEquals($job->getExpiresAt(), $job2->getExpiresAt());
     }
 }

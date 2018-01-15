@@ -4,9 +4,12 @@ namespace Dtc\QueueBundle\Entity;
 
 use Dtc\GridBundle\Annotation as Grid;
 use Doctrine\ORM\Mapping as ORM;
+use Dtc\QueueBundle\Model\MicrotimeTrait;
+use Dtc\QueueBundle\Model\StallableJob;
 
-abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
+abstract class BaseJob extends StallableJob
 {
+    use MicrotimeTrait;
     /**
      * @Grid\Column(order=1,sortable=true,searchable=true)
      * @ORM\Column(type="bigint")
@@ -45,22 +48,6 @@ abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
     protected $args;
 
     /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
-    protected $batch;
-
-    /**
-     * @Grid\Column(sortable=true, searchable=true)
-     * @ORM\Column(type="boolean", nullable=true)
-     */
-    protected $locked;
-
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    protected $lockedAt;
-
-    /**
      * @Grid\Column(sortable=true,searchable=true)
      * @ORM\Column(type="integer", nullable=true)
      */
@@ -72,10 +59,12 @@ abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
     protected $crcHash;
 
     /**
+     * whenAt in Microseconds.
+     *
      * @Grid\Column(sortable=true,order=2)
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(type="decimal", precision=18, scale=0, nullable=true)
      */
-    protected $whenAt;
+    protected $whenUs;
 
     /**
      * @Grid\Column(sortable=true)
@@ -131,22 +120,32 @@ abstract class BaseJob extends \Dtc\QueueBundle\Model\RetryableJob
     /**
      * @ORM\Column(type="integer")
      */
-    protected $stalledCount = 0;
+    protected $stalls = 0;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    protected $maxStalled;
+    protected $maxStalls;
 
     /**
      * @ORM\Column(type="integer")
      */
-    protected $errorCount = 0;
+    protected $exceptions = 0;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    protected $maxError;
+    protected $maxExceptions;
+
+    /**
+     * @ORM\Column(type="integer")
+     */
+    protected $failures = 0;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    protected $maxFailures;
 
     /**
      * @ORM\Column(type="integer")

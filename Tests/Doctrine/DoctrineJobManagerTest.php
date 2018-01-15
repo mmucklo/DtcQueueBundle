@@ -4,16 +4,21 @@ namespace Dtc\QueueBundle\Tests\Doctrine;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ORM\EntityManager;
-use Dtc\QueueBundle\Doctrine\BaseJobManager;
+use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Dtc\QueueBundle\Doctrine\DtcQueueListener;
+use Dtc\QueueBundle\Manager\StallableJobManager;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
-use Dtc\QueueBundle\Tests\Model\PriorityTestTrait;
 use Dtc\QueueBundle\Model\RetryableJob;
+use Dtc\QueueBundle\Tests\Manager\AutoRetryTrait;
+use Dtc\QueueBundle\Tests\Manager\PriorityTestTrait;
+use Dtc\QueueBundle\Model\StallableJob;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
-use Dtc\QueueBundle\Tests\Model\BaseJobManagerTest as BaseBaseJobManagerTest;
+use Dtc\QueueBundle\Tests\Manager\BaseJobManagerTest;
 use Dtc\QueueBundle\ODM\JobManager;
+use Dtc\QueueBundle\Tests\Manager\RetryableTrait;
 use Dtc\QueueBundle\Tests\ORM\JobManagerTest;
+use Dtc\QueueBundle\Util\Util;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 
@@ -22,9 +27,11 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
  *
  * This test requires local mongodb running
  */
-abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
+abstract class DoctrineJobManagerTest extends BaseJobManagerTest
 {
     use PriorityTestTrait;
+    use AutoRetryTrait;
+    use RetryableTrait;
 
     protected static $dtcQueueListener;
 
@@ -44,17 +51,16 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
     {
         self::$jobTimingManager = new self::$jobTimingManagerClass(self::$objectManager, self::$jobTimingClass, true);
         self::$runManager = new self::$runManagerClass(self::$objectManager, self::$runClass, self::$runArchiveClass);
-        self::$jobManager = new self::$jobManagerClass(self::$runManager, self::$jobTimingManager, self::$objectManager, self::$objectName, self::$archiveObjectName);
-        self::$jobManager->setMaxPriority(255);
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
+        $jobManager = new self::$jobManagerClass(self::$runManager, self::$jobTimingManager, self::$objectManager, self::$objectName, self::$archiveObjectName);
+        self::$jobManager = $jobManager;
+        $jobManager->setMaxPriority(255);
 
-        self::assertEquals(255, self::$jobManager->getMaxPriority());
-        self::assertEquals(JobManager::PRIORITY_DESC, self::$jobManager->getPriorityDirection());
-        self::$jobManager->setPriorityDirection(JobManager::PRIORITY_ASC);
-        self::assertEquals(JobManager::PRIORITY_ASC, self::$jobManager->getPriorityDirection());
-        self::$jobManager->setPriorityDirection(JobManager::PRIORITY_DESC);
-
-        /** @var BaseJobManager $jobManager */
-        $jobManager = self::$jobManager;
+        self::assertEquals(255, $jobManager->getMaxPriority());
+        self::assertEquals(JobManager::PRIORITY_DESC, $jobManager->getPriorityDirection());
+        $jobManager->setPriorityDirection(JobManager::PRIORITY_ASC);
+        self::assertEquals(JobManager::PRIORITY_ASC, $jobManager->getPriorityDirection());
+        $jobManager->setPriorityDirection(JobManager::PRIORITY_DESC);
 
         $parameters = new ParameterBag();
 
@@ -62,14 +68,13 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $container->set('dtc_queue.job_manager', $jobManager);
         $container->set('dtc_queue.run_manager', self::$runManager);
 
-        self::$dtcQueueListener = new DtcQueueListener(self::$jobManager->getJobArchiveClass(), self::$runManager->getRunArchiveClass());
+        self::$dtcQueueListener = new DtcQueueListener($jobManager->getJobArchiveClass(), self::$runManager->getRunArchiveClass());
         self::$objectManager->getEventManager()->addEventListener('preUpdate', self::$dtcQueueListener);
         self::$objectManager->getEventManager()->addEventListener('prePersist', self::$dtcQueueListener);
         self::$objectManager->getEventManager()->addEventListener('preRemove', self::$dtcQueueListener);
 
         self::$worker = new FibonacciWorker();
 
-        self::$worker->setJobClass($jobManager->getRepository()->getClassName());
         parent::setUpBeforeClass();
     }
 
@@ -84,7 +89,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
     public function testOrdering()
     {
         // priority when at
-        /** @var BaseJobManager $jobManager */
+        /** @var DoctrineJobManager $jobManager */
         $jobManager = self::$jobManager;
 
         $time1 = time() - 2;
@@ -165,7 +170,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
     public function getJobBy()
     {
-        /** @var BaseJobManager $jobManager */
+        /** @var DoctrineJobManager $jobManager */
         $jobManager = self::$jobManager;
 
         /** @var Job $job */
@@ -286,7 +291,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertEquals(1, $count);
         $allCount = $this->runCountQuery($jobManager->getJobClass());
         $counter = 0;
-        $countJobs = function($count) use (&$counter) {
+        $countJobs = function ($count) use (&$counter) {
             $counter += $count;
         };
         $jobManager->archiveAllJobs(null, null, $countJobs);
@@ -329,18 +334,18 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
     abstract protected function runCountQuery($class);
 
-    public function testResetErroneousJobs()
+    public function testResetExceptionJobs()
     {
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
 
-        $id = $this->createErroredJob();
+        $id = $this->createExceptionJob();
         $archiveObjectName = $jobManager->getJobArchiveClass();
         $objectManager = $jobManager->getObjectManager();
         $archiveRepository = $objectManager->getRepository($archiveObjectName);
         $result = $archiveRepository->find($id);
         self::assertNotNull($result);
-        self::assertEquals(BaseJob::STATUS_ERROR, $result->getStatus());
+        self::assertEquals(BaseJob::STATUS_EXCEPTION, $result->getStatus());
         if ($objectManager instanceof EntityManager) {
             JobManagerTest::createObjectManager();
             $jobManager = new self::$jobManagerClass(self::$runManager, self::$jobTimingManager, self::$objectManager, self::$objectName, self::$archiveObjectName);
@@ -348,7 +353,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
             $objectManager = $jobManager->getObjectManager();
         }
 
-        $count = $jobManager->resetErroneousJobs();
+        $count = $jobManager->resetExceptionJobs();
 
         self::assertEquals(1, $count);
         $repository = $jobManager->getRepository();
@@ -356,16 +361,15 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         self::assertNotNull($job);
         self::assertEquals(BaseJob::STATUS_NEW, $job->getStatus());
-        self::assertNull($job->getLockedAt());
+        self::assertNull($job->getStartedAt());
         self::assertNull($job->getFinishedAt());
         self::assertNull($job->getElapsed());
         self::assertNull($job->getMessage());
-        self::assertNull($job->getLocked());
 
         $objectManager->remove($job);
         $objectManager->flush();
 
-        $id = $this->createErroredJob();
+        $id = $this->createExceptionJob();
         $archiveObjectName = $jobManager->getJobArchiveClass();
         $objectManager = $jobManager->getObjectManager();
         $archiveRepository = $objectManager->getRepository($archiveObjectName);
@@ -374,7 +378,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $result->setRetries(10);
         $objectManager->persist($result);
         $objectManager->flush();
-        $count = $jobManager->resetErroneousJobs();
+        $count = $jobManager->resetExceptionJobs();
         self::assertEquals(0, $count);
         $job = $repository->find($id);
         self::assertNull($job);
@@ -384,7 +388,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $objectManager->flush();
     }
 
-    protected function createErroredJob()
+    protected function createExceptionJob()
     {
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
@@ -404,9 +408,8 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertNotNull($result);
         self::assertEquals($id, $result->getId());
 
-        $result->setStatus(BaseJob::STATUS_ERROR);
-        $result->setLocked(true);
-        $result->setLockedAt(new \DateTime());
+        $result->setStatus(BaseJob::STATUS_EXCEPTION);
+        $result->setStartedAt(Util::getMicrotimeDateTime());
         $result->setFinishedAt(new \DateTime());
         $result->setElapsed(12345);
         $result->setMessage('soomething');
@@ -431,10 +434,9 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $job->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
         $job->setStatus(BaseJob::STATUS_RUNNING);
-        $job->setLocked(true);
         $time = time();
         $date = new \DateTime("@$time");
-        $job->setLockedAt($date);
+        $job->setStartedAt($date);
         $id = $job->getId();
         $job = $jobManager->getRepository()->find($id);
 
@@ -467,7 +469,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         if ($endRun) {
             $archivedRun = $objectManager->getRepository(self::$runManager->getRunArchiveClass())->find($runId);
 
-            $minusTime = $time - (BaseJobManager::STALLED_SECONDS + 1);
+            $minusTime = $time - (DoctrineJobManager::STALLED_SECONDS + 1);
             $archivedRun->setEndedAt(new \DateTime("@$minusTime"));
 
             $objectManager->persist($archivedRun);
@@ -492,16 +494,16 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         self::assertNotNull($job);
         self::assertEquals(BaseJob::STATUS_NEW, $job->getStatus());
-        self::assertNull($job->getLockedAt());
+        self::assertNull($job->getStartedAt());
         self::assertNull($job->getFinishedAt());
         self::assertNull($job->getElapsed());
         self::assertNull($job->getMessage());
-        self::assertNull($job->getLocked());
-        self::assertEquals(1, $job->getStalledCount());
+        self::assertEquals(1, $job->getStalls());
 
         $objectManager->remove($job);
         $objectManager->flush();
 
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
         $id = $this->createStalledJob(true, true);
 
@@ -526,12 +528,11 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         self::assertNotNull($job);
         self::assertEquals(BaseJob::STATUS_NEW, $job->getStatus());
-        self::assertNull($job->getLockedAt());
+        self::assertNull($job->getStartedAt());
         self::assertNull($job->getFinishedAt());
         self::assertNull($job->getElapsed());
         self::assertNull($job->getMessage());
-        self::assertNull($job->getLocked());
-        self::assertEquals(1, $job->getStalledCount());
+        self::assertEquals(1, $job->getStalls());
 
         $objectManager->remove($job);
         $objectManager->flush();
@@ -566,8 +567,8 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $id = $this->createStalledJob(true, false);
         $job = $jobManager->getRepository()->find($id);
-        $job->setMaxStalled(10);
-        $job->setStalledCount(10);
+        $job->setMaxStalls(10);
+        $job->setStalls(10);
         $objectManager->persist($job);
         $objectManager->flush();
 
@@ -581,7 +582,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $objectManager->flush();
     }
 
-    public function testPruneErroneousJobs()
+    public function testpruneExceptionJobs()
     {
         $job = $this->getJob();
         $id = $job->getId();
@@ -598,24 +599,23 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertNotNull($result);
         self::assertEquals($id, $result->getId());
 
-        $result->setStatus(BaseJob::STATUS_ERROR);
-        $result->setLocked(true);
-        $result->setLockedAt(new \DateTime());
+        $result->setStatus(BaseJob::STATUS_EXCEPTION);
+        $result->setStartedAt(new \DateTime());
         $result->setFinishedAt(new \DateTime());
         $result->setElapsed(12345);
         $result->setMessage('soomething');
         $objectManager->persist($result);
         $objectManager->flush();
 
-        $count = $jobManager->pruneErroneousJobs('asdf');
+        $count = $jobManager->pruneExceptionJobs('asdf');
         self::assertEquals(0, $count);
-        $count = $jobManager->pruneErroneousJobs(null, 'asdf');
+        $count = $jobManager->pruneExceptionJobs(null, 'asdf');
         self::assertEquals(0, $count);
-        $count = $jobManager->pruneErroneousJobs('fibonacci', 'asdf');
+        $count = $jobManager->pruneExceptionJobs('fibonacci', 'asdf');
         self::assertEquals(0, $count);
-        $count = $jobManager->pruneErroneousJobs('fibonacci', 'asdf');
+        $count = $jobManager->pruneExceptionJobs('fibonacci', 'asdf');
         self::assertEquals(0, $count);
-        $count = $jobManager->pruneErroneousJobs('fibonacci', 'fibonacci');
+        $count = $jobManager->pruneExceptionJobs('fibonacci', 'fibonacci');
         self::assertEquals(1, $count);
         $repository = $jobManager->getRepository();
         $job = $repository->find($id);
@@ -639,9 +639,8 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertNotNull($result);
         self::assertEquals($id, $result->getId());
 
-        $result->setStatus(BaseJob::STATUS_ERROR);
-        $result->setLocked(true);
-        $result->setLockedAt(new \DateTime());
+        $result->setStatus(BaseJob::STATUS_EXCEPTION);
+        $result->setStartedAt(new \DateTime());
         $result->setFinishedAt(new \DateTime());
         $result->setElapsed(12345);
         $result->setMessage('soomething');
@@ -663,15 +662,14 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertNotNull($result);
         self::assertEquals($id, $result->getId());
 
-        $result->setStatus(BaseJob::STATUS_ERROR);
-        $result->setLocked(true);
-        $result->setLockedAt(new \DateTime());
+        $result->setStatus(BaseJob::STATUS_EXCEPTION);
+        $result->setStartedAt(new \DateTime());
         $result->setFinishedAt(new \DateTime());
         $result->setElapsed(12345);
         $result->setMessage('soomething');
         $objectManager->persist($result);
         $objectManager->flush();
-        $count = $jobManager->pruneErroneousJobs();
+        $count = $jobManager->pruneExceptionJobs();
         self::assertEquals(2, $count);
     }
 
@@ -686,10 +684,9 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $job->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
         $job->setStatus(BaseJob::STATUS_RUNNING);
-        $job->setLocked(true);
         $time = time();
         $date = new \DateTime("@$time");
-        $job->setLockedAt($date);
+        $job->setStartedAt($date);
         $id = $job->getId();
         $job = $jobManager->getRepository()->find($id);
 
@@ -716,7 +713,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $archivedRun = $objectManager->getRepository(self::$runManager->getRunArchiveClass())->find($runId);
 
-        $minusTime = $time - (BaseJobManager::STALLED_SECONDS + 1);
+        $minusTime = $time - (DoctrineJobManager::STALLED_SECONDS + 1);
         $archivedRun->setEndedAt(new \DateTime("@$minusTime"));
 
         $objectManager->persist($archivedRun);
@@ -738,8 +735,8 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $archivedJob = $jobManager->getObjectManager()->getRepository($jobManager->getJobArchiveClass())->find($id);
 
         self::assertNotNull($archivedJob);
-        self::assertEquals(BaseJob::STATUS_ERROR, $archivedJob->getStatus());
-        self::assertEquals(1, $archivedJob->getStalledCount());
+        self::assertEquals(StallableJob::STATUS_STALLED, $archivedJob->getStatus());
+        self::assertEquals(1, $archivedJob->getStalls());
         $objectManager->remove($archivedJob);
         $objectManager->flush();
 
@@ -752,10 +749,9 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $job->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
         $job->setStatus(BaseJob::STATUS_RUNNING);
-        $job->setLocked(true);
         $time = time();
         $date = new \DateTime("@$time");
-        $job->setLockedAt($date);
+        $job->setStartedAt($date);
         $id = $job->getId();
         $job = $jobManager->getRepository()->find($id);
 
@@ -782,7 +778,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $archivedRun = $objectManager->getRepository(self::$runManager->getRunArchiveClass())->find($runId);
 
-        $minusTime = $time - (BaseJobManager::STALLED_SECONDS + 1);
+        $minusTime = $time - (DoctrineJobManager::STALLED_SECONDS + 1);
         $archivedRun->setEndedAt(new \DateTime("@$minusTime"));
 
         $objectManager->persist($archivedRun);
@@ -792,10 +788,9 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $job->fibonacci(1);
         self::assertNotNull($job->getId(), 'Job id should be generated');
         $job->setStatus(BaseJob::STATUS_RUNNING);
-        $job->setLocked(true);
         $time = time();
         $date = new \DateTime("@$time");
-        $job->setLockedAt($date);
+        $job->setStartedAt($date);
         $id = $job->getId();
         $job = $jobManager->getRepository()->find($id);
 
@@ -822,7 +817,7 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
         $archivedRun = $objectManager->getRepository(self::$runManager->getRunArchiveClass())->find($runId);
 
-        $minusTime = $time - (BaseJobManager::STALLED_SECONDS + 1);
+        $minusTime = $time - (DoctrineJobManager::STALLED_SECONDS + 1);
         $archivedRun->setEndedAt(new \DateTime("@$minusTime"));
 
         $objectManager->persist($archivedRun);
@@ -833,12 +828,15 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
     public function testBatchJobs()
     {
-        $jobs = self::$jobManager->getRepository()->findAll();
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
+        $jobManager = self::$jobManager;
+
+        $jobs = $jobManager->getRepository()->findAll();
         foreach ($jobs as $job) {
-            self::$jobManager->getObjectManager()->remove($job);
+            $jobManager->getObjectManager()->remove($job);
         }
-        self::$jobManager->getObjectManager()->flush();
-        self::$jobManager->getObjectManager()->clear();
+        $jobManager->getObjectManager()->flush();
+        $jobManager->getObjectManager()->clear();
 
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $worker = self::$worker;
@@ -846,13 +844,13 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $job2 = $worker->batchLater()->fibonacci(1);
         self::assertEquals($job1, $job2);
 
-        $jobs = self::$jobManager->getRepository()->findAll();
+        $jobs = $jobManager->getRepository()->findAll();
         self::assertCount(1, $jobs);
         self::assertEquals($job1, $jobs[0]);
         self::assertNull($jobs[0]->getPriority());
-        self::$jobManager->getObjectManager()->remove($jobs[0]);
-        self::$jobManager->getObjectManager()->flush();
-        self::$jobManager->getObjectManager()->clear();
+        $jobManager->getObjectManager()->remove($jobs[0]);
+        $jobManager->getObjectManager()->flush();
+        $jobManager->getObjectManager()->clear();
 
         $job1 = $worker->later()->fibonacci(1);
         self::assertNull($job1->getPriority());
@@ -860,44 +858,44 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         self::assertEquals($job1, $job2);
         self::assertNotNull($job2->getPriority());
 
-        $jobs = self::$jobManager->getRepository()->findAll();
+        $jobs = $jobManager->getRepository()->findAll();
         self::assertCount(1, $jobs);
         self::assertEquals($job1, $jobs[0]);
         self::assertNotNull($jobs[0]->getPriority());
 
         // Not
-        $jobs = self::$jobManager->getRepository()->findAll();
+        $jobs = $jobManager->getRepository()->findAll();
         foreach ($jobs as $job) {
-            self::$jobManager->getObjectManager()->remove($job);
+            $jobManager->getObjectManager()->remove($job);
         }
-        self::$jobManager->getObjectManager()->remove($jobs[0]);
-        self::$jobManager->getObjectManager()->flush();
-        self::$jobManager->getObjectManager()->clear();
+        $jobManager->getObjectManager()->remove($jobs[0]);
+        $jobManager->getObjectManager()->flush();
+        $jobManager->getObjectManager()->clear();
 
         $job1 = $worker->later(100)->fibonacci(1);
 
         $time1 = new \DateTime('@'.time());
         $job2 = $worker->batchLater(0)->fibonacci(1);
-        $time2 = new \DateTime();
+        $time2 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
 
         self::assertEquals($job1, $job2);
         self::assertGreaterThanOrEqual($time1, $job2->getWhenAt());
         self::assertLessThanOrEqual($time2, $job2->getWhenAt());
 
-        $jobs = self::$jobManager->getRepository()->findAll();
+        $jobs = $jobManager->getRepository()->findAll();
         self::assertCount(1, $jobs);
         self::assertEquals($job1, $jobs[0]);
         self::assertGreaterThanOrEqual($time1, $jobs[0]->getWhenAt());
         self::assertLessThanOrEqual($time2, $jobs[0]->getWhenAt());
-        self::$jobManager->getObjectManager()->remove($jobs[0]);
-        self::$jobManager->getObjectManager()->flush();
-        self::$jobManager->getObjectManager()->clear();
+        $jobManager->getObjectManager()->remove($jobs[0]);
+        $jobManager->getObjectManager()->flush();
+        $jobManager->getObjectManager()->clear();
 
         $job1 = $worker->later(100)->setPriority(3)->fibonacci(1);
         $priority1 = $job1->getPriority();
-        $time1 = new \DateTime('@'.time());
+        $time1 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
         $job2 = $worker->batchLater(0)->setPriority(1)->fibonacci(1);
-        $time2 = new \DateTime();
+        $time2 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
         self::assertEquals($job1, $job2);
         self::assertNotEquals($priority1, $job2->getPriority());
 
@@ -1091,19 +1089,22 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
 
     public function testPerformance()
     {
-        $jobs = self::$jobManager->getRepository()->findAll();
-        foreach ($jobs as $job) {
-            self::$jobManager->getObjectManager()->remove($job);
-        }
-        self::$jobManager->getObjectManager()->flush();
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
+        $jobManager = self::$jobManager;
 
-        self::$jobManager->getObjectManager()->clear();
+        $jobs = $jobManager->getRepository()->findAll();
+        foreach ($jobs as $job) {
+            $jobManager->getObjectManager()->remove($job);
+        }
+        $jobManager->getObjectManager()->flush();
+
+        $jobManager->getObjectManager()->clear();
         parent::testPerformance();
     }
 
     protected function getBaseStatus()
     {
-        /** @var BaseJobManager $jobManager */
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);
@@ -1112,13 +1113,14 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $fibonacciStatus = $status['fibonacci->fibonacci()'];
 
         self::assertArrayHasKey(BaseJob::STATUS_NEW, $fibonacciStatus);
-        self::assertArrayHasKey(BaseJob::STATUS_ERROR, $fibonacciStatus);
+        self::assertArrayHasKey(BaseJob::STATUS_EXCEPTION, $fibonacciStatus);
         self::assertArrayHasKey(BaseJob::STATUS_RUNNING, $fibonacciStatus);
         self::assertArrayHasKey(BaseJob::STATUS_SUCCESS, $fibonacciStatus);
-        self::assertArrayHasKey(RetryableJob::STATUS_MAX_STALLED, $fibonacciStatus);
-        self::assertArrayHasKey(RetryableJob::STATUS_MAX_ERROR, $fibonacciStatus);
+        self::assertArrayHasKey(Job::STATUS_EXPIRED, $fibonacciStatus);
+        self::assertArrayHasKey(StallableJob::STATUS_MAX_STALLS, $fibonacciStatus);
+        self::assertArrayHasKey(RetryableJob::STATUS_MAX_EXCEPTIONS, $fibonacciStatus);
+        self::assertArrayHasKey(RetryableJob::STATUS_MAX_FAILURES, $fibonacciStatus);
         self::assertArrayHasKey(RetryableJob::STATUS_MAX_RETRIES, $fibonacciStatus);
-        self::assertArrayHasKey(RetryableJob::STATUS_EXPIRED, $fibonacciStatus);
 
         return [$job, $status];
     }
@@ -1131,9 +1133,22 @@ abstract class BaseJobManagerTest extends BaseBaseJobManagerTest
         $fibonacciStatus2 = $status2['fibonacci->fibonacci()'];
 
         self::assertEquals($fibonacciStatus1[BaseJob::STATUS_NEW] + 1, $fibonacciStatus2[BaseJob::STATUS_NEW]);
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
         $objectManager = $jobManager->getObjectManager();
         $objectManager->remove($job1);
         $objectManager->remove($job2);
+    }
+
+    public function testStallableJobManager()
+    {
+        /** @var StallableJobManager $jobManager */
+        $jobManager = self::$jobManager;
+
+        $defaultMaxStalls = $jobManager->getDefaultMaxStalls();
+        $jobManager->setDefaultMaxStalls(123);
+        self::assertEquals(123, $jobManager->getDefaultMaxStalls());
+        $jobManager->setDefaultMaxStalls($defaultMaxStalls);
+        self::assertEquals($defaultMaxStalls, $jobManager->getDefaultMaxStalls());
     }
 }

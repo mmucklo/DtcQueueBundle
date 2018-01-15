@@ -13,7 +13,7 @@ use DoctrineExtensions\Query\Mysql\Month;
 use DoctrineExtensions\Query\Mysql\Year;
 use Dtc\QueueBundle\ORM\RunManager;
 use Dtc\QueueBundle\ORM\JobTimingManager;
-use Dtc\QueueBundle\Tests\Doctrine\BaseJobManagerTest;
+use Dtc\QueueBundle\Tests\Doctrine\DoctrineJobManagerTest;
 use Dtc\QueueBundle\ORM\JobManager;
 use Doctrine\ORM\EntityManager;
 
@@ -22,7 +22,7 @@ use Doctrine\ORM\EntityManager;
  *
  * This test requires local mongodb running
  */
-class JobManagerTest extends BaseJobManagerTest
+class JobManagerTest extends DoctrineJobManagerTest
 {
     public static function createObjectManager()
     {

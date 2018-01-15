@@ -4,21 +4,41 @@ namespace Dtc\QueueBundle\Redis;
 
 interface RedisInterface
 {
-    public function multi();
+    public function zRem($zkey, $value);
 
-    public function watch($key);
+    public function zAdd($zkey, $score, $value);
 
-    public function zRange($key, $start, $stop);
+    public function zPopByMaxScore($key, $max);
 
-    public function zRem($zkey, $key);
+    public function zPop($key);
 
-    public function exec();
+    /**
+     * @param $key
+     * @param $value
+     *
+     * @return bool true on success, false on failure
+     */
+    public function set($key, $value);
 
-    public function zScore($zkey, $member);
+    /**
+     * @param $key
+     *
+     * @return false if not set, otherwise the value if set
+     */
+    public function get($key);
 
-    public function zAdd($zkey, $score, $member);
+    /**
+     * @param array $keys A list of keys to delete
+     *
+     * @return int The number of keys deleted
+     */
+    public function del(array $keys);
 
-    public function hSet($hkey, $key, $value);
+    public function setEx($key, $ttl, $value);
 
-    public function hGet($hkey, $key);
+    public function lRange($lKey, $start, $stop);
+
+    public function lRem($lKey, $count, $value);
+
+    public function lPush($lKey, array $values);
 }

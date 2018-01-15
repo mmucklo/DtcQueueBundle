@@ -2,13 +2,13 @@
 
 namespace Dtc\QueueBundle\Run;
 
-use Dtc\QueueBundle\Doctrine\BaseJobManager;
+use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
-use Dtc\QueueBundle\Model\JobManagerInterface;
+use Dtc\QueueBundle\Manager\JobManagerInterface;
 use Dtc\QueueBundle\Model\Run;
-use Dtc\QueueBundle\Model\RunManager;
-use Dtc\QueueBundle\Model\WorkerManager;
+use Dtc\QueueBundle\Manager\RunManager;
+use Dtc\QueueBundle\Manager\WorkerManager;
 use Dtc\QueueBundle\Util\Util;
 use Dtc\QueueBundle\Exception\ClassNotSubclassException;
 use Psr\Log\LoggerInterface;
@@ -66,7 +66,7 @@ class Loop
     /**
      * @param int $processTimeout
      */
-    public function setProcessTimeout(int $processTimeout)
+    public function setProcessTimeout($processTimeout)
     {
         $this->processTimeout = $processTimeout;
     }
@@ -89,7 +89,7 @@ class Loop
         $run = $this->runManager->runStart($start, null, null, $this->processTimeout);
         $this->lastRun = $run;
 
-        if (!$this->jobManager instanceof BaseJobManager) {
+        if (!$this->jobManager instanceof DoctrineJobManager) {
             throw new ClassNotSubclassException("Can't get job by id when not using a database/datastore backed queue (such as mongodb or an RDBMS)");
         }
 
@@ -298,7 +298,7 @@ class Loop
      */
     protected function isFinishedEndTime(\DateTime $endTime)
     {
-        $now = new \DateTime();
+        $now = Util::getMicrotimeDateTime();
         if ($endTime > $now) {
             return false;
         }
@@ -311,8 +311,8 @@ class Loop
      */
     protected function reportJob(Job $job)
     {
-        if (BaseJob::STATUS_ERROR == $job->getStatus()) {
-            $message = "Error with job id: {$job->getId()}\n".$job->getMessage();
+        if (BaseJob::STATUS_EXCEPTION == $job->getStatus()) {
+            $message = "Exception with job id: {$job->getId()}\n".$job->getMessage();
             $this->log('error', $message);
         }
 
@@ -332,7 +332,7 @@ class Loop
         }
 
         if ($this->output) {
-            $date = new \DateTime();
+            $date = \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
             $this->output->write("[$level] [".$date->format('c').'] '.$msg);
             if (!empty($context)) {
                 $this->output->write(print_r($context, true));

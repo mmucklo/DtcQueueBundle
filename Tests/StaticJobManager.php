@@ -2,10 +2,10 @@
 
 namespace Dtc\QueueBundle\Tests;
 
-use Dtc\QueueBundle\Model\AbstractJobManager;
+use Dtc\QueueBundle\Manager\AbstractJobManager;
 use Dtc\QueueBundle\Model\Job;
-use Dtc\QueueBundle\Model\JobTimingManager;
-use Dtc\QueueBundle\Model\RunManager;
+use Dtc\QueueBundle\Manager\JobTimingManager;
+use Dtc\QueueBundle\Manager\RunManager;
 
 /**
  * @author David Tee
@@ -36,7 +36,7 @@ class StaticJobManager extends AbstractJobManager
             $total += count($this->jobs[$jobWorkerName]);
         }
 
-        return array_sum(array_map(function($jobs) {
+        return array_sum(array_map(function ($jobs) {
             return count($jobs);
         }, $this->jobs));
     }

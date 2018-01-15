@@ -7,7 +7,7 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Id\AssignedGenerator;
-use Dtc\QueueBundle\Model\RetryableJob;
+use Dtc\QueueBundle\Model\StallableJob;
 use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\Util\Util;
@@ -57,10 +57,10 @@ class DtcQueueListener
     protected function adjustIdGenerator(\Doctrine\Common\Persistence\Mapping\ClassMetadata $metadata)
     {
         $objectManager = $this->objectManager;
-        if ($objectManager instanceof EntityManager) {
+        if ($objectManager instanceof EntityManager && $metadata instanceof \Doctrine\ORM\Mapping\ClassMetadata) {
             $metadata->setIdGeneratorType(\Doctrine\ORM\Mapping\ClassMetadata::GENERATOR_TYPE_NONE);
             $metadata->setIdGenerator(new AssignedGenerator());
-        } elseif ($objectManager instanceof DocumentManager) {
+        } elseif ($objectManager instanceof DocumentManager && $metadata instanceof ClassMetadata) {
             $metadata->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_NONE);
         }
     }
@@ -77,7 +77,7 @@ class DtcQueueListener
             $metadata = $objectManager->getClassMetadata($className);
             $this->adjustIdGenerator($metadata);
 
-            /** @var RetryableJob $jobArchive */
+            /** @var StallableJob $jobArchive */
             $jobArchive = new $className();
             Util::copy($object, $jobArchive);
             $jobArchive->setUpdatedAt(new \DateTime());
@@ -88,8 +88,8 @@ class DtcQueueListener
     public function preUpdate(LifecycleEventArgs $eventArgs)
     {
         $object = $eventArgs->getObject();
-        if ($object instanceof \Dtc\QueueBundle\Model\RetryableJob) {
-            $dateTime = new \DateTime();
+        if ($object instanceof \Dtc\QueueBundle\Model\StallableJob) {
+            $dateTime = \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
             $object->setUpdatedAt($dateTime);
         }
     }
@@ -98,8 +98,8 @@ class DtcQueueListener
     {
         $object = $eventArgs->getObject();
 
-        if ($object instanceof \Dtc\QueueBundle\Model\RetryableJob) {
-            $dateTime = new \DateTime();
+        if ($object instanceof \Dtc\QueueBundle\Model\StallableJob) {
+            $dateTime = \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
             if (!$object->getCreatedAt()) {
                 $object->setCreatedAt($dateTime);
             }

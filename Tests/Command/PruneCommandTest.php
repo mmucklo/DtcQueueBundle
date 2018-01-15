@@ -5,10 +5,11 @@ namespace Dtc\QueueBundle\Tests\Command;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Dtc\QueueBundle\Command\PruneCommand;
 use Dtc\QueueBundle\Document\Job;
+use Dtc\QueueBundle\Util\Util;
 use PHPUnit\Framework\TestCase;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
-use Dtc\QueueBundle\Model\WorkerManager;
+use Dtc\QueueBundle\Manager\WorkerManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Symfony\Component\DependencyInjection\Container;
 
@@ -25,7 +26,6 @@ class PruneCommandTest extends TestCase
         $eventDispatcher = new EventDispatcher();
         $workerManager = new WorkerManager($jobManager, $eventDispatcher);
         $worker = new FibonacciWorker();
-        $worker->setJobClass(\Dtc\QueueBundle\Document\Job::class);
         $workerManager->addWorker($worker);
         $worker->setJobManager($jobManager);
 
@@ -80,7 +80,7 @@ class PruneCommandTest extends TestCase
         $dateVal2 = new \DateTime("@$endTime");
         $dateDiff = $dateVal2->diff($dateVal);
 
-        return [$dateDiff, $endTime - $startTime];
+        return [$dateDiff, ($endTime - $startTime) + 1];
     }
 
     protected function getPruneCommandOlderDateDays($older, $type = 'old', $call = 'pruneArchivedJobs')
@@ -93,7 +93,7 @@ class PruneCommandTest extends TestCase
     protected function getPruneCommandOlderDateSeconds($older, $type = 'old', $call = 'pruneArchivedJobs')
     {
         list($dateDiff, $varianceSeconds) = $this->getPruneCommandOlderDateDiff($older, $type, $call);
-        $date1 = new \DateTime();
+        $date1 = Util::getMicrotimeDateTime();
         $date2 = clone $date1;
         $date2->sub($dateDiff);
 
@@ -142,7 +142,7 @@ class PruneCommandTest extends TestCase
     protected function runPruneCommandOlderSeconds($older, $expected, $type = 'old', $call = 'pruneArchivedJobs')
     {
         list($result, $variance) = $this->getPruneCommandOlderDateSeconds($older, $type, $call);
-        self::assertGreaterThanOrEqual($expected, intval($result));
+        self::assertGreaterThanOrEqual($expected - $variance, intval($result));
         self::assertLessThanOrEqual($expected + $variance, intval($result));
     }
 

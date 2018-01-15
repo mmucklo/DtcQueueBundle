@@ -2,9 +2,9 @@
 
 namespace Dtc\QueueBundle\ORM;
 
-use Dtc\QueueBundle\Doctrine\BaseJobTimingManager;
+use Dtc\QueueBundle\Doctrine\DoctrineJobTimingManager;
 
-class JobTimingManager extends BaseJobTimingManager
+class JobTimingManager extends DoctrineJobTimingManager
 {
     use CommonTrait;
 }

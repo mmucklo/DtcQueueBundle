@@ -44,16 +44,6 @@ class JobArchive extends BaseJob
     protected $startedAt;
 
     /**
-     * @ODM\Field(type="boolean", nullable=true)
-     */
-    protected $locked;
-
-    /**
-     * @ODM\Field(type="date", nullable=true)
-     */
-    protected $lockedAt;
-
-    /**
      * @ODM\Field(type="date", nullable=true)
      */
     protected $expiresAt;

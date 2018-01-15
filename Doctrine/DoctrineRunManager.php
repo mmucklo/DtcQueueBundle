@@ -5,9 +5,9 @@ namespace Dtc\QueueBundle\Doctrine;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Persistence\ObjectRepository;
 use Dtc\QueueBundle\Model\Run;
-use Dtc\QueueBundle\Model\RunManager;
+use Dtc\QueueBundle\Manager\RunManager;
 
-abstract class BaseRunManager extends RunManager
+abstract class DoctrineRunManager extends RunManager
 {
     /** @var ObjectManager */
     protected $objectManager;
@@ -91,8 +91,13 @@ abstract class BaseRunManager extends RunManager
         $this->getObjectManager()->flush();
     }
 
+    /**
+     * @param Run    $run
+     * @param string $action
+     */
     protected function persistRun(Run $run, $action = 'persist')
     {
+        parent::persistRun($run, $action);
         $objectManager = $this->getObjectManager();
         $objectManager->$action($run);
         $objectManager->flush();

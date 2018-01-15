@@ -36,4 +36,14 @@ class UtilTest extends TestCase
         }
         self::assertFalse($failed);
     }
+
+    public function testMicrotime()
+    {
+        $str = Util::getMicrotimeStr();
+        self::assertTrue(false !== strpos($str, '.'));
+        $parts = explode('.', $str);
+        self::assertCount(2, $parts);
+        self::assertTrue(ctype_digit($parts[0]));
+        self::assertTrue(ctype_digit($parts[1]));
+    }
 }

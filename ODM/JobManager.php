@@ -3,13 +3,15 @@
 namespace Dtc\QueueBundle\ODM;
 
 use Doctrine\MongoDB\Query\Builder;
-use Dtc\QueueBundle\Doctrine\BaseJobManager;
+use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Dtc\QueueBundle\Document\Job;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\RetryableJob;
+use Dtc\QueueBundle\Model\StallableJob;
+use Dtc\QueueBundle\Util\Util;
 
-class JobManager extends BaseJobManager
+class JobManager extends DoctrineJobManager
 {
     use CommonTrait;
     const REDUCE_FUNCTION = 'function(k, vals) {
@@ -47,13 +49,13 @@ class JobManager extends BaseJobManager
      * @param string|null $workerName
      * @param string|null $method
      */
-    public function pruneErroneousJobs($workerName = null, $method = null)
+    public function pruneExceptionJobs($workerName = null, $method = null)
     {
         /** @var DocumentManager $objectManager */
         $objectManager = $this->getObjectManager();
         $qb = $objectManager->createQueryBuilder($this->getJobArchiveClass());
         $qb = $qb->remove();
-        $qb->field('status')->equals(BaseJob::STATUS_ERROR);
+        $qb->field('status')->equals(BaseJob::STATUS_EXCEPTION);
         $this->addWorkerNameCriterion($qb, $workerName, $method);
 
         $query = $qb->getQuery();
@@ -93,7 +95,7 @@ class JobManager extends BaseJobManager
         $objectManager = $this->getObjectManager();
         $qb = $objectManager->createQueryBuilder($this->getJobClass());
         $qb = $qb->updateMany();
-        $qb->field('expiresAt')->lte(new \DateTime());
+        $qb->field('expiresAt')->lte(Util::getMicrotimeDateTime());
         $qb->field('status')->equals(BaseJob::STATUS_NEW);
         $this->addWorkerNameCriterion($qb, $workerName, $method);
         $qb->field('status')->set(\Dtc\QueueBundle\Model\Job::STATUS_EXPIRED);
@@ -129,13 +131,11 @@ class JobManager extends BaseJobManager
         $this->addWorkerNameCriterion($qb, $workerName, $method);
 
         // Filter
-        $date = new \DateTime();
+        $date = Util::getMicrotimeDateTime();
         $qb
             ->addAnd(
                 $qb->expr()->addOr($qb->expr()->field('expiresAt')->equals(null), $qb->expr()->field('expiresAt')->gt($date))
-            )
-            ->field('locked')->equals(null);
-
+            );
         $query = $qb->getQuery();
 
         return $query->count(true);
@@ -167,14 +167,17 @@ class JobManager extends BaseJobManager
         $results = $query->execute();
 
         $allStatus = array(
-            BaseJob::STATUS_ERROR => 0,
             BaseJob::STATUS_NEW => 0,
-            RetryableJob::STATUS_EXPIRED => 0,
-            RetryableJob::STATUS_MAX_ERROR => 0,
-            RetryableJob::STATUS_MAX_RETRIES => 0,
-            RetryableJob::STATUS_MAX_STALLED => 0,
             BaseJob::STATUS_RUNNING => 0,
             BaseJob::STATUS_SUCCESS => 0,
+            BaseJob::STATUS_FAILURE => 0,
+            BaseJob::STATUS_EXCEPTION => 0,
+            StallableJob::STATUS_STALLED => 0,
+            \Dtc\QueueBundle\Model\Job::STATUS_EXPIRED => 0,
+            RetryableJob::STATUS_MAX_FAILURES => 0,
+            RetryableJob::STATUS_MAX_EXCEPTIONS => 0,
+            RetryableJob::STATUS_MAX_RETRIES => 0,
+            StallableJob::STATUS_MAX_STALLS => 0,
         );
 
         $status = [];
@@ -226,11 +229,10 @@ class JobManager extends BaseJobManager
             ->findAndUpdate()
             ->returnNew();
 
-        $date = new \DateTime();
+        $date = Util::getMicrotimeDateTime();
         // Update
         $builder
-            ->field('lockedAt')->set($date) // Set started
-            ->field('locked')->set(true)
+            ->field('startedAt')->set($date)
             ->field('status')->set(BaseJob::STATUS_RUNNING)
             ->field('runId')->set($runId);
 
@@ -244,7 +246,7 @@ class JobManager extends BaseJobManager
     /**
      * @param string|null $workerName
      * @param string|null $methodName
-     * @param bool $prioritize
+     * @param bool        $prioritize
      *
      * @return Builder
      */
@@ -279,8 +281,7 @@ class JobManager extends BaseJobManager
 
         $builder->sort('whenAt', 'asc');
         $builder->field('status')->equals(BaseJob::STATUS_NEW)
-            ->field('crcHash')->equals($job->getCrcHash())
-            ->field('locked')->equals(null);
+            ->field('crcHash')->equals($job->getCrcHash());
         $oldJob = $builder->getQuery()->getSingleResult();
 
         if (!$oldJob) {
@@ -319,14 +320,13 @@ class JobManager extends BaseJobManager
      */
     protected function addStandardPredicates($builder)
     {
-        $date = new \DateTime();
+        $date = Util::getMicrotimeDateTime();
         $builder
             ->addAnd(
                 $builder->expr()->addOr($builder->expr()->field('whenAt')->equals(null), $builder->expr()->field('whenAt')->lte($date)),
                 $builder->expr()->addOr($builder->expr()->field('expiresAt')->equals(null), $builder->expr()->field('expiresAt')->gt($date))
             )
-            ->field('status')->equals(BaseJob::STATUS_NEW)
-            ->field('locked')->equals(null);
+            ->field('status')->equals(BaseJob::STATUS_NEW);
     }
 
     public function getWorkersAndMethods()
