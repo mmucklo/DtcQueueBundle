@@ -2,69 +2,23 @@
 
 namespace Dtc\QueueBundle\Doctrine;
 
-use Doctrine\Common\Persistence\ObjectManager;
-use Doctrine\Common\Persistence\ObjectRepository;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Doctrine\ORM\EntityRepository;
-use Dtc\QueueBundle\Manager\ArchivableJobManager;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
-use Dtc\QueueBundle\Manager\JobTimingManager;
 use Dtc\QueueBundle\Model\StallableJob;
 use Dtc\QueueBundle\Model\Run;
-use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Util\Util;
 
-abstract class DoctrineJobManager extends ArchivableJobManager
+abstract class DoctrineJobManager extends BaseDoctrineJobManager
 {
     /** Number of jobs to prune / reset / gather at a time */
     const FETCH_COUNT = 100;
 
     /** Number of seconds before a job is considered stalled if the runner is no longer active */
     const STALLED_SECONDS = 1800;
-
-    /**
-     * @var ObjectManager
-     */
-    protected $objectManager;
-
-    /**
-     * DoctrineJobManager constructor.
-     *
-     * @param RunManager       $runManager
-     * @param JobTimingManager $jobTimingManager
-     * @param ObjectManager    $objectManager
-     * @param $jobClass
-     * @param $jobArchiveClass
-     */
-    public function __construct(
-        RunManager $runManager,
-        JobTimingManager $jobTimingManager,
-        ObjectManager $objectManager,
-        $jobClass,
-        $jobArchiveClass
-    ) {
-        $this->objectManager = $objectManager;
-        parent::__construct($runManager, $jobTimingManager, $jobClass, $jobArchiveClass);
-    }
-
-    /**
-     * @return ObjectManager
-     */
-    public function getObjectManager()
-    {
-        return $this->objectManager;
-    }
-
-    /**
-     * @return ObjectRepository
-     */
-    public function getRepository()
-    {
-        return $this->getObjectManager()->getRepository($this->getJobClass());
-    }
 
     /**
      * @param string $objectName
@@ -137,11 +91,6 @@ abstract class DoctrineJobManager extends ArchivableJobManager
         }
 
         return $finalCount;
-    }
-
-    protected function flush()
-    {
-        $this->getObjectManager()->flush();
     }
 
     protected function getStalledJobs($workerName = null, $method = null)
@@ -288,13 +237,6 @@ abstract class DoctrineJobManager extends ArchivableJobManager
         }
 
         return $countProcessed;
-    }
-
-    public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
-    {
-        $objectManager = $this->getObjectManager();
-        $objectManager->remove($job);
-        $objectManager->flush();
     }
 
     protected function stallableSaveHistory(StallableJob $job, $retry)
