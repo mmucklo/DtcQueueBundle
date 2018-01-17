@@ -14,8 +14,7 @@ use Dtc\QueueBundle\Util\Util;
 
 abstract class DoctrineJobManager extends BaseDoctrineJobManager
 {
-    /** Number of jobs to prune / reset / gather at a time */
-    const FETCH_COUNT = 100;
+    use ProgressCallbackTrait;
 
     /** Number of seconds before a job is considered stalled if the runner is no longer active */
     const STALLED_SECONDS = 1800;
@@ -31,12 +30,12 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
 
         $criterion = ['status' => Job::STATUS_EXCEPTION];
         $this->addWorkerNameMethod($criterion, $workerName, $method);
-
+        $saveCount = $this->getSaveCount($count);
         $countProcessed = 0;
-        for ($i = 0; $i < $count; $i += static::FETCH_COUNT) {
+        for ($i = 0; $i < $count; $i += $saveCount) {
             $countProcessed += $this->resetJobsByCriterion(
                 $criterion,
-                static::FETCH_COUNT,
+                $saveCount,
                 $i
             );
         }
@@ -72,8 +71,14 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
         $objectManager = $this->getObjectManager();
         $repository = $this->getRepository();
         $finalCount = 0;
-        for ($i = 0; $i < $count; $i += static::FETCH_COUNT) {
-            $expiredJobs = $repository->findBy($criterion, null, static::FETCH_COUNT, $i);
+
+        $metadata = $this->getObjectManager()->getClassMetadata($this->getJobClass());
+        $identifierData = $metadata->getIdentifier();
+        $idColumn = isset($identifierData[0]) ? $identifierData[0] : 'id';
+
+        $fetchCount = $this->getFetchCount($count);
+        for ($i = 0; $i < $count; $i += $fetchCount) {
+            $expiredJobs = $repository->findBy($criterion, [$idColumn => 'ASC'], $fetchCount, $i);
             $innerCount = 0;
             if (!empty($expiredJobs)) {
                 foreach ($expiredJobs as $expiredJob) {
@@ -110,14 +115,18 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
         $repository = $this->getRepository();
         $runningJobsById = [];
 
-        for ($i = 0; $i < $count; $i += static::FETCH_COUNT) {
-            $runningJobs = $repository->findBy($criterion, null, static::FETCH_COUNT, $i);
+        $metadata = $this->getObjectManager()->getClassMetadata($this->getJobClass());
+        $identifierData = $metadata->getIdentifier();
+        $idColumn = isset($identifierData[0]) ? $identifierData[0] : 'id';
+
+        $fetchCount = $this->getFetchCount($count);
+        for ($i = 0; $i < $count; $i += $fetchCount) {
+            $runningJobs = $repository->findBy($criterion, [$idColumn => 'ASC'], $fetchCount, $i);
             if (!empty($runningJobs)) {
                 foreach ($runningJobs as $job) {
                     /** @var StallableJob $job */
-                    if (null !== $runId = $job->getRunId()) {
-                        $runningJobsById[$runId][] = $job;
-                    }
+                    $runId = $job->getRunId();
+                    $runningJobsById[$runId][] = $job;
                 }
             }
         }
@@ -153,6 +162,10 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
     {
         $stalledJobs = [];
         foreach (array_keys($runningJobsById) as $runId) {
+            if (!$runId && 0 !== $runId) {
+                $stalledJobs = array_merge($stalledJobs, $runningJobsById[$runId]);
+                continue;
+            }
             $this->extractStalledLiveRuns($runId, $runningJobsById[$runId], $stalledJobs);
             $this->extractStalledJobsRunArchive($runningJobsById, $stalledJobs, $runId);
         }
@@ -183,10 +196,18 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
         }
     }
 
-    protected function runStalledLoop($i, $count, array $stalledJobs)
+    /**
+     * @param int   $i
+     * @param int   $count
+     * @param int   $saveCount
+     * @param array $stalledJobs
+     *
+     * @return int
+     */
+    protected function runStalledLoop($i, $count, $saveCount, array $stalledJobs)
     {
         $resetCount = 0;
-        for ($j = $i, $max = $i + static::FETCH_COUNT; $j < $max && $j < $count; ++$j) {
+        for ($j = $i, $max = $i + $saveCount; $j < $max && $j < $count; ++$j) {
             /* StallableJob $job */
             $job = $stalledJobs[$j];
             $job->setStatus(StallableJob::STATUS_STALLED);
@@ -198,34 +219,40 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
         return $resetCount;
     }
 
-    public function resetStalledJobs($workerName = null, $method = null)
+    public function resetStalledJobs($workerName = null, $method = null, callable $progressCallback = null)
     {
         $stalledJobs = $this->getStalledJobs($workerName, $method);
-
+        $stalledJobsCount = count($stalledJobs);
+        $this->updateProgress($progressCallback, 0, $stalledJobsCount);
         $countReset = 0;
-        for ($i = 0, $count = count($stalledJobs); $i < $count; $i += static::FETCH_COUNT) {
-            $resetCount = $this->runStalledLoop($i, $count, $stalledJobs);
-            for ($j = $i, $max = $i + static::FETCH_COUNT; $j < $max && $j < $count; ++$j) {
+        $saveCount = $this->getSaveCount($stalledJobsCount);
+        for ($i = 0; $i < $stalledJobsCount; $i += $saveCount) {
+            $resetCount = $this->runStalledLoop($i, $stalledJobsCount, $saveCount, $stalledJobs);
+            for ($j = $i, $max = $i + $saveCount; $j < $max && $j < $stalledJobsCount; ++$j) {
                 $this->jobTiminigManager->recordTiming(JobTiming::STATUS_FINISHED_STALLED);
             }
             $countReset += $resetCount;
             $this->flush();
+            $this->updateProgress($progressCallback, $countReset, $stalledJobsCount);
         }
 
         return $countReset;
     }
 
     /**
-     * @param string $workerName
-     * @param string $method
+     * @param string        $workerName
+     * @param string        $method
+     * @param callable|null $progressCallback
      */
-    public function pruneStalledJobs($workerName = null, $method = null)
+    public function pruneStalledJobs($workerName = null, $method = null, callable $progressCallback = null)
     {
         $stalledJobs = $this->getStalledJobs($workerName, $method);
-
+        $stalledJobsCount = count($stalledJobs);
+        $this->updateProgress($progressCallback, 0, $stalledJobsCount);
         $countProcessed = 0;
-        for ($i = 0, $count = count($stalledJobs); $i < $count; $i += static::FETCH_COUNT) {
-            for ($j = $i, $max = $i + static::FETCH_COUNT; $j < $max && $j < $count; ++$j) {
+        $saveCount = $this->getSaveCount($stalledJobsCount);
+        for ($i = 0; $i < $stalledJobsCount; $i += $saveCount) {
+            for ($j = $i, $max = $i + $saveCount; $j < $max && $j < $stalledJobsCount; ++$j) {
                 /** @var StallableJob $job */
                 $job = $stalledJobs[$j];
                 $job->setStatus(StallableJob::STATUS_STALLED);
@@ -234,6 +261,7 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
                 ++$countProcessed;
             }
             $this->flush();
+            $this->updateProgress($progressCallback, $countProcessed, $stalledJobsCount);
         }
 
         return $countProcessed;
@@ -372,5 +400,5 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
 
     abstract public function countLiveJobs($workerName = null, $methodName = null);
 
-    abstract public function archiveAllJobs($workerName = null, $methodName = null, $progressCallback);
+    abstract public function archiveAllJobs($workerName = null, $methodName = null, callable $progressCallback = null);
 }

@@ -2,10 +2,12 @@
 
 namespace Dtc\QueueBundle\Tests;
 
-use Dtc\QueueBundle\Manager\AbstractJobManager;
+use Dtc\QueueBundle\Manager\StallableJobManager;
 use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\RetryableJob;
+use Dtc\QueueBundle\Model\StallableJob;
 
-class StubJobManager extends AbstractJobManager
+class StubJobManager extends StallableJobManager
 {
     use RecordingTrait;
 
@@ -20,6 +22,21 @@ class StubJobManager extends AbstractJobManager
     }
 
     public function save(Job $job)
+    {
+        return $this->recordArgs(__FUNCTION__, func_get_args());
+    }
+
+    protected function stallableSave(StallableJob $job)
+    {
+        return $this->recordArgs(__FUNCTION__, func_get_args());
+    }
+
+    protected function resetJob(RetryableJob $job)
+    {
+        return $this->recordArgs(__FUNCTION__, func_get_args());
+    }
+
+    protected function stallableSaveHistory(StallableJob $job, $retry)
     {
         return $this->recordArgs(__FUNCTION__, func_get_args());
     }
@@ -39,7 +56,7 @@ class StubJobManager extends AbstractJobManager
         return $this->recordArgs(__FUNCTION__, func_get_args());
     }
 
-    public function pruneStalledJobs($workerName = null, $method = null)
+    public function pruneStalledJobs($workerName = null, $method = null, callable $progressCallback = null)
     {
         return $this->recordArgs(__FUNCTION__, func_get_args());
     }
@@ -49,7 +66,7 @@ class StubJobManager extends AbstractJobManager
         return $this->recordArgs(__FUNCTION__, func_get_args());
     }
 
-    public function getJobCount($workerName = null, $methodName = null)
+    public function getWaitingJobCount($workerName = null, $methodName = null)
     {
         return $this->recordArgs(__FUNCTION__, func_get_args());
     }
@@ -64,7 +81,7 @@ class StubJobManager extends AbstractJobManager
         return $this->recordArgs(__FUNCTION__, func_get_args());
     }
 
-    public function resetStalledJobs($workerName = null, $method = null)
+    public function resetStalledJobs($workerName = null, $method = null, callable $progressCallback = null)
     {
         return $this->recordArgs(__FUNCTION__, func_get_args());
     }

@@ -16,6 +16,16 @@ abstract class RetryableJobManager extends AbstractJobManager
     protected $autoRetryOnFailure;
     protected $autoRetryOnException;
 
+    public static function getAllStatuses()
+    {
+        $statuses = parent::getAllStatuses();
+        $statuses[RetryableJob::STATUS_MAX_RETRIES] = 0;
+        $statuses[RetryableJob::STATUS_MAX_FAILURES] = 0;
+        $statuses[RetryableJob::STATUS_MAX_EXCEPTIONS] = 0;
+
+        return $statuses;
+    }
+
     abstract protected function retryableSave(RetryableJob $job);
 
     /**

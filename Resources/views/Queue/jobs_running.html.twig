@@ -1,4 +1,5 @@
 {% extends "DtcGridBundle:Page:datatables.html.twig" %}
+{% import "DtcQueueBundle:Queue:macros.html.twig" as queue_macros %}
 {% block title %}DtcQueue - Admin - Running Jobs{% endblock %}
 {% block grid %}
     {% include 'DtcQueueBundle:Queue:nav.html.twig' %}
@@ -6,4 +7,5 @@
     <h3>Running Jobs</h3>
     <h4><em>(Including Stalled Jobs)</em></h4>
     {{ dtc_grid.render | raw }}
+    {{ queue_macros.archive_button('Prune Stalled', 'dtc_queue_prune_stalled', worker_methods, prompt_message) }}
 {% endblock %}

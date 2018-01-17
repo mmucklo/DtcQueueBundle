@@ -12,6 +12,8 @@ interface RedisInterface
 
     public function zPop($key);
 
+    public function zCount($key, $min, $max);
+
     /**
      * @param $key
      * @param $value

@@ -51,6 +51,7 @@ class PredisPhpRedisTest extends \PHPUnit\Framework\TestCase
             $this->zRem($connection);
             $this->zPop($connection);
             $this->zPopByMaxScore($connection);
+            $this->zCount($connection);
         }
     }
 
@@ -151,6 +152,25 @@ class PredisPhpRedisTest extends \PHPUnit\Framework\TestCase
         self::assertEquals(1, $result);
         $result = $redis->zAdd('test_zkey', 2, 'a');
         self::assertEquals(0, $result);
+    }
+
+    public function zCount(RedisInterface $redis)
+    {
+        $redis->del(['test_zkey']);
+        $count = $redis->zCount('test_zkey', '-inf', '+inf');
+        self::assertEquals(0, $count);
+        $redis->zAdd('test_zkey', 1, 'a');
+        $count = $redis->zCount('test_zkey', '-inf', '+inf');
+        self::assertEquals(1, $count);
+        $count = $redis->zCount('test_zkey', 2, '+inf');
+        self::assertEquals(0, $count);
+        $redis->zAdd('test_zkey', 2, 'b');
+        $count = $redis->zCount('test_zkey', '-inf', '+inf');
+        self::assertEquals(2, $count);
+        $count = $redis->zCount('test_zkey', 2, '+inf');
+        self::assertEquals(1, $count);
+        $count = $redis->zCount('test_zkey', 0, 1);
+        self::assertEquals(1, $count);
     }
 
     public function zRem(RedisInterface $redis)

@@ -9,8 +9,6 @@ use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Dtc\QueueBundle\Entity\Job;
 use Dtc\QueueBundle\Exception\UnsupportedException;
 use Dtc\QueueBundle\Model\BaseJob;
-use Dtc\QueueBundle\Model\RetryableJob;
-use Dtc\QueueBundle\Model\StallableJob;
 use Dtc\QueueBundle\Util\Util;
 use Symfony\Component\Process\Exception\LogicException;
 
@@ -142,7 +140,7 @@ class JobManager extends DoctrineJobManager
         );
     }
 
-    public function getJobCount($workerName = null, $method = null)
+    public function getWaitingJobCount($workerName = null, $method = null)
     {
         /** @var EntityManager $objectManager */
         $objectManager = $this->getObjectManager();
@@ -150,36 +148,8 @@ class JobManager extends DoctrineJobManager
 
         $queryBuilder = $queryBuilder->select('count(j)')->from($this->getJobClass(), 'j');
 
-        $where = 'where';
-        if (null !== $workerName) {
-            if (null !== $method) {
-                $queryBuilder->where($queryBuilder->expr()->andX(
-                    $queryBuilder->expr()->eq('j.workerName', ':workerName'),
-                                                $queryBuilder->expr()->eq('j.method', ':method')
-                ))
-                    ->setParameter(':method', $method);
-            } else {
-                $queryBuilder->where('j.workerName = :workerName');
-            }
-            $queryBuilder->setParameter(':workerName', $workerName);
-            $where = 'andWhere';
-        } elseif (null !== $method) {
-            $queryBuilder->where('j.method = :method')->setParameter(':method', $method);
-            $where = 'andWhere';
-        }
-
-        // Filter
-        $queryBuilder
-            ->$where($queryBuilder->expr()->orX(
-                $queryBuilder->expr()->isNull('j.whenUs'),
-                                        $queryBuilder->expr()->lte('j.whenUs', ':whenUs')
-            ))
-            ->andWhere($queryBuilder->expr()->orX(
-                $queryBuilder->expr()->isNull('j.expiresAt'),
-                $queryBuilder->expr()->gt('j.expiresAt', ':expiresAt')
-            ))
-            ->setParameter(':whenUs', Util::getMicrotimeDecimal())
-            ->setParameter(':expiresAt', Util::getMicrotimeDateTime());
+        $this->addWorkerNameCriterion($queryBuilder, $workerName, $method);
+        $this->addStandardPredicate($queryBuilder);
 
         $query = $queryBuilder->getQuery();
 
@@ -223,17 +193,7 @@ class JobManager extends DoctrineJobManager
         foreach ($result1 as $item) {
             $method = $item['workerName'].'->'.$item['method'].'()';
             if (!isset($result[$method])) {
-                $result[$method] = [BaseJob::STATUS_NEW => 0,
-                    BaseJob::STATUS_RUNNING => 0,
-                    BaseJob::STATUS_SUCCESS => 0,
-                    BaseJob::STATUS_FAILURE => 0,
-                    BaseJob::STATUS_EXCEPTION => 0,
-                    StallableJob::STATUS_STALLED => 0,
-                    \Dtc\QueueBundle\Model\Job::STATUS_EXPIRED => 0,
-                    RetryableJob::STATUS_MAX_FAILURES => 0,
-                    RetryableJob::STATUS_MAX_EXCEPTIONS => 0,
-                    StallableJob::STATUS_MAX_STALLS => 0,
-                    RetryableJob::STATUS_MAX_RETRIES => 0, ];
+                $result[$method] = static::getAllStatuses();
             }
             $result[$method][$item['status']] += intval($item['c']);
         }
@@ -296,13 +256,13 @@ class JobManager extends DoctrineJobManager
         return $queryBuilder;
     }
 
-    protected function addStandardPredicate(QueryBuilder $queryBuilder)
+    protected function addStandardPredicate(QueryBuilder $queryBuilder, $status = BaseJob::STATUS_NEW)
     {
         $dateTime = Util::getMicrotimeDateTime();
         $decimal = Util::getMicrotimeDecimalFormat($dateTime);
 
         $queryBuilder
-            ->where('j.status = :status')->setParameter(':status', BaseJob::STATUS_NEW)
+            ->where('j.status = :status')->setParameter(':status', $status)
             ->andWhere($queryBuilder->expr()->orX(
                 $queryBuilder->expr()->isNull('j.whenUs'),
                 $queryBuilder->expr()->lte('j.whenUs', ':whenUs')
@@ -422,12 +382,12 @@ class JobManager extends DoctrineJobManager
         return $existingJob;
     }
 
-    public function getWorkersAndMethods()
+    public function getWorkersAndMethods($status = BaseJob::STATUS_NEW)
     {
         /** @var EntityRepository $repository */
         $repository = $this->getRepository();
         $queryBuilder = $repository->createQueryBuilder('j');
-        $this->addStandardPredicate($queryBuilder);
+        $this->addStandardPredicate($queryBuilder, $status);
         $queryBuilder
             ->select('DISTINCT j.workerName, j.method');
 
@@ -460,11 +420,11 @@ class JobManager extends DoctrineJobManager
     }
 
     /**
-     * @param string   $workerName
-     * @param string   $methodName
-     * @param \Closure $progressCallback
+     * @param string        $workerName
+     * @param string        $methodName
+     * @param callable|null $progressCallback
      */
-    public function archiveAllJobs($workerName = null, $methodName = null, $progressCallback)
+    public function archiveAllJobs($workerName = null, $methodName = null, callable $progressCallback = null)
     {
         // First mark all Live non-running jobs as Archive
         $repository = $this->getRepository();
@@ -488,11 +448,11 @@ class JobManager extends DoctrineJobManager
      *  This is a bit of a hack to run a lower level query so as to process the INSERT INTO SELECT
      *   All on the server as "INSERT INTO SELECT" is not supported natively in Doctrine.
      *
-     * @param string|null $workerName
-     * @param string|null $methodName
-     * @param \Closure    $progressCallback
+     * @param string|null   $workerName
+     * @param string|null   $methodName
+     * @param callable|null $progressCallback
      */
-    protected function runArchive($workerName = null, $methodName = null, $progressCallback)
+    protected function runArchive($workerName = null, $methodName = null, callable $progressCallback = null)
     {
         /** @var EntityManager $entityManager */
         $entityManager = $this->getObjectManager();
@@ -514,11 +474,11 @@ class JobManager extends DoctrineJobManager
                 ++$count;
                 if (0 == $count % 10) {
                     $this->flush();
-                    $progressCallback($count);
+                    $this->updateProgress($progressCallback, $count);
                 }
             }
             $this->flush();
-            $progressCallback($count);
+            $this->updateProgress($progressCallback, $count);
         } while (!empty($results) && 10000 == count($results));
     }
 }

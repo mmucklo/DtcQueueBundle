@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Manager;
 
 use Dtc\QueueBundle\Exception\UnsupportedException;
+use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 
 abstract class AbstractJobManager implements JobManagerInterface
@@ -16,6 +17,32 @@ abstract class AbstractJobManager implements JobManagerInterface
         $this->runManager = $runManager;
         $this->jobTiminigManager = $jobTimingManager;
         $this->jobClass = $jobClass;
+    }
+
+    /**
+     * @return array
+     */
+    public static function getAllStatuses()
+    {
+        return [
+                BaseJob::STATUS_NEW => 0,
+                BaseJob::STATUS_RUNNING => 0,
+                BaseJob::STATUS_SUCCESS => 0,
+                BaseJob::STATUS_FAILURE => 0,
+                BaseJob::STATUS_EXCEPTION => 0,
+                \Dtc\QueueBundle\Model\Job::STATUS_EXPIRED => 0, ];
+    }
+
+    public function getStatus()
+    {
+        $count = $this->getWaitingJobCount();
+        $allStatuses = static::getAllStatuses();
+        foreach (array_keys($allStatuses) as $status) {
+            $allStatuses[$status] = 'unknown';
+        }
+        $allStatuses[BaseJob::STATUS_NEW] = $count;
+
+        return ['all' => $allStatuses];
     }
 
     /**
@@ -48,16 +75,6 @@ abstract class AbstractJobManager implements JobManagerInterface
 
     abstract public function saveHistory(Job $job);
 
-    public function resetStalledJobs($workerName = null, $method = null)
-    {
-        throw new UnsupportedException('Unsupported');
-    }
-
-    public function pruneStalledJobs($workerName = null, $method = null)
-    {
-        throw new UnsupportedException('Unsupported');
-    }
-
     public function resetExceptionJobs($workerName = null, $methodName = null)
     {
         throw new UnsupportedException('Unsupported');
@@ -68,17 +85,7 @@ abstract class AbstractJobManager implements JobManagerInterface
         throw new UnsupportedException('Unsupported');
     }
 
-    /**
-     * @return array
-     *
-     * @throws UnsupportedException
-     */
-    public function getStatus()
-    {
-        throw new UnsupportedException('Unsupported');
-    }
-
-    public function getJobCount($workerName = null, $methodName = null)
+    public function getWaitingJobCount($workerName = null, $methodName = null)
     {
         throw new UnsupportedException('Unsupported');
     }

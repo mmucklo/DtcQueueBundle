@@ -484,6 +484,14 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
     {
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
+        $limit = 10000;
+        while ($job = $jobManager->getJob() && $limit) {
+            $jobManager->delete($job);
+            --$limit;
+        }
+        self::assertGreaterThan(0, $limit);
+        $jobManager->pruneStalledJobs();
+
         $id = $this->createStalledJob(true, false);
 
         $objectManager = $jobManager->getObjectManager();

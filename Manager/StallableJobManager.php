@@ -12,6 +12,19 @@ abstract class StallableJobManager extends PriorityJobManager
 
     abstract protected function stallableSave(StallableJob $job);
 
+    abstract public function pruneStalledJobs($workerName = null, $method = null, callable $progressCallback = null);
+
+    abstract public function resetStalledJobs($workerName = null, $method = null, callable $progressCallback = null);
+
+    public static function getAllStatuses()
+    {
+        $statuses = parent::getAllStatuses();
+        $statuses[StallableJob::STATUS_STALLED] = 0;
+        $statuses[StallableJob::STATUS_MAX_STALLS] = 0;
+
+        return $statuses;
+    }
+
     protected function prioritySave(Job $job)
     {
         if (!$job instanceof StallableJob) {
