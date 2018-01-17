@@ -38,7 +38,7 @@ abstract class AbstractJobManager implements JobManagerInterface
         $count = $this->getWaitingJobCount();
         $allStatuses = static::getAllStatuses();
         foreach (array_keys($allStatuses) as $status) {
-            $allStatuses[$status] = 'unknown';
+            $allStatuses[$status] = 'N/A';
         }
         $allStatuses[BaseJob::STATUS_NEW] = $count;
 
