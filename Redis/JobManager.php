@@ -396,6 +396,18 @@ class JobManager extends PriorityJobManager
         return null;
     }
 
+    public function getWaitingJobCount($workerName = null, $methodName = null)
+    {
+        $microtime = Util::getMicrotimeDecimal();
+        $count = $this->redis->zCount($this->getWhenQueueCacheKey(), 0, $microtime);
+
+        if (null !== $this->maxPriority) {
+            $count += $this->redis->zCount($this->getPriorityQueueCacheKey(), '-inf', '+inf');
+        }
+
+        return $count;
+    }
+
     public function resetJob(RetryableJob $job)
     {
         if (!$job instanceof Job) {

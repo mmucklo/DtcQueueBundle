@@ -2,7 +2,6 @@
 
 namespace Dtc\QueueBundle\Command;
 
-use Dtc\QueueBundle\Beanstalkd\JobManager;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -21,24 +20,40 @@ class CountCommand extends ContainerAwareCommand
         $container = $this->getContainer();
         $jobManager = $container->get('dtc_queue.manager.job');
 
-        if ($jobManager instanceof JobManager) {
-            $output->writeln(print_r($jobManager->getStats(), true));
-
-            return 0;
-        }
-
-        $count = $jobManager->getJobCount();
-
-        $format = '%-50s %8s %8s %8s %8s';
+        $waitingCount = $jobManager->getWaitingJobCount();
         $status = $jobManager->getStatus();
-        $msg = sprintf($format, 'Job name', 'Success', 'New', 'Running', 'Exception');
-        $output->writeln($msg);
 
-        foreach ($status as $func => $info) {
-            $msg = sprintf($format, $func, $info['success'], $info['new'], $info['running'], $info['exception']);
+        $firstJob = key($status);
+        if ($firstJob) {
+            $jobKeys = array_keys($status);
+            $maxLength = max(array_map(function ($item) {
+                return strlen($item ?: '');
+            }, $jobKeys));
+            $formatLen = $maxLength > 50 ? 50 : $maxLength;
+            $formatMinLen = strlen('Job name') + 1;
+            $formatLen = $formatLen < $formatMinLen ? $formatMinLen : $formatLen;
+            $format = '%-'.$formatLen.'s';
+            $headingArgs = ['Job name'];
+            $initialKeys = array_keys($status[$firstJob]);
+            foreach ($initialKeys as $statusName) {
+                $headingStr = ucwords(str_replace('_', ' ', $statusName));
+                $format .= ' %'.(1 + strlen($headingStr)).'s';
+                $headingArgs[] = $headingStr;
+            }
+            array_unshift($headingArgs, $format);
+            $msg = call_user_func_array('sprintf', $headingArgs);
             $output->writeln($msg);
+
+            foreach ($status as $func => $info) {
+                $lineArgs = [$format, $func];
+                foreach ($initialKeys as $statusKey) {
+                    $lineArgs[] = $info[$statusKey];
+                }
+                $msg = call_user_func_array('sprintf', $lineArgs);
+                $output->writeln($msg);
+            }
         }
 
-        $output->writeln("Total jobs: {$count}");
+        $output->writeln("Total waiting jobs: {$waitingCount}");
     }
 }

@@ -17,6 +17,11 @@ class Predis implements RedisInterface
         $this->maxRetries = $maxRetries;
     }
 
+    public function zCount($key, $min, $max)
+    {
+        return $this->predis->zcount($key, $min, $max);
+    }
+
     public function zAdd($zkey, $score, $value)
     {
         return $this->predis->zadd($zkey, [$value => $score]);

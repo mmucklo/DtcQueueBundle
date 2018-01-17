@@ -122,7 +122,7 @@ class PruneCommandTest extends TestCase
         self::assertGreaterThanOrEqual(28, intval($result));
         self::assertLessThanOrEqual(31, intval($result));
         $result = $this->getPruneCommandOlderDateDays('1y', $type, $call);
-        self::assertGreaterThanOrEqual(365, intval($result));
+        self::assertGreaterThanOrEqual(364, intval($result));
         self::assertLessThanOrEqual(366, intval($result));
 
         // Test by time

@@ -1,9 +1,8 @@
 <?php
 
-namespace Dtc\QueueBundle\ODM;
+namespace Dtc\QueueBundle\Tests\ODM;
 
 use Dtc\QueueBundle\Document\RunArchive;
-use Dtc\QueueBundle\Tests\ODM\JobManagerTest;
 use PHPUnit\Framework\TestCase;
 
 class RunManagerTest extends TestCase

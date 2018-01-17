@@ -160,6 +160,13 @@ class JobManager extends RetryableJobManager
         }
     }
 
+    public function getWaitingJobCount($workerName = null, $methodName = null)
+    {
+        $stats = $this->getStats();
+
+        return isset($stats['current-jobs-ready']) ? $stats['current-jobs-ready'] : 0;
+    }
+
     public function getStats()
     {
         return $this->beanstalkd->stats();

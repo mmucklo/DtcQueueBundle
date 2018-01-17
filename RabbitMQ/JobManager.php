@@ -291,6 +291,22 @@ class JobManager extends PriorityJobManager
         return;
     }
 
+    public function getWaitingJobCount($workerName = null, $methodName = null)
+    {
+        $this->setupChannel();
+
+        if ($workerName) {
+            throw new UnsupportedException('Waiting Job Count by $workerName is not supported');
+        }
+        if ($methodName) {
+            throw new UnsupportedException('Waiting Job Count by $methodName is not supported');
+        }
+
+        $count = call_user_func_array([$this->channel, 'queue_declare'], $this->queueArgs);
+
+        return isset($count[1]) ? $count[1] : 0;
+    }
+
     public function __destruct()
     {
         // There's some kind of problem trying to close the channel, otherwise we'd call $this->channel->close() at this point.

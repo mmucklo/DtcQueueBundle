@@ -17,7 +17,15 @@ interface JobManagerInterface
      */
     public function pruneExpiredJobs($workerName = null, $methodName = null);
 
-    public function getJobCount($workerName = null, $methodName = null);
+    /**
+     * Returns the number of "Waiting" jobs.
+     *
+     * @param null $workerName
+     * @param null $methodName
+     *
+     * @return mixed
+     */
+    public function getWaitingJobCount($workerName = null, $methodName = null);
 
     public function getStatus();
 
@@ -33,10 +41,6 @@ interface JobManagerInterface
      * @param Job $job
      */
     public function saveHistory(Job $job);
-
-    public function resetStalledJobs($workerName = null, $method = null);
-
-    public function pruneStalledJobs($workerName = null, $method = null);
 
     /**
      * @return JobTimingManager

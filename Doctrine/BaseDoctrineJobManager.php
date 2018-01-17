@@ -10,6 +10,12 @@ use Dtc\QueueBundle\Manager\RunManager;
 
 abstract class BaseDoctrineJobManager extends ArchivableJobManager
 {
+    /** Number of jobs to prune / reset / gather at a time */
+    const FETCH_COUNT_MIN = 100;
+    const FETCH_COUNT_MAX = 500;
+    const SAVE_COUNT_MIN = 10;
+    const SAVE_COUNT_MAX = 100;
+
     /**
      * @var ObjectManager
      */
@@ -33,6 +39,32 @@ abstract class BaseDoctrineJobManager extends ArchivableJobManager
     ) {
         $this->objectManager = $objectManager;
         parent::__construct($runManager, $jobTimingManager, $jobClass, $jobArchiveClass);
+    }
+
+    protected function getFetchCount($totalCount)
+    {
+        $fetchCount = intval($totalCount / 10);
+        if ($fetchCount < self::FETCH_COUNT_MIN) {
+            $fetchCount = self::FETCH_COUNT_MIN;
+        }
+        if ($fetchCount > self::FETCH_COUNT_MAX) {
+            $fetchCount = self::FETCH_COUNT_MAX;
+        }
+
+        return $fetchCount;
+    }
+
+    protected function getSaveCount($totalCount)
+    {
+        $saveCount = intval($totalCount / 10);
+        if ($saveCount < self::SAVE_COUNT_MIN) {
+            $saveCount = self::SAVE_COUNT_MIN;
+        }
+        if ($saveCount > self::SAVE_COUNT_MAX) {
+            $saveCount = self::SAVE_COUNT_MAX;
+        }
+
+        return $saveCount;
     }
 
     /**

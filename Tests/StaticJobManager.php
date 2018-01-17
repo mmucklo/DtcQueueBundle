@@ -25,7 +25,7 @@ class StaticJobManager extends AbstractJobManager
         parent::__construct($runManager, $jobTimingManager, $jobClass);
     }
 
-    public function getJobCount($workerName = null, $methodName = null)
+    public function getWaitingJobCount($workerName = null, $methodName = null)
     {
         if ($workerName && isset($this->jobs[$workerName])) {
             return count($this->jobs[$workerName]);

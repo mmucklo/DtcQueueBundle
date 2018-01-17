@@ -1,3 +1,6 @@
+### 4.1.0
+   * Enable bin/console dtc:queue:count counts on Redis / RabbitMq / Beanstalkd.
+   * Add a Prune Stalled button on Running jobs page.
 ### 4.0.3
    * Another fix around issue #36
 ### 4.0.2

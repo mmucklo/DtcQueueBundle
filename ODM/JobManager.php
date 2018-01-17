@@ -7,8 +7,6 @@ use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Dtc\QueueBundle\Document\Job;
 use Dtc\QueueBundle\Model\BaseJob;
-use Dtc\QueueBundle\Model\RetryableJob;
-use Dtc\QueueBundle\Model\StallableJob;
 use Dtc\QueueBundle\Util\Util;
 
 class JobManager extends DoctrineJobManager
@@ -120,23 +118,18 @@ class JobManager extends DoctrineJobManager
         return $this->removeOlderThan($this->getJobArchiveClass(), 'updatedAt', $olderThan);
     }
 
-    public function getJobCount($workerName = null, $method = null)
+    public function getWaitingJobCount($workerName = null, $method = null)
     {
         /** @var DocumentManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $qb = $objectManager->createQueryBuilder($this->getJobClass());
-        $qb
+        $builder = $objectManager->createQueryBuilder($this->getJobClass());
+        $builder
             ->find();
 
-        $this->addWorkerNameCriterion($qb, $workerName, $method);
+        $this->addWorkerNameCriterion($builder, $workerName, $method);
+        $this->addStandardPredicates($builder);
 
-        // Filter
-        $date = Util::getMicrotimeDateTime();
-        $qb
-            ->addAnd(
-                $qb->expr()->addOr($qb->expr()->field('expiresAt')->equals(null), $qb->expr()->field('expiresAt')->gt($date))
-            );
-        $query = $qb->getQuery();
+        $query = $builder->getQuery();
 
         return $query->count(true);
     }
@@ -160,25 +153,13 @@ class JobManager extends DoctrineJobManager
         $reduceFunc = self::REDUCE_FUNCTION;
         /** @var DocumentManager $objectManager */
         $objectManager = $this->getObjectManager();
-        $qb = $objectManager->createQueryBuilder($documentName);
-        $qb->map($mapFunc)
+        $builder = $objectManager->createQueryBuilder($documentName);
+        $builder->map($mapFunc)
             ->reduce($reduceFunc);
-        $query = $qb->getQuery();
+        $query = $builder->getQuery();
         $results = $query->execute();
 
-        $allStatus = array(
-            BaseJob::STATUS_NEW => 0,
-            BaseJob::STATUS_RUNNING => 0,
-            BaseJob::STATUS_SUCCESS => 0,
-            BaseJob::STATUS_FAILURE => 0,
-            BaseJob::STATUS_EXCEPTION => 0,
-            StallableJob::STATUS_STALLED => 0,
-            \Dtc\QueueBundle\Model\Job::STATUS_EXPIRED => 0,
-            RetryableJob::STATUS_MAX_FAILURES => 0,
-            RetryableJob::STATUS_MAX_EXCEPTIONS => 0,
-            RetryableJob::STATUS_MAX_RETRIES => 0,
-            StallableJob::STATUS_MAX_STALLS => 0,
-        );
+        $allStatus = static::getAllStatuses();
 
         $status = [];
 
@@ -383,11 +364,11 @@ class JobManager extends DoctrineJobManager
     }
 
     /**
-     * @param string   $workerName
-     * @param string   $methodName
-     * @param \Closure $progressCallback
+     * @param string        $workerName
+     * @param string        $methodName
+     * @param callable|null $progressCallback
      */
-    public function archiveAllJobs($workerName = null, $methodName = null, $progressCallback)
+    public function archiveAllJobs($workerName = null, $methodName = null, callable $progressCallback = null)
     {
         /** @var DocumentManager $documentManager */
         $documentManager = $this->getObjectManager();
@@ -407,11 +388,11 @@ class JobManager extends DoctrineJobManager
 
                 if (0 == $count % 10) {
                     $this->flush();
-                    $progressCallback($count);
+                    $this->updateProgress($progressCallback, $count);
                 }
             }
         } while ($job);
         $this->flush();
-        $progressCallback($count);
+        $this->updateProgress($progressCallback, $count);
     }
 }

@@ -13,6 +13,11 @@ class PhpRedis implements RedisInterface
         $this->maxRetries = $maxRetries;
     }
 
+    public function zCount($key, $min, $max)
+    {
+        return $this->redis->zCount($key, $min, $max);
+    }
+
     public function zAdd($zkey, $score, $value)
     {
         return $this->redis->zadd($zkey, $score, $value);

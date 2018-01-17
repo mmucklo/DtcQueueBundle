@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Tests\RabbitMQ;
 
+use Dtc\QueueBundle\Exception\UnsupportedException;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
@@ -52,14 +53,7 @@ class JobManagerTest extends BaseJobManagerTest
         self::$worker = new FibonacciWorker();
         self::$jobManager->setupChannel();
         $channel = self::$jobManager->getChannel();
-        $drained = 0;
-        do {
-            $message = $channel->basic_get('dtc_queue');
-            if ($message) {
-                $channel->basic_ack($message->delivery_info['delivery_tag']);
-                ++$drained;
-            }
-        } while ($message);
+        $drained = self::drainQueue($channel);
 
         if ($drained) {
             echo "\nRabbitMQ - drained $drained prior to start of test";
@@ -256,5 +250,65 @@ class JobManagerTest extends BaseJobManagerTest
         }
         self::assertFalse($failed);
         self::$jobManager->saveHistory($jobInQueue);
+    }
+
+    protected static function drainQueue($channel)
+    {
+        $drained = 0;
+        do {
+            $message = $channel->basic_get('dtc_queue');
+            if ($message) {
+                $channel->basic_ack($message->delivery_info['delivery_tag']);
+                ++$drained;
+            }
+        } while ($message);
+
+        return $drained;
+    }
+
+    public function testGetWaitingJobCount()
+    {
+        /** @var JobManager $jobManager */
+        $jobManager = self::$jobManager;
+        self::drainQueue($jobManager->getChannel());
+
+        $job = new self::$jobClass(self::$worker, false, null);
+        $job->fibonacci(1);
+        self::assertNotNull($job->getId(), 'Job id should be generated');
+
+        self::assertEquals(1, self::getWaitingJobCount(2));
+
+        $failure = false;
+        try {
+            $jobManager->getWaitingJobCount('fibonacci');
+            $failure = true;
+        } catch (UnsupportedException $exception) {
+            self::assertTrue(true);
+        }
+        self::assertFalse($failure);
+
+        $failure = false;
+        try {
+            $jobManager->getWaitingJobCount(null, 'fibonacci');
+            $failure = true;
+        } catch (UnsupportedException $exception) {
+            self::assertTrue(true);
+        }
+        self::assertFalse($failure);
+
+        $failure = false;
+        try {
+            $jobManager->getWaitingJobCount('fibonacci', 'fibonacci');
+            $failure = true;
+        } catch (UnsupportedException $exception) {
+            self::assertTrue(true);
+        }
+        self::assertFalse($failure);
+
+        $job = new self::$jobClass(self::$worker, false, null);
+        $job->fibonacci(1);
+        self::assertNotNull($job->getId(), 'Job id should be generated');
+
+        self::assertEquals(2, self::getWaitingJobCount(2));
     }
 }

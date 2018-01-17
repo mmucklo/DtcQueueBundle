@@ -40,7 +40,7 @@
   function promptArchive() {
     var workerName = getSelected(workerNameElement);
     var method = getSelected(methodElement);
-    var message = "Are you sure?\n\nThis will archive all non-running jobs";
+    var message = "Are you sure?\n\n" + promptMessage;
     if (workerName) {
       message += " of worker '" + workerName + "'";
     }
@@ -102,6 +102,7 @@
         for (var i = 0, len = lines.length; i < len; i++) {
           if (lines[i]) {
             var json = JSON.parse(lines[i]);
+            console.log("received", json);
             if (json) {
               if (json.total !== undefined) {
                 if (json.total === 0) {
