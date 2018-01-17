@@ -294,7 +294,7 @@ class JobManager extends PriorityJobManager
     public function getWaitingJobCount($workerName = null, $methodName = null)
     {
         $this->setupChannel();
-        
+
         if ($workerName) {
             throw new UnsupportedException('Waiting Job Count by $workerName is not supported');
         }
