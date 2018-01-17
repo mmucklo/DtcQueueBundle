@@ -102,7 +102,7 @@ class QueueController extends Controller
      *
      * @throws UnsupportedException
      */
-    public function streamResults(Request $request, $functionName)
+    protected function streamResults(Request $request, $functionName)
     {
         $jobManager = $this->get('dtc_queue.manager.job');
         if (!$jobManager instanceof DoctrineJobManager) {
