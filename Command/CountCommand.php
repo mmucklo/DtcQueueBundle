@@ -30,6 +30,8 @@ class CountCommand extends ContainerAwareCommand
                 return strlen($item ?: '');
             }, $jobKeys));
             $formatLen = $maxLength > 50 ? 50 : $maxLength;
+            $formatMinLen = strlen('Job name') + 1;
+            $formatLen = $formatLen < $formatMinLen ? $formatMinLen : $formatLen;
             $format = '%-'.$formatLen.'s';
             $headingArgs = ['Job name'];
             $initialKeys = array_keys($status[$firstJob]);
