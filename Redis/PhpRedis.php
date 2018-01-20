@@ -33,6 +33,16 @@ class PhpRedis implements RedisInterface
         return $this->redis->get($key);
     }
 
+    public function hIncrBy($key, $hashKey, $value)
+    {
+        return $this->redis->hIncrBy($key, $hashKey, $value);
+    }
+
+    public function hGetAll($key)
+    {
+        return $this->redis->hGetAll($key);
+    }
+
     public function setEx($key, $seconds, $value)
     {
         return $this->redis->setex($key, $seconds, $value);

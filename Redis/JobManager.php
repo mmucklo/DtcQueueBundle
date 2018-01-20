@@ -69,6 +69,11 @@ class JobManager extends PriorityJobManager
         return $this->cacheKeyPrefix.'_when';
     }
 
+    protected function getStatusCacheKey()
+    {
+        return $this->cacheKeyPrefix.'_status';
+    }
+
     protected function transferQueues()
     {
         // Drains from WhenAt queue into Prioirty Queue
@@ -425,5 +430,7 @@ class JobManager extends PriorityJobManager
 
     public function retryableSaveHistory(RetryableJob $job, $retry)
     {
+        $cacheKey = $this->getStatusCacheKey();
+        $this->redis->hIncrBy($cacheKey, $job->getStatus(), 1);
     }
 }

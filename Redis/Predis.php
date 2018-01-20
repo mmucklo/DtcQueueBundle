@@ -27,6 +27,16 @@ class Predis implements RedisInterface
         return $this->predis->zadd($zkey, [$value => $score]);
     }
 
+    public function hGetAll($key)
+    {
+        return $this->predis->hGetAll($key);
+    }
+
+    public function hIncrBy($key, $hashKey, $value)
+    {
+        return $this->predis->hIncrBy($key, $hashKey, $value);
+    }
+
     public function set($key, $value)
     {
         /** @var Status $result */

@@ -14,6 +14,10 @@ interface RedisInterface
 
     public function zCount($key, $min, $max);
 
+    public function hIncrBy($key, $hashKey, $value);
+
+    public function hGetAll($key);
+
     /**
      * @param $key
      * @param $value
