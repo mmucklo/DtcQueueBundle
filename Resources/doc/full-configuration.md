@@ -14,27 +14,29 @@ dtc_queue:
         # job_timing - defaults to whatever run is set to
         job_timing: ~
     timings:
-        # record
+        # record (optional)
         #
         #  Whether to record job timings in a separate job_timings
-        #  table / collection (uses same store as run_manager unless otherwise specified above)
+        #  table / collection (uses same store as run_manager unless otherwise specified
+        #  above)
         record: false
         #
-        # timezone_offset
+        # timezone_offset (optional)
         #
-        # If the webserver is in one timezone, but the database stores them in another timezone
-        #  You may need to offset positive or negative the hours or fraction of hours between the two.
+        # If the webserver is in one timezone, but the database stores them in another
+        #  timezone, you may need to offset positive or negative the hours or fraction of
+        #  hours between the two.
         #  For the data on the trends page to appear correctly
         #
-        #  If you're not recording timings (record_timings: false), then it presently doesn't make a difference what
-        #  this is set to.
+        #  If you're not recording timings (record_timings: false), then it presently doesn't
+        #  make a difference what this is set to (or if it's set at all).
         #
         timezone_offset: 0
     class:
         # Here's where you can override the classes used for job, job_archive, etc.
         #
-        #  This could be usefull, say if you are using orm or odm, and want to extend the job entity class and modify
-        #   the collection or table name, or what not
+        #  This could be usefull, say if you are using orm or odm, and want to extend the
+        #   job entity class and modify the collection or table name, or what not
         job: ~
         job_archive: ~
         run: ~
@@ -108,7 +110,8 @@ dtc_queue:
             type: ~
             alias: ~
         predis:
-            # dsn should be set, or fill in host and port in connection_parameters, but not both
+            # dsn should be set, or fill in host and port in connection_parameters,
+            #  but not both.
             dsn: ~
             connection_parameters:
                 scheme: tcp
@@ -126,7 +129,7 @@ dtc_queue:
                 iterable_multibulk: false
                 throw_errors: true
         phpredis:
-            # minimum fill host and port if needed
+            # if using phpredis natively, then host needs to be filled in at minimum
             host: ~
             port: ~
             timeout: ~
