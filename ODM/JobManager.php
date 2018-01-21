@@ -41,7 +41,7 @@ class JobManager extends DoctrineJobManager
         $this->addWorkerNameCriterion($qb, $workerName, $method);
         $query = $qb->getQuery();
 
-        return $this->runQuery($query,'count', [], 0);
+        return $this->runQuery($query, 'count', [], 0);
     }
 
     /**
@@ -131,6 +131,7 @@ class JobManager extends DoctrineJobManager
         $this->addStandardPredicates($builder);
 
         $query = $builder->getQuery();
+
         return $this->runQuery($query, 'count', [true], 0);
     }
 
@@ -219,19 +220,21 @@ class JobManager extends DoctrineJobManager
         $query = $builder->getQuery();
 
         $job = $this->runQuery($query, 'execute');
+
         return $job;
     }
 
-    protected function runQuery(\Doctrine\MongoDB\Query\Query $query, $method, array $arguments = [], $resultIfNamespaceError = null) {
+    protected function runQuery(\Doctrine\MongoDB\Query\Query $query, $method, array $arguments = [], $resultIfNamespaceError = null)
+    {
         try {
             $result = call_user_func_array([$query, $method], $arguments);
-        }
-        catch (ResultException $resultException) {
-            if (strpos($resultException->getMessage(), 'namespace does not exist') === false) {
+        } catch (ResultException $resultException) {
+            if (false === strpos($resultException->getMessage(), 'namespace does not exist')) {
                 throw $resultException;
             }
             $result = $resultIfNamespaceError;
         }
+
         return $result;
     }
 

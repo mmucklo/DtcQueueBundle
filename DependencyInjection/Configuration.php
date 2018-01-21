@@ -404,7 +404,7 @@ class Configuration implements ConfigurationInterface
                 }
 
                 return false;
-            })->thenInvalid('preids connection_parameters host and port should both be set')->end();
+            })->thenInvalid('predis connection_parameters host and port should both be set')->end();
 
         return $rootNode;
     }

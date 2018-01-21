@@ -96,6 +96,50 @@ class Predis implements RedisInterface
         return $this->predis->zrem($zkey, $value);
     }
 
+    protected function getOptions($pattern = '', $count = 0)
+    {
+        $options = [];
+        if ('' !== $pattern) {
+            $options['MATCH'] = $pattern;
+        }
+        if (0 !== $count) {
+            $options['COUNT'] = $count;
+        }
+
+        return $options;
+    }
+
+    public function zScan($key, &$cursor, $pattern = '', $count = 0)
+    {
+        $results = $this->predis->zscan($key, $cursor, $this->getOptions($pattern, $count));
+
+        return $this->getResults($results, $cursor);
+    }
+
+    public function mGet(array $keys)
+    {
+        return $this->predis->mget($keys);
+    }
+
+    protected function getResults(&$results, &$cursor)
+    {
+        if (isset($results[0])) {
+            $cursor = $results[0];
+        }
+        if (isset($results[1])) {
+            return $results[1];
+        }
+
+        return [];
+    }
+
+    public function hScan($key, &$cursor, $pattern = '', $count = 0)
+    {
+        $results = $this->predis->hscan($key, $cursor, $this->getOptions($pattern, $count));
+
+        return $this->getResults($results, $cursor);
+    }
+
     public function zPop($key)
     {
         $element = null;

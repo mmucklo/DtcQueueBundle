@@ -428,9 +428,75 @@ class JobManager extends PriorityJobManager
         return true;
     }
 
+    protected function collateStatusResults(array &$results, $cacheKey)
+    {
+        $cursor = 0;
+        while ($jobs = $this->redis->zScan($cacheKey, $cursor, '', 100)) {
+            $jobs = $this->redis->mget(array_map(function ($item) {
+                return $this->getJobCacheKey($item);
+            }, array_keys($jobs)));
+            foreach ($jobs as $jobMessage) {
+                if ($jobMessage) {
+                    $job = new Job();
+                    $job->fromMessage($jobMessage);
+                    $resultHashKey = $job->getWorkerName().'->'.$job->getMethod().'()';
+                    if (!isset($results[$resultHashKey][BaseJob::STATUS_NEW])) {
+                        $results[$resultHashKey] = static::getAllStatuses();
+                    }
+                    if (!isset($results[$resultHashKey][BaseJob::STATUS_NEW])) {
+                        $results[$resultHashKey][BaseJob::STATUS_NEW] = 0;
+                    }
+                    ++$results[$resultHashKey][BaseJob::STATUS_NEW];
+                }
+            }
+            if ('0' === $cursor) {
+                break;
+            }
+        }
+
+        return $results;
+    }
+
+    public function getStatus()
+    {
+        $whenQueueCacheKey = $this->getWhenQueueCacheKey();
+        $priorityQueueCacheKey = $this->getPriorityQueueCacheKey();
+        $results = [];
+        $this->collateStatusResults($results, $whenQueueCacheKey);
+        if (null !== $this->maxPriority) {
+            $this->collateStatusResults($results, $priorityQueueCacheKey);
+        }
+
+        $cacheKey = $this->getStatusCacheKey();
+        $cursor = 0;
+        while ($hResults = $this->redis->hScan($cacheKey, $cursor, '', 100)) {
+            foreach ($hResults as $key => $value) {
+                list($workerName, $method, $status) = explode(',', $key);
+                $resultHashKey = $workerName.'->'.$method.'()';
+                if (!isset($results[$resultHashKey])) {
+                    $results[$resultHashKey] = static::getAllStatuses();
+                }
+                if (!isset($results[$resultHashKey][$status])) {
+                    $results[$resultHashKey][$status] = 0;
+                }
+                $results[$resultHashKey][$status] += $value;
+            }
+            if ('0' === $cursor) {
+                break;
+            }
+        }
+
+        return $results;
+    }
+
     public function retryableSaveHistory(RetryableJob $job, $retry)
     {
         $cacheKey = $this->getStatusCacheKey();
-        $this->redis->hIncrBy($cacheKey, $job->getStatus(), 1);
+        $hashKey = $job->getWorkerName();
+        $hashKey .= ',';
+        $hashKey .= $job->getMethod();
+        $hashKey .= ',';
+        $hashKey .= $job->getStatus();
+        $this->redis->hIncrBy($cacheKey, $hashKey, 1);
     }
 }
