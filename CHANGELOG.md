@@ -1,3 +1,5 @@
+### 4.2.0
+   * Fix MongoDB operations when there's no collection(s) yet present (issue #39)
 ### 4.1.0
    * Enable bin/console dtc:queue:count counts on Redis / RabbitMq / Beanstalkd.
    * Add a Prune Stalled button on Running jobs page.
