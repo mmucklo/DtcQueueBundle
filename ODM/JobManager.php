@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\ODM;
 
+use Doctrine\MongoDB\Exception\ResultException;
 use Doctrine\MongoDB\Query\Builder;
 use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
@@ -40,7 +41,7 @@ class JobManager extends DoctrineJobManager
         $this->addWorkerNameCriterion($qb, $workerName, $method);
         $query = $qb->getQuery();
 
-        return $query->count();
+        return $this->runQuery($query, 'count', [], 0);
     }
 
     /**
@@ -57,7 +58,7 @@ class JobManager extends DoctrineJobManager
         $this->addWorkerNameCriterion($qb, $workerName, $method);
 
         $query = $qb->getQuery();
-        $result = $query->execute();
+        $result = $this->runQuery($query, 'execute');
         if (isset($result['n'])) {
             return $result['n'];
         }
@@ -98,7 +99,7 @@ class JobManager extends DoctrineJobManager
         $this->addWorkerNameCriterion($qb, $workerName, $method);
         $qb->field('status')->set(\Dtc\QueueBundle\Model\Job::STATUS_EXPIRED);
         $query = $qb->getQuery();
-        $result = $query->execute();
+        $result = $this->runQuery($query, 'execute');
         if (isset($result['n'])) {
             return $result['n'];
         }
@@ -131,7 +132,7 @@ class JobManager extends DoctrineJobManager
 
         $query = $builder->getQuery();
 
-        return $query->count(true);
+        return $this->runQuery($query, 'count', [true], 0);
     }
 
     /**
@@ -157,8 +158,7 @@ class JobManager extends DoctrineJobManager
         $builder->map($mapFunc)
             ->reduce($reduceFunc);
         $query = $builder->getQuery();
-        $results = $query->execute();
-
+        $results = $this->runQuery($query, 'execute', [], []);
         $allStatus = static::getAllStatuses();
 
         $status = [];
@@ -219,9 +219,23 @@ class JobManager extends DoctrineJobManager
 
         $query = $builder->getQuery();
 
-        $job = $query->execute();
+        $job = $this->runQuery($query, 'execute');
 
         return $job;
+    }
+
+    protected function runQuery(\Doctrine\MongoDB\Query\Query $query, $method, array $arguments = [], $resultIfNamespaceError = null)
+    {
+        try {
+            $result = call_user_func_array([$query, $method], $arguments);
+        } catch (ResultException $resultException) {
+            if (false === strpos($resultException->getMessage(), 'namespace does not exist')) {
+                throw $resultException;
+            }
+            $result = $resultIfNamespaceError;
+        }
+
+        return $result;
     }
 
     /**
@@ -263,7 +277,7 @@ class JobManager extends DoctrineJobManager
         $builder->sort('whenAt', 'asc');
         $builder->field('status')->equals(BaseJob::STATUS_NEW)
             ->field('crcHash')->equals($job->getCrcHash());
-        $oldJob = $builder->getQuery()->getSingleResult();
+        $oldJob = $this->runQuery($builder->getQuery(), 'getSingleResult');
 
         if (!$oldJob) {
             return null;
@@ -277,14 +291,14 @@ class JobManager extends DoctrineJobManager
         $builder->field('_id')->equals($oldJob->getId());
         $builder->field('priority')->lt($job->getPriority());
         $builder->field('priority')->set($job->getPriority());
-        $builder->getQuery()->execute();
+        $this->runQuery($builder->getQuery(), 'execute');
 
         $builder = $objectManager->createQueryBuilder($this->getJobClass());
         $builder->findAndUpdate();
         $builder->field('_id')->equals($oldJob->getId());
         $builder->field('whenAt')->gt($job->getWhenAt());
         $builder->field('whenAt')->set($job->getWhenAt());
-        $builder->getQuery()->execute();
+        $this->runQuery($builder->getQuery(), 'execute');
 
         if ($job->getWhenAt() < $oldJob->getWhenAt()) {
             $oldJob->setWhenAt($job->getWhenAt());
@@ -360,7 +374,7 @@ class JobManager extends DoctrineJobManager
         // Filter
         $this->addStandardPredicates($builder);
 
-        return $builder->getQuery()->count();
+        return $this->runQuery($builder->getQuery(), 'count', [], 0);
     }
 
     /**
@@ -381,7 +395,7 @@ class JobManager extends DoctrineJobManager
         $builder->field('status')->set(Job::STATUS_ARCHIVE);
         $query = $builder->getQuery();
         do {
-            $job = $query->execute();
+            $job = $this->runQuery($query, 'execute');
             if ($job) {
                 $documentManager->remove($job);
                 ++$count;
