@@ -1,3 +1,5 @@
+### 4.3.0
+   * Issue #42 - better statistics for Redis status
 ### 4.2.0
    * Fix MongoDB operations when there's no collection(s) yet present (issue #39)
 ### 4.1.0
