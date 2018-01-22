@@ -16,6 +16,14 @@ interface RedisInterface
 
     public function zScan($key, &$cursor, $pattern = '', $count = 0);
 
+    /**
+     * @param $key
+     * @param $cursor
+     * @param string $pattern
+     * @param int    $count
+     *
+     * @return array
+     */
     public function hScan($key, &$cursor, $pattern = '', $count = 0);
 
     public function hIncrBy($key, $hashKey, $value);

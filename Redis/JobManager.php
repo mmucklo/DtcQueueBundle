@@ -430,7 +430,7 @@ class JobManager extends PriorityJobManager
 
     protected function collateStatusResults(array &$results, $cacheKey)
     {
-        $cursor = 0;
+        $cursor = null;
         while ($jobs = $this->redis->zScan($cacheKey, $cursor, '', 100)) {
             $jobs = $this->redis->mget(array_map(function ($item) {
                 return $this->getJobCacheKey($item);
@@ -449,7 +449,7 @@ class JobManager extends PriorityJobManager
                     ++$results[$resultHashKey][BaseJob::STATUS_NEW];
                 }
             }
-            if ('0' === $cursor) {
+            if (0 === $cursor) {
                 break;
             }
         }
@@ -468,7 +468,7 @@ class JobManager extends PriorityJobManager
         }
 
         $cacheKey = $this->getStatusCacheKey();
-        $cursor = 0;
+        $cursor = null;
         while ($hResults = $this->redis->hScan($cacheKey, $cursor, '', 100)) {
             foreach ($hResults as $key => $value) {
                 list($workerName, $method, $status) = explode(',', $key);
@@ -481,7 +481,7 @@ class JobManager extends PriorityJobManager
                 }
                 $results[$resultHashKey][$status] += $value;
             }
-            if ('0' === $cursor) {
+            if (0 === $cursor) {
                 break;
             }
         }

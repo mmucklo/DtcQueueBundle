@@ -111,6 +111,7 @@ class Predis implements RedisInterface
 
     public function zScan($key, &$cursor, $pattern = '', $count = 0)
     {
+        $this->setCursor($cursor);
         $results = $this->predis->zscan($key, $cursor, $this->getOptions($pattern, $count));
 
         return $this->getResults($results, $cursor);
@@ -124,7 +125,7 @@ class Predis implements RedisInterface
     protected function getResults(&$results, &$cursor)
     {
         if (isset($results[0])) {
-            $cursor = $results[0];
+            $cursor = intval($results[0]);
         }
         if (isset($results[1])) {
             return $results[1];
@@ -133,8 +134,16 @@ class Predis implements RedisInterface
         return [];
     }
 
+    protected function setCursor(&$cursor)
+    {
+        if (null === $cursor) {
+            $cursor = 0;
+        }
+    }
+
     public function hScan($key, &$cursor, $pattern = '', $count = 0)
     {
+        $this->setCursor($cursor);
         $results = $this->predis->hscan($key, $cursor, $this->getOptions($pattern, $count));
 
         return $this->getResults($results, $cursor);
