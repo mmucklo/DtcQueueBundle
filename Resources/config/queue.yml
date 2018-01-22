@@ -156,11 +156,19 @@ services:
         public: true
         alias: dtc_queue.manager.run.base
 
+    dtc_queue.manager.run.redis:
+        public: true
+        alias: dtc_queue.manager.run.base
+
     dtc_queue.manager.job_timing.beanstalkd:
         public: true
         alias: dtc_queue.manager.job_timing.base
 
     dtc_queue.manager.job_timing.rabbit_mq:
+        public: true
+        alias: dtc_queue.manager.job_timing.base
+
+    dtc_queue.manager.job_timing.redis:
         public: true
         alias: dtc_queue.manager.job_timing.base
 

@@ -6,6 +6,7 @@ use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Manager\JobTimingManager;
+use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Redis\JobManager;
@@ -244,5 +245,37 @@ class JobManagerTest extends BaseJobManagerTest
         }
         self::assertFalse($failed);
         self::$jobManager->saveHistory($jobInQueue);
+    }
+
+    public function testGetStatus()
+    {
+        list(, $status1) = $this->getBaseStatus();
+        list(, $status2) = $this->getBaseStatus();
+        $fibonacciStatus1 = $status1['fibonacci->fibonacci()'];
+        $fibonacciStatus2 = $status2['fibonacci->fibonacci()'];
+
+        self::assertEquals($fibonacciStatus1[BaseJob::STATUS_NEW] + 1, $fibonacciStatus2[BaseJob::STATUS_NEW]);
+    }
+
+    protected function getBaseStatus()
+    {
+        /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
+        $jobManager = self::$jobManager;
+        $job = new self::$jobClass(self::$worker, false, null);
+        $job->fibonacci(1);
+        $status = $jobManager->getStatus();
+        self::assertArrayHasKey('fibonacci->fibonacci()', $status);
+        $fibonacciStatus = $status['fibonacci->fibonacci()'];
+
+        self::assertArrayHasKey(BaseJob::STATUS_NEW, $fibonacciStatus);
+        self::assertArrayHasKey(BaseJob::STATUS_EXCEPTION, $fibonacciStatus);
+        self::assertArrayHasKey(BaseJob::STATUS_RUNNING, $fibonacciStatus);
+        self::assertArrayHasKey(BaseJob::STATUS_SUCCESS, $fibonacciStatus);
+        self::assertArrayHasKey(Job::STATUS_EXPIRED, $fibonacciStatus);
+        self::assertArrayHasKey(RetryableJob::STATUS_MAX_EXCEPTIONS, $fibonacciStatus);
+        self::assertArrayHasKey(RetryableJob::STATUS_MAX_FAILURES, $fibonacciStatus);
+        self::assertArrayHasKey(RetryableJob::STATUS_MAX_RETRIES, $fibonacciStatus);
+
+        return [$job, $status];
     }
 }

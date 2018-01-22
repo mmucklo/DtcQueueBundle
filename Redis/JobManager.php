@@ -5,10 +5,6 @@ namespace Dtc\QueueBundle\Redis;
 use Dtc\QueueBundle\Exception\ClassNotSubclassException;
 use Dtc\QueueBundle\Exception\PriorityException;
 use Dtc\QueueBundle\Exception\UnsupportedException;
-use Dtc\QueueBundle\Manager\JobIdTrait;
-use Dtc\QueueBundle\Manager\JobTimingManager;
-use Dtc\QueueBundle\Manager\PriorityJobManager;
-use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Util\Util;
@@ -16,59 +12,8 @@ use Dtc\QueueBundle\Util\Util;
 /**
  * For future implementation.
  */
-class JobManager extends PriorityJobManager
+class JobManager extends BaseJobManager
 {
-    use JobIdTrait;
-
-    /** @var RedisInterface */
-    protected $redis;
-
-    /** @var string */
-    protected $cacheKeyPrefix;
-
-    protected $hostname;
-    protected $pid;
-
-    /**
-     * @param string $cacheKeyPrefix
-     */
-    public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, $jobClass, $cacheKeyPrefix)
-    {
-        $this->cacheKeyPrefix = $cacheKeyPrefix;
-        $this->hostname = gethostname() ?: '';
-        $this->pid = getmypid();
-
-        parent::__construct($runManager, $jobTimingManager, $jobClass);
-    }
-
-    public function setRedis(RedisInterface $redis)
-    {
-        $this->redis = $redis;
-    }
-
-    protected function getJobCacheKey($jobId)
-    {
-        return $this->cacheKeyPrefix.'_job_'.$jobId;
-    }
-
-    /**
-     * @param string $jobCrc
-     */
-    protected function getJobCrcHashKey($jobCrc)
-    {
-        return $this->cacheKeyPrefix.'_job_crc_'.$jobCrc;
-    }
-
-    protected function getPriorityQueueCacheKey()
-    {
-        return $this->cacheKeyPrefix.'_priority';
-    }
-
-    protected function getWhenQueueCacheKey()
-    {
-        return $this->cacheKeyPrefix.'_when';
-    }
-
     protected function transferQueues()
     {
         // Drains from WhenAt queue into Prioirty Queue
@@ -77,7 +22,7 @@ class JobManager extends PriorityJobManager
         $microtime = Util::getMicrotimeDecimal();
         while ($jobId = $this->redis->zPopByMaxScore($whenQueue, $microtime)) {
             $jobMessage = $this->redis->get($this->getJobCacheKey($jobId));
-            if ($jobMessage) {
+            if (is_string($jobMessage)) {
                 $job = new Job();
                 $job->fromMessage($jobMessage);
                 $this->redis->zAdd($priorityQueue, $job->getPriority(), $job->getId());
@@ -324,37 +269,16 @@ class JobManager extends PriorityJobManager
         }
     }
 
-    /**
-     * @param string|null $workerName
-     * @param string|null $methodName
-     * @param bool        $prioritize
-     *
-     * @throws UnsupportedException
-     */
-    protected function verifyGetJobArgs($workerName = null, $methodName = null, $prioritize = true)
-    {
-        if (null !== $workerName || null !== $methodName || (null !== $this->maxPriority && true !== $prioritize)) {
-            throw new UnsupportedException('Unsupported');
-        }
-    }
-
     public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
     {
         $jobId = $job->getId();
         $priorityQueue = $this->getPriorityQueueCacheKey();
         $whenQueue = $this->getWhenQueueCacheKey();
 
-        $deleted = false;
-        if ($this->redis->zRem($priorityQueue, $jobId)) {
-            $deleted = true;
-        } elseif ($this->redis->zRem($whenQueue, $jobId)) {
-            $deleted = true;
-        }
-
-        if ($deleted) {
-            $this->redis->del([$this->getJobCacheKey($jobId)]);
-            $this->redis->lRem($this->getJobCrcHashKey($job->getCrcHash()), 1, $jobId);
-        }
+        $this->redis->zRem($priorityQueue, $jobId);
+        $this->redis->zRem($whenQueue, $jobId);
+        $this->redis->del([$this->getJobCacheKey($jobId)]);
+        $this->redis->lRem($this->getJobCrcHashKey($job->getCrcHash()), 1, $jobId);
     }
 
     /**
@@ -383,17 +307,25 @@ class JobManager extends PriorityJobManager
         }
 
         if ($jobId) {
-            $jobMessage = $this->redis->get($this->getJobCacheKey($jobId));
+            return $this->retrieveJob($jobId);
+        }
+
+        return null;
+    }
+
+    protected function retrieveJob($jobId)
+    {
+        $job = null;
+        $jobMessage = $this->redis->get($this->getJobCacheKey($jobId));
+        if (is_string($jobMessage)) {
             $job = new Job();
             $job->fromMessage($jobMessage);
             $crcCacheKey = $this->getJobCrcHashKey($job->getCrcHash());
             $this->redis->lRem($crcCacheKey, 1, $job->getId());
             $this->redis->del([$this->getJobCacheKey($job->getId())]);
-
-            return $job;
         }
 
-        return null;
+        return $job;
     }
 
     public function getWaitingJobCount($workerName = null, $methodName = null)
@@ -423,7 +355,85 @@ class JobManager extends PriorityJobManager
         return true;
     }
 
+    private function collateStatusResults(array &$results, $cacheKey)
+    {
+        $cursor = null;
+        while ($jobs = $this->redis->zScan($cacheKey, $cursor, '', 100)) {
+            $jobs = $this->redis->mget(array_map(function ($item) {
+                return $this->getJobCacheKey($item);
+            }, array_keys($jobs)));
+            $this->extractStatusResults($jobs, $results);
+            if (0 === $cursor) {
+                break;
+            }
+        }
+
+        return $results;
+    }
+
+    private function extractStatusResults(array $jobs, array &$results)
+    {
+        foreach ($jobs as $jobMessage) {
+            if (is_string($jobMessage)) {
+                $job = new Job();
+                $job->fromMessage($jobMessage);
+                $resultHashKey = $job->getWorkerName().'->'.$job->getMethod().'()';
+                if (!isset($results[$resultHashKey][BaseJob::STATUS_NEW])) {
+                    $results[$resultHashKey] = static::getAllStatuses();
+                }
+                if (!isset($results[$resultHashKey][BaseJob::STATUS_NEW])) {
+                    $results[$resultHashKey][BaseJob::STATUS_NEW] = 0;
+                }
+                ++$results[$resultHashKey][BaseJob::STATUS_NEW];
+            }
+        }
+    }
+
+    private function extractStatusHashResults(array $hResults, array &$results)
+    {
+        foreach ($hResults as $key => $value) {
+            list($workerName, $method, $status) = explode(',', $key);
+            $resultHashKey = $workerName.'->'.$method.'()';
+            if (!isset($results[$resultHashKey])) {
+                $results[$resultHashKey] = static::getAllStatuses();
+            }
+            if (!isset($results[$resultHashKey][$status])) {
+                $results[$resultHashKey][$status] = 0;
+            }
+            $results[$resultHashKey][$status] += $value;
+        }
+    }
+
+    public function getStatus()
+    {
+        $whenQueueCacheKey = $this->getWhenQueueCacheKey();
+        $priorityQueueCacheKey = $this->getPriorityQueueCacheKey();
+        $results = [];
+        $this->collateStatusResults($results, $whenQueueCacheKey);
+        if (null !== $this->maxPriority) {
+            $this->collateStatusResults($results, $priorityQueueCacheKey);
+        }
+
+        $cacheKey = $this->getStatusCacheKey();
+        $cursor = null;
+        while ($hResults = $this->redis->hScan($cacheKey, $cursor, '', 100)) {
+            $this->extractStatusHashResults($hResults, $results);
+            if (0 === $cursor) {
+                break;
+            }
+        }
+
+        return $results;
+    }
+
     public function retryableSaveHistory(RetryableJob $job, $retry)
     {
+        $cacheKey = $this->getStatusCacheKey();
+        $hashKey = $job->getWorkerName();
+        $hashKey .= ',';
+        $hashKey .= $job->getMethod();
+        $hashKey .= ',';
+        $hashKey .= $job->getStatus();
+        $this->redis->hIncrBy($cacheKey, $hashKey, 1);
     }
 }

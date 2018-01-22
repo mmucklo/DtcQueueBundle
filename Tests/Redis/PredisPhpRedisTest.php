@@ -13,8 +13,6 @@ class PredisPhpRedisTest extends \PHPUnit\Framework\TestCase
     {
         $host = getenv('REDIS_HOST');
         $port = getenv('REDIS_PORT') ?: 6379;
-        $jobTimingClass = JobTiming::class;
-        $runClass = Run::class;
         $redis = new \Redis();
         $redis->connect($host, $port);
         $redis->flushAll();
@@ -27,8 +25,6 @@ class PredisPhpRedisTest extends \PHPUnit\Framework\TestCase
     {
         $host = getenv('REDIS_HOST');
         $port = getenv('REDIS_PORT') ?: 6379;
-        $jobTimingClass = JobTiming::class;
-        $runClass = Run::class;
         $predisClient = new Client(['scheme' => 'tcp', 'host' => $host, 'port' => $port]);
         $predisClient->flushall();
         $predis = new Predis($predisClient);
@@ -52,6 +48,11 @@ class PredisPhpRedisTest extends \PHPUnit\Framework\TestCase
             $this->zPop($connection);
             $this->zPopByMaxScore($connection);
             $this->zCount($connection);
+            $this->mGet($connection);
+            $this->hIncrBy($connection);
+            $this->hGetAll($connection);
+            $this->scan($connection, 'hScan');
+            $this->scan($connection, 'zScan');
         }
     }
 
@@ -63,6 +64,111 @@ class PredisPhpRedisTest extends \PHPUnit\Framework\TestCase
         self::assertEquals(1234, $redis->get('testKey'));
         self::assertTrue($redis->set('testKey', 12345));
         self::assertEquals(12345, $redis->get('testKey'));
+    }
+
+    public function hIncrBy(RedisInterface $redis)
+    {
+        $key = 'testHKey';
+        $redis->del([$key]);
+        $hashKey1 = 'testHashKey1';
+        $result = $redis->hIncrBy($key, $hashKey1, 1);
+        self::assertEquals(1, $result);
+        $result = $redis->hIncrBy($key, $hashKey1, 1);
+        self::assertEquals(2, $result);
+        $result = $redis->hIncrBy($key, $hashKey1, 3);
+        self::assertEquals(5, $result);
+        $hashKey2 = 'testHashKey2';
+        $result = $redis->hIncrBy($key, $hashKey2, 3);
+        self::assertEquals(3, $result);
+    }
+
+    public function hGetAll(RedisInterface $redis)
+    {
+        $key = 'testHKey';
+        $redis->del([$key]);
+        $result = $redis->hGetAll($key);
+        self::assertEquals([], $result);
+
+        $hashKey1 = 'testHashKey1';
+        $redis->hIncrBy($key, $hashKey1, 1);
+        $result = $redis->hGetAll($key);
+        self::assertEquals([$hashKey1 => 1], $result);
+        $redis->hIncrBy($key, $hashKey1, 1);
+        $result = $redis->hGetAll($key);
+        self::assertEquals([$hashKey1 => 2], $result);
+        $hashKey2 = 'testHashKey2';
+        $redis->hIncrBy($key, $hashKey2, 3);
+        $result = $redis->hGetAll($key);
+        self::assertCount(2, $result);
+        self::assertArrayHasKey($hashKey1, $result);
+        self::assertArrayHasKey($hashKey2, $result);
+        self::assertEquals(2, $result[$hashKey1]);
+        self::assertEquals(3, $result[$hashKey2]);
+    }
+
+    private function prePopulateScan($redis, $type, $key, $hashKeyStart, array &$hashKeys)
+    {
+        for ($i = 0; $i < 100; ++$i) {
+            $hashKey = $hashKeyStart.$i;
+            $hashKeys[$hashKey] = 2 * $i;
+            if ('hScan' == $type) {
+                $redis->hIncrBy($key, $hashKey, $i);
+                $redis->hIncrBy($key, $hashKey, $i);
+            }
+            if ('zScan' == $type) {
+                $redis->zAdd($key, $i * 2, $hashKey);
+            }
+        }
+    }
+
+    public function scan(RedisInterface $redis, $type)
+    {
+        $key = 'testHash';
+        $redis->del([$key]);
+        $hashKeyStart = 'hash_key_';
+        $hashKeys = [];
+        $this->prePopulateScan($redis, $type, $key, $hashKeyStart, $hashKeys);
+
+        $cursor = null;
+        while (($results = $redis->$type($key, $cursor))) {
+            $this->iterateScanResults($results, $hashKeys);
+            if (0 === $cursor) {
+                break;
+            }
+        }
+        self::assertEmpty($hashKeys);
+    }
+
+    private function iterateScanResults(array $results, array &$hashKeys)
+    {
+        foreach ($results as $key => $value) {
+            if (isset($hashKeys[$key]) && $hashKeys[$key] === intval($value)) {
+                unset($hashKeys[$key]);
+            } else {
+                self::assertFalse(true, "Unknown hash key value: $key -> $value - isset? ".isset($hashKeys[$key]));
+            }
+        }
+    }
+
+    public function mGet(RedisInterface $redis)
+    {
+        $redis->del(['testKey1', 'testKey2']);
+        $expectedResult = [false, false];
+        self::assertEquals($expectedResult, $redis->mGet(['testKey1', 'testKey2']));
+        self::assertTrue($redis->set('testKey1', 1234));
+        self::assertTrue($redis->set('testKey2', 12345));
+        $expectedResult = [1234, 12345];
+        self::assertEquals($expectedResult, $redis->mGet(['testKey1', 'testKey2']));
+        $redis->del(['testKey2']);
+        $expectedResult = [1234, false];
+        self::assertEquals($expectedResult, $redis->mGet(['testKey1', 'testKey2']));
+
+        $redis->del(['testKey1']);
+        $expectedResult = [false, false];
+        self::assertEquals($expectedResult, $redis->mGet(['testKey1', 'testKey2']));
+        self::assertTrue($redis->set('testKey2', 12345));
+        $expectedResult = [false, 12345];
+        self::assertEquals($expectedResult, $redis->mGet(['testKey1', 'testKey2']));
     }
 
     public function setEx(RedisInterface $redis)

@@ -33,6 +33,11 @@ abstract class AbstractJobManager implements JobManagerInterface
                 \Dtc\QueueBundle\Model\Job::STATUS_EXPIRED => 0, ];
     }
 
+    /**
+     * @return array
+     *
+     * @throws UnsupportedException
+     */
     public function getStatus()
     {
         $count = $this->getWaitingJobCount();

@@ -13,6 +13,21 @@ class PhpRedis implements RedisInterface
         $this->maxRetries = $maxRetries;
     }
 
+    public function mGet(array $keys)
+    {
+        return $this->redis->mGet($keys);
+    }
+
+    public function hScan($key, &$cursor, $pattern = '', $count = 0)
+    {
+        return $this->redis->hScan($key, $cursor, $pattern, $count);
+    }
+
+    public function zScan($key, &$cursor, $pattern = '', $count = 0)
+    {
+        return $this->redis->zScan($key, $cursor, $pattern, $count);
+    }
+
     public function zCount($key, $min, $max)
     {
         return $this->redis->zCount($key, $min, $max);
@@ -31,6 +46,16 @@ class PhpRedis implements RedisInterface
     public function get($key)
     {
         return $this->redis->get($key);
+    }
+
+    public function hIncrBy($key, $hashKey, $value)
+    {
+        return $this->redis->hIncrBy($key, $hashKey, $value);
+    }
+
+    public function hGetAll($key)
+    {
+        return $this->redis->hGetAll($key);
     }
 
     public function setEx($key, $seconds, $value)

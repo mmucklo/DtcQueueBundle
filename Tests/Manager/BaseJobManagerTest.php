@@ -70,6 +70,14 @@ abstract class BaseJobManagerTest extends TestCase
 
     public function testDeleteJob()
     {
+        $limit = 1000;
+
+        // First drain the queue
+        while (self::$jobManager->getJob() && $limit) {
+            --$limit;
+        }
+        self::assertGreaterThan(0, $limit);
+
         $job = $this->getJob();
         self::$jobManager->deleteJob($job);
 

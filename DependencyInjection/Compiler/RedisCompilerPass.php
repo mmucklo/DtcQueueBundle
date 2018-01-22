@@ -96,7 +96,7 @@ class RedisCompilerPass implements CompilerPassInterface
     {
         $definition = new Definition(
             'Predis\\Client',
-            $container->getParameter('dtc_queue.redis.predis.connection_parameters')
+            [$container->getParameter('dtc_queue.redis.predis.connection_parameters')]
         );
         $container->setDefinition('dtc_queue.predis.client', $definition);
 

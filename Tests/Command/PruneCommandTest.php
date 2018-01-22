@@ -77,7 +77,7 @@ class PruneCommandTest extends TestCase
         /** @var \DateTime $dateVal */
         $dateVal = $this->runPruneCommandOlder($older, 0, $type, $call);
         $endTime = time();
-        $dateVal2 = new \DateTime("@$endTime");
+        $dateVal2 = new \DateTime("@$startTime");
         $dateDiff = $dateVal2->diff($dateVal);
 
         return [$dateDiff, ($endTime - $startTime) + 1];

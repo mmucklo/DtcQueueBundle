@@ -14,6 +14,22 @@ interface RedisInterface
 
     public function zCount($key, $min, $max);
 
+    public function zScan($key, &$cursor, $pattern = '', $count = 0);
+
+    /**
+     * @param $key
+     * @param $cursor
+     * @param string $pattern
+     * @param int    $count
+     *
+     * @return array
+     */
+    public function hScan($key, &$cursor, $pattern = '', $count = 0);
+
+    public function hIncrBy($key, $hashKey, $value);
+
+    public function hGetAll($key);
+
     /**
      * @param $key
      * @param $value
@@ -28,6 +44,8 @@ interface RedisInterface
      * @return false if not set, otherwise the value if set
      */
     public function get($key);
+
+    public function mGet(array $keys);
 
     /**
      * @param array $keys A list of keys to delete
