@@ -106,12 +106,8 @@ class PredisPhpRedisTest extends \PHPUnit\Framework\TestCase
         self::assertEquals(3, $result[$hashKey2]);
     }
 
-    public function scan(RedisInterface $redis, $type)
+    private function prePopulateScan($type, $haskKeyStart, array &$hashKeys)
     {
-        $key = 'testHash';
-        $redis->del([$key]);
-        $hashKeyStart = 'hash_key_';
-        $hashKeys = [];
         for ($i = 0; $i < 100; ++$i) {
             $hashKey = $hashKeyStart.$i;
             $hashKeys[$hashKey] = 2 * $i;
@@ -123,21 +119,35 @@ class PredisPhpRedisTest extends \PHPUnit\Framework\TestCase
                 $redis->zAdd($key, $i * 2, $hashKey);
             }
         }
+    }
+
+    public function scan(RedisInterface $redis, $type)
+    {
+        $key = 'testHash';
+        $redis->del([$key]);
+        $hashKeyStart = 'hash_key_';
+        $hashKeys = [];
+        $this->prePopulateScan($type, $hashKeyStart, $hashKeys);
 
         $cursor = null;
         while (($results = $redis->$type($key, $cursor))) {
-            foreach ($results as $key => $value) {
-                if (isset($hashKeys[$key]) && $hashKeys[$key] === intval($value)) {
-                    unset($hashKeys[$key]);
-                } else {
-                    self::assertFalse(true, "Unknown hash key value: $key -> $value - isset? ".isset($hashKeys[$key]));
-                }
-            }
+            $this->iterateScanResults($results, $hashKeys);
             if (0 === $cursor) {
                 break;
             }
         }
         self::assertEmpty($hashKeys);
+    }
+
+    private function iterateScanResults(array $results, array &$hashKeys)
+    {
+        foreach ($results as $key => $value) {
+            if (isset($hashKeys[$key]) && $hashKeys[$key] === intval($value)) {
+                unset($hashKeys[$key]);
+            } else {
+                self::assertFalse(true, "Unknown hash key value: $key -> $value - isset? ".isset($hashKeys[$key]));
+            }
+        }
     }
 
     public function mGet(RedisInterface $redis)
