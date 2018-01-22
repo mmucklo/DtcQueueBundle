@@ -106,7 +106,7 @@ class PredisPhpRedisTest extends \PHPUnit\Framework\TestCase
         self::assertEquals(3, $result[$hashKey2]);
     }
 
-    private function prePopulateScan($type, $haskKeyStart, array &$hashKeys)
+    private function prePopulateScan($redis, $type, $key, $hashKeyStart, array &$hashKeys)
     {
         for ($i = 0; $i < 100; ++$i) {
             $hashKey = $hashKeyStart.$i;
@@ -127,7 +127,7 @@ class PredisPhpRedisTest extends \PHPUnit\Framework\TestCase
         $redis->del([$key]);
         $hashKeyStart = 'hash_key_';
         $hashKeys = [];
-        $this->prePopulateScan($type, $hashKeyStart, $hashKeys);
+        $this->prePopulateScan($redis, $type, $key, $hashKeyStart, $hashKeys);
 
         $cursor = null;
         while (($results = $redis->$type($key, $cursor))) {
