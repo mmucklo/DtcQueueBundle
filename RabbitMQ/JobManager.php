@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\RabbitMQ;
 
+use Dtc\QueueBundle\Manager\VerifyTrait;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Manager\JobIdTrait;
 use Dtc\QueueBundle\Model\RetryableJob;
@@ -21,6 +22,7 @@ use PhpAmqpLib\Message\AMQPMessage;
 class JobManager extends PriorityJobManager
 {
     use JobIdTrait;
+    use VerifyTrait;
 
     /** @var AMQPChannel */
     protected $channel;
@@ -198,20 +200,6 @@ class JobManager extends PriorityJobManager
 
         if (!$job instanceof Job) {
             throw new ClassNotSubclassException('Job needs to be instance of '.Job::class);
-        }
-    }
-
-    /**
-     * @param string|null $workerName
-     * @param string|null $methodName
-     * @param bool        $prioritize
-     *
-     * @throws UnsupportedException
-     */
-    protected function verifyGetJobArgs($workerName = null, $methodName = null, $prioritize = true)
-    {
-        if (null !== $workerName || null !== $methodName || (null !== $this->maxPriority && true !== $prioritize)) {
-            throw new UnsupportedException('Unsupported');
         }
     }
 
