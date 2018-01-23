@@ -1,3 +1,5 @@
+### 4.3.1
+   * Issue #36 - yet another fix
 ### 4.3.0
    * Issue #42 - better statistics for Redis status
 ### 4.2.0

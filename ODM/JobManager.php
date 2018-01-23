@@ -229,7 +229,7 @@ class JobManager extends DoctrineJobManager
         try {
             $result = call_user_func_array([$query, $method], $arguments);
         } catch (ResultException $resultException) {
-            if (false === strpos($resultException->getMessage(), 'namespace does not exist')) {
+            if (false === strpos($resultException->getMessage(), 'namespace does not exist') && false === strpos($resultException->getMessage(), 'ns doesn\'t exist')) {
                 throw $resultException;
             }
             $result = $resultIfNamespaceError;
