@@ -43,11 +43,19 @@ class DtcQueueListener
             return;
         }
 
-        $runArchive = new $runArchiveClass();
-        Util::copy($object, $runArchive);
         $objectManager = $this->objectManager;
-        $metadata = $objectManager->getClassMetadata($runArchiveClass);
-        $this->adjustIdGenerator($metadata);
+        $repository = $objectManager->getRepository($runArchiveClass);
+        if (!$runArchive = $repository->find($object->getId())) {
+            $runArchive = new $runArchiveClass();
+            $newArchive = true;
+        }
+
+        Util::copy($object, $runArchive);
+        if ($newArchive) {
+            $metadata = $objectManager->getClassMetadata($runArchiveClass);
+            $this->adjustIdGenerator($metadata);
+        }
+
         $objectManager->persist($runArchive);
     }
 
@@ -74,11 +82,19 @@ class DtcQueueListener
             $objectManager = $this->objectManager;
             $repository = $objectManager->getRepository($archiveObjectName);
             $className = $repository->getClassName();
-            $metadata = $objectManager->getClassMetadata($className);
-            $this->adjustIdGenerator($metadata);
 
             /** @var StallableJob $jobArchive */
-            $jobArchive = new $className();
+            $newArchive = false;
+            if (!$jobArchive = $repository->find($object->getId())) {
+                $jobArchive = new $className();
+                $newArchive = true;
+            }
+
+            if ($newArchive) {
+                $metadata = $objectManager->getClassMetadata($className);
+                $this->adjustIdGenerator($metadata);
+            }
+
             Util::copy($object, $jobArchive);
             $jobArchive->setUpdatedAt(new \DateTime());
             $objectManager->persist($jobArchive);

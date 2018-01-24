@@ -1,3 +1,5 @@
+### 4.3.2
+   * Attempt to fix a bug when a job gets archived multiple times
 ### 4.3.1
    * Issue #36 - yet another fix
 ### 4.3.0
