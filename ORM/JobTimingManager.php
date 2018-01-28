@@ -10,8 +10,6 @@ class JobTimingManager extends DoctrineJobTimingManager
 
     public function getObjectManager()
     {
-        $objectManager = parent::getObjectManager();
-
-        return $this->getObjectManagerReset($objectManager);
+        return $this->getObjectManagerReset();
     }
 }

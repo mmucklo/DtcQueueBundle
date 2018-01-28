@@ -230,9 +230,12 @@ services:
         public: true
         class: Dtc\QueueBundle\Doctrine\DtcQueueListener
         arguments:
-            - '@service_container'
+            - '@doctrine'
             - '%dtc_queue.class.job_archive%'
             - '%dtc_queue.class.run_archive%'
+        calls:
+            - [ "setRegistry", ['@doctrine']]
+            - [ "setEntityManagerName", ['%dtc_queue.orm.entity_manager%']]
         tags:
             - { name: doctrine.event_listener, event: preRemove }
             - { name: doctrine.event_listener, event: prePersist }

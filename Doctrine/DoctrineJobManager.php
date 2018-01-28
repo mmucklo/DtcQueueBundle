@@ -282,7 +282,6 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
         $hashValues = array(get_class($job), $job->getMethod(), $job->getWorkerName(), $job->getArgs());
         $crcHash = hash('sha256', serialize($hashValues));
         $job->setCrcHash($crcHash);
-        $objectManager = $this->getObjectManager();
 
         if (true === $job->getBatch()) {
             $oldJob = $this->updateNearestBatch($job);

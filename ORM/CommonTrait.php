@@ -33,9 +33,10 @@ trait CommonTrait
      *
      * @return EntityManager
      */
-    public function getObjectManagerReset(EntityManager $currentObjectManager)
+    public function getObjectManagerReset()
     {
-        if (!$currentObjectManager->isOpen()) {
+        $currentObjectManager = parent::getObjectManager();
+        if (!$currentObjectManager->isOpen() && $this->registry) {
             if (($currentObjectManager = $this->registry->getManager($this->entityManagerName)) && $currentObjectManager->isOpen()) {
                 return $this->objectManager = $currentObjectManager;
             }

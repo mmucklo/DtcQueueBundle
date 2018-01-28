@@ -12,9 +12,7 @@ class RunManager extends DoctrineRunManager
 
     public function getObjectManager()
     {
-        $objectManager = parent::getObjectManager();
-
-        return $this->getObjectManagerReset($objectManager);
+        return $this->getObjectManagerReset();
     }
 
     protected function getOldLiveRuns()

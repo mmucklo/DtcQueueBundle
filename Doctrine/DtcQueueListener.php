@@ -3,7 +3,6 @@
 namespace Dtc\QueueBundle\Doctrine;
 
 use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
-use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
 use Doctrine\ORM\EntityManager;
@@ -11,29 +10,59 @@ use Doctrine\ORM\Id\AssignedGenerator;
 use Dtc\QueueBundle\Model\StallableJob;
 use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\Util\Util;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Bridge\Doctrine\RegistryInterface;
 
 class DtcQueueListener
 {
     private $jobArchiveClass;
     private $runArchiveClass;
+    private $entityManagerName;
+    private $objectManager;
+    private $registry;
 
-    public function __construct(ContainerInterface $container, $jobArchiveClass, $runArchiveClass)
+    public function __construct($jobArchiveClass, $runArchiveClass)
     {
-        $this->container = $container;
         $this->jobArchiveClass = $jobArchiveClass;
         $this->runArchiveClass = $runArchiveClass;
+    }
+
+    public function setRegistry(RegistryInterface $registry)
+    {
+        $this->registry = $registry;
+    }
+
+    public function setEntityManagerName($entityManagerName)
+    {
+        $this->entityManagerName = $entityManagerName;
     }
 
     public function preRemove(LifecycleEventArgs $eventArgs)
     {
         $object = $eventArgs->getObject();
+        $objectManager = $eventArgs->getObjectManager();
+        $this->objectManager = $objectManager;
 
         if ($object instanceof \Dtc\QueueBundle\Model\Job) {
             $this->processJob($object);
         } elseif ($object instanceof Run) {
             $this->processRun($object);
         }
+    }
+
+    protected function getObjectManager()
+    {
+        if (!$this->registry) {
+            return $this->objectManager;
+        }
+
+        if ($this->objectManager instanceof EntityManager && !$this->objectManager->isOpen()) {
+            $this->objectManager = $this->registry->getManager($this->entityManagerName);
+            if (!$this->objectManager->isOpen()) {
+                $this->objectManager = $this->registry->resetManager($this->entityManagerName);
+            }
+        }
+
+        return $this->objectManager;
     }
 
     public function processRun(Run $object)
@@ -43,12 +72,8 @@ class DtcQueueListener
             return;
         }
 
-        $runManager = $this->container->get('dtc_queue.manager.run');
-        if (!$runManager instanceof DoctrineRunManager) {
-            return;
-        }
+        $objectManager = $this->getObjectManager();
 
-        $objectManager = $runManager->getObjectManager();
         $repository = $objectManager->getRepository($runArchiveClass);
         if (!$runArchive = $repository->find($object->getId())) {
             $runArchive = new $runArchiveClass();
@@ -67,8 +92,9 @@ class DtcQueueListener
     /**
      * @param $metadata
      */
-    protected function adjustIdGenerator(\Doctrine\Common\Persistence\Mapping\ClassMetadata $metadata, ObjectManager $objectManager)
+    protected function adjustIdGenerator(\Doctrine\Common\Persistence\Mapping\ClassMetadata $metadata)
     {
+        $objectManager = $this->getObjectManager();
         if ($objectManager instanceof EntityManager && $metadata instanceof \Doctrine\ORM\Mapping\ClassMetadata) {
             $metadata->setIdGeneratorType(\Doctrine\ORM\Mapping\ClassMetadata::GENERATOR_TYPE_NONE);
             $metadata->setIdGenerator(new AssignedGenerator());
@@ -79,16 +105,11 @@ class DtcQueueListener
 
     public function processJob(\Dtc\QueueBundle\Model\Job $object)
     {
-        $jobManager = $this->container->get('dtc_queue.manager.job');
-        if (!$jobManager instanceof DoctrineJobManager) {
-            return;
-        }
-
         if ($object instanceof \Dtc\QueueBundle\Document\Job ||
             $object instanceof \Dtc\QueueBundle\Entity\Job) {
             /** @var JobManager $jobManager */
             $archiveObjectName = $this->jobArchiveClass;
-            $objectManager = $jobManager->getObjectManager();
+            $objectManager = $this->getObjectManager();
             $repository = $objectManager->getRepository($archiveObjectName);
             $className = $repository->getClassName();
 

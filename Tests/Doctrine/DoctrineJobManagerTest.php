@@ -68,7 +68,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         $container->set('dtc_queue.manager.job', $jobManager);
         $container->set('dtc_queue.manager.run', self::$runManager);
 
-        self::$dtcQueueListener = new DtcQueueListener($container, $jobManager->getJobArchiveClass(), self::$runManager->getRunArchiveClass());
+        self::$dtcQueueListener = new DtcQueueListener($jobManager->getJobArchiveClass(), self::$runManager->getRunArchiveClass());
         self::$objectManager->getEventManager()->addEventListener('preUpdate', self::$dtcQueueListener);
         self::$objectManager->getEventManager()->addEventListener('prePersist', self::$dtcQueueListener);
         self::$objectManager->getEventManager()->addEventListener('preRemove', self::$dtcQueueListener);
