@@ -293,8 +293,7 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
 
         // Just save a new job
         $this->resetSaveOk(__FUNCTION__);
-        $objectManager->persist($job);
-        $objectManager->flush();
+        $this->persist($job);
 
         return $job;
     }
@@ -390,8 +389,7 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
         $job->setStartedAt(null);
         $job->setElapsed(null);
         $job->setRetries($job->getRetries() + 1);
-        $this->getObjectManager()->persist($job);
-        $this->flush();
+        $this->persist($job);
 
         return true;
     }

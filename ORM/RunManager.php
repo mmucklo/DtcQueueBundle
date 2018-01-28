@@ -10,6 +10,13 @@ class RunManager extends DoctrineRunManager
 {
     use CommonTrait;
 
+    public function getObjectManager()
+    {
+        $objectManager = parent::getObjectManager();
+
+        return $this->getObjectManagerReset($objectManager);
+    }
+
     protected function getOldLiveRuns()
     {
         /** @var EntityManager $objectManager */

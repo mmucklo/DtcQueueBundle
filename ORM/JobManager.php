@@ -18,6 +18,13 @@ class JobManager extends DoctrineJobManager
     protected static $saveInsertCalled = null;
     protected static $resetInsertCalled = null;
 
+    public function getObjectManager()
+    {
+        $objectManager = parent::getObjectManager();
+
+        return $this->getObjectManagerReset($objectManager);
+    }
+
     public function countJobsByStatus($objectName, $status, $workerName = null, $method = null)
     {
         /** @var EntityManager $objectManager */
