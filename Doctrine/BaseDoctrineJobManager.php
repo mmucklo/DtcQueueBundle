@@ -16,6 +16,8 @@ abstract class BaseDoctrineJobManager extends ArchivableJobManager
     const SAVE_COUNT_MIN = 10;
     const SAVE_COUNT_MAX = 100;
 
+    use CommonTrait;
+
     /**
      * @var ObjectManager
      */
@@ -90,8 +92,6 @@ abstract class BaseDoctrineJobManager extends ArchivableJobManager
 
     public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
     {
-        $objectManager = $this->getObjectManager();
-        $objectManager->remove($job);
-        $objectManager->flush();
+        $this->persist($job, 'remove');
     }
 }

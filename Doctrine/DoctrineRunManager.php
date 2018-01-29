@@ -9,6 +9,8 @@ use Dtc\QueueBundle\Manager\RunManager;
 
 abstract class DoctrineRunManager extends RunManager
 {
+    use CommonTrait;
+
     /** @var ObjectManager */
     protected $objectManager;
 
@@ -35,7 +37,7 @@ abstract class DoctrineRunManager extends RunManager
      */
     public function getRepository()
     {
-        return $this->objectManager->getRepository($this->getRunClass());
+        return $this->getObjectManager()->getRepository($this->getRunClass());
     }
 
     /**
@@ -98,9 +100,7 @@ abstract class DoctrineRunManager extends RunManager
     protected function persistRun(Run $run, $action = 'persist')
     {
         parent::persistRun($run, $action);
-        $objectManager = $this->getObjectManager();
-        $objectManager->$action($run);
-        $objectManager->flush();
+        $this->persist($run, $action);
     }
 
     /**

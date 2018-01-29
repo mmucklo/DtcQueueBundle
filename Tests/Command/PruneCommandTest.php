@@ -73,14 +73,13 @@ class PruneCommandTest extends TestCase
 
     protected function getPruneCommandOlderDateDiff($older, $type = 'old', $call = 'pruneArchivedJobs')
     {
-        $startTime = time();
+        $startDate = new \DateTime();
         /** @var \DateTime $dateVal */
         $dateVal = $this->runPruneCommandOlder($older, 0, $type, $call);
         $endTime = time();
-        $dateVal2 = new \DateTime("@$startTime");
-        $dateDiff = $dateVal2->diff($dateVal);
+        $dateDiff = $startDate->diff($dateVal);
 
-        return [$dateDiff, ($endTime - $startTime) + 1];
+        return [$dateDiff, ($endTime - $startDate->getTimestamp()) + 1];
     }
 
     protected function getPruneCommandOlderDateDays($older, $type = 'old', $call = 'pruneArchivedJobs')

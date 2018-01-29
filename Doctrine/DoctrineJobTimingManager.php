@@ -35,8 +35,9 @@ abstract class DoctrineJobTimingManager extends JobTimingManager
         $jobTiming = new $this->jobTimingClass();
         $jobTiming->setFinishedAt($finishedAt);
         $jobTiming->setStatus($status);
-        $this->objectManager->persist($jobTiming);
-        $this->objectManager->flush();
+        $objectManager = $this->getObjectManager();
+        $objectManager->persist($jobTiming);
+        $objectManager->flush();
     }
 
     abstract protected function removeOlderThan($objectName, $field, \DateTime $olderThan);
