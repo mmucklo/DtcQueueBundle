@@ -1,3 +1,5 @@
+### 4.4.0
+   * Attempt to fix issue where ORM EntityManager closes by trying to reopen it
 ### 4.3.2
    * Attempt to fix a bug when a job gets archived multiple times
 ### 4.3.1
