@@ -230,7 +230,6 @@ services:
         public: true
         class: Dtc\QueueBundle\Doctrine\DtcQueueListener
         arguments:
-            - '@doctrine'
             - '%dtc_queue.class.job_archive%'
             - '%dtc_queue.class.run_archive%'
         calls:
