@@ -9,14 +9,16 @@ use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Id\AssignedGenerator;
 use Dtc\QueueBundle\Model\StallableJob;
 use Dtc\QueueBundle\Model\Run;
-use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\Util\Util;
+use Symfony\Bridge\Doctrine\RegistryInterface;
 
 class DtcQueueListener
 {
     private $jobArchiveClass;
     private $runArchiveClass;
+    private $entityManagerName;
     private $objectManager;
+    private $registry;
 
     public function __construct($jobArchiveClass, $runArchiveClass)
     {
@@ -24,16 +26,43 @@ class DtcQueueListener
         $this->runArchiveClass = $runArchiveClass;
     }
 
+    public function setRegistry(RegistryInterface $registry)
+    {
+        $this->registry = $registry;
+    }
+
+    public function setEntityManagerName($entityManagerName)
+    {
+        $this->entityManagerName = $entityManagerName;
+    }
+
     public function preRemove(LifecycleEventArgs $eventArgs)
     {
-        $this->objectManager = $eventArgs->getObjectManager();
         $object = $eventArgs->getObject();
+        $objectManager = $eventArgs->getObjectManager();
+        $this->objectManager = $objectManager;
 
         if ($object instanceof \Dtc\QueueBundle\Model\Job) {
             $this->processJob($object);
         } elseif ($object instanceof Run) {
             $this->processRun($object);
         }
+    }
+
+    protected function getObjectManager()
+    {
+        if (!$this->registry) {
+            return $this->objectManager;
+        }
+
+        if ($this->objectManager instanceof EntityManager && !$this->objectManager->isOpen()) {
+            $this->objectManager = $this->registry->getManager($this->entityManagerName);
+            if (!$this->objectManager->isOpen()) {
+                $this->objectManager = $this->registry->resetManager($this->entityManagerName);
+            }
+        }
+
+        return $this->objectManager;
     }
 
     public function processRun(Run $object)
@@ -43,7 +72,8 @@ class DtcQueueListener
             return;
         }
 
-        $objectManager = $this->objectManager;
+        $objectManager = $this->getObjectManager();
+
         $repository = $objectManager->getRepository($runArchiveClass);
         if (!$runArchive = $repository->find($object->getId())) {
             $runArchive = new $runArchiveClass();
@@ -53,7 +83,7 @@ class DtcQueueListener
         Util::copy($object, $runArchive);
         if ($newArchive) {
             $metadata = $objectManager->getClassMetadata($runArchiveClass);
-            $this->adjustIdGenerator($metadata);
+            $this->adjustIdGenerator($metadata, $objectManager);
         }
 
         $objectManager->persist($runArchive);
@@ -64,7 +94,7 @@ class DtcQueueListener
      */
     protected function adjustIdGenerator(\Doctrine\Common\Persistence\Mapping\ClassMetadata $metadata)
     {
-        $objectManager = $this->objectManager;
+        $objectManager = $this->getObjectManager();
         if ($objectManager instanceof EntityManager && $metadata instanceof \Doctrine\ORM\Mapping\ClassMetadata) {
             $metadata->setIdGeneratorType(\Doctrine\ORM\Mapping\ClassMetadata::GENERATOR_TYPE_NONE);
             $metadata->setIdGenerator(new AssignedGenerator());
@@ -79,7 +109,7 @@ class DtcQueueListener
             $object instanceof \Dtc\QueueBundle\Entity\Job) {
             /** @var JobManager $jobManager */
             $archiveObjectName = $this->jobArchiveClass;
-            $objectManager = $this->objectManager;
+            $objectManager = $this->getObjectManager();
             $repository = $objectManager->getRepository($archiveObjectName);
             $className = $repository->getClassName();
 
@@ -92,7 +122,7 @@ class DtcQueueListener
 
             if ($newArchive) {
                 $metadata = $objectManager->getClassMetadata($className);
-                $this->adjustIdGenerator($metadata);
+                $this->adjustIdGenerator($metadata, $objectManager);
             }
 
             Util::copy($object, $jobArchive);

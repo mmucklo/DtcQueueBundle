@@ -282,7 +282,6 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
         $hashValues = array(get_class($job), $job->getMethod(), $job->getWorkerName(), $job->getArgs());
         $crcHash = hash('sha256', serialize($hashValues));
         $job->setCrcHash($crcHash);
-        $objectManager = $this->getObjectManager();
 
         if (true === $job->getBatch()) {
             $oldJob = $this->updateNearestBatch($job);
@@ -293,8 +292,7 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
 
         // Just save a new job
         $this->resetSaveOk(__FUNCTION__);
-        $objectManager->persist($job);
-        $objectManager->flush();
+        $this->persist($job);
 
         return $job;
     }
@@ -390,8 +388,7 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
         $job->setStartedAt(null);
         $job->setElapsed(null);
         $job->setRetries($job->getRetries() + 1);
-        $this->getObjectManager()->persist($job);
-        $this->flush();
+        $this->persist($job);
 
         return true;
     }
