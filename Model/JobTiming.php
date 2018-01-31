@@ -23,8 +23,8 @@ class JobTiming
     public static function getStates()
     {
         return [self::STATUS_FINISHED_SUCCESS => ['label' => 'Finished: SUCCESS', 'color' => 'green'],
-            self::STATUS_FINISHED_FAILURE => ['label' => 'Finished: EXCEPTION', 'color' => 'orange'],
-            self::STATUS_FINISHED_EXCEPTION => ['label' => 'Finished: FAILURE', 'color' => 'red'],
+            self::STATUS_FINISHED_FAILURE => ['label' => 'Finished: FAILURE', 'color' => 'red'],
+            self::STATUS_FINISHED_EXCEPTION => ['label' => 'Finished: EXCEPTION', 'color' => 'orange'],
             self::STATUS_FINISHED_EXPIRED => ['label' => 'Finished: EXPIRED', 'color' => 'maroon'],
             self::STATUS_FINISHED_STALLED => ['label' => 'Finished: STALLED', 'color' => 'gold'],
             self::STATUS_INSERT => ['label' => 'INSERT', 'color' => 'navy'],
