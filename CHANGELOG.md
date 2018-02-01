@@ -1,3 +1,5 @@
+### 4.4.1
+   * Fix typo issue per PR #54
 ### 4.4.0
    * Attempt to fix issue where ORM EntityManager closes by trying to reopen it
 ### 4.3.2
