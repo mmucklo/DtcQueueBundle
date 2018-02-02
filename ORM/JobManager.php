@@ -301,6 +301,7 @@ class JobManager extends DoctrineJobManager
         $queryBuilder->set('j.startedAt', ':startedAt')
             ->setParameter(':startedAt', Util::getMicrotimeDateTime());
         $queryBuilder->where('j.id = :id');
+        $queryBuilder->andWhere('j.status = :status')->setParameter(':status', BaseJob::STATUS_NEW);
         $queryBuilder->setParameter(':id', $jobId);
         $resultCount = $queryBuilder->getQuery()->execute();
 
