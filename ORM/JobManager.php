@@ -36,15 +36,15 @@ class JobManager extends DoctrineJobManager
 
         if (null !== $workerName) {
             $queryBuilder->andWhere('a.workerName = :workerName')
-                ->setParameter(':workerName', $workerName);
+                ->setParameter('workerName', $workerName);
         }
 
         if (null !== $method) {
             $queryBuilder->andWhere('a.method = :method')
-                ->setParameter(':method', $workerName);
+                ->setParameter('method', $workerName);
         }
 
-        $count = $queryBuilder->setParameter(':status', $status)
+        $count = $queryBuilder->setParameter('status', $status)
             ->getQuery()->getSingleScalarResult();
 
         if (!$count) {
@@ -66,7 +66,7 @@ class JobManager extends DoctrineJobManager
         $objectManager = $this->getObjectManager();
         $queryBuilder = $objectManager->createQueryBuilder()->delete($this->getJobArchiveClass(), 'j');
         $queryBuilder->where('j.status = :status')
-            ->setParameter(':status', BaseJob::STATUS_EXCEPTION);
+            ->setParameter('status', BaseJob::STATUS_EXCEPTION);
 
         $this->addWorkerNameCriterion($queryBuilder, $workerName, $method);
         $query = $queryBuilder->getQuery();
@@ -105,11 +105,11 @@ class JobManager extends DoctrineJobManager
     protected function addWorkerNameCriterion(QueryBuilder $queryBuilder, $workerName = null, $method = null)
     {
         if (null !== $workerName) {
-            $queryBuilder->andWhere('j.workerName = :workerName')->setParameter(':workerName', $workerName);
+            $queryBuilder->andWhere('j.workerName = :workerName')->setParameter('workerName', $workerName);
         }
 
         if (null !== $method) {
-            $queryBuilder->andWhere('j.method = :method')->setParameter(':method', $method);
+            $queryBuilder->andWhere('j.method = :method')->setParameter('method', $method);
         }
     }
 
@@ -120,10 +120,10 @@ class JobManager extends DoctrineJobManager
         $queryBuilder = $objectManager->createQueryBuilder()->update($this->getJobClass(), 'j');
         $queryBuilder->set('j.status', ':newStatus');
         $queryBuilder->where('j.expiresAt <= :expiresAt')
-            ->setParameter(':expiresAt', Util::getMicrotimeDateTime());
+            ->setParameter('expiresAt', Util::getMicrotimeDateTime());
         $queryBuilder->andWhere('j.status = :status')
-            ->setParameter(':status', BaseJob::STATUS_NEW)
-            ->setParameter(':newStatus', Job::STATUS_EXPIRED);
+            ->setParameter('status', BaseJob::STATUS_NEW)
+            ->setParameter('newStatus', Job::STATUS_EXPIRED);
 
         $this->addWorkerNameCriterion($queryBuilder, $workerName, $method);
         $query = $queryBuilder->getQuery();
@@ -267,7 +267,7 @@ class JobManager extends DoctrineJobManager
         $decimal = Util::getMicrotimeDecimalFormat($dateTime);
 
         $queryBuilder
-            ->where('j.status = :status')->setParameter(':status', $status)
+            ->where('j.status = :status')->setParameter('status', $status)
             ->andWhere($queryBuilder->expr()->orX(
                 $queryBuilder->expr()->isNull('j.whenUs'),
                 $queryBuilder->expr()->lte('j.whenUs', ':whenUs')
@@ -276,8 +276,8 @@ class JobManager extends DoctrineJobManager
                 $queryBuilder->expr()->isNull('j.expiresAt'),
                 $queryBuilder->expr()->gt('j.expiresAt', ':expiresAt')
             ))
-            ->setParameter(':whenUs', $decimal)
-            ->setParameter(':expiresAt', $dateTime);
+            ->setParameter('whenUs', $decimal)
+            ->setParameter('expiresAt', $dateTime);
     }
 
     /**
@@ -292,16 +292,17 @@ class JobManager extends DoctrineJobManager
         $queryBuilder
             ->update()
             ->set('j.status', ':status')
-            ->setParameter(':status', BaseJob::STATUS_RUNNING);
+            ->setParameter('status', BaseJob::STATUS_RUNNING);
         if (null !== $runId) {
             $queryBuilder
                 ->set('j.runId', ':runId')
-                ->setParameter(':runId', $runId);
+                ->setParameter('runId', $runId);
         }
         $queryBuilder->set('j.startedAt', ':startedAt')
-            ->setParameter(':startedAt', Util::getMicrotimeDateTime());
+            ->setParameter('startedAt', Util::getMicrotimeDateTime());
         $queryBuilder->where('j.id = :id');
-        $queryBuilder->setParameter(':id', $jobId);
+        $queryBuilder->setParameter('id', $jobId);
+        $queryBuilder->andWhere('j.status = :statusNew')->setParameter('statusNew', BaseJob::STATUS_NEW);
         $resultCount = $queryBuilder->getQuery()->execute();
 
         if (1 === $resultCount) {
@@ -329,8 +330,8 @@ class JobManager extends DoctrineJobManager
         $queryBuilder->select()
             ->where('j.crcHash = :crcHash')
             ->andWhere('j.status = :status')
-            ->setParameter(':status', BaseJob::STATUS_NEW)
-            ->setParameter(':crcHash', $job->getCrcHash())
+            ->setParameter('status', BaseJob::STATUS_NEW)
+            ->setParameter('crcHash', $job->getCrcHash())
             ->orderBy('j.whenUs', 'ASC')
             ->setMaxResults(1);
         $existingJobs = $queryBuilder->getQuery()->execute();
@@ -372,15 +373,15 @@ class JobManager extends DoctrineJobManager
             if ($newPriority !== $existingPriority) {
                 $existingJob->setPriority($newPriority);
                 $queryBuilder->set('j.priority', ':priority')
-                    ->setParameter(':priority', $newPriority);
+                    ->setParameter('priority', $newPriority);
             }
             if ($newWhenUs !== $existingWhenUs) {
                 $existingJob->setWhenUs($newWhenUs);
                 $queryBuilder->set('j.whenUs', ':whenUs')
-                    ->setParameter(':whenUs', $newWhenUs);
+                    ->setParameter('whenUs', $newWhenUs);
             }
             $queryBuilder->where('j.id = :id');
-            $queryBuilder->setParameter(':id', $existingJob->getId());
+            $queryBuilder->setParameter('id', $existingJob->getId());
             $queryBuilder->getQuery()->execute();
         }
 
@@ -437,7 +438,7 @@ class JobManager extends DoctrineJobManager
         $queryBuilder = $repository->createQueryBuilder('j');
         $queryBuilder->update($this->getJobClass(), 'j')
             ->set('j.status', ':statusArchive')
-            ->setParameter(':statusArchive', Job::STATUS_ARCHIVE);
+            ->setParameter('statusArchive', Job::STATUS_ARCHIVE);
         $this->addStandardPredicate($queryBuilder);
         $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
         $resultCount = $queryBuilder->getQuery()->execute();
@@ -467,7 +468,7 @@ class JobManager extends DoctrineJobManager
             $repository = $this->getRepository();
             $queryBuilder = $repository->createQueryBuilder('j');
             $queryBuilder->where('j.status = :status')
-                ->setParameter(':status', Job::STATUS_ARCHIVE)
+                ->setParameter('status', Job::STATUS_ARCHIVE)
                 ->setMaxResults(10000);
 
             $results = $queryBuilder->getQuery()->getArrayResult();

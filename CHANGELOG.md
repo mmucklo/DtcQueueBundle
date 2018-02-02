@@ -1,3 +1,5 @@
+### 4.5.0
+   * Fix serious bug in ORM where multiple workers will take the same job twice
 ### 4.4.1
    * Fix typo issue per PR #54
 ### 4.4.0
