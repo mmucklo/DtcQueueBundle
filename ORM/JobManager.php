@@ -306,10 +306,23 @@ class JobManager extends DoctrineJobManager
         $resultCount = $queryBuilder->getQuery()->execute();
 
         if (1 === $resultCount) {
-            return $repository->find($jobId);
+            return $this->findRefresh($jobId);
         }
 
         return null;
+    }
+
+    protected function findRefresh($id)
+    {
+        /** @var EntityManager $entityManager */
+        $entityManager = $this->getObjectManager();
+        if ($job = $entityManager->getUnitOfWork()->tryGetById(['id' => $id], $this->getJobClass())) {
+            $entityManager->refresh($job);
+
+            return $job;
+        }
+
+        return $this->getRepository()->find($id);
     }
 
     /**

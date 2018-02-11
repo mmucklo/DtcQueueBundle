@@ -393,6 +393,8 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
         return true;
     }
 
+    abstract protected function persist($object, $action = 'persist');
+
     abstract public function getWorkersAndMethods();
 
     abstract public function countLiveJobs($workerName = null, $methodName = null);

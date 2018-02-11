@@ -260,6 +260,7 @@ class JobManager extends PriorityJobManager
         $job->setStatus(BaseJob::STATUS_NEW);
         $job->setMessage(null);
         $job->setStartedAt(null);
+        $job->setDeliveryTag(null);
         $job->setRetries($job->getRetries() + 1);
         $job->setUpdatedAt(Util::getMicrotimeDateTime());
         $this->publishJob($job);
@@ -274,7 +275,9 @@ class JobManager extends PriorityJobManager
             throw new ClassNotSubclassException("Expected \Dtc\QueueBundle\RabbitMQ\Job, got ".get_class($job));
         }
         $deliveryTag = $job->getDeliveryTag();
-        $this->channel->basic_ack($deliveryTag);
+        if (null !== $deliveryTag) {
+            $this->channel->basic_ack($deliveryTag);
+        }
 
         return;
     }

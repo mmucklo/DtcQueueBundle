@@ -4,6 +4,9 @@ namespace Dtc\QueueBundle\ODM;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Dtc\QueueBundle\Document\Job;
+use Dtc\QueueBundle\Document\JobTiming;
+use Dtc\QueueBundle\Document\Run;
 
 trait CommonTrait
 {
@@ -30,6 +33,17 @@ trait CommonTrait
         }
 
         return 0;
+    }
+
+    /**
+     * @param Run|Job|JobTiming $object
+     * @param string            $action
+     */
+    protected function persist($object, $action = 'persist')
+    {
+        $objectManager = $this->getObjectManager();
+        $objectManager->$action($object);
+        $objectManager->flush();
     }
 
     /**

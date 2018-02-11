@@ -5,7 +5,6 @@ namespace Dtc\QueueBundle\Redis;
 use Dtc\QueueBundle\Exception\ClassNotSubclassException;
 use Dtc\QueueBundle\Exception\PriorityException;
 use Dtc\QueueBundle\Exception\UnsupportedException;
-use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Util\Util;
 
@@ -14,6 +13,12 @@ use Dtc\QueueBundle\Util\Util;
  */
 class JobManager extends BaseJobManager
 {
+    use StatusTrait;
+
+    /**
+     * There's a bit of danger here if there are more jobs being inserted than can be efficiently drained
+     *   What could happen is that this infinitely loops...
+     */
     protected function transferQueues()
     {
         // Drains from WhenAt queue into Prioirty Queue
@@ -40,20 +45,22 @@ class JobManager extends BaseJobManager
         $crcHash = $job->getCrcHash();
         $crcCacheKey = $this->getJobCrcHashKey($crcHash);
         $result = $this->redis->lrange($crcCacheKey, 0, 1000);
-        if (is_array($result)) {
-            foreach ($result as $jobId) {
-                $jobCacheKey1 = $this->getJobCacheKey($jobId);
-                if (!($foundJobMessage = $this->redis->get($jobCacheKey1))) {
-                    $this->redis->lRem($crcCacheKey, 1, $jobCacheKey1);
-                    continue;
-                }
+        if (!is_array($result)) {
+            return null;
+        }
 
-                /// There is one?
-                if ($foundJobMessage) {
-                    $foundJob = $this->batchFoundJob($job, $jobCacheKey1, $foundJobMessage);
-                    if ($foundJob) {
-                        return $foundJob;
-                    }
+        foreach ($result as $jobId) {
+            $jobCacheKey1 = $this->getJobCacheKey($jobId);
+            if (!($foundJobMessage = $this->redis->get($jobCacheKey1))) {
+                $this->redis->lRem($crcCacheKey, 1, $jobCacheKey1);
+                continue;
+            }
+
+            /// There is one?
+            if ($foundJobMessage) {
+                $foundJob = $this->batchFoundJob($job, $jobCacheKey1, $foundJobMessage);
+                if ($foundJob) {
+                    return $foundJob;
                 }
             }
         }
@@ -188,6 +195,11 @@ class JobManager extends BaseJobManager
         return $this->saveJob($job);
     }
 
+    /**
+     * @param Job $job
+     *
+     * @return Job|null
+     */
     protected function saveJob(Job $job)
     {
         $whenQueue = $this->getWhenQueueCacheKey();
@@ -241,11 +253,11 @@ class JobManager extends BaseJobManager
     {
         $priority = parent::calculatePriority($priority);
         if (null === $priority) {
-            return null === $this->maxPriority ? 0 : $this->maxPriority;
+            return null === $this->maxPriority ? null : $this->maxPriority;
         }
 
         if (null === $this->maxPriority) {
-            return 0;
+            return null;
         }
 
         // Redis priority should be in DESC order
@@ -267,18 +279,6 @@ class JobManager extends BaseJobManager
         if (!$job instanceof RetryableJob) {
             throw new ClassNotSubclassException('Job needs to be instance of '.RetryableJob::class);
         }
-    }
-
-    public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
-    {
-        $jobId = $job->getId();
-        $priorityQueue = $this->getPriorityQueueCacheKey();
-        $whenQueue = $this->getWhenQueueCacheKey();
-
-        $this->redis->zRem($priorityQueue, $jobId);
-        $this->redis->zRem($whenQueue, $jobId);
-        $this->redis->del([$this->getJobCacheKey($jobId)]);
-        $this->redis->lRem($this->getJobCrcHashKey($job->getCrcHash()), 1, $jobId);
     }
 
     /**
@@ -338,70 +338,6 @@ class JobManager extends BaseJobManager
         }
 
         return $count;
-    }
-
-    public function resetJob(RetryableJob $job)
-    {
-        if (!$job instanceof Job) {
-            throw new \InvalidArgumentException('$job must be instance of '.Job::class);
-        }
-        $job->setStatus(BaseJob::STATUS_NEW);
-        $job->setMessage(null);
-        $job->setStartedAt(null);
-        $job->setRetries($job->getRetries() + 1);
-        $job->setUpdatedAt(Util::getMicrotimeDateTime());
-        $this->saveJob($job);
-
-        return true;
-    }
-
-    private function collateStatusResults(array &$results, $cacheKey)
-    {
-        $cursor = null;
-        while ($jobs = $this->redis->zScan($cacheKey, $cursor, '', 100)) {
-            $jobs = $this->redis->mget(array_map(function ($item) {
-                return $this->getJobCacheKey($item);
-            }, array_keys($jobs)));
-            $this->extractStatusResults($jobs, $results);
-            if (0 === $cursor) {
-                break;
-            }
-        }
-
-        return $results;
-    }
-
-    private function extractStatusResults(array $jobs, array &$results)
-    {
-        foreach ($jobs as $jobMessage) {
-            if (is_string($jobMessage)) {
-                $job = new Job();
-                $job->fromMessage($jobMessage);
-                $resultHashKey = $job->getWorkerName().'->'.$job->getMethod().'()';
-                if (!isset($results[$resultHashKey][BaseJob::STATUS_NEW])) {
-                    $results[$resultHashKey] = static::getAllStatuses();
-                }
-                if (!isset($results[$resultHashKey][BaseJob::STATUS_NEW])) {
-                    $results[$resultHashKey][BaseJob::STATUS_NEW] = 0;
-                }
-                ++$results[$resultHashKey][BaseJob::STATUS_NEW];
-            }
-        }
-    }
-
-    private function extractStatusHashResults(array $hResults, array &$results)
-    {
-        foreach ($hResults as $key => $value) {
-            list($workerName, $method, $status) = explode(',', $key);
-            $resultHashKey = $workerName.'->'.$method.'()';
-            if (!isset($results[$resultHashKey])) {
-                $results[$resultHashKey] = static::getAllStatuses();
-            }
-            if (!isset($results[$resultHashKey][$status])) {
-                $results[$resultHashKey][$status] = 0;
-            }
-            $results[$resultHashKey][$status] += $value;
-        }
     }
 
     public function getStatus()

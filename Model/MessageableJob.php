@@ -6,7 +6,7 @@ use Dtc\QueueBundle\Util\Util;
 
 abstract class MessageableJob extends RetryableJob
 {
-    public function __construct(Worker $worker = null, $batch = false, $priority = 10, \DateTime $whenAt = null)
+    public function __construct(Worker $worker = null, $batch = false, $priority = null, \DateTime $whenAt = null)
     {
         parent::__construct($worker, $batch, $priority, $whenAt);
         if (!$this->getWhenAt()) {

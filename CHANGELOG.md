@@ -1,5 +1,12 @@
+### 4.5.1
+   * Fix a minor bug in ORM where if you created a job you later tried to then run in the same process the status might
+     not be reflected properly in the object
+   * Refactored the EntityManager reset and related detection logic so that ODM doesn't pass through it (let me know if
+     there's any issues there).
+   * Fix issues with Redis when there's no priority being set.
+   * Added a test for Redis without Priority.
 ### 4.5.0
-   * Fix serious bug in ORM where multiple workers will take the same job twice
+   * Fix serious bug in ORM where multiple workers could have taken the same job twice
 ### 4.4.1
    * Fix typo issue per PR #54
 ### 4.4.0

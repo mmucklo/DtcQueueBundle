@@ -8,7 +8,7 @@ DtcQueueBundle
 
 > Allow symfony developers to create background job as easily as: `$worker->later()->process(1,2,3)`
 
-### 4.0 Release (Happy 2018!)
+### 4.0 Release
 
 See [changes](CHANGELOG.md)
 
@@ -21,27 +21,52 @@ Supported Queues
 - Mysql / Doctrine 2 supported databases via Doctrine-ORM
 - Beanstalkd via pheanstalk
 - RabbitMQ via php-amqplib
-- **(New in 4.0!)** Redis support via Predis or PhpRedis
+- Redis support via Predis or PhpRedis, or through SncRedisBundle
+
+![Trends](/Resources/doc/images/trends-example.png?raw=true "DtcQueue Trends")
 
 Introduction
 ------------
 
-This bundle provides a way to easily create queued background jobs
+This bundle provides a way to easily create and manage queued background jobs
 
-- Kickoff background tasks with just a few lines of code
-- Add background worker services to your application with very little effort
-  - Turn any code into background task with a few lines
+**Basic Features:**
+
+- Ease of Use
+   - Kickoff background tasks with a line of code or two
+   - Easily add background worker services
+      - Turn any code into background task with a few lines
 - Atomic operation for jobs
-- **(New in 4.0!)** Auto-retry on failure
-- Command to run and debug jobs from console
-- ORM and ODM managers have built-in job-archival for finished jobs
+   - For ORM-based queues this is done _without_ relying on transactions.
+- Admin interface
+   - Web-based Admin interface with an optional performance graph
+- Command Line Interface
+   - Commands to run, manage and debug jobs from console
+- Job Archival
+   - ORM and ODM managers have built-in job-archival for finished jobs
 - Logs errors from worker
 - Various safety checks for things such as stalled jobs, exception jobs
    - Allows for reseting stalled and exception jobs via console commands
-- Admin interface with an optional performance graph
+- Built in Event Dispatcher
 
-![Trends](/Resources/doc/images/trends-example.png?raw=true "DtcQueue Trends")
-
+**Job-specific Features:**
+   - Auto-retry on failure, exception
+      * If a job exits with a failure code, it can auto-retry
+      * Same for Exception if desired
+   - Priority
+      * Jobs can have levels of priority so that higher priority jobs can get processed first even if they were added
+      *  to the queue later.
+   - Future Jobs (ODM / ORM / Redis)
+      * Jobs can be scheduled to run at some time in the future
+   - Batch
+      * Jobs can be "batched" so that only one job runs, even if multiple are queued of the same type
+   - Expires
+      * Jobs can have an "expires" time so that they wont run after a certain point
+         * (useful if the queue gets backed up and a job is worthless after a certain time)
+   - Stalls (ODM / ORM)
+      * Jobs that crash the interpreter, or get terminated for some other reason can be detected
+         * These can be re-queued to run in the future.
+      
 Installation
 ------------
 

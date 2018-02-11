@@ -33,6 +33,12 @@ class JobManagerTest extends BaseJobManagerTest
 
     public static function setUpBeforeClass()
     {
+        if (self::$jobManager) {
+            parent::setUpBeforeClass();
+
+            return;
+        }
+
         $host = getenv('REDIS_HOST');
         $port = getenv('REDIS_PORT') ?: 6379;
         $jobTimingClass = JobTiming::class;
@@ -75,6 +81,7 @@ class JobManagerTest extends BaseJobManagerTest
 
     public function testExpiredJob()
     {
+        $this->drain();
         $job = new self::$jobClass(self::$worker, false, null);
         $time = time() - 1;
         $job->setExpiresAt(new \DateTime("@$time"))->fibonacci(1);
@@ -106,13 +113,22 @@ class JobManagerTest extends BaseJobManagerTest
         );
     }
 
+    public function testInvalidReset()
+    {
+        $job = new \Dtc\QueueBundle\RabbitMQ\Job();
+        $failure = false;
+        try {
+            self::$jobManager->resetJob($job);
+            $failure = true;
+        } catch (\InvalidArgumentException $exception) {
+            self::assertTrue(true);
+        }
+        self::assertFalse($failure);
+    }
+
     public function testBatchJobs()
     {
-        $limit = 10000;
-        while ($limit && self::$jobManager->getJob()) {
-            --$limit;
-        }
-        self::assertGreaterThan(0, $limit);
+        $this->drain();
 
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $worker = self::$worker;
@@ -128,18 +144,20 @@ class JobManagerTest extends BaseJobManagerTest
         $job = self::$jobManager->getJob();
         self::assertNull($job);
 
-        $job1 = $worker->later()->fibonacci(1);
-        $job2 = $worker->batchLater()->setPriority(3)->fibonacci(1);
-        self::assertEquals($job1->getId(), $job2->getId());
-        self::assertNotEquals($job1->getPriority(), $job2->getPriority());
+        if (null !== self::$jobManager->getMaxPriority()) {
+            $job1 = $worker->later()->fibonacci(1);
+            $job2 = $worker->batchLater()->setPriority(3)->fibonacci(1);
+            self::assertEquals($job1->getId(), $job2->getId());
+            self::assertNotEquals($job1->getPriority(), $job2->getPriority());
 
-        $job = self::$jobManager->getJob();
-        self::assertNotNull($job);
-        self::assertEquals($job1->getId(), $job->getId());
-        self::assertEquals($job->getPriority(), $job2->getPriority());
+            $job = self::$jobManager->getJob();
+            self::assertNotNull($job);
+            self::assertEquals($job1->getId(), $job->getId());
+            self::assertEquals($job->getPriority(), $job2->getPriority());
 
-        $job = self::$jobManager->getJob();
-        self::assertNull($job);
+            $job = self::$jobManager->getJob();
+            self::assertNull($job);
+        }
 
         $job1 = $worker->later(100)->fibonacci(1);
         $time1 = new \DateTime('@'.time());
@@ -153,25 +171,28 @@ class JobManagerTest extends BaseJobManagerTest
         $job = self::$jobManager->getJob();
         self::assertNotNull($job);
         self::assertEquals($job1->getId(), $job->getId());
-        self::assertNotNull($job->getPriority());
+        if (null !== self::$jobManager->getMaxPriority()) {
+            self::assertNotNull($job->getPriority());
+        } else {
+            self::assertNull($job->getPriority());
+        }
         self::assertGreaterThanOrEqual($time1, $job->getWhenAt());
         self::assertLessThanOrEqual($time2, $job->getWhenAt());
 
-        $job1 = $worker->later(100)->setPriority(3)->fibonacci(1);
-        $priority1 = $job1->getPriority();
-        $time1 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
-        $job2 = $worker->batchLater(0)->setPriority(1)->fibonacci(1);
-        $time2 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
-        self::assertEquals($job1->getId(), $job2->getId());
-        self::assertNotEquals($priority1, $job2->getPriority());
+        if (null !== self::$jobManager->getMaxPriority()) {
+            $job1 = $worker->later(100)->setPriority(3)->fibonacci(1);
+            $priority1 = $job1->getPriority();
+            $time1 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
+            $job2 = $worker->batchLater(0)->setPriority(1)->fibonacci(1);
+            $time2 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
+            self::assertEquals($job1->getId(), $job2->getId());
+            self::assertNotEquals($priority1, $job2->getPriority());
 
-        self::assertGreaterThanOrEqual($time1, $job2->getWhenAt());
-        self::assertLessThanOrEqual($time2, $job2->getWhenAt());
-
-        $limit = 10000;
-        while ($limit && self::$jobManager->getJob()) {
-            --$limit;
+            self::assertGreaterThanOrEqual($time1, $job2->getWhenAt());
+            self::assertLessThanOrEqual($time2, $job2->getWhenAt());
         }
+
+        $this->drain();
     }
 
     public function testSaveJob()
@@ -187,22 +208,24 @@ class JobManagerTest extends BaseJobManagerTest
         }
         self::assertFalse($failed);
 
-        $job = new self::$jobClass(self::$worker, false, null);
-        try {
-            $job->setPriority(256)->fibonacci(1);
-            $failed = true;
-        } catch (\Exception $exception) {
-            self::assertTrue(true);
+        if (null !== self::$jobManager->getMaxPriority()) {
+            $job = new self::$jobClass(self::$worker, false, null);
+            try {
+                $job->setPriority(256)->fibonacci(1);
+                $failed = true;
+            } catch (\Exception $exception) {
+                self::assertTrue(true);
+            }
+            self::assertFalse($failed);
+
+            $job = new self::$jobClass(self::$worker, false, null);
+            $job->setPriority(100)->fibonacci(1);
+            self::assertNotNull($job->getId(), 'Job id should be generated');
+
+            $jobInQueue = self::$jobManager->getJob();
+            self::assertNotNull($jobInQueue, 'There should be a job.');
+            self::$jobManager->saveHistory($jobInQueue);
         }
-        self::assertFalse($failed);
-
-        $job = new self::$jobClass(self::$worker, false, null);
-        $job->setPriority(100)->fibonacci(1);
-        self::assertNotNull($job->getId(), 'Job id should be generated');
-
-        $jobInQueue = self::$jobManager->getJob();
-        self::assertNotNull($jobInQueue, 'There should be a job.');
-        self::$jobManager->saveHistory($jobInQueue);
 
         $job = new self::$jobClass(self::$worker, false, null);
         $job->fibonacci(1);

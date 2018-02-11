@@ -16,8 +16,6 @@ abstract class BaseDoctrineJobManager extends ArchivableJobManager
     const SAVE_COUNT_MIN = 10;
     const SAVE_COUNT_MAX = 100;
 
-    use CommonTrait;
-
     /**
      * @var ObjectManager
      */

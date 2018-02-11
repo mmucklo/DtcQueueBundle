@@ -19,7 +19,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
     public function __construct(
         Worker $worker = null,
         $batch = false,
-        $priority = 10,
+        $priority = null,
         \DateTime $whenAt = null
     ) {
         parent::__construct($worker, $batch, $priority, $whenAt);

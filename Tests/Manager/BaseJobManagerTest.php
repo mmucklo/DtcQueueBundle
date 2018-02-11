@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Tests\Manager;
 
 use Dtc\QueueBundle\Manager\JobManagerInterface;
+use Dtc\QueueBundle\Manager\PriorityJobManager;
 use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Worker;
@@ -33,6 +34,16 @@ abstract class BaseJobManagerTest extends TestCase
     {
         self::$jobClass = self::$jobManager->getJobClass();
         self::$worker->setJobManager(self::$jobManager);
+    }
+
+    protected function drain()
+    {
+        $limit = 10000;
+        while ($limit && $job = self::$jobManager->getJob()) {
+            --$limit;
+            self::$jobManager->saveHistory($job);
+        }
+        self::assertGreaterThan(0, $limit);
     }
 
     public function testSaveJob()
@@ -70,13 +81,7 @@ abstract class BaseJobManagerTest extends TestCase
 
     public function testDeleteJob()
     {
-        $limit = 1000;
-
-        // First drain the queue
-        while (self::$jobManager->getJob() && $limit) {
-            --$limit;
-        }
-        self::assertGreaterThan(0, $limit);
+        $this->drain();
 
         $job = $this->getJob();
         self::$jobManager->deleteJob($job);
@@ -104,27 +109,29 @@ abstract class BaseJobManagerTest extends TestCase
         $thirdJob->fibonacci(1);
         self::assertNotNull($thirdJob->getId(), 'Job id should be generated');
 
-        $jobInQueue = self::$jobManager->getJob();
-        self::assertNotNull($jobInQueue, 'There should be a job.');
-        self::assertEquals(
-            $secondJob->getId(),
-            $jobInQueue->getId(),
-            'Second job id should be returned - lower number unload first'
-        );
+        if (self::$jobManager instanceof PriorityJobManager && null !== self::$jobManager->getMaxPriority()) {
+            $jobInQueue = self::$jobManager->getJob();
+            self::assertNotNull($jobInQueue, 'There should be a job.');
+            self::assertEquals(
+                $secondJob->getId(),
+                $jobInQueue->getId(),
+                'Second job id should be returned - lower number unload first'
+            );
 
-        $jobInQueue = self::$jobManager->getJob();
-        self::assertEquals(
-            $thirdJob->getId(),
-            $jobInQueue->getId(),
-            'Third job id should be returned - lower number unload first'
-        );
+            $jobInQueue = self::$jobManager->getJob();
+            self::assertEquals(
+                $thirdJob->getId(),
+                $jobInQueue->getId(),
+                'Third job id should be returned - lower number unload first'
+            );
 
-        $jobInQueue = self::$jobManager->getJob();
-        self::assertEquals(
-            $firstJob->getId(),
-            $jobInQueue->getId(),
-            'First job id should be returned - lower number unload first'
-        );
+            $jobInQueue = self::$jobManager->getJob();
+            self::assertEquals(
+                $firstJob->getId(),
+                $jobInQueue->getId(),
+                'First job id should be returned - lower number unload first'
+            );
+        }
     }
 
     public function testResetExceptionJobs()
@@ -239,11 +246,7 @@ abstract class BaseJobManagerTest extends TestCase
         }
 
         // Dequeue all outstanding jobs
-        $limit = 10000;
-        while ($job = self::$jobManager->getJob() && $limit) {
-            $limit -= 1;
-        }
-        self::assertGreaterThan(0, $limit);
+        $this->drain();
 
         $this->performanceEnqueue();
         $this->performanceDequeue();

@@ -10,6 +10,10 @@ trait PriorityTestTrait
     {
         $jobManager = static::$jobManager;
 
+        if (null === $jobManager->getMaxPriority()) {
+            return;
+        }
+
         // Drain the queue
         $limit = 99999;
         while ($jobManager->getJob() && $limit--) {

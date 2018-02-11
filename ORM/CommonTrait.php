@@ -7,6 +7,10 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Id\AssignedGenerator;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Dtc\QueueBundle\Entity\Job;
+use Dtc\QueueBundle\Entity\JobTiming;
+use Dtc\QueueBundle\Entity\Run;
+use Dtc\QueueBundle\Util\Util;
 
 trait CommonTrait
 {
@@ -17,6 +21,8 @@ trait CommonTrait
 
     /** @var Registry */
     protected $registry;
+
+    protected $entityManagerReset = false;
 
     public function setEntityManagerName($name = 'default')
     {
@@ -37,6 +43,7 @@ trait CommonTrait
     {
         $currentObjectManager = parent::getObjectManager();
         if (!$currentObjectManager->isOpen() && $this->registry) {
+            $this->entityManagerReset = true;
             if (($currentObjectManager = $this->registry->getManager($this->entityManagerName)) && $currentObjectManager->isOpen()) {
                 return $this->objectManager = $currentObjectManager;
             }
@@ -91,6 +98,31 @@ trait CommonTrait
         $type = $this->formerIdGenerators[$objectName]['type'];
         $metadata->setIdGeneratorType($type);
         $metadata->setIdGenerator($generator);
+    }
+
+    /**
+     * @param Run|Job|JobTiming $object
+     * @param string            $action
+     */
+    protected function persist($object, $action = 'persist')
+    {
+        /** @var EntityManager $objectManager */
+        $objectManager = $this->getObjectManager();
+
+        // If the entityManager gets reset somewhere midway, we may have to try to refetch the object we're persisting
+        if ($this->entityManagerReset) {
+            if ($object->getId() &&
+                !$objectManager->getUnitOfWork()->tryGetById(['id' => $object->getId()], get_class($object))) {
+                $newObject = $objectManager->find(get_class($object), $object->getId());
+                if ($newObject) {
+                    Util::copy($object, $newObject);
+                    $object = $newObject;
+                }
+            }
+        }
+
+        $objectManager->$action($object);
+        $objectManager->flush();
     }
 
     /**

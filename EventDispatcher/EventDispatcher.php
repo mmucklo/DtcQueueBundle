@@ -19,7 +19,7 @@ class EventDispatcher
             return false;
         }
 
-        return $this->listeners[$eventName];
+        return $this->listeners[$eventName] ? true : false;
     }
 
     public function dispatch($eventName, Event $event)

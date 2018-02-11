@@ -42,6 +42,8 @@ abstract class DoctrineJobTimingManager extends JobTimingManager
 
     abstract protected function removeOlderThan($objectName, $field, \DateTime $olderThan);
 
+    abstract protected function persist($object, $action = 'persist');
+
     public function pruneJobTimings(\DateTime $olderThan)
     {
         return $this->removeOlderThan($this->getJobTimingClass(), 'createdAt', $olderThan);

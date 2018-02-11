@@ -237,12 +237,10 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
 
     public function testCountLiveJobs()
     {
+        $this->drain();
+
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
-
-        while ($job = $jobManager->getJob()) {
-            $jobManager->deleteJob($job);
-        }
 
         $this->getJob();
 
@@ -271,19 +269,15 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         $count = $jobManager->countLiveJobs('fibonacci', 'fibonacci');
         self::assertEquals(3, $count);
 
-        while ($job = $jobManager->getJob()) {
-            $jobManager->deleteJob($job);
-        }
+        $this->drain();
     }
 
     public function testArchiveAllJobs()
     {
+        $this->drain();
+
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
-
-        while ($job = $jobManager->getJob()) {
-            $jobManager->deleteJob($job);
-        }
 
         $this->getJob();
 
@@ -328,9 +322,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         $jobManager->archiveAllJobs('fibonacci', 'fibonacci', $countJobs);
         self::assertEquals(0, $jobManager->countLiveJobs());
 
-        while ($job = $jobManager->getJob()) {
-            $jobManager->deleteJob($job);
-        }
+        $this->drain();
     }
 
     abstract protected function runCountQuery($class);
@@ -483,14 +475,10 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
 
     public function testResetStalledJobs()
     {
+        $this->drain();
+
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
         $jobManager = self::$jobManager;
-        $limit = 10000;
-        while ($job = $jobManager->getJob() && $limit) {
-            $jobManager->delete($job);
-            --$limit;
-        }
-        self::assertGreaterThan(0, $limit);
         $jobManager->pruneStalledJobs();
 
         $id = $this->createStalledJob(true, false);

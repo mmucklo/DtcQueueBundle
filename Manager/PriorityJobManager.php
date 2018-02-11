@@ -59,7 +59,7 @@ abstract class PriorityJobManager extends RetryableJobManager
             throw new PriorityException("Priority ($priority) needs to be less than ".PHP_INT_MAX);
         }
         $maxPriority = $this->getMaxPriority();
-        if (intval($priority) > $maxPriority) {
+        if (null !== $maxPriority && intval($priority) > $maxPriority) {
             throw new PriorityException("Priority ($priority) must be less than ".$maxPriority);
         }
     }
@@ -77,6 +77,11 @@ abstract class PriorityJobManager extends RetryableJobManager
         if (null === $priority) {
             return $priority;
         }
+
+        if (null === $this->maxPriority) {
+            return null;
+        }
+
         if (self::PRIORITY_DESC === $this->priorityDirection) {
             $priority = $this->maxPriority - $priority;
         }

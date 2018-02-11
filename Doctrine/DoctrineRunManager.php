@@ -9,8 +9,6 @@ use Dtc\QueueBundle\Manager\RunManager;
 
 abstract class DoctrineRunManager extends RunManager
 {
-    use CommonTrait;
-
     /** @var ObjectManager */
     protected $objectManager;
 
@@ -107,6 +105,8 @@ abstract class DoctrineRunManager extends RunManager
      * @return array
      */
     abstract protected function getOldLiveRuns();
+
+    abstract protected function persist($object, $action = 'persist');
 
     abstract protected function removeOlderThan($objectName, $field, \DateTime $olderThan);
 
