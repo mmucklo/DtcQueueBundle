@@ -3,7 +3,6 @@
 namespace Dtc\QueueBundle\Tests\RabbitMQ;
 
 use Dtc\QueueBundle\Exception\UnsupportedException;
-use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Manager\JobTimingManager;
@@ -15,6 +14,7 @@ use Dtc\QueueBundle\Tests\Manager\AutoRetryTrait;
 use Dtc\QueueBundle\Tests\Manager\BaseJobManagerTest;
 use Dtc\QueueBundle\Tests\Manager\PriorityTestTrait;
 use Dtc\QueueBundle\Tests\Manager\RetryableTrait;
+use Dtc\QueueBundle\Tests\Manager\SaveJobTrait;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 
 /**
@@ -27,6 +27,7 @@ class JobManagerTest extends BaseJobManagerTest
     use PriorityTestTrait;
     use AutoRetryTrait;
     use RetryableTrait;
+    use SaveJobTrait;
     public static $connection;
 
     public static function setUpBeforeClass()
@@ -177,79 +178,6 @@ class JobManagerTest extends BaseJobManagerTest
             $jobInQueue->getId(),
             'Job id returned by manager should be the same'
         );
-    }
-
-    public function testSaveJob()
-    {
-        // Make sure a job proper type
-        $failed = false;
-        try {
-            $job = new Job();
-            self::$jobManager->save($job);
-            $failed = true;
-        } catch (\Exception $exception) {
-            self::assertTrue(true);
-        }
-        self::assertFalse($failed);
-
-        $job = new self::$jobClass(self::$worker, false, null);
-        try {
-            $job->setPriority(256)->fibonacci(1);
-            $failed = true;
-        } catch (\Exception $exception) {
-            self::assertTrue(true);
-        }
-        self::assertFalse($failed);
-
-        $job = new self::$jobClass(self::$worker, false, null);
-        $job->setPriority(100)->fibonacci(1);
-        self::assertNotNull($job->getId(), 'Job id should be generated');
-
-        $jobInQueue = self::$jobManager->getJob();
-        self::assertNotNull($jobInQueue, 'There should be a job.');
-        self::$jobManager->saveHistory($jobInQueue);
-
-        $job = new self::$jobClass(self::$worker, false, null);
-        $job->fibonacci(1);
-        self::assertNotNull($job->getId(), 'Job id should be generated');
-
-        $failed = false;
-        try {
-            self::$jobManager->getJob('fibonacci');
-            $failed = true;
-        } catch (\Exception $exception) {
-            self::assertTrue(true);
-        }
-        self::assertFalse($failed);
-
-        $failed = false;
-        try {
-            self::$jobManager->getJob(null, 'fibonacci');
-            $failed = true;
-        } catch (\Exception $exception) {
-            self::assertTrue(true);
-        }
-        self::assertFalse($failed);
-
-        $jobInQueue = self::$jobManager->getJob();
-        self::assertNotNull($jobInQueue, 'There should be a job.');
-        self::assertEquals(
-            $job->getId(),
-            $jobInQueue->getId(),
-            'Job id returned by manager should be the same'
-        );
-
-        $job->setStatus(BaseJob::STATUS_SUCCESS);
-        $badJob = new Job();
-        $failed = false;
-        try {
-            self::$jobManager->saveHistory($badJob);
-            $failed = true;
-        } catch (\Exception $exception) {
-            self::assertTrue(true);
-        }
-        self::assertFalse($failed);
-        self::$jobManager->saveHistory($jobInQueue);
     }
 
     protected static function drainQueue($channel)
