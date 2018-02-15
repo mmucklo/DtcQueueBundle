@@ -15,7 +15,7 @@ build:
                 override: [php-scrutinizer-run]
 filter:
     excluded_paths:
-        - "tests/"
+        - "Tests/"
 tools:
     external_code_coverage:
         timeout: 900
