@@ -5,7 +5,8 @@ build:
     dependencies:
         before:
             - pecl install mongodb
-            - composer config "platform.ext-mongo" "1.6.16" && composer require alcaeus/mongo-php-adapter
+            - composer require "ocramius/proxy-manager:2.1.0" --dev
+            - composer config "platform.ext-mongo" "1.6.16" && composer require alcaeus/mongo-php-adapter --dev
     nodes:
         analysis:
             project_setup:
