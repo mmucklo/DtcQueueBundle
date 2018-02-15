@@ -2,6 +2,10 @@ build:
     environment:
         php:
             version: 7.1
+    dependencies:
+        before:
+            - pecl install mongodb
+            - composer config "platform.ext-mongo" "1.6.16" && composer require alcaeus/mongo-php-adapter
     nodes:
         analysis:
             project_setup:
