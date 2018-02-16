@@ -291,7 +291,6 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
         }
 
         // Just save a new job
-        $this->resetSaveOk(__FUNCTION__);
         $this->persist($job);
 
         return $job;
@@ -317,7 +316,6 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
         $offset
     ) {
         $objectManager = $this->getObjectManager();
-        $this->resetSaveOk(__FUNCTION__);
         $objectName = $this->getJobClass();
         $archiveObjectName = $this->getJobArchiveClass();
         $jobRepository = $objectManager->getRepository($objectName);
@@ -338,10 +336,6 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
         $this->restoreIdGenerator($objectName);
 
         return $countProcessed;
-    }
-
-    protected function resetSaveOk($function)
-    {
     }
 
     /**

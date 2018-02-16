@@ -28,7 +28,7 @@ abstract class BaseJob
     protected $status;
     protected $createdAt;
 
-    public function __construct(Worker $worker = null, $batch = false, $priority = 10, \DateTime $whenAt = null)
+    public function __construct(Worker $worker = null, $batch = false, $priority = null, \DateTime $whenAt = null)
     {
         if ($worker) {
             $this->setWorker($worker);
@@ -185,7 +185,7 @@ abstract class BaseJob
     }
 
     /**
-     * @param int $priority
+     * @param int|null $priority
      */
     public function setPriority($priority)
     {

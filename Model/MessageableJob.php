@@ -55,53 +55,46 @@ abstract class MessageableJob extends RetryableJob
 
     protected function fromMessageArray(array $arr)
     {
+        $this->setByList(['args', 'priority', 'method'], $arr);
         if (isset($arr['worker'])) {
             $this->setWorkerName($arr['worker']);
-        }
-        if (isset($arr['args'])) {
-            $this->setArgs($arr['args']);
-        }
-        if (isset($arr['method'])) {
-            $this->setMethod($arr['method']);
-        }
-        if (isset($arr['priority'])) {
-            $this->setPriority($arr['priority']);
         }
 
         $this->fromMessageArrayRetries($arr);
         foreach (['expiresAt', 'createdAt', 'updatedAt', 'whenAt'] as $dateField) {
             if (isset($arr[$dateField])) {
-                $timeStr = $arr[$dateField];
-                if ($timeStr) {
-                    $dateTime = \DateTime::createFromFormat('U.u', $timeStr);
-                    if ($dateTime) {
-                        $method = 'set'.ucfirst($dateField);
-                        $this->$method($dateTime);
-                    }
-                }
+                $this->setDateTimeField($dateField, $arr[$dateField]);
+            }
+        }
+    }
+
+    /**
+     * @param $dateField string
+     * @param $timeStr string|null
+     */
+    private function setDateTimeField($dateField, $timeStr)
+    {
+        if ($timeStr) {
+            $dateTime = \DateTime::createFromFormat('U.u', $timeStr);
+            if ($dateTime) {
+                $method = 'set'.ucfirst($dateField);
+                $this->$method($dateTime);
+            }
+        }
+    }
+
+    private function setByList(array $list, array $arr)
+    {
+        foreach ($list as $key) {
+            if (isset($arr[$key])) {
+                $method = 'set'.ucfirst($key);
+                $this->$method($arr[$key]);
             }
         }
     }
 
     protected function fromMessagearrayRetries(array $arr)
     {
-        if (isset($arr['retries'])) {
-            $this->setRetries($arr['retries']);
-        }
-        if (isset($arr['maxRetries'])) {
-            $this->setMaxRetries($arr['maxRetries']);
-        }
-        if (isset($arr['failures'])) {
-            $this->setFailures($arr['failures']);
-        }
-        if (isset($arr['maxFailures'])) {
-            $this->setMaxFailures($arr['maxFailures']);
-        }
-        if (isset($arr['exceptions'])) {
-            $this->setExceptions($arr['exceptions']);
-        }
-        if (isset($arr['maxExceptions'])) {
-            $this->setMaxExceptions($arr['maxExceptions']);
-        }
+        $this->setByList(['retries', 'maxRetries', 'failures', 'maxFailures', 'exceptions', 'maxExceptions'], $arr);
     }
 }

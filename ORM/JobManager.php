@@ -10,7 +10,6 @@ use Dtc\QueueBundle\Entity\Job;
 use Dtc\QueueBundle\Exception\UnsupportedException;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Util\Util;
-use Symfony\Component\Process\Exception\LogicException;
 
 class JobManager extends DoctrineJobManager
 {
@@ -74,30 +73,6 @@ class JobManager extends DoctrineJobManager
         return intval($query->execute());
     }
 
-    protected function resetSaveOk($function)
-    {
-        $objectManager = $this->getObjectManager();
-        $splObjectHash = spl_object_hash($objectManager);
-
-        if ('save' === $function) {
-            $compare = static::$resetInsertCalled;
-        } else {
-            $compare = static::$saveInsertCalled;
-        }
-
-        if ($splObjectHash === $compare) {
-            // Insert SQL is cached...
-            $msg = "Can't call save and reset within the same process cycle (or using the same EntityManager)";
-            throw new LogicException($msg);
-        }
-
-        if ('save' === $function) {
-            static::$saveInsertCalled = spl_object_hash($objectManager);
-        } else {
-            static::$resetInsertCalled = spl_object_hash($objectManager);
-        }
-    }
-
     /**
      * @param string $workerName
      * @param string $method
@@ -159,6 +134,22 @@ class JobManager extends DoctrineJobManager
         $query = $queryBuilder->getQuery();
 
         return $query->getSingleScalarResult();
+    }
+
+    /**
+     * @param string $workerName
+     * @param string $methodName
+     */
+    public function countLiveJobs($workerName = null, $methodName = null)
+    {
+        /** @var EntityRepository $repository */
+        $repository = $this->getRepository();
+        $queryBuilder = $repository->createQueryBuilder('j');
+        $this->addStandardPredicate($queryBuilder);
+        $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
+        $queryBuilder->select('count(j.id)');
+
+        return $queryBuilder->getQuery()->getSingleScalarResult();
     }
 
     /**
@@ -420,22 +411,6 @@ class JobManager extends DoctrineJobManager
         }
 
         return $workerMethods;
-    }
-
-    /**
-     * @param string $workerName
-     * @param string $methodName
-     */
-    public function countLiveJobs($workerName = null, $methodName = null)
-    {
-        /** @var EntityRepository $repository */
-        $repository = $this->getRepository();
-        $queryBuilder = $repository->createQueryBuilder('j');
-        $this->addStandardPredicate($queryBuilder);
-        $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
-        $queryBuilder->select('count(j.id)');
-
-        return $queryBuilder->getQuery()->getSingleScalarResult();
     }
 
     /**
