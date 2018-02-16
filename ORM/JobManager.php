@@ -215,14 +215,14 @@ class JobManager extends DoctrineJobManager
             /** @var QueryBuilder $queryBuilder */
             $query = $queryBuilder->getQuery();
             $jobs = $query->getResult();
-            if ($jobs) {
+            if (!empty($jobs)) {
                 foreach ($jobs as $job) {
                     if ($job = $this->takeJob($job['id'], $runId)) {
                         return $job;
                     }
                 }
             }
-        } while ($jobs);
+        } while (!empty($jobs));
 
         return null;
     }
@@ -307,7 +307,7 @@ class JobManager extends DoctrineJobManager
     {
         /** @var EntityManager $entityManager */
         $entityManager = $this->getObjectManager();
-        if ($job = $entityManager->getUnitOfWork()->tryGetById(['id' => $id], $this->getJobClass())) {
+        if (($job = $entityManager->getUnitOfWork()->tryGetById(['id' => $id], $this->getJobClass())) instanceof Job) {
             $entityManager->refresh($job);
 
             return $job;
@@ -432,7 +432,7 @@ class JobManager extends DoctrineJobManager
         $resultCount = $queryBuilder->getQuery()->execute();
 
         if ($resultCount) {
-            $this->runArchive($workerName, $methodName, $progressCallback);
+            $this->runArchive($progressCallback);
         }
     }
 
@@ -442,11 +442,9 @@ class JobManager extends DoctrineJobManager
      *  This is a bit of a hack to run a lower level query so as to process the INSERT INTO SELECT
      *   All on the server as "INSERT INTO SELECT" is not supported natively in Doctrine.
      *
-     * @param string|null   $workerName
-     * @param string|null   $methodName
      * @param callable|null $progressCallback
      */
-    protected function runArchive($workerName = null, $methodName = null, callable $progressCallback = null)
+    protected function runArchive(callable $progressCallback = null)
     {
         /** @var EntityManager $entityManager */
         $entityManager = $this->getObjectManager();

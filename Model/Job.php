@@ -2,8 +2,6 @@
 
 namespace Dtc\QueueBundle\Model;
 
-use Dtc\QueueBundle\Manager\JobManagerInterface;
-
 class Job extends BaseJob
 {
     const STATUS_EXPIRED = 'expired';
@@ -138,16 +136,6 @@ class Job extends BaseJob
     public function setCrcHash($crcHash)
     {
         $this->crcHash = $crcHash;
-
-        return $this;
-    }
-
-    /**
-     * @param JobManagerInterface $jobManager
-     */
-    public function setJobManager(JobManagerInterface $jobManager)
-    {
-        $this->jobManager = $jobManager;
 
         return $this;
     }

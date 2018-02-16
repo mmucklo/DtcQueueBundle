@@ -46,8 +46,8 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
     /**
      * Sets the status to Job::STATUS_EXPIRED for those jobs that are expired.
      *
-     * @param null $workerName
-     * @param null $method
+     * @param string|null $workerName
+     * @param string|null $method
      *
      * @return mixed
      */
@@ -240,8 +240,8 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
     }
 
     /**
-     * @param string        $workerName
-     * @param string        $method
+     * @param string|null   $workerName
+     * @param string|null   $method
      * @param callable|null $progressCallback
      */
     public function pruneStalledJobs($workerName = null, $method = null, callable $progressCallback = null)
@@ -339,15 +339,14 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
     }
 
     /**
-     * @param null $workerName
-     * @param null $methodName
-     * @param bool $prioritize
+     * @param string|null $workerName
+     * @param string|null $methodName
+     * @param bool        $prioritize
      */
     abstract public function getJobQueryBuilder($workerName = null, $methodName = null, $prioritize = true);
 
     /**
      * @param StallableJob $jobArchive
-     * @param $className
      *
      * @return int Number of jobs reset
      */

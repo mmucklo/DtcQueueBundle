@@ -76,7 +76,7 @@ abstract class MessageableJob extends RetryableJob
     {
         if ($timeStr) {
             $dateTime = \DateTime::createFromFormat('U.u', $timeStr);
-            if ($dateTime) {
+            if (false !== $dateTime) {
                 $method = 'set'.ucfirst($dateField);
                 $this->$method($dateTime);
             }

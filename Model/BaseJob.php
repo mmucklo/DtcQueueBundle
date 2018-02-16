@@ -239,6 +239,16 @@ abstract class BaseJob
     }
 
     /**
+     * @param JobManagerInterface $jobManager
+     */
+    public function setJobManager(JobManagerInterface $jobManager)
+    {
+        $this->jobManager = $jobManager;
+
+        return $this;
+    }
+
+    /**
      * @return \DateTime
      */
     public function getCreatedAt()
