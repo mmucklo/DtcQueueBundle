@@ -214,7 +214,7 @@ class QueueController extends Controller
      * @param string $label1
      * @param string $label2
      *
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @return array
      *
      * @throws \Exception
      */
