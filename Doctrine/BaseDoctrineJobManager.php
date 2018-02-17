@@ -92,4 +92,6 @@ abstract class BaseDoctrineJobManager extends ArchivableJobManager
     {
         $this->persist($job, 'remove');
     }
+
+    abstract protected function persist($object, $action = 'persist');
 }
