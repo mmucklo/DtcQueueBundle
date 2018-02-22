@@ -1,7 +1,21 @@
-checks:
-    php:
-        code_rating: true
-        duplication: true
+build:
+    environment:
+        php:
+            version: 7.1
+    dependencies:
+        before:
+            - pecl install mongodb
+            - composer require "ocramius/proxy-manager:2.1.0" --dev
+            - composer config "platform.ext-mongo" "1.6.16" && composer require alcaeus/mongo-php-adapter --dev
+    nodes:
+        analysis:
+            project_setup:
+                override: true
+            tests:
+                override: [php-scrutinizer-run]
+filter:
+    excluded_paths:
+        - "Tests/"
 tools:
     external_code_coverage:
         timeout: 900

@@ -10,7 +10,6 @@ use Dtc\QueueBundle\Entity\Job;
 use Dtc\QueueBundle\Exception\UnsupportedException;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Util\Util;
-use Symfony\Component\Process\Exception\LogicException;
 
 class JobManager extends DoctrineJobManager
 {
@@ -72,30 +71,6 @@ class JobManager extends DoctrineJobManager
         $query = $queryBuilder->getQuery();
 
         return intval($query->execute());
-    }
-
-    protected function resetSaveOk($function)
-    {
-        $objectManager = $this->getObjectManager();
-        $splObjectHash = spl_object_hash($objectManager);
-
-        if ('save' === $function) {
-            $compare = static::$resetInsertCalled;
-        } else {
-            $compare = static::$saveInsertCalled;
-        }
-
-        if ($splObjectHash === $compare) {
-            // Insert SQL is cached...
-            $msg = "Can't call save and reset within the same process cycle (or using the same EntityManager)";
-            throw new LogicException($msg);
-        }
-
-        if ('save' === $function) {
-            static::$saveInsertCalled = spl_object_hash($objectManager);
-        } else {
-            static::$resetInsertCalled = spl_object_hash($objectManager);
-        }
     }
 
     /**
@@ -162,6 +137,22 @@ class JobManager extends DoctrineJobManager
     }
 
     /**
+     * @param string $workerName
+     * @param string $methodName
+     */
+    public function countLiveJobs($workerName = null, $methodName = null)
+    {
+        /** @var EntityRepository $repository */
+        $repository = $this->getRepository();
+        $queryBuilder = $repository->createQueryBuilder('j');
+        $this->addStandardPredicate($queryBuilder);
+        $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
+        $queryBuilder->select('count(j.id)');
+
+        return $queryBuilder->getQuery()->getSingleScalarResult();
+    }
+
+    /**
      * Get Jobs statuses.
      */
     public function getStatus()
@@ -224,14 +215,14 @@ class JobManager extends DoctrineJobManager
             /** @var QueryBuilder $queryBuilder */
             $query = $queryBuilder->getQuery();
             $jobs = $query->getResult();
-            if ($jobs) {
+            if (!empty($jobs)) {
                 foreach ($jobs as $job) {
                     if ($job = $this->takeJob($job['id'], $runId)) {
                         return $job;
                     }
                 }
             }
-        } while ($jobs);
+        } while (!empty($jobs));
 
         return null;
     }
@@ -316,7 +307,7 @@ class JobManager extends DoctrineJobManager
     {
         /** @var EntityManager $entityManager */
         $entityManager = $this->getObjectManager();
-        if ($job = $entityManager->getUnitOfWork()->tryGetById(['id' => $id], $this->getJobClass())) {
+        if (($job = $entityManager->getUnitOfWork()->tryGetById(['id' => $id], $this->getJobClass())) instanceof Job) {
             $entityManager->refresh($job);
 
             return $job;
@@ -423,22 +414,6 @@ class JobManager extends DoctrineJobManager
     }
 
     /**
-     * @param string $workerName
-     * @param string $methodName
-     */
-    public function countLiveJobs($workerName = null, $methodName = null)
-    {
-        /** @var EntityRepository $repository */
-        $repository = $this->getRepository();
-        $queryBuilder = $repository->createQueryBuilder('j');
-        $this->addStandardPredicate($queryBuilder);
-        $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
-        $queryBuilder->select('count(j.id)');
-
-        return $queryBuilder->getQuery()->getSingleScalarResult();
-    }
-
-    /**
      * @param string        $workerName
      * @param string        $methodName
      * @param callable|null $progressCallback
@@ -457,7 +432,7 @@ class JobManager extends DoctrineJobManager
         $resultCount = $queryBuilder->getQuery()->execute();
 
         if ($resultCount) {
-            $this->runArchive($workerName, $methodName, $progressCallback);
+            $this->runArchive($progressCallback);
         }
     }
 
@@ -467,11 +442,9 @@ class JobManager extends DoctrineJobManager
      *  This is a bit of a hack to run a lower level query so as to process the INSERT INTO SELECT
      *   All on the server as "INSERT INTO SELECT" is not supported natively in Doctrine.
      *
-     * @param string|null   $workerName
-     * @param string|null   $methodName
      * @param callable|null $progressCallback
      */
-    protected function runArchive($workerName = null, $methodName = null, callable $progressCallback = null)
+    protected function runArchive(callable $progressCallback = null)
     {
         /** @var EntityManager $entityManager */
         $entityManager = $this->getObjectManager();

@@ -21,14 +21,14 @@ class Configuration implements ConfigurationInterface
 
         $node = $rootNode
             ->children()
-                ->append($this->addOrm())
-                ->append($this->addOdm())
+                ->append($this->addSimpleScalar('orm', 'entity_manager', 'This only needs to be set if orm is used for any of the managers, and you do not want to use the default entity manager'))
+                ->append($this->addSimpleScalar('odm', 'document_manager', 'This only needs to be set if odm is used for any of the managers, and you do not want to use the default document manager'))
                 ->append($this->addManager())
                 ->append($this->addTimings())
                 ->append($this->addBeanstalkd())
                 ->append($this->addRabbitMq())
                 ->append($this->addRedis())
-                ->append($this->addAdmin())
+                ->append($this->addSimpleScalar('admin', 'chartjs', 'This can be changed to say a locally hosted path or url.', 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js'))
                 ->append($this->addClasses())
                 ->append($this->addPriority())
                 ->append($this->addRetry());
@@ -85,35 +85,18 @@ class Configuration implements ConfigurationInterface
         return $rootNode;
     }
 
-    protected function addOrm()
+    protected function addSimpleScalar($rootName, $nodeName, $info, $defaultValue = 'default')
     {
         $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('orm');
+        $rootNode = $treeBuilder->root($rootName);
         $rootNode
             ->addDefaultsIfNotSet()
             ->children()
-                ->scalarNode('entity_manager')
-                    ->info('This only needs to be set if orm is used for any of the managers, and you do not want to use the default entity manager')
-                    ->defaultValue('default')
-                    ->cannotBeEmpty()
-                ->end()
-            ->end();
-
-        return $rootNode;
-    }
-
-    protected function addOdm()
-    {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('odm');
-        $rootNode
-            ->addDefaultsIfNotSet()
-            ->children()
-                ->scalarNode('document_manager')
-                    ->info('This only needs to be set if odm is used for any of the managers, and you do not want to use the default document manager')
-                    ->defaultValue('default')
-                    ->cannotBeEmpty()
-                ->end()
+            ->scalarNode($nodeName)
+            ->info($info)
+            ->defaultValue($defaultValue)
+            ->cannotBeEmpty()
+            ->end()
             ->end();
 
         return $rootNode;
@@ -235,22 +218,6 @@ class Configuration implements ConfigurationInterface
                     ->info('If you want to override the Run class, put the class name here.')->end()
                 ->scalarNode('run_archive')
                     ->info('If you want to override the RunArchive class, put the class name here.')->end()
-            ->end();
-
-        return $rootNode;
-    }
-
-    protected function addAdmin()
-    {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('admin');
-        $rootNode
-            ->addDefaultsIfNotSet()
-            ->children()
-                ->scalarNode('chartjs')
-                    ->defaultValue('https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.1/Chart.bundle.min.js')
-                    ->info('This can be changed to say a locally hosted path or url.')->end()
-                ->end()
             ->end();
 
         return $rootNode;
