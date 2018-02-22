@@ -94,4 +94,14 @@ abstract class BaseDoctrineJobManager extends ArchivableJobManager
     }
 
     abstract protected function persist($object, $action = 'persist');
+
+    protected function addWorkerNameMethod(array &$criterion, $workerName = null, $method = null)
+    {
+        if (null !== $workerName) {
+            $criterion['workerName'] = $workerName;
+        }
+        if (null !== $method) {
+            $criterion['method'] = $method;
+        }
+    }
 }
