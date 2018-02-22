@@ -36,26 +36,40 @@ trait RabbitMQConfiguration
                 if (!is_array($node)) {
                     return true;
                 }
-                foreach ($node as $key => $value) {
-                    if (is_array($value)) {
-                        if ('peer_fingerprint' !== $key) {
-                            return true;
-                        } else {
-                            foreach ($value as $key1 => $value1) {
-                                if (!is_string($key1) || !is_string($value1)) {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
 
-                return false;
+                return $this->validateNode($node);
             })
             ->thenInvalid('Must be key-value pairs')
             ->end();
 
         return $rootNode;
+    }
+
+    private function validateNode(array $node)
+    {
+        foreach ($node as $key => $value) {
+            if (is_array($value)) {
+                if ($this->validateArray($key, $value)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private function validateArray($key, $value)
+    {
+        if ('peer_fingerprint' !== $key) {
+            return true;
+        }
+        foreach ($value as $key1 => $value1) {
+            if (!is_string($key1) || !is_string($value1)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     protected function addRabbitMqExchange()
