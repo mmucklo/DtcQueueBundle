@@ -18,6 +18,7 @@
         "dstuecken/php7ify": ">=1.1",
         "mmucklo/grid-bundle": ">=4.0.6",
         "symfony/framework-bundle": ">=2.7|>=3.3|4.*",
+        "beberlei/doctrineextensions": "^1.0",
         "sensio/framework-extra-bundle": "2.*|3.*|4.*|5.*",
         "cocur/background-process": ">=0.7"
     },
@@ -38,7 +39,6 @@
         "phpunit/php-code-coverage": "^4.0",
         "predis/predis": "^v1.1.1",
         "snc/redis-bundle": "^2.0",
-        "beberlei/doctrineextensions": "^1.0",
         "symfony/proxy-manager-bridge": ">=2.7|>=3.3|4.*",
         "doctrine/doctrine-bundle": ">=1.8.1"
     },
