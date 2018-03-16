@@ -235,7 +235,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         self::assertEquals($id, $result->getId());
     }
 
-    public function testCountLiveJobs()
+    public function testGetWaitingJobCount()
     {
         $this->drain();
 
@@ -244,29 +244,29 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
 
         $this->getJob();
 
-        $count = $jobManager->countLiveJobs();
+        $count = $jobManager->getWaitingJobCount();
         self::assertEquals(1, $count);
 
         $this->getJob();
 
-        $count = $jobManager->countLiveJobs();
+        $count = $jobManager->getWaitingJobCount();
         self::assertEquals(2, $count);
 
         $this->getJob();
 
-        $count = $jobManager->countLiveJobs();
+        $count = $jobManager->getWaitingJobCount();
         self::assertEquals(3, $count);
 
-        $count = $jobManager->countLiveJobs('asdf');
+        $count = $jobManager->getWaitingJobCount('asdf');
         self::assertEquals(0, $count);
 
-        $count = $jobManager->countLiveJobs('fibonacci');
+        $count = $jobManager->getWaitingJobCount('fibonacci');
         self::assertEquals(3, $count);
 
-        $count = $jobManager->countLiveJobs('fibonacci', 'test');
+        $count = $jobManager->getWaitingJobCount('fibonacci', 'test');
         self::assertEquals(0, $count);
 
-        $count = $jobManager->countLiveJobs('fibonacci', 'fibonacci');
+        $count = $jobManager->getWaitingJobCount('fibonacci', 'fibonacci');
         self::assertEquals(3, $count);
 
         $this->drain();
@@ -281,7 +281,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
 
         $this->getJob();
 
-        $count = $jobManager->countLiveJobs();
+        $count = $jobManager->getWaitingJobCount();
         $archiveCount = $this->runCountQuery($jobManager->getJobArchiveClass());
         self::assertEquals(1, $count);
         $allCount = $this->runCountQuery($jobManager->getJobClass());
@@ -290,7 +290,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
             $counter += $count;
         };
         $jobManager->archiveAllJobs(null, null, $countJobs);
-        self::assertEquals(0, $jobManager->countLiveJobs());
+        self::assertEquals(0, $jobManager->getWaitingJobCount());
         self::assertEquals($allCount - 1, $this->runCountQuery($jobManager->getJobClass()));
         self::assertEquals($archiveCount + 1, $this->runCountQuery($jobManager->getJobArchiveClass()));
         self::assertEquals(1, $counter);
@@ -298,29 +298,29 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         $this->getJob();
         $this->getJob();
 
-        $count = $jobManager->countLiveJobs();
+        $count = $jobManager->getWaitingJobCount();
         self::assertEquals(2, $count);
         $archiveCount = $this->runCountQuery($jobManager->getJobArchiveClass());
         $counter = 0;
         $jobManager->archiveAllJobs('fibonacci', null, $countJobs);
-        self::assertEquals(0, $jobManager->countLiveJobs());
+        self::assertEquals(0, $jobManager->getWaitingJobCount());
         self::assertEquals(2, $counter);
         self::assertEquals($archiveCount + 2, $this->runCountQuery($jobManager->getJobArchiveClass()));
 
         $this->getJob();
         $this->getJob();
 
-        $count = $jobManager->countLiveJobs();
+        $count = $jobManager->getWaitingJobCount();
         self::assertEquals(2, $count);
 
         $jobManager->archiveAllJobs('fibonacc', null, $countJobs);
-        self::assertEquals(2, $jobManager->countLiveJobs());
+        self::assertEquals(2, $jobManager->getWaitingJobCount());
 
         $jobManager->archiveAllJobs('fibonacci', 'fibo', $countJobs);
-        self::assertEquals(2, $jobManager->countLiveJobs());
+        self::assertEquals(2, $jobManager->getWaitingJobCount());
 
         $jobManager->archiveAllJobs('fibonacci', 'fibonacci', $countJobs);
-        self::assertEquals(0, $jobManager->countLiveJobs());
+        self::assertEquals(0, $jobManager->getWaitingJobCount());
 
         $this->drain();
     }

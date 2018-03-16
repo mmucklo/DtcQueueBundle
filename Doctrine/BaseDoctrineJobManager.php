@@ -16,6 +16,12 @@ abstract class BaseDoctrineJobManager extends ArchivableJobManager
     const SAVE_COUNT_MIN = 10;
     const SAVE_COUNT_MAX = 100;
 
+    public static function getAllStatuses()
+    {
+        $statuses = parent::getAllStatuses();
+        $statuses[BaseJob::STATUS_ARCHIVE] = 0;
+        return $statuses;
+    }
     /**
      * @var ObjectManager
      */

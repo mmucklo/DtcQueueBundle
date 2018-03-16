@@ -3,6 +3,11 @@ queue:
     prefix:  /dtc_queue/
     type: annotation
 
+queue_action:
+    resource: "@DtcQueueBundle/Controller/QueueActionController.php"
+    prefix:  /dtc_queue/
+    type: annotation
+
 queue_trends:
     resource: "@DtcQueueBundle/Controller/TrendsController.php"
     prefix:  /dtc_queue/

@@ -161,7 +161,7 @@ trait StalledTrait
                 $stalledJobs = array_merge($stalledJobs, $runningJobsById[$runId]);
                 continue;
             }
-            $this->extractStalledLiveRuns($runId, $runningJobsById[$runId], $stalledJobs);
+            $this->extractStalledFromLiveRuns($runId, $runningJobsById[$runId], $stalledJobs);
             $this->extractStalledJobsRunArchive($runningJobsById, $stalledJobs, $runId);
         }
 
@@ -173,7 +173,7 @@ trait StalledTrait
      * @param array $jobs
      * @param array $stalledJobs
      */
-    private function extractStalledLiveRuns($runId, array $jobs, array &$stalledJobs)
+    private function extractStalledFromLiveRuns($runId, array $jobs, array &$stalledJobs)
     {
         $objectManager = $this->getObjectManager();
         $runRepository = $objectManager->getRepository($this->getRunManager()->getRunClass());
@@ -184,6 +184,10 @@ trait StalledTrait
                 }
                 $stalledJobs[] = $job;
             }
+            return;
         }
+
+        // Can't find run amongst live runs
+        $stalledJobs = array_merge($stalledJobs, $jobs);
     }
 }

@@ -4,9 +4,9 @@ namespace Dtc\QueueBundle\Document;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 use Dtc\GridBundle\Annotation as Grid;
-use Dtc\QueueBundle\Model\StallableJob;
+use Dtc\QueueBundle\Doctrine\BaseJob as BaseDoctrineJob;
 
-abstract class BaseJob extends StallableJob
+abstract class BaseJob extends BaseDoctrineJob
 {
     /**
      * @Grid\Column(order=1,sortable=true,searchable=true)

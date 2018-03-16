@@ -1,6 +1,6 @@
-{% macro worker_method_button(button_text, route_name, worker_methods, prompt_message, tag) %}
+{% macro worker_method_button(button_text, route_name, worker_methods, prompt_message, tag, id) %}
 
-<div class="worker-method form-group form-inline">
+<div class="worker-method form-group form-inline worker-method-{{ tag }}">
     <h4>{{ button_text }}:</h4>
     <input type="hidden" class="worker-method-tag" name="{{ tag }}" value="{{ tag }}" />
     <label for="worker-name-{{ tag }}">WorkerName: </label>
@@ -20,5 +20,6 @@
   var fetchPath_{{ tag }} = '{{ path(route_name) }}';
   var workerMethods_{{ tag }} = {{ worker_methods|json_encode|raw }};
   var promptMessage_{{ tag }} = '{{ prompt_message|raw }}';
+  var id_{{ tag }} = '{{ id }}';
 </script>
 {% endmacro %}

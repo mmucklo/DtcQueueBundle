@@ -12,7 +12,8 @@
     var originalMethodHtml = methodElement.innerHTML;
     var archiveButton = document.getElementById('worker-method-action-' + tag);
     var progressElement = document.getElementById('worker-method-progress-' + tag);
-
+    var id = window['id_'+tag];
+    var buttonElement = document.getElementsByClassName('refresh-' + id)[0];
     archiveButton.addEventListener('click', promptArchive);
     workerNameElement.addEventListener('change', workerNameChange);
 
@@ -62,6 +63,38 @@
       }
     }
 
+    var disabledButtons = [];
+    function disableButtons(buttons) {
+      for (var i = 0, len = buttons.length; i < len; i++) {
+        if (!buttons[i].disabled) {
+          buttons[i].disabled = true;
+          disabledButtons.push(buttons[i]);
+        }
+      }
+    }
+    function disableGrid() {
+      var tableEle = document.getElementById(id + '_wrapper');
+      var buttons = tableEle.getElementsByTagName('button');
+      disableButtons(buttons);
+      var areaEles = document.getElementsByClassName('worker-method-' + tag);
+      var buttons2 = areaEles[0].getElementsByTagName('button');
+      disableButtons(buttons2);
+      var pagination = tableEle.getElementsByClassName('dataTables_paginate');
+      pagination[0].style.visibility = 'hidden';
+    }
+
+    function enableGrid() {
+      for (var i = 0, len = disabledButtons.length; i < len; i++) {
+        if (disabledButtons[i].disabled) {
+          disabledButtons[i].disabled = false;
+        }
+      }
+      disabledButtons = [];
+      var tableEle = document.getElementById(id + '_wrapper');
+      var pagination = tableEle.getElementsByClassName('dataTables_paginate');
+      pagination[0].style.visibility = 'visible';
+    }
+
     function archiveJobs() {
       var workerName = getSelected(workerNameElement);
       var method = getSelected(methodElement);
@@ -70,13 +103,7 @@
       spinner[0].classList.remove('hidden');
 
       // disable all the buttons
-      var buttons = document.getElementsByTagName('button');
-      for (var i = 0, len = buttons.length; i < len; i++) {
-        buttons[i].disabled = true;
-      }
-
-      var pagination = document.getElementsByClassName('dataTables_paginate');
-      pagination[0].style.visibility = 'hidden';
+      disableGrid();
 
       if (workerName) {
         formData.append('workerName', workerName);
@@ -102,7 +129,12 @@
         reader.read().then(function processResult(result) {
           if (result.done) {
             progressElement.value = progressElement.max;
-            window.location.reload();
+            enableGrid();
+            spinner[0].classList.add('hidden');
+            progressElement.style.display = 'none';
+
+            dtc_grid_refresh(buttonElement);
+            console.log('done');
             return;
           }
           var progress = (new TextDecoder('utf-8')).decode(result.value);

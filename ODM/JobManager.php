@@ -4,6 +4,7 @@ namespace Dtc\QueueBundle\ODM;
 
 use Doctrine\MongoDB\Exception\ResultException;
 use Doctrine\MongoDB\Query\Builder;
+use Doctrine\MongoDB\Query\Query;
 use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Dtc\QueueBundle\Document\Job;
@@ -311,10 +312,11 @@ class JobManager extends DoctrineJobManager
     }
 
     /**
-     * @param mixed $builder
+     * @param Builder $builder
      */
-    protected function addStandardPredicates($builder)
+    protected function addStandardPredicates(Builder $builder)
     {
+        $this->addTimingPredicates();
         $date = Util::getMicrotimeDateTime();
         $builder
             ->addAnd(
@@ -324,76 +326,48 @@ class JobManager extends DoctrineJobManager
             ->field('status')->equals(BaseJob::STATUS_NEW);
     }
 
-    public function getWorkersAndMethods()
-    {
-        /** @var DocumentManager $documentManager */
-        $documentManager = $this->getObjectManager();
-
-        if (!method_exists($documentManager, 'createAggregationBuilder')) {
-            return [];
-        }
-
-        $aggregationBuilder = $documentManager->createAggregationBuilder($this->getJobClass());
-
-        $this->addStandardPredicates($aggregationBuilder->match());
-
-        $aggregationBuilder->group()
-            ->field('id')
-            ->expression(
-                $aggregationBuilder->expr()
-                ->field('workerName')->expression('$workerName')
-                ->field('method')->expression('$method')
-            );
-        $results = $aggregationBuilder->execute()->toArray();
-
-        if (!$results) {
-            return [];
-        }
-
-        $workersMethods = [];
-        foreach ($results as $result) {
-            if (isset($result['_id'])) {
-                $workersMethods[$result['_id']['worker_name']][] = $result['_id']['method'];
-            }
-        }
-
-        return $workersMethods;
-    }
-
     /**
-     * @param string $workerName
-     * @param string $methodName
+     * @param Builder $builder
      */
-    public function countLiveJobs($workerName = null, $methodName = null)
+    protected function addTimingPredicates(Builder $builder)
     {
-        /** @var DocumentManager $objectManager */
-        $objectManager = $this->getObjectManager();
-        $builder = $objectManager->createQueryBuilder($this->getJobClass());
-
-        $this->addWorkerNameCriterion($builder, $workerName, $methodName);
-        // Filter
-        $this->addStandardPredicates($builder);
-
-        return $this->runQuery($builder->getQuery(), 'count', [], 0);
+        $date = Util::getMicrotimeDateTime();
+        $builder->addAnd(
+            $builder->expr()->addOr($builder->expr()->field('whenAt')->equals(null), $builder->expr()->field('whenAt')->lte($date)),
+            $builder->expr()->addOr($builder->expr()->field('expiresAt')->equals(null), $builder->expr()->field('expiresAt')->gt($date))
+        );
     }
 
     /**
      * @param string        $workerName
      * @param string        $methodName
+     * @param string        $type
      * @param callable|null $progressCallback
      */
-    public function archiveAllJobs($workerName = null, $methodName = null, callable $progressCallback = null)
+    public function archiveJobs($workerName = null, $methodName = null, $type, callable $progressCallback = null)
     {
         /** @var DocumentManager $documentManager */
         $documentManager = $this->getObjectManager();
-        $count = 0;
-        $builder = $this->getJobQueryBuilder($workerName, $methodName, true);
+        $builder = $documentManager->createQueryBuilder($this->getJobClass());
         $builder
             ->findAndUpdate()
             ->returnNew();
 
+        $this->addWorkerNameCriterion($builder, $workerName, $methodName);
+
+        if ($type === static::TYPE_LIVE) {
+            $this->addStandardPredicates($builder);
+        }
+
         $builder->field('status')->set(Job::STATUS_ARCHIVE);
         $query = $builder->getQuery();
+        $this->runArchive($query, $progressCallback);
+    }
+
+    private function runArchive(Query $query, callable $progressCallback = null) {
+        /** @var DocumentManager $documentManager */
+        $documentManager = $this->getObjectManager();
+        $count = 0;
         do {
             $job = $this->runQuery($query, 'execute');
             if ($job) {
@@ -409,4 +383,37 @@ class JobManager extends DoctrineJobManager
         $this->flush();
         $this->updateProgress($progressCallback, $count);
     }
+
+    /**
+     * @param string        $workerName
+     * @param string        $methodName
+     * @param callable|null $progressCallback
+     */
+    public function deleteArchiveJobs($workerName = null, $methodName = null, callable $progressCallback = null)
+    {
+        // First mark all Live non-running jobs as Archive
+        /** @var DocumentManager $documentManager */
+        $documentManager = $this->getObjectManager();
+        $jobArchiveClass = $this->getJobArchiveClass();
+        $queryBuilder = $documentManager->createQueryBuilder($jobArchiveClass);
+        $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
+        $query = $queryBuilder->getQuery();
+        $total = $this->runQuery($query, 'count', [], 0);
+        $step = (int) ceil($total / 20.0);
+        $count = 0;
+        while($count < $total) {
+            $queryBuilder = $documentManager->createQueryBuilder($jobArchiveClass);
+            $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
+            $queryBuilder->remove();
+            $queryBuilder->limit($step);
+            $queryBuilder->getQuery();
+            $result = $this->runQuery($query, 'count', [], 0);
+            $count += $result;
+            $this->updateProgress($progressCallback, $total, $count);
+            if ($result === 0) {
+                break;
+            }
+        }
+    }
+
 }

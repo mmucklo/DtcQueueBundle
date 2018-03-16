@@ -1,0 +1,42 @@
+{% extends "DtcGridBundle:Page:datatables.html.twig" %}
+{% import "DtcQueueBundle:Queue:macros.html.twig" as queue_macros %}
+{% block title %}DtcQueue - Admin - All Jobs{% endblock %}
+
+{% block grid %}
+    {% include 'DtcQueueBundle:Queue:nav.html.twig' %}
+
+    <h3>{{ dtc_queue_grid_label1 }}</h3>
+    {{ dtc_grid.render | raw }}
+    <h4>Other Actions</h4>
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <ul class="nav nav-tabs" role="tablist">
+                <li role="presentation" class="active"><a href="#prune-stalled-tab" aria-controls="#prune-stalled-tab" role="tab" data-toggle="tab">Prune Stalled</a></li>
+                <li role="presentation"><a href="#reset-stalled-tab" aria-controls="#reset-stalled-tab" role="tab" data-toggle="tab">Reset Stalled</a></li>
+                <li role="presentation"><a href="#archive-tab" aria-controls="#archive-tab" role="tab" data-toggle="tab">Archive</a></li>
+                <li role="presentation"><a href="#prune-expired-tab" aria-controls="#prune-expired-tab" role="tab" data-toggle="tab">Prune Expired</a></li>
+            </ul>
+            <div class="tab-content">
+                <div role="tabpanel" class="tab-pane active" id="prune-stalled-tab">
+                    {{ queue_macros.worker_method_button('Prune Stalled', 'dtc_queue_prune_stalled', workers_methods, 'This will prune (archive) all stalled jobs.', 'prunestalled', dtc_queue_grid_id1) }}
+                </div>
+                <div role="tabpanel" class="tab-pane" id="reset-stalled-tab">
+                    {{ queue_macros.worker_method_button('Reset Stalled', 'dtc_queue_reset_stalled', workers_methods, 'This will reset (re-queue) all stalled jobs.', 'resetstalled', dtc_queue_grid_id1) }}
+                </div>
+                <div role="tabpanel" class="tab-pane" id="archive-tab">
+                    {{ queue_macros.worker_method_button('Archive', 'dtc_queue_archive', workers_methods, 'This will archive all jobs (except those that are running or stalled).', 'archive', dtc_queue_grid_id1) }}
+                </div>
+                <div role="tabpanel" class="tab-pane" id="prune-expired-tab">
+                    <h4>Prune Expired</h4>
+                    <div class="form-group form-inline">
+                        <button id="prune-expired-action" class="btn btn-primary"><i class="fa fa-circle-o-notch fa-spin hidden"></i> Prune Expired</button> <progress style="display: none" id="prune-expired-progress"></progress>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h3>{{ dtc_queue_grid_label2 }}</h3>
+    {{ archive_grid.render | raw }}
+    {{ queue_macros.worker_method_button('Delete Archived Jobs', 'dtc_queue_delete_archived', workers_methods, 'This will delete all archived jobs.', 'deletearchived', dtc_queue_grid_id2) }}
+    <script src="/bundles/dtcqueue/js/jobs.js?v=4"></script>
+{% endblock %}

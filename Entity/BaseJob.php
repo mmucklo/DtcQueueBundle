@@ -5,9 +5,9 @@ namespace Dtc\QueueBundle\Entity;
 use Dtc\GridBundle\Annotation as Grid;
 use Doctrine\ORM\Mapping as ORM;
 use Dtc\QueueBundle\Model\MicrotimeTrait;
-use Dtc\QueueBundle\Model\StallableJob;
+use Dtc\QueueBundle\Doctrine\BaseJob as BaseDoctrineJob;
 
-abstract class BaseJob extends StallableJob
+abstract class BaseJob extends BaseDoctrineJob
 {
     use MicrotimeTrait;
     /**

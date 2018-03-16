@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Controller;
 
 use Dtc\QueueBundle\Exception\UnsupportedException;
+use Dtc\QueueBundle\Model\Worker;
 
 trait ControllerTrait
 {
@@ -45,4 +46,30 @@ trait ControllerTrait
         array_unshift($params['js'], $jQuery['url']);
         $params['chartjs'] = $this->container->getParameter('dtc_queue.admin.chartjs');
     }
+
+    protected function getWorkersAndMethods()
+    {
+        $workerManager = $this->container->get('dtc_queue.manager.worker');
+        $workers = $workerManager->getWorkers();
+
+        $workerList = [];
+        $workersMethods = [];
+        foreach ($workers as $workerName => $worker) {
+            /* @var Worker $worker */
+            $workerList[$workerName] = get_class($worker);
+            $reflectionObject = new \ReflectionObject($worker);
+            $methods = $reflectionObject->getMethods(\ReflectionMethod::IS_PUBLIC);
+            $objectClass = $reflectionObject->getName();
+            foreach ($methods as $method) {
+                $declaringClass = $method->getDeclaringClass()->getName();
+                $methodName = $method->getName();
+                if ($declaringClass == $objectClass && $methodName != 'getName' && !$method->isConstructor()) {
+                    $workersMethods[$workerName][] = $method->getName();
+                }
+            }
+        }
+        return ['workers' => $workerList, 'workers_methods' => $workersMethods];
+    }
+
+
 }

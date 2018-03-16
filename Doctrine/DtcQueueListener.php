@@ -75,6 +75,7 @@ class DtcQueueListener
         $objectManager = $this->getObjectManager();
 
         $repository = $objectManager->getRepository($runArchiveClass);
+        $newArchive = false;
         if (!$runArchive = $repository->find($object->getId())) {
             $runArchive = new $runArchiveClass();
             $newArchive = true;

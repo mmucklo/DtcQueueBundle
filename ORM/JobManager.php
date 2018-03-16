@@ -22,6 +22,15 @@ class JobManager extends DoctrineJobManager
         return $this->getObjectManagerReset();
     }
 
+    /**
+     * @param string $objectName
+     * @param string $status
+     * @param string|null $workerName
+     * @param string|null $method
+     * @return int
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
     public function countJobsByStatus($objectName, $status, $workerName = null, $method = null)
     {
         /** @var EntityManager $objectManager */
@@ -40,7 +49,7 @@ class JobManager extends DoctrineJobManager
 
         if (null !== $method) {
             $queryBuilder->andWhere('a.method = :method')
-                ->setParameter('method', $workerName);
+                ->setParameter('method', $method);
         }
 
         $count = $queryBuilder->setParameter('status', $status)
@@ -50,7 +59,7 @@ class JobManager extends DoctrineJobManager
             return 0;
         }
 
-        return $count;
+        return intval($count);
     }
 
     /**
@@ -120,6 +129,13 @@ class JobManager extends DoctrineJobManager
         );
     }
 
+    /**
+     * @param string|null $workerName
+     * @param string|null $method
+     * @return int
+     * @throws \Doctrine\ORM\NoResultException
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
     public function getWaitingJobCount($workerName = null, $method = null)
     {
         /** @var EntityManager $objectManager */
@@ -128,28 +144,12 @@ class JobManager extends DoctrineJobManager
 
         $queryBuilder = $queryBuilder->select('count(j)')->from($this->getJobClass(), 'j');
 
-        $this->addWorkerNameCriterion($queryBuilder, $workerName, $method);
         $this->addStandardPredicate($queryBuilder);
+        $this->addWorkerNameCriterion($queryBuilder, $workerName, $method);
 
         $query = $queryBuilder->getQuery();
 
         return $query->getSingleScalarResult();
-    }
-
-    /**
-     * @param string $workerName
-     * @param string $methodName
-     */
-    public function countLiveJobs($workerName = null, $methodName = null)
-    {
-        /** @var EntityRepository $repository */
-        $repository = $this->getRepository();
-        $queryBuilder = $repository->createQueryBuilder('j');
-        $this->addStandardPredicate($queryBuilder);
-        $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
-        $queryBuilder->select('count(j.id)');
-
-        return $queryBuilder->getQuery()->getSingleScalarResult();
     }
 
     /**
@@ -322,6 +322,7 @@ class JobManager extends DoctrineJobManager
      * @param \Dtc\QueueBundle\Model\Job $job
      *
      * @return null|Job
+     * @throws UnsupportedException
      */
     public function updateNearestBatch(\Dtc\QueueBundle\Model\Job $job)
     {
@@ -392,25 +393,37 @@ class JobManager extends DoctrineJobManager
         return $existingJob;
     }
 
-    public function getWorkersAndMethods($status = BaseJob::STATUS_NEW)
+    /**
+     * @param string        $workerName
+     * @param string        $methodName
+     * @param string        $type The type of jobs to archive
+     * @param callable|null $progressCallback
+     */
+    public function archiveJobs($workerName = null, $methodName = null, $type, callable $progressCallback = null)
     {
+        // First mark all Live non-running jobs as Archive
         /** @var EntityRepository $repository */
         $repository = $this->getRepository();
+        /** @var QueryBuilder $queryBuilder */
         $queryBuilder = $repository->createQueryBuilder('j');
-        $this->addStandardPredicate($queryBuilder, $status);
-        $queryBuilder
-            ->select('DISTINCT j.workerName, j.method');
+        $queryBuilder->update($this->getJobClass(), 'j')
+            ->set('j.status', ':statusArchive')
+            ->setParameter('statusArchive', Job::STATUS_ARCHIVE);
 
-        $results = $queryBuilder->getQuery()->getArrayResult();
-        if (empty($results)) {
-            return [];
+        if ($type === static::TYPE_WAITING) {
+            $this->addStandardPredicate($queryBuilder);
         }
-        $workerMethods = [];
-        foreach ($results as $result) {
-            $workerMethods[$result['workerName']][] = $result['method'];
+        else {
+            $queryBuilder->where('j.status != :status')
+                ->setParameter('status', BaseJob::STATUS_RUNNING);
         }
 
-        return $workerMethods;
+        $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
+        $resultCount = $queryBuilder->getQuery()->execute();
+
+        if ($resultCount) {
+            $this->runArchive($progressCallback);
+        }
     }
 
     /**
@@ -418,21 +431,45 @@ class JobManager extends DoctrineJobManager
      * @param string        $methodName
      * @param callable|null $progressCallback
      */
-    public function archiveAllJobs($workerName = null, $methodName = null, callable $progressCallback = null)
+    public function deleteArchiveJobs($workerName = null, $methodName = null, callable $progressCallback = null)
     {
         // First mark all Live non-running jobs as Archive
-        $repository = $this->getRepository();
-        /** @var QueryBuilder $queryBuilder */
+        /** @var EntityManager $entityManager */
+        $entityManager = $this->getObjectManager();
+        $repository = $entityManager->getRepository($jobArchiveClass = $this->getJobArchiveClass());
         $queryBuilder = $repository->createQueryBuilder('j');
-        $queryBuilder->update($this->getJobClass(), 'j')
-            ->set('j.status', ':statusArchive')
-            ->setParameter('statusArchive', Job::STATUS_ARCHIVE);
-        $this->addStandardPredicate($queryBuilder);
+        $queryBuilder->select('count(j.id)');
         $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
-        $resultCount = $queryBuilder->getQuery()->execute();
+        $total = $queryBuilder->getQuery()->getSingleScalarResult();
+        $step = (int) ceil($total / 20.0);
+        $count = 0;
+        while($count < $total) {
+            $queryStr = 'DELETE FROM ' . $jobArchiveClass . ' j';
+            if ($workerName !== null || $methodName !== null) {
+                $queryStr .= ' WHERE ';
+                if ($workerName !== null) {
+                    $queryStr .= ' j.workerName = :workerName ';
+                }
+                if ($methodName !== null) {
+                    if ($workerName !== null) {
+                        $queryStr .= ' AND ';
+                    }
+                    $queryStr .= ' j.method = :method ';
+                }
+            }
 
-        if ($resultCount) {
-            $this->runArchive($progressCallback);
+            $query = $entityManager->createQuery($queryStr . ' LIMIT ' . $step);
+            if ($workerName !== null)
+                $query->setParameter('workerName', $workerName);
+            if ($methodName !== null)
+                $query->setParameter('method', $methodName);
+
+            $result = $query->execute();
+            $count += $result;
+            $this->updateProgress($progressCallback, $total, $count);
+            if ($result === 0) {
+                break;
+            }
         }
     }
 

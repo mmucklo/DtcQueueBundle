@@ -6,6 +6,6 @@
 
     <h3>Waiting Jobs</h3>
     {{ dtc_grid.render | raw }}
-    {{ queue_macros.worker_method_button('Archive', 'dtc_queue_archive', worker_methods, prompt_message, 'archive') }}
+    {{ queue_macros.worker_method_button('Archive', 'dtc_queue_archive', workers_methods, 'This will archive all waiting jobs.', 'archive', dtc_queue_grid_id) }}
     <script src="/bundles/dtcqueue/js/jobs.js?v=4"></script>
 {% endblock %}

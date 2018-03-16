@@ -15,6 +15,8 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
 
     /** Number of seconds before a job is considered stalled if the runner is no longer active */
     const STALLED_SECONDS = 1800;
+    const TYPE_WAITING = 'waiting';
+    const TYPE_ALL = 'all';
 
     /**
      * @param string $objectName
@@ -194,9 +196,7 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
         return true;
     }
 
-    abstract public function getWorkersAndMethods();
+    abstract public function archiveJobs($workerName = null, $methodName = null, $type, callable $progressCallback = null);
 
-    abstract public function countLiveJobs($workerName = null, $methodName = null);
-
-    abstract public function archiveAllJobs($workerName = null, $methodName = null, callable $progressCallback = null);
+    abstract public function deleteArchiveJobs($workerName = null, $methodName = null, callable $progressCallback = null);
 }

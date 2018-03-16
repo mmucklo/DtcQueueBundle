@@ -22,6 +22,7 @@ class QueueController extends Controller
      *
      * @Route("/")
      * @Route("/status/")
+     * @Route("/jobs/")
      * @Template("@DtcQueue/Queue/status.html.twig")
      */
     public function statusAction()
@@ -38,9 +39,11 @@ class QueueController extends Controller
     /**
      * List jobs in system by default.
      *
+     * @Template("@DtcQueue/Queue/jobs_all.html.twig")
      * @Route("/jobs_all", name="dtc_queue_jobs_all")
      *
      * @throws UnsupportedException
+     * @throws \Exception
      */
     public function jobsAllAction()
     {
@@ -51,124 +54,23 @@ class QueueController extends Controller
         $label2 = 'Archived Jobs';
 
         $params = $this->getDualGridParams($class1, $class2, $label1, $label2);
+        $workersAndMethods = $this->getWorkersAndMethods();
+        $params['workers_methods'] = $workersAndMethods['workers_methods'];
 
-        return $this->render('@DtcQueue/Queue/grid.html.twig', $params);
+        return $params;
     }
 
-    /**
-     * @Route("/archive", name="dtc_queue_archive")
-     * @Method({"POST"})
-     *
-     * @throws UnsupportedException
-     */
-    public function archiveAction(Request $request)
-    {
-        return $this->streamResults($request, 'archiveAllJobs');
-    }
-
-    /**
-     * @Route("/reset-stalled", name="dtc_queue_reset_stalled")
-     *
-     * @param Request $request
-     *
-     * @return StreamedResponse
-     *
-     * @throws UnsupportedException
-     */
-    public function resetStalledAction(Request $request)
-    {
-        return $this->streamResults($request, 'resetStalledJobs');
-    }
-
-    /**
-     * @Route("/prune-stalled", name="dtc_queue_prune_stalled")
-     *
-     * @param Request $request
-     *
-     * @return StreamedResponse
-     *
-     * @throws UnsupportedException
-     */
-    public function pruneStalledAction(Request $request)
-    {
-        return $this->streamResults($request, 'pruneStalledJobs');
-    }
-
-    /**
-     * @param Request $request
-     * @param $functionName
-     *
-     * @return StreamedResponse
-     *
-     * @throws UnsupportedException
-     */
-    protected function streamResults(Request $request, $functionName)
-    {
-        $jobManager = $this->get('dtc_queue.manager.job');
-        if (!$jobManager instanceof DoctrineJobManager) {
-            throw new UnsupportedException('$jobManager must be instance of '.DoctrineJobManager::class);
-        }
-
-        $streamingResponse = new StreamedResponse($this->getStreamFunction($request, $functionName));
-        $streamingResponse->headers->set('Content-Type', 'application/x-ndjson');
-        $streamingResponse->headers->set('X-Accel-Buffering', 'no');
-
-        return $streamingResponse;
-    }
-
-    /**
-     * @param Request $request
-     * @param string  $functionName
-     *
-     * @return \Closure
-     */
-    protected function getStreamFunction(Request $request, $functionName)
-    {
-        $jobManager = $this->get('dtc_queue.manager.job');
-        $workerName = $request->get('workerName');
-        $methodName = $request->get('method');
-        $total = null;
-        $callback = function ($count, $totalCount) use (&$total) {
-            if (null !== $totalCount && null === $total) {
-                $total = $totalCount;
-                echo json_encode(['total' => $total]);
-                echo "\n";
-                flush();
-
-                return;
-            }
-            echo json_encode(['count' => $count]);
-            echo "\n";
-            flush();
-        };
-
-        return function () use ($jobManager, $callback, $workerName, $methodName, $functionName, &$total) {
-            switch ($functionName) {
-                case 'archiveAllJobs':
-                    $total = $jobManager->countLiveJobs($workerName, $methodName);
-                    echo json_encode(['total' => $total]);
-                    echo "\n";
-                    flush();
-                    if ($total > 0) {
-                        $jobManager->archiveAllJobs($workerName, $methodName, $callback);
-                    }
-                    break;
-                default:
-                    $jobManager->$functionName($workerName, $methodName, $callback);
-                    break;
-            }
-        };
-    }
 
     /**
      * List jobs in system by default.
      *
-     * @Template("@DtcQueue/Queue/jobs.html.twig")
-     * @Route("/jobs", name="dtc_queue_jobs")
+     * @Template("@DtcQueue/Queue/jobs_live.html.twig")
+     * @Route("/live_jobs", name="dtc_queue_jobs")
      *
      * @throws UnsupportedException
+     * @throws \Exception
      */
-    public function jobsAction()
+    public function liveJobsAction()
     {
         $this->validateManagerType('dtc_queue.manager.job');
         $managerType = $this->container->getParameter('dtc_queue.manager.job');
@@ -179,8 +81,9 @@ class QueueController extends Controller
         $params = $renderer->getParams();
         $this->addCssJs($params);
 
-        $params['worker_methods'] = $this->get('dtc_queue.manager.job')->getWorkersAndMethods();
-        $params['prompt_message'] = 'This will archive all non-running jobs';
+        $params['dtc_queue_grid_id'] = $gridSource->getDivId();
+        $workersAndMethods = $this->getWorkersAndMethods();
+        $params['workers_methods'] = $workersAndMethods['workers_methods'];
 
         return $params;
     }
@@ -190,6 +93,7 @@ class QueueController extends Controller
      *
      * @Template("@DtcQueue/Queue/jobs_running.html.twig")
      * @Route("/jobs_running", name="dtc_queue_jobs_running")
+     * @throws \Exception
      */
     public function runningJobsAction()
     {
@@ -202,8 +106,9 @@ class QueueController extends Controller
         $params = $renderer->getParams();
         $this->addCssJs($params);
 
-        $params['worker_methods'] = $this->get('dtc_queue.manager.job')->getWorkersAndMethods(BaseJob::STATUS_RUNNING);
-        $params['prompt_message'] = 'This will prune all stalled jobs';
+        $params['dtc_queue_grid_id'] = $gridSource->getDivId();
+        $workersAndMethods = $this->getWorkersAndMethods();
+        $params['workers_methods'] = $workersAndMethods['workers_methods'];
 
         return $params;
     }
@@ -223,16 +128,19 @@ class QueueController extends Controller
         $rendererFactory = $this->get('dtc_grid.renderer.factory');
         $renderer = $rendererFactory->create('datatables');
         $gridSource = $this->get('dtc_grid.manager.source')->get($class1);
+        $id1 = $gridSource->getDivId();
         $renderer->bind($gridSource);
         $params = $renderer->getParams();
 
         $renderer2 = $rendererFactory->create('datatables');
         $gridSource = $this->get('dtc_grid.manager.source')->get($class2);
+        $id2 = $gridSource->getDivId();
         $renderer2->bind($gridSource);
         $params2 = $renderer2->getParams();
 
         $params['archive_grid'] = $params2['dtc_grid'];
-
+        $params['dtc_queue_grid_id1'] = $id1;
+        $params['dtc_queue_grid_id2'] = $id2;
         $params['dtc_queue_grid_label1'] = $label1;
         $params['dtc_queue_grid_label2'] = $label2;
         $this->addCssJs($params);
@@ -244,6 +152,7 @@ class QueueController extends Controller
      * List jobs in system by default.
      *
      * @Route("/runs", name="dtc_queue_runs")
+     * @throws \Exception
      */
     public function runsAction()
     {
@@ -255,7 +164,7 @@ class QueueController extends Controller
 
         $params = $this->getDualGridParams($class1, $class2, $label1, $label2);
 
-        return $this->render('@DtcQueue/Queue/grid.html.twig', $params);
+        return $this->render('@DtcQueue/Queue/runs.html.twig', $params);
     }
 
     /**
@@ -266,15 +175,8 @@ class QueueController extends Controller
      */
     public function workersAction()
     {
-        $workerManager = $this->get('dtc_queue.manager.worker');
-        $workers = $workerManager->getWorkers();
-
-        $workerList = [];
-        foreach ($workers as $workerName => $worker) {
-            /* @var Worker $worker */
-            $workerList[$workerName] = get_class($worker);
-        }
-        $params = ['workers' => $workerList];
+        $workersAndMethods = $this->getWorkersAndMethods();
+        $params = ['workers' => $workersAndMethods['workers']];
         $this->addCssJs($params);
 
         return $params;

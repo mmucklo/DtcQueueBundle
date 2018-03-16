@@ -77,7 +77,7 @@ trait ControllerTrait
                 'jq_grid.css' => [],
                 'jq_grid.js' => [], ]
         );
-        $templates = ['@DtcQueue/Queue/grid.html.twig' => file_get_contents(__DIR__.'/../../Resources/views/Queue/grid.html.twig'),
+        $templates = ['@DtcQueue/Queue/jobs_all.html.twig' => file_get_contents(__DIR__.'/../../Resources/views/Queue/jobs_all.html.twig'),
                         'DtcGridBundle:Page:datatables.html.twig' => file_get_contents(__DIR__.'/../../vendor/mmucklo/grid-bundle/Resources/views/Grid/datatables.html.twig'), ];
         $twigEngine = new TwigEngine(new Environment(new \Twig_Loader_Array($templates)), new TemplateNameParser(), new FileLocator(__DIR__));
         $rendererFactory->setTwigEngine($twigEngine);

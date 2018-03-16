@@ -18,7 +18,6 @@ use Dtc\GridBundle\Annotation as Grid;
  */
 class Job extends BaseJob
 {
-    const STATUS_ARCHIVE = 'archive';
     /**
      * @Grid\Column(sortable=true,order=1)
      * @ORM\Column(type="bigint")
