@@ -36,7 +36,8 @@ ORM Setup:
 __app/config/config.yml:__
 ```yaml
 dtc_queue:
-    default_manager: orm
+    manager:
+       job: orm
 ```
 
 __NOTE:__ You may need to add DtcQueueBundle to your mappings section in config.yml if auto_mapping is not enabled
