@@ -6,6 +6,7 @@ use Dtc\QueueBundle\Model\Job;
 
 class Event
 {
+    const CREATE_JOB = 'queue.create_job';
     const PRE_JOB = 'queue.pre_job';
     const POST_JOB = 'queue.post_job';
 

@@ -3,6 +3,8 @@
 namespace Dtc\QueueBundle\Model;
 
 use Dtc\QueueBundle\Manager\JobManagerInterface;
+use Dtc\QueueBundle\EventDispatcher\Event;
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 
 class Job extends BaseJob
 {
@@ -19,6 +21,9 @@ class Job extends BaseJob
     protected $finishedAt;
     protected $elapsed;
 
+    /** @var  EventDispatcher $eventDispatcher */
+    protected $eventDispatcher;
+
     public function __call($method, $args)
     {
         $this->method = $method;
@@ -30,8 +35,14 @@ class Job extends BaseJob
         }
 
         $job = $this->jobManager->save($this);
-
+        $event = new Event($job);
+        $this->eventDispatcher->dispatch(Event::CREATE_JOB, $event);
         return $job;
+    }
+
+    public function setEventDispatcher(EventDispatcher $eventDispatcher)
+    {
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
