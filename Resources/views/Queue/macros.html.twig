@@ -1,23 +1,24 @@
-{% macro archive_button(button_text, route_name, worker_methods, prompt_message) %}
+{% macro worker_method_button(button_text, route_name, worker_methods, prompt_message, tag) %}
 
-<div class="archive-jobs form-group form-inline">
-    <label for="workerName">WorkerName: </label>
-    <select id="workerName" class="form-control" name="workerName">
+<div class="worker-method form-group form-inline">
+    <h4>{{ button_text }}:</h4>
+    <input type="hidden" class="worker-method-tag" name="{{ tag }}" value="{{ tag }}" />
+    <label for="worker-name-{{ tag }}">WorkerName: </label>
+    <select id="worker-name-{{ tag }}" class="form-control" name="workerName">
         <option value="">Any</option>
         {% for workerName, method in worker_methods %}
             <option value="{{ workerName }}">{{ workerName }}</option>
         {% endfor %}
     </select>
-    <label for="method">Method: </label>
-    <select id="method" class="form-control" name="method">
+    <label for="method-{{ tag }}">Method: </label>
+    <select id="method-{{ tag }}" class="form-control" name="method">
         <option value="">Any</option>
     </select>
-    <button id="jobs-archive" class="btn btn-primary"><i class="fa fa-circle-o-notch fa-spin hidden"></i> {{ button_text }}</button> <progress style="display: none" id="jobs-archive-progress"></progress>
+    <button id="worker-method-action-{{ tag }}" class="btn btn-primary"><i class="fa fa-circle-o-notch fa-spin hidden"></i> {{ button_text }}</button> <progress style="display: none" id="worker-method-progress-{{ tag }}"></progress>
 </div>
 <script>
-  var fetchPath = '{{ path(route_name) }}';
-  var workerMethods = {{ worker_methods|json_encode|raw }};
-  var promptMessage = '{{ prompt_message|raw }}';
+  var fetchPath_{{ tag }} = '{{ path(route_name) }}';
+  var workerMethods_{{ tag }} = {{ worker_methods|json_encode|raw }};
+  var promptMessage_{{ tag }} = '{{ prompt_message|raw }}';
 </script>
-<script src="/bundles/dtcqueue/js/jobs.js?v=4"></script>
 {% endmacro %}

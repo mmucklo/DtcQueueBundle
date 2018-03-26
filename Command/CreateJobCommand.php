@@ -2,7 +2,6 @@
 
 namespace Dtc\QueueBundle\Command;
 
-use Dtc\QueueBundle\Documents\Job;
 use Dtc\QueueBundle\Exception\WorkerNotRegisteredException;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;

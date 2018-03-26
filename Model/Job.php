@@ -154,16 +154,6 @@ class Job extends BaseJob
     }
 
     /**
-     * @param JobManagerInterface $jobManager
-     */
-    public function setJobManager(JobManagerInterface $jobManager)
-    {
-        $this->jobManager = $jobManager;
-
-        return $this;
-    }
-
-    /**
      * @return int
      */
     public function getDelay()

@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\RabbitMQ;
 
+use Dtc\QueueBundle\Manager\SaveableTrait;
 use Dtc\QueueBundle\Manager\VerifyTrait;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Manager\JobIdTrait;
@@ -23,6 +24,7 @@ class JobManager extends PriorityJobManager
 {
     use JobIdTrait;
     use VerifyTrait;
+    use SaveableTrait;
 
     /** @var AMQPChannel */
     protected $channel;
@@ -184,23 +186,6 @@ class JobManager extends PriorityJobManager
         }
 
         return $priority;
-    }
-
-    /**
-     * @param \Dtc\QueueBundle\Model\Job $job
-     *
-     * @throws PriorityException
-     * @throws ClassNotSubclassException
-     */
-    protected function validateSaveable(\Dtc\QueueBundle\Model\Job $job)
-    {
-        if (null !== $job->getPriority() && null === $this->maxPriority) {
-            throw new PriorityException('This queue does not support priorities');
-        }
-
-        if (!$job instanceof Job) {
-            throw new ClassNotSubclassException('Job needs to be instance of '.Job::class);
-        }
     }
 
     /**

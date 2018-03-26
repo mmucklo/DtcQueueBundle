@@ -5,6 +5,7 @@ namespace Dtc\QueueBundle\Redis;
 use Dtc\QueueBundle\Exception\ClassNotSubclassException;
 use Dtc\QueueBundle\Exception\PriorityException;
 use Dtc\QueueBundle\Exception\UnsupportedException;
+use Dtc\QueueBundle\Manager\SaveableTrait;
 use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Util\Util;
 
@@ -14,6 +15,7 @@ use Dtc\QueueBundle\Util\Util;
 class JobManager extends BaseJobManager
 {
     use StatusTrait;
+    use SaveableTrait;
 
     /**
      * There's a bit of danger here if there are more jobs being inserted than can be efficiently drained
@@ -70,7 +72,7 @@ class JobManager extends BaseJobManager
 
     /**
      * @param string $foundJobCacheKey
-     * @param bool   $foundJobMessage
+     * @param string $foundJobMessage
      */
     protected function batchFoundJob(Job $job, $foundJobCacheKey, $foundJobMessage)
     {
@@ -262,23 +264,6 @@ class JobManager extends BaseJobManager
 
         // Redis priority should be in DESC order
         return $this->maxPriority - $priority;
-    }
-
-    /**
-     * @param \Dtc\QueueBundle\Model\Job $job
-     *
-     * @throws PriorityException
-     * @throws ClassNotSubclassException
-     */
-    protected function validateSaveable(\Dtc\QueueBundle\Model\Job $job)
-    {
-        if (null !== $job->getPriority() && null === $this->maxPriority) {
-            throw new PriorityException('This queue does not support priorities');
-        }
-
-        if (!$job instanceof RetryableJob) {
-            throw new ClassNotSubclassException('Job needs to be instance of '.RetryableJob::class);
-        }
     }
 
     /**

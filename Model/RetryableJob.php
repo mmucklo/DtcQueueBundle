@@ -27,7 +27,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
     }
 
     /**
-     * @return int
+     * @return int|null
      */
     public function getMaxFailures()
     {
@@ -35,7 +35,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
     }
 
     /**
-     * @param int $maxFailures
+     * @param int|null $maxFailures
      */
     public function setMaxFailures($maxFailures)
     {
@@ -45,7 +45,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
     }
 
     /**
-     * @return int
+     * @return int|null
      */
     public function getFailures()
     {
@@ -53,7 +53,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
     }
 
     /**
-     * @param int $failures
+     * @param int|null $failures
      */
     public function setFailures($failures)
     {
@@ -63,7 +63,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
     }
 
     /**
-     * @return int
+     * @return int|null
      */
     public function getRetries()
     {
@@ -71,7 +71,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
     }
 
     /**
-     * @param int $retries
+     * @param int|null $retries
      *
      * @return RetryableJob
      */
@@ -121,7 +121,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
     }
 
     /**
-     * @return int
+     * @return int|null
      */
     public function getMaxExceptions()
     {
@@ -129,7 +129,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
     }
 
     /**
-     * @param int $maxExceptions
+     * @param int|null $maxExceptions
      */
     public function setMaxExceptions($maxExceptions)
     {
@@ -139,7 +139,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
     }
 
     /**
-     * @return int
+     * @return int|null
      */
     public function getExceptions()
     {
@@ -147,7 +147,7 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
     }
 
     /**
-     * @param int $exceptions
+     * @param int|null $exceptions
      */
     public function setExceptions($exceptions)
     {

@@ -104,7 +104,7 @@ abstract class RetryableJobManager extends AbstractJobManager
      * Determine if we've hit a max retry condition.
      *
      * @param RetryableJob $job
-     * @param int          $status
+     * @param string       $status
      * @param int|null     $max
      * @param int          $count
      *
