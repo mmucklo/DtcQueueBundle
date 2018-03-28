@@ -6,6 +6,7 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ORM\EntityManager;
 use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Dtc\QueueBundle\Doctrine\DtcQueueListener;
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Manager\StallableJobManager;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
@@ -52,8 +53,9 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
     {
         self::$jobTimingManager = new self::$jobTimingManagerClass(self::$objectManager, self::$jobTimingClass, true);
         self::$runManager = new self::$runManagerClass(self::$objectManager, self::$runClass, self::$runArchiveClass);
+        self::$eventDispatcher = new EventDispatcher();
         /** @var JobManager|\Dtc\QueueBundle\ORM\JobManager $jobManager */
-        $jobManager = new self::$jobManagerClass(self::$runManager, self::$jobTimingManager, self::$objectManager, self::$objectName, self::$archiveObjectName);
+        $jobManager = new self::$jobManagerClass(self::$runManager, self::$jobTimingManager, self::$objectManager, self::$objectName,  self::$eventDispatcher, self::$archiveObjectName);
         self::$jobManager = $jobManager;
         $jobManager->setMaxPriority(255);
 
@@ -341,7 +343,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         self::assertEquals(BaseJob::STATUS_EXCEPTION, $result->getStatus());
         if ($objectManager instanceof EntityManager) {
             JobManagerTest::createObjectManager();
-            $jobManager = new self::$jobManagerClass(self::$runManager, self::$jobTimingManager, self::$objectManager, self::$objectName, self::$archiveObjectName);
+            $jobManager = new self::$jobManagerClass(self::$runManager, self::$jobTimingManager, self::$objectManager, self::$objectName, self::$eventDispatcher, self::$archiveObjectName);
             $jobManager->getObjectManager()->clear();
             $objectManager = $jobManager->getObjectManager();
         }
