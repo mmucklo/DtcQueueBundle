@@ -4,6 +4,7 @@ namespace Dtc\QueueBundle\Doctrine;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Persistence\ObjectRepository;
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Manager\ArchivableJobManager;
 use Dtc\QueueBundle\Manager\JobTimingManager;
 use Dtc\QueueBundle\Manager\RunManager;
@@ -28,6 +29,7 @@ abstract class BaseDoctrineJobManager extends ArchivableJobManager
      * @param JobTimingManager $jobTimingManager
      * @param ObjectManager    $objectManager
      * @param $jobClass
+     * @param EventDispatcher $eventDispatcher
      * @param $jobArchiveClass
      */
     public function __construct(
@@ -35,10 +37,11 @@ abstract class BaseDoctrineJobManager extends ArchivableJobManager
         JobTimingManager $jobTimingManager,
         ObjectManager $objectManager,
         $jobClass,
+        EventDispatcher $eventDispatcher,
         $jobArchiveClass
     ) {
         $this->objectManager = $objectManager;
-        parent::__construct($runManager, $jobTimingManager, $jobClass, $jobArchiveClass);
+        parent::__construct($runManager, $jobTimingManager, $jobClass, $eventDispatcher, $jobArchiveClass);
     }
 
     protected function getFetchCount($totalCount)

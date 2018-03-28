@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Tests\Command;
 
 use Dtc\QueueBundle\Command\CountCommand;
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Manager\JobTimingManager;
@@ -22,7 +23,8 @@ class CountCommandTest extends TestCase
         $container = new Container();
         $jobTimingManager = new JobTimingManager(JobTiming::class, false);
         $runManager = new RunManager($jobTimingManager, Run::class);
-        $container->set('dtc_queue.manager.job', new StubJobManager($runManager, $jobTimingManager, Job::class));
+        $eventDispatcher = new EventDispatcher();
+        $container->set('dtc_queue.manager.job', new StubJobManager($runManager, $jobTimingManager, Job::class, $eventDispatcher));
         $this->runCommandException(CountCommand::class, $container, []);
     }
 

@@ -27,7 +27,8 @@ class WorkerManagerTest extends TestCase
     {
         $jobTimingManager = new JobTimingManager(JobTiming::class, false);
         $runManager = new RunManager(Run::class);
-        $this->jobManager = new StaticJobManager($runManager, $jobTimingManager, Job::class);
+        $eventDispatcher = new EventDispatcher();
+        $this->jobManager = new StaticJobManager($runManager, $jobTimingManager, Job::class, $eventDispatcher);
         $this->worker = new FibonacciWorker();
         $this->worker->setJobManager($this->jobManager);
         $this->eventDispatcher = new EventDispatcher();

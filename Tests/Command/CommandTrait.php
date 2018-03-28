@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Tests\Command;
 
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Manager\JobTimingManager;
@@ -86,7 +87,8 @@ trait CommandTrait
 
         $jobTimingManager = new JobTimingManager(JobTiming::class, false);
         $runManager = new StubRunManager($jobTimingManager, \Dtc\QueueBundle\Model\Run::class);
-        $jobManager = new StubJobManager($runManager, $jobTimingManager, Job::class);
+        $eventDispatcher = new EventDispatcher();
+        $jobManager = new StubJobManager($runManager, $jobTimingManager, Job::class, $eventDispatcher);
         $container = new Container();
         $container->set('dtc_queue.manager.job', $jobManager);
         $container->set('dtc_queue.manager.run', $runManager);

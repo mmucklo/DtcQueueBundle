@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Tests\Manager;
 
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Manager\JobTimingManager;
@@ -16,7 +17,8 @@ class StaticJobManagerTest extends BaseJobManagerTest
     {
         self::$jobTimingManager = new JobTimingManager(JobTiming::class, false);
         self::$runManager = new RunManager(Run::class);
-        self::$jobManager = new StaticJobManager(self::$runManager, self::$jobTimingManager, Job::class);
+        self::$eventDispatcher = new EventDispatcher();
+        self::$jobManager = new StaticJobManager(self::$runManager, self::$jobTimingManager, Job::class, self::$eventDispatcher);
         self::$worker = new FibonacciWorker();
         parent::setUpBeforeClass();
     }

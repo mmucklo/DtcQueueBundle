@@ -22,7 +22,8 @@ class CreateJobCommandTest extends TestCase
     {
         $jobTimingManager = new JobTimingManager(JobTimingManager::class, false);
         $runManager = new RunManager($jobTimingManager, Run::class);
-        $jobManager = new StubJobManager($runManager, $jobTimingManager, Job::class);
+        $eventDispatcher = new EventDispatcher();
+        $jobManager = new StubJobManager($runManager, $jobTimingManager, Job::class, $eventDispatcher);
         $container = new Container();
         $container->set('dtc_queue.manager.job', $jobManager);
         $this->runCommandException(CreateJobCommand::class, $container, ['worker_name' => 'fibonacci', 'method' => 'fibonacci', 'args' => [1]]);

@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Manager;
 
+use Dtc\QueueBundle\EventDispatcher\Event;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\Job;
@@ -48,7 +49,12 @@ abstract class RetryableJobManager extends AbstractJobManager
         $this->recordTiming($job);
         $job->setUpdatedAt(new \DateTime());
 
-        return $this->retryableSave($job);
+        $result = $this->retryableSave($job);
+
+        $event = new Event($job);
+        $this->eventDispatcher->dispatch(Event::POST_CREATE_JOB, $event);
+
+        return $result;
     }
 
     /**

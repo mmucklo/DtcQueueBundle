@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Tests\RabbitMQ;
 
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Exception\UnsupportedException;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
@@ -43,7 +44,8 @@ class JobManagerTest extends BaseJobManagerTest
 
         self::$jobTimingManager = new JobTimingManager($jobTimingClass, false);
         self::$runManager = new RunManager($runClass);
-        self::$jobManager = new JobManager(self::$runManager, self::$jobTimingManager, \Dtc\QueueBundle\RabbitMQ\Job::class);
+        self::$eventDispatcher = new EventDispatcher();
+        self::$jobManager = new JobManager(self::$runManager, self::$jobTimingManager, \Dtc\QueueBundle\RabbitMQ\Job::class, self::$eventDispatcher);
         self::$jobManager->setAMQPConnection(self::$connection);
         self::$jobManager->setMaxPriority(255);
         self::$jobManager->setQueueArgs('dtc_queue', false, true, false, false);
@@ -66,7 +68,7 @@ class JobManagerTest extends BaseJobManagerTest
     {
         $test = null;
         try {
-            $test = new JobManager(self::$runManager, self::$jobTimingManager, Job::class);
+            $test = new JobManager(self::$runManager, self::$jobTimingManager, Job::class, self::$eventDispatcher);
         } catch (\Exception $exception) {
             self::fail("shouldn't get here");
         }
@@ -75,7 +77,7 @@ class JobManagerTest extends BaseJobManagerTest
 
     public function testSetupChannel()
     {
-        $jobManager = new JobManager(self::$runManager, self::$jobTimingManager, Job::class);
+        $jobManager = new JobManager(self::$runManager, self::$jobTimingManager, Job::class, self::$eventDispatcher);
         $failed = false;
         try {
             $jobManager->setupChannel();

@@ -2,6 +2,8 @@
 
 namespace Dtc\QueueBundle\Tests;
 
+use Dtc\QueueBundle\EventDispatcher\Event;
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Manager\AbstractJobManager;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Manager\JobTimingManager;
@@ -18,11 +20,11 @@ class StaticJobManager extends AbstractJobManager
     private $uniqeId;
     public $enableSorting = true;
 
-    public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, $jobClass)
+    public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, $jobClass, EventDispatcher $eventDispatcher)
     {
         $this->jobs = array();
         $this->uniqeId = 1;
-        parent::__construct($runManager, $jobTimingManager, $jobClass);
+        parent::__construct($runManager, $jobTimingManager, $jobClass, $eventDispatcher);
     }
 
     public function getWaitingJobCount($workerName = null, $methodName = null)
@@ -75,6 +77,9 @@ class StaticJobManager extends AbstractJobManager
 
             ++$this->uniqeId;
         }
+
+        $event = new Event($job);
+        $this->eventDispatcher->dispatch(Event::POST_CREATE_JOB, $event);
 
         return $job;
     }

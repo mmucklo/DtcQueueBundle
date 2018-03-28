@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Tests\Redis;
 
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
@@ -51,7 +52,8 @@ class JobManagerTest extends BaseJobManagerTest
 
         self::$jobTimingManager = new JobTimingManager($jobTimingClass, false);
         self::$runManager = new RunManager($runClass);
-        self::$jobManager = new JobManager(self::$runManager, self::$jobTimingManager, \Dtc\QueueBundle\Redis\Job::class, 'test_cache_key');
+        self::$eventDispatcher = new EventDispatcher();
+        self::$jobManager = new JobManager(self::$runManager, self::$jobTimingManager, \Dtc\QueueBundle\Redis\Job::class, self::$eventDispatcher, 'test_cache_key');
         self::$jobManager->setRedis($predis);
         self::$jobManager->setMaxPriority(255);
         self::$worker = new FibonacciWorker();
@@ -62,7 +64,7 @@ class JobManagerTest extends BaseJobManagerTest
     {
         $test = null;
         try {
-            $test = new JobManager(self::$runManager, self::$jobTimingManager, Job::class, 'something');
+            $test = new JobManager(self::$runManager, self::$jobTimingManager, Job::class, self::$eventDispatcher, 'something');
         } catch (\Exception $exception) {
             self::fail("shouldn't get here");
         }

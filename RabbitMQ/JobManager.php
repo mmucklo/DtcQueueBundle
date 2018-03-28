@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\RabbitMQ;
 
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Manager\SaveableTrait;
 use Dtc\QueueBundle\Manager\VerifyTrait;
 use Dtc\QueueBundle\Model\BaseJob;
@@ -39,11 +40,11 @@ class JobManager extends PriorityJobManager
     protected $hostname;
     protected $pid;
 
-    public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, $jobClass)
+    public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, $jobClass, EventDispatcher $eventDispatcher)
     {
         $this->hostname = gethostname() ?: '';
         $this->pid = getmypid();
-        parent::__construct($runManager, $jobTimingManager, $jobClass);
+        parent::__construct($runManager, $jobTimingManager, $jobClass, $eventDispatcher);
     }
 
     /**

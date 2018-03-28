@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Redis;
 
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Manager\JobIdTrait;
 use Dtc\QueueBundle\Manager\JobTimingManager;
 use Dtc\QueueBundle\Manager\PriorityJobManager;
@@ -31,13 +32,13 @@ abstract class BaseJobManager extends PriorityJobManager
     /**
      * @param string $cacheKeyPrefix
      */
-    public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, $jobClass, $cacheKeyPrefix)
+    public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, $jobClass, EventDispatcher $eventDispatcher, $cacheKeyPrefix)
     {
         $this->cacheKeyPrefix = $cacheKeyPrefix;
         $this->hostname = gethostname() ?: '';
         $this->pid = getmypid();
 
-        parent::__construct($runManager, $jobTimingManager, $jobClass);
+        parent::__construct($runManager, $jobTimingManager, $jobClass, $eventDispatcher);
     }
 
     public function setRedis(RedisInterface $redis)
