@@ -1,21 +1,25 @@
 (function () {
   var inputs = document.getElementsByTagName("input");
   for (var i = 0 ; i < inputs.length ; i++) {
-    if (inputs[i].className === 'worker-method-tag') {
+    if (inputs[i].className === 'queue-action-tag') {
       setup(inputs[i].value)
     }
   }
 
   function setup(tag) {
     var workerNameElement = document.getElementById('worker-name-' + tag);
+    var olderThanAmountElement = document.getElementById('older-than-amount-' + tag);
+    var olderThanTypeElement = document.getElementById('older-than-type-' + tag);
     var methodElement = document.getElementById('method-' + tag);
     var originalMethodHtml = methodElement.innerHTML;
-    var archiveButton = document.getElementById('worker-method-action-' + tag);
-    var progressElement = document.getElementById('worker-method-progress-' + tag);
+    var actionButton = document.getElementById('queue-action-' + tag);
+    var progressElement = document.getElementById('queue-action-progress-' + tag);
     var id = window['id_'+tag];
     var buttonElement = document.getElementsByClassName('refresh-' + id)[0];
-    archiveButton.addEventListener('click', promptArchive);
-    workerNameElement.addEventListener('change', workerNameChange);
+    actionButton.addEventListener('click', promptArchive);
+    if (workerNameElement) {
+      workerNameElement.addEventListener('change', workerNameChange);
+    }
 
     function workerNameChange() {
       var workerName = getSelected(workerNameElement);
@@ -27,6 +31,10 @@
     }
 
     function getSelected(element) {
+      if (!element) {
+        return null;
+      }
+
       var idx = element.selectedIndex;
       if (idx > 0) {
         var options = element.getElementsByTagName('option');
@@ -35,7 +43,7 @@
           return optionElement.value;
         }
       }
-      return null
+      return null;
     }
 
     function generateOptions(list) {
@@ -59,7 +67,7 @@
       }
       message += ".";
       if (confirm(message)) {
-        archiveJobs();
+        process();
       }
     }
 
@@ -95,11 +103,15 @@
       pagination[0].style.visibility = 'visible';
     }
 
-    function archiveJobs() {
+
+
+    function process() {
       var workerName = getSelected(workerNameElement);
       var method = getSelected(methodElement);
+      var olderThanAmount = olderThanAmount ? olderThanAmount.value : null;
+      var olderThanType = getSelected(olderThanType);
       var formData = new FormData;
-      var spinner = archiveButton.getElementsByTagName('i');
+      var spinner = actionButton.getElementsByTagName('i');
       spinner[0].classList.remove('hidden');
 
       // disable all the buttons
@@ -110,6 +122,12 @@
       }
       if (method) {
         formData.append('method', method);
+      }
+      if (olderThanAmount) {
+        formData.append('olderThanAmount', olderThanAmount);
+      }
+      if (olderThanType) {
+        formData.append('olderThanType', olderThanType);
       }
 
       progressElement.max = "10";

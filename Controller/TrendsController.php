@@ -35,6 +35,7 @@ class TrendsController extends Controller
 
     /**
      * @Route("/timings", name="dtc_queue_timings")
+     * @throws \Exception
      */
     public function getTimingsAction(Request $request)
     {
@@ -56,6 +57,7 @@ class TrendsController extends Controller
     /**
      * @param \DateTime|null $beginDate
      * @param \DateTime      $endDate
+     * @throws \Exception
      */
     protected function calculateTimings($type, $beginDate, $endDate)
     {
@@ -143,6 +145,14 @@ class TrendsController extends Controller
         }
     }
 
+    /**
+     * @param $type
+     * @param \DateTime $end
+     * @param \DateTime|null $begin
+     * @return array
+     * @throws \Doctrine\ODM\MongoDB\MongoDBException
+     * @throws \Exception
+     */
     protected function getJobTimingsOdm($type, \DateTime $end, \DateTime $begin = null)
     {
         /** @var JobTimingManager $runManager */
@@ -202,6 +212,11 @@ class TrendsController extends Controller
         }
     }
 
+    /**
+     * @param $type
+     * @return array
+     * @throws \Exception
+     */
     protected function getRegexDate($type)
     {
         switch ($type) {
@@ -224,6 +239,11 @@ class TrendsController extends Controller
         throw new \InvalidArgumentException("Invalid type $type");
     }
 
+    /**
+     * @param $type
+     * @return array
+     * @throws \Exception
+     */
     protected function getOrmGroupBy($type)
     {
         switch ($type) {
@@ -246,6 +266,13 @@ class TrendsController extends Controller
         throw new \InvalidArgumentException("Invalid type $type");
     }
 
+    /**
+     * @param $type
+     * @param \DateTime $end
+     * @param \DateTime|null $begin
+     * @return array
+     * @throws \Exception
+     */
     protected function getJobTimingsOrm($type, \DateTime $end, \DateTime $begin = null)
     {
         /** @var JobTimingManager $jobTimingManager */

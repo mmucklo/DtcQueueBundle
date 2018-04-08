@@ -1,6 +1,6 @@
 <?php
 
-namespace Dtc\QueueBundle\Tests\Run;
+namespace Dtc\QueueBundle\Tests\Util;
 
 use Dtc\QueueBundle\Util\Util;
 use PHPUnit\Framework\TestCase;

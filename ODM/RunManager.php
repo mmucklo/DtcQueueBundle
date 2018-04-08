@@ -10,8 +10,12 @@ class RunManager extends DoctrineRunManager
 {
     use CommonTrait;
 
-    protected function getOldLiveRuns()
-    {
+    protected function countOldLiveRuns() {
+        $builder = $this->createOldLiveRunsQuery();
+        return $this->runQuery($builder->getQuery(), 'count', [], 0);
+    }
+
+    protected function createOldLiveRunsQuery() {
         /** @var DocumentManager $objectManager */
         $objectManager = $this->getObjectManager();
         /** @var Builder $queryBuilder */
@@ -20,7 +24,11 @@ class RunManager extends DoctrineRunManager
         $time = time() - 86400;
         $date = new \DateTime("@$time");
         $queryBuilder->field('lastHeartbeatAt')->lt($date);
+    }
 
-        return $queryBuilder->getQuery()->toArray();
+    protected function getOldLiveRuns($offset, $limit)
+    {
+        $builder = $this->createOldLiveRunsQuery();
+        return $this->runQuery($builder->getQuery(), 'toArray', [], []);
     }
 }

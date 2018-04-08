@@ -1,20 +1,34 @@
-{% macro worker_method_button(button_text, route_name, worker_methods, prompt_message, tag, id) %}
+{% macro jobs_action_button(button_text, route_name, worker_methods, prompt_message, tag, id, older_than) %}
 
-<div class="worker-method form-group form-inline worker-method-{{ tag }}">
+<div class="queue-action form-group form-inline worker-method-{{ tag }}">
     <h4>{{ button_text }}:</h4>
-    <input type="hidden" class="worker-method-tag" name="{{ tag }}" value="{{ tag }}" />
-    <label for="worker-name-{{ tag }}">WorkerName: </label>
-    <select id="worker-name-{{ tag }}" class="form-control" name="workerName">
-        <option value="">Any</option>
-        {% for workerName, method in worker_methods %}
-            <option value="{{ workerName }}">{{ workerName }}</option>
-        {% endfor %}
-    </select>
-    <label for="method-{{ tag }}">Method: </label>
-    <select id="method-{{ tag }}" class="form-control" name="method">
-        <option value="">Any</option>
-    </select>
-    <button id="worker-method-action-{{ tag }}" class="btn btn-primary"><i class="fa fa-circle-o-notch fa-spin hidden"></i> {{ button_text }}</button> <progress style="display: none" id="worker-method-progress-{{ tag }}"></progress>
+    <input type="hidden" class="queue-action-tag" name="{{ tag }}" value="{{ tag }}" />
+    {% if worker_methods is defined %}
+        <label for="worker-name-{{ tag }}">WorkerName: </label>
+        <select id="worker-name-{{ tag }}" class="form-control" name="workerName">
+            <option value="">Any</option>
+            {% for workerName, method in worker_methods %}
+                <option value="{{ workerName }}">{{ workerName }}</option>
+            {% endfor %}
+        </select>
+        <label for="method-{{ tag }}">Method: </label>
+        <select id="method-{{ tag }}" class="form-control" name="method">
+            <option value="">Any</option>
+        </select>
+    {% endif %}
+    {% if older_than is defined and older_than %}
+        Older Than
+        <input type="number" min="1" max="999" class="form-control" id="older-than-amount-{{ tag }}">
+        <select id="older-than-type-{{ tag }}" class="form-control">
+            <option value="s">Second(s)</option>
+            <option value="i">Minute(s)</option>
+            <option value="h">Hour(s)</option>
+            <option value="d">Day(s)</option>
+            <option value="m">Month(s)</option>
+            <option value="y">Year(s)</option>
+        </select>
+    {% endif %}
+    <button id="queue-action-{{ tag }}" class="btn btn-primary"><i class="fa fa-circle-o-notch fa-spin hidden"></i> {{ button_text }}</button> <progress style="display: none" id="queue-action-progress-{{ tag }}"></progress>
 </div>
 <script>
   var fetchPath_{{ tag }} = '{{ path(route_name) }}';

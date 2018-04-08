@@ -4,8 +4,12 @@ namespace Dtc\QueueBundle\Controller;
 
 use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Dtc\QueueBundle\Exception\UnsupportedException;
+use Dtc\QueueBundle\Manager\JobManagerInterface;
+use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Worker;
+use Dtc\QueueBundle\Util\IntervalTrait;
+use Dtc\QueueBundle\Util\Util;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
@@ -15,19 +19,35 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class QueueActionController extends Controller
 {
+    use IntervalTrait;
     /**
-     * @Route("/archive", name="dtc_queue_archive")
+     * @Route("/archive", name="dtc_queue_archive_non_running")
+     * @Route("/archive-waiting", name="dtc_queue_archive_waiting")
+     * @Route("/delete-archived", name="dtc_queue_delete_archived")
      * @Method({"POST"})
      *
      * @throws UnsupportedException
+     * @throws \Exception
      */
     public function archiveAction(Request $request)
     {
-        return $this->streamResults($request, 'archiveAllJobs');
+        /** @var JobManagerInterface $jobManager */
+        $jobManager = $this->get('dtc_queue.manager.job');
+        $route = $request->get('_route');
+        if ($route === 'dtc_queue_archive_waiting') {
+            return $this->streamResults($jobManager, $request, 'archiveWaitingJobs');
+        }
+
+        if ($route === 'dtc_queue_archive_non_running') {
+            return $this->streamResults($jobManager, $request, 'archiveNonRunning');
+        }
+
+        return $this->streamResults($jobManager, $request, 'pruneArchivedJobs');
     }
 
     /**
      * @Route("/reset-stalled", name="dtc_queue_reset_stalled")
+     * @Route("/prune-stalled", name="dtc_queue_prune_stalled")
      *
      * @param Request $request
      *
@@ -37,11 +57,18 @@ class QueueActionController extends Controller
      */
     public function resetStalledAction(Request $request)
     {
-        return $this->streamResults($request, 'resetStalledJobs');
+        /** @var JobManagerInterface $jobManager */
+        $jobManager = $this->get('dtc_queue.manager.job');
+        $route = $request->get('_route');
+        if ($route === 'dtc_queue_reset_stalled') {
+            return $this->streamResults($jobManager, $request, 'resetStalledJobs');
+        }
+        return $this->streamResults($jobManager, $request, 'pruneStalledJobs');
     }
 
+
     /**
-     * @Route("/prune-stalled", name="dtc_queue_prune_stalled")
+     * @Route("/prune-expired", name="dtc_queue_prune_expired")
      *
      * @param Request $request
      *
@@ -49,26 +76,28 @@ class QueueActionController extends Controller
      *
      * @throws UnsupportedException
      */
-    public function pruneStalledAction(Request $request)
+    public function pruneExpiredAction(Request $request)
     {
-        return $this->streamResults($request, 'pruneStalledJobs');
+        /** @var JobManagerInterface $jobManager */
+        $jobManager = $this->get('dtc_queue.manager.job');
+        return $this->streamResults($jobManager, $request, 'pruneExpiredJobs');
     }
 
     /**
-     * @Route("/delete-archived", name="dtc_queue_delete_archived")
-     *
+     * @Route("/prune-stalled-runs", name="dtc_queue_pruned_stalled_runs")
      * @param Request $request
-     *
      * @return StreamedResponse
-     *
      * @throws UnsupportedException
      */
-    public function deleteArchivedAction(Request $request)
+    public function pruneStalledRuns(Request $request)
     {
-        return $this->streamResults($request, 'pruneStalledJobs');
+        /** @var RunManager $runManager */
+        $runManager = $this->get('dtc_queue.manager.run');
+        return $this->streamResults($runManager, $request, 'pruneStalledRuns');
     }
 
     /**
+     * @param JobManagerInterface|RunManager $manager
      * @param Request $request
      * @param $functionName
      *
@@ -76,14 +105,9 @@ class QueueActionController extends Controller
      *
      * @throws UnsupportedException
      */
-    protected function streamResults(Request $request, $functionName)
+    protected function streamResults($manager, Request $request, $functionName)
     {
-        $jobManager = $this->get('dtc_queue.manager.job');
-        if (!$jobManager instanceof DoctrineJobManager) {
-            throw new UnsupportedException('$jobManager must be instance of ' . DoctrineJobManager::class);
-        }
-
-        $streamingResponse = new StreamedResponse($this->getStreamFunction($request, $functionName));
+        $streamingResponse = new StreamedResponse($this->getStreamFunction($manager, $request, $functionName));
         $streamingResponse->headers->set('Content-Type', 'application/x-ndjson');
         $streamingResponse->headers->set('X-Accel-Buffering', 'no');
 
@@ -92,18 +116,41 @@ class QueueActionController extends Controller
 
     /**
      * @param Request $request
+     * @return string|null
+     * @throws UnsupportedException
+     * @throws \Exception
+     */
+    private function getOlderThanDate(Request $request) {
+        $amount = $request->get('olderThanAmount');
+        $type = $request->get('olderThanType');
+
+        $olderThanDate = null;
+        if ($amount && $type) {
+            $interval = $this->getInterval($type, intval($amount));
+            $olderThan = Util::getMicrotimeDateTime();
+            return $olderThan->sub($interval);
+        }
+        return null;
+    }
+
+    /**
+     * @param JobManagerInterface|RunManager $manager
+     * @param Request $request
      * @param string $functionName
+     *
+     * @throws \Exception
+     * @throws UnsupportedException
      *
      * @return \Closure
      */
-    protected function getStreamFunction(Request $request, $functionName)
+    protected function getStreamFunction($manager, Request $request, $functionName)
     {
-        $jobManager = $this->get('dtc_queue.manager.job');
         $workerName = $request->get('workerName');
         $methodName = $request->get('method');
+        $olderThanDate = $this->getOlderThanDate($request);
         $total = null;
         $callback = function ($count, $totalCount) use (&$total) {
-            if (null !== $totalCount && null === $total) {
+            if (isset($totalCount) && null === $total) {
                 $total = $totalCount;
                 echo json_encode(['total' => $total]);
                 echo "\n";
@@ -116,21 +163,12 @@ class QueueActionController extends Controller
             flush();
         };
 
-        return function () use ($jobManager, $callback, $workerName, $methodName, $functionName, &$total) {
-            switch ($functionName) {
-                case 'archiveAllJobs':
-                    $total = $jobManager->getWaitingJobCount($workerName, $methodName);
-                    echo json_encode(['total' => $total]);
-                    echo "\n";
-                    flush();
-                    if ($total > 0) {
-                        $jobManager->archiveJobs($workerName, $methodName, DoctrineJobManager::TYPE_WAITING, $callback);
-                    }
-                    break;
-                default:
-                    $jobManager->$functionName($workerName, $methodName, $callback);
-                    break;
+        return function () use ($manager, $callback, $workerName, $methodName, $functionName, $olderThanDate) {
+            if ($olderThanDate) {
+                $manager->$functionName($olderThanDate, $callback);
+                return;
             }
+            $manager->$functionName($workerName, $methodName, $callback);
         };
     }
 }

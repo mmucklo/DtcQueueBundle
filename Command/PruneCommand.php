@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Command;
 
 use Dtc\QueueBundle\Exception\UnsupportedException;
+use Dtc\QueueBundle\Util\IntervalTrait;
 use Dtc\QueueBundle\Util\Util;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
@@ -12,6 +13,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class PruneCommand extends ContainerAwareCommand
 {
+    use IntervalTrait;
+
     const OLDER_MESSAGE = '<int>[d|m|y|h|i|s] Specify how old the jobs should (defaults to timestamp unless a quantifier is specified [d_ays, m_onths, y_years, h_ours, i_minutes, s_econds';
 
     protected function configure()
@@ -19,10 +22,16 @@ class PruneCommand extends ContainerAwareCommand
         $this
         ->setName('dtc:queue:prune')
         ->setDescription('Prune job with error status')
-        ->addArgument('type', InputArgument::REQUIRED, '<stalled|stalled_runs|error|expired|old|old_runs|old_job_timings> Prune stalled, erroneous, expired, or old jobs')
+        ->addArgument('type', InputArgument::REQUIRED, '<stalled|stalled_runs|error|expired|old|old_runs|old_job_timings> Prune stalled, erroneous, expired, or old jobs, runs, or job timings')
             ->addOption('older', null, InputOption::VALUE_REQUIRED, self::OLDER_MESSAGE);
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int|null
+     * @throws \Exception
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $container = $this->getContainer();
@@ -44,6 +53,12 @@ class PruneCommand extends ContainerAwareCommand
         return 0;
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int
+     * @throws \Exception
+     */
     public function executeStalledOther(InputInterface $input, OutputInterface $output)
     {
         $container = $this->getContainer();
@@ -65,6 +80,12 @@ class PruneCommand extends ContainerAwareCommand
         return 0;
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int
+     * @throws \Exception
+     */
     public function executeOlder(InputInterface $input, OutputInterface $output)
     {
         $older = $input->getOption('older');
@@ -107,7 +128,7 @@ class PruneCommand extends ContainerAwareCommand
             $olderThan->setTimestamp($durationOrTimestamp);
         } else {
             $interval = $this->getInterval($modifier, $durationOrTimestamp);
-            $olderThan->sub($interval);
+            $olderThan = $olderThan->sub($interval);
         }
 
         return $this->pruneOlderThan($type, $olderThan, $output);
@@ -147,60 +168,4 @@ class PruneCommand extends ContainerAwareCommand
         return 0;
     }
 
-    /**
-     * Returns the date interval based on the modifier and the duration.
-     *
-     * @param string $modifier
-     * @param int    $duration
-     *
-     * @return \DateInterval
-     *
-     * @throws UnsupportedException
-     */
-    protected function getInterval($modifier, $duration)
-    {
-        switch ($modifier) {
-            case 'd':
-                $interval = new \DateInterval("P${duration}D");
-                break;
-            case 'm':
-                $interval = new \DateInterval("P${duration}M");
-                break;
-            case 'y':
-                $interval = new \DateInterval("P${duration}Y");
-                break;
-            default:
-                $interval = $this->getIntervalTime($modifier, $duration);
-        }
-
-        return $interval;
-    }
-
-    /**
-     * @param string $modifier
-     * @param int    $duration
-     *
-     * @return \DateInterval
-     *
-     * @throws UnsupportedException
-     */
-    protected function getIntervalTime($modifier, $duration)
-    {
-        switch ($modifier) {
-            case 'h':
-                $interval = new \DateInterval("PT${duration}H");
-                break;
-            case 'i':
-                $seconds = $duration * 60;
-                $interval = new \DateInterval("PT${seconds}S");
-                break;
-            case 's':
-                $interval = new \DateInterval("PT${duration}S");
-                break;
-            default:
-                throw new UnsupportedException("Unknown duration modifier: $modifier");
-        }
-
-        return $interval;
-    }
 }

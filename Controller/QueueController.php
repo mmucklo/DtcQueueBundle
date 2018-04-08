@@ -60,7 +60,6 @@ class QueueController extends Controller
         return $params;
     }
 
-
     /**
      * List jobs in system by default.
      *

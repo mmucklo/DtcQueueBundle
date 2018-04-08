@@ -7,13 +7,9 @@
 
     <h3>{{ dtc_queue_grid_label1 }}</h3>
     {{ dtc_grid.render | raw }}
-    <div class="form-group form-inline">
-        <button id="prune-stalled-runs-action" class="btn btn-primary"><i class="fa fa-circle-o-notch fa-spin hidden"></i> Prune Stalled</button> <progress style="display: none" id="prune-stalled-runs-progress"></progress>
-    </div>
+    {{ queue_macros.jobs_action_button('Prune Stalled', 'dtc_queue_prune_stalled_runs', null, 'This will prune (archive) all stalled runs.', 'prunestalledruns', dtc_queue_grid_id1) }}
     <h3>{{ dtc_queue_grid_label2 }}</h3>
     {{ archive_grid.render | raw }}
-    <div class="form-group form-inline">
-        <button id="delete-archived-runs-action" class="btn btn-primary"><i class="fa fa-circle-o-notch fa-spin hidden"></i> Delete Archived</button> <progress style="display: none" id="delete-archived-runs-progress"></progress>
-    </div>
-    <script src="/bundles/dtcqueue/js/jobs.js?v=4"></script>
+    {{ queue_macros.jobs_action_button('Delete Archived Runs', 'dtc_queue_delete_archive_runs', null, 'This will delete all archived runs.', 'deletearchivedruns', dtc_queue_grid_id2) }}
+    <script src="{{ queue_js }}"></script>
 {% endblock %}

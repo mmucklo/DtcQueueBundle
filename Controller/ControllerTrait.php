@@ -45,6 +45,8 @@ trait ControllerTrait
         $jQuery = $this->container->getParameter('dtc_grid.jquery');
         array_unshift($params['js'], $jQuery['url']);
         $params['chartjs'] = $this->container->getParameter('dtc_queue.admin.chartjs');
+        $params['queue_js'] = '/bundles/dtcqueue/js/jobs.js?v='.filemtime(__DIR__.'/../Resources/public/js/queue.js');
+        $params['trends_js'] = '/bundles/dtcqueue/js/trends.js?v='.filemtime(__DIR__.'/../Resources/public/js/trends.js');
     }
 
     protected function getWorkersAndMethods()

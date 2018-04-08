@@ -225,20 +225,6 @@ class JobManager extends DoctrineJobManager
         return $job;
     }
 
-    protected function runQuery(\Doctrine\MongoDB\Query\Query $query, $method, array $arguments = [], $resultIfNamespaceError = null)
-    {
-        try {
-            $result = call_user_func_array([$query, $method], $arguments);
-        } catch (ResultException $resultException) {
-            if (false === strpos($resultException->getMessage(), 'namespace does not exist') && false === strpos($resultException->getMessage(), 'ns doesn\'t exist')) {
-                throw $resultException;
-            }
-            $result = $resultIfNamespaceError;
-        }
-
-        return $result;
-    }
-
     /**
      * @param string|null $workerName
      * @param string|null $methodName
@@ -355,13 +341,19 @@ class JobManager extends DoctrineJobManager
 
         $this->addWorkerNameCriterion($builder, $workerName, $methodName);
 
-        if ($type === static::TYPE_LIVE) {
+        if ($type === static::TYPE_WAITING) {
             $this->addStandardPredicates($builder);
+        }
+        else {
+            $builder->field('status')->notEqual(BaseJob::STATUS_RUNNING);
         }
 
         $builder->field('status')->set(Job::STATUS_ARCHIVE);
         $query = $builder->getQuery();
-        $this->runArchive($query, $progressCallback);
+        $total = $this->runQuery($query, 'count', [], 0);
+        $this->updateProgress($progressCallback, 0, $total);
+        $builder->limit(10000);
+        $this->runArchive($builder->getQuery(), $progressCallback);
     }
 
     private function runArchive(Query $query, callable $progressCallback = null) {
@@ -399,6 +391,7 @@ class JobManager extends DoctrineJobManager
         $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
         $query = $queryBuilder->getQuery();
         $total = $this->runQuery($query, 'count', [], 0);
+        $this->updateProgress($progressCallback, 0, $total);
         $step = (int) ceil($total / 20.0);
         $count = 0;
         while($count < $total) {
@@ -409,7 +402,7 @@ class JobManager extends DoctrineJobManager
             $queryBuilder->getQuery();
             $result = $this->runQuery($query, 'count', [], 0);
             $count += $result;
-            $this->updateProgress($progressCallback, $total, $count);
+            $this->updateProgress($progressCallback, $count);
             if ($result === 0) {
                 break;
             }

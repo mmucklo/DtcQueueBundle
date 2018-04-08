@@ -120,7 +120,7 @@ class JobManager extends DoctrineJobManager
      *
      * @param \DateTime $olderThan
      */
-    public function pruneArchivedJobs(\DateTime $olderThan)
+    public function pruneArchivedJobs(\DateTime $olderThan, callable $progressCallback = null)
     {
         return $this->removeOlderThan(
             $this->getJobArchiveClass(),
@@ -422,6 +422,7 @@ class JobManager extends DoctrineJobManager
         $resultCount = $queryBuilder->getQuery()->execute();
 
         if ($resultCount) {
+            $this->updateProgress($progressCallback, 0, $resultCount);
             $this->runArchive($progressCallback);
         }
     }
@@ -441,35 +442,60 @@ class JobManager extends DoctrineJobManager
         $queryBuilder->select('count(j.id)');
         $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
         $total = $queryBuilder->getQuery()->getSingleScalarResult();
+        $this->updateProgress($progressCallback, 0, $total);
         $step = (int) ceil($total / 20.0);
         $count = 0;
+        $tableName = $entityManager->getClassMetadata($jobArchiveClass)->getTableName();
         while($count < $total) {
-            $queryStr = 'DELETE FROM ' . $jobArchiveClass . ' j';
-            if ($workerName !== null || $methodName !== null) {
-                $queryStr .= ' WHERE ';
-                if ($workerName !== null) {
-                    $queryStr .= ' j.workerName = :workerName ';
-                }
-                if ($methodName !== null) {
-                    if ($workerName !== null) {
-                        $queryStr .= ' AND ';
-                    }
-                    $queryStr .= ' j.method = :method ';
-                }
-            }
+            $queryStr = 'DELETE FROM ' . $tableName;
+            $this->addWorkerMethod($queryStr, $workerName, $methodName);
+            $queryStr .= " LIMIT $step";
+            $statement = $entityManager->getConnection()->prepare($queryStr);
+            $this->setWorkerMethod($statement, $workerName, $methodName);
 
-            $query = $entityManager->createQuery($queryStr . ' LIMIT ' . $step);
-            if ($workerName !== null)
-                $query->setParameter('workerName', $workerName);
-            if ($methodName !== null)
-                $query->setParameter('method', $methodName);
+            $success = $statement->execute();
+            $rowCount = $statement->rowCount();
+            $count += $rowCount;
 
-            $result = $query->execute();
-            $count += $result;
-            $this->updateProgress($progressCallback, $total, $count);
-            if ($result === 0) {
+            $this->updateProgress($progressCallback, $count, $total);
+            if ($rowCount === 0 || !$success) {
                 break;
             }
+        }
+    }
+
+    protected function setWorkerMethod($statement, $workerName, $methodName) {
+        if ($workerName !== null)
+            $statement->setParameter(':workerName', $workerName);
+        if ($methodName !== null)
+            $statement->setParameter(':method', $methodName);
+    }
+
+    /**
+     * @param string $queryStr
+     * @param string|null $workerName
+     * @param string|null $methodName
+     */
+    protected function addWorkerMethod(&$queryStr, $workerName, $methodName) {
+        if ($workerName !== null || $methodName !== null) {
+            $queryStr .= ' WHERE ';
+            $this->addWorkerName($queryStr, $workerName);
+            if ($methodName !== null) {
+                if ($workerName !== null) {
+                    $queryStr .= ' AND ';
+                }
+                $queryStr .= ' method = :method ';
+            }
+        }
+    }
+
+    /**
+     * @param string $queryStr
+     * @param string|null $workerName
+     */
+    protected function addWorkerName(&$queryStr, $workerName) {
+        if ($workerName !== null) {
+            $queryStr .= ' workerName = :workerName ';
         }
     }
 

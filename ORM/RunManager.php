@@ -15,19 +15,33 @@ class RunManager extends DoctrineRunManager
         return $this->getObjectManagerReset();
     }
 
-    protected function getOldLiveRuns()
-    {
+    protected function countOldLiveRuns() {
+        return $this->createOldLiveRunsQueryBuilder('count(r.id)')->getQuery()->getSingleScalarResult();
+    }
+
+    /**
+     * @param string $select
+     * @return QueryBuilder
+     */
+    protected function createOldLiveRunsQueryBuilder($select) {
+        $time = time() - 86400;
+        $date = new \DateTime("@$time");
+
         /** @var EntityManager $objectManager */
         $objectManager = $this->getObjectManager();
         /** @var QueryBuilder $queryBuilder */
         $queryBuilder = $objectManager->createQueryBuilder();
-        $queryBuilder->select(['r'])
+        $queryBuilder->select($select)
             ->from($this->getRunClass(), 'r');
-        $time = time() - 86400;
-        $date = new \DateTime("@$time");
         $queryBuilder->where('r.lastHeartbeatAt < :date');
         $queryBuilder->setParameter(':date', $date);
-
-        return $queryBuilder->getQuery()->getResult();
+        $queryBuilder->orWhere('r.lastHeartbeatAt is NULL');
+        return $queryBuilder;
     }
+
+    protected function getOldLiveRuns($offset, $limit)
+    {
+        return $this->createOldLiveRunsQueryBuilder('r')->setMaxResults($limit)->setFirstResult($offset)->getQuery()->getResut();
+    }
+
 }

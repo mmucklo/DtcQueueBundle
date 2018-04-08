@@ -9,6 +9,8 @@ use Dtc\QueueBundle\Manager\RunManager;
 
 abstract class DoctrineRunManager extends RunManager
 {
+    use ProgressCallbackTrait;
+
     /** @var ObjectManager */
     protected $objectManager;
 
@@ -46,21 +48,34 @@ abstract class DoctrineRunManager extends RunManager
         return $this->runArchiveClass;
     }
 
-    public function pruneStalledRuns()
+    public function pruneStalledRuns(callable $progressCallback = null)
     {
+        $total = $this->countOldLiveRuns();
+        $this->updateProgress($progressCallback, 0, $total);
         $runs = $this->getOldLiveRuns();
         /** @var Run $run */
-        $delete = [];
-
-        foreach ($runs as $run) {
-            $lastHeartbeat = $run->getLastHeartbeatAt();
-            $time = time() - 3600;
-            $processTimeout = $run->getProcessTimeout();
-            $time -= $processTimeout;
-            $oldDate = new \DateTime("@$time");
-            if (null === $lastHeartbeat || $oldDate > $lastHeartbeat) {
-                $delete[] = $run;
+        $offset = 0;
+        $limit = ceil($total / 20.0);;
+        $processed = 0;
+        $deleted = 0;
+        while($runs = $this->getOldLiveRuns($offset, $limit)) {
+            $delete = [];
+            foreach ($runs as $run) {
+                $processed++;
+                $lastHeartbeat = $run->getLastHeartbeatAt();
+                $time = time() - 3600;
+                $processTimeout = $run->getProcessTimeout();
+                $time -= $processTimeout;
+                $oldDate = new \DateTime("@$time");
+                if (null === $lastHeartbeat || $oldDate > $lastHeartbeat) {
+                    $delete[] = $run;
+                }
+                else {
+                    $offset++;
+                }
             }
+            $deleted += $this->deleteOldRuns($delete);
+            $this->updateProgress($progressCallback, $processed);
         }
 
         return $this->deleteOldRuns($delete);
@@ -104,11 +119,14 @@ abstract class DoctrineRunManager extends RunManager
     /**
      * @return array
      */
-    abstract protected function getOldLiveRuns();
+    abstract protected function getOldLiveRuns($offset, $limit);
+    abstract protected function countOldLiveRuns();
 
     abstract protected function persist($object, $action = 'persist');
 
     abstract protected function removeOlderThan($objectName, $field, \DateTime $olderThan);
+
+    abstract public function deleteArchiveRuns(callable $progressCallback = null);
 
     public function pruneArchivedRuns(\DateTime $olderThan)
     {

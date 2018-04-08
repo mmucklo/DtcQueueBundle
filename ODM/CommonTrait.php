@@ -63,4 +63,19 @@ trait CommonTrait
     {
         // Not needed for ODM
     }
+
+
+    protected function runQuery(\Doctrine\MongoDB\Query\Query $query, $method, array $arguments = [], $resultIfNamespaceError = null)
+    {
+        try {
+            $result = call_user_func_array([$query, $method], $arguments);
+        } catch (ResultException $resultException) {
+            if (false === strpos($resultException->getMessage(), 'namespace does not exist') && false === strpos($resultException->getMessage(), 'ns doesn\'t exist')) {
+                throw $resultException;
+            }
+            $result = $resultIfNamespaceError;
+        }
+
+        return $result;
+    }
 }
