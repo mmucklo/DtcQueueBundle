@@ -1,3 +1,5 @@
+### 4.5.2
+   * Fix for issue #63 (thanks @andrzej-tracz for PR #64)
 ### 4.5.1
    * Fix a minor bug in ORM where if you created a job you later tried to then run in the same process the status might
      not be reflected properly in the object
