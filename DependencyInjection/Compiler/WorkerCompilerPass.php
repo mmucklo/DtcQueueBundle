@@ -55,6 +55,21 @@ class WorkerCompilerPass implements CompilerPassInterface
     }
 
     /**
+     * Add any extra method calls needed
+     * @param ContainerBuilder $container
+     * @param string $defaultManagerType
+     */
+    protected function addMethodCalls(ContainerBuilder $container, $defaultManagerType) {
+        if ($defaultManagerType === 'orm') {
+            $doctrine = $container->getDefinition('doctrine');
+            $container->getDefinition('dtc_queue.doctrine_listener')->addMethodCall('setRegistry', [$doctrine]);
+            $container->getDefinition('dtc_queue.manager.job.orm')->addMethodCall('setRegistry', [$doctrine]);
+            $container->getDefinition('dtc_queue.manager.run.orm')->addMethodCall('setRegistry', [$doctrine]);
+            $container->getDefinition('dtc_queue.manager.job_timing.orm')->addMethodCall('setRegistry', [$doctrine]);
+        }
+    }
+
+    /**
      * @param string $type
      */
     protected function setupAlias(ContainerBuilder $container, $defaultManagerType, $type)
@@ -78,10 +93,13 @@ class WorkerCompilerPass implements CompilerPassInterface
     protected function setupAliases(ContainerBuilder $container)
     {
         $defaultManagerType = $container->getParameter('dtc_queue.manager.job');
+        $this->addMethodCalls($container, $defaultManagerType);
         $this->setupAlias($container, $defaultManagerType, 'manager.job');
         $runManagerType = $container->getParameter($this->getRunManagerType($container));
+        $this->addMethodCalls($container, $runManagerType);
         $this->setupAlias($container, $runManagerType, 'manager.run');
         $jobTimingManagerType = $container->getParameter($this->getJobTimingManagerType($container));
+        $this->addMethodCalls($container, $jobTimingManagerType);
         $this->setupAlias($container, $jobTimingManagerType, 'manager.job_timing');
     }
 

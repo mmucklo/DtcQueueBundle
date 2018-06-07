@@ -140,7 +140,6 @@ services:
             - "%dtc_queue.class.run%"
             - "%dtc_queue.class.run_archive%"
         calls:
-            - ["setRegistry", ['@doctrine']]
             - ["setEntityManagerName", ['%dtc_queue.orm.entity_manager%']]
 
     dtc_queue.manager.job_timing.orm:
@@ -151,7 +150,6 @@ services:
             - "%dtc_queue.class.job_timing%"
             - "%dtc_queue.timings.record%"
         calls:
-            - ["setRegistry", ['@doctrine']]
             - ["setEntityManagerName", ['%dtc_queue.orm.entity_manager%']]
 
     dtc_queue.manager.run.beanstalkd:
@@ -209,7 +207,6 @@ services:
             - ["setDefaultMaxStalls", ['%dtc_queue.retry.max.stalls%']]
             - ["setAutoRetryOnFailure", ['%dtc_queue.retry.auto.failure%']]
             - ["setAutoRetryOnException", ['%dtc_queue.retry.auto.exception%']]
-            - ["setRegistry", ['@doctrine']]
             - ["setEntityManagerName", ['%dtc_queue.orm.entity_manager%']]
 
     dtc_queue.manager.worker:
@@ -233,7 +230,6 @@ services:
             - '%dtc_queue.class.job_archive%'
             - '%dtc_queue.class.run_archive%'
         calls:
-            - [ "setRegistry", ['@doctrine']]
             - [ "setEntityManagerName", ['%dtc_queue.orm.entity_manager%']]
         tags:
             - { name: doctrine.event_listener, event: preRemove }
