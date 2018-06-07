@@ -6,6 +6,7 @@ use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
+use Dtc\QueueBundle\Util\Util;
 
 abstract class RetryableJobManager extends AbstractJobManager
 {
@@ -46,7 +47,7 @@ abstract class RetryableJobManager extends AbstractJobManager
             $this->setBaseRetryableJobDefaults($job);
         }
         $this->recordTiming($job);
-        $job->setUpdatedAt(new \DateTime());
+        $job->setUpdatedAt(Util::getMicrotimeDateTime());
 
         return $this->retryableSave($job);
     }
@@ -243,7 +244,7 @@ abstract class RetryableJobManager extends AbstractJobManager
     protected function recordTiming(Job $job)
     {
         $status = JobTiming::STATUS_INSERT;
-        if ($job->getWhenAt() && $job->getWhenAt() > (new \DateTime())) {
+        if ($job->getWhenAt() && $job->getWhenAt() > Util::getMicrotimeDateTime()) {
             $status = JobTiming::STATUS_INSERT_DELAYED;
         }
 
