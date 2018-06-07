@@ -1,5 +1,6 @@
 ### 4.5.3
-   * Fix for issue #68
+   * Fix for issue #68 - attempt to remove dependency on doctrine service when orm is not used
+   * Fix for issue #67 - make DateTime calls consistent
 ### 4.5.2
    * Fix for issue #63 (thanks @andrzej-tracz for PR #64)
 ### 4.5.1
