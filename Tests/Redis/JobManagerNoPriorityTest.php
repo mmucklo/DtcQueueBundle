@@ -38,6 +38,7 @@ class JobManagerNoPriorityTest extends JobManagerTest
             self::$runManager,
             self::$jobTimingManager,
             \Dtc\QueueBundle\Redis\Job::class,
+            self::$eventDispatcher,
             'test_cache_key'
         );
         self::$jobManager->setRedis($phpredis);

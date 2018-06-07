@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Manager;
 
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Exception\UnsupportedException;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
@@ -11,12 +12,16 @@ abstract class AbstractJobManager implements JobManagerInterface
     protected $jobTiminigManager;
     protected $jobClass;
     protected $runManager;
-
-    public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, $jobClass)
+    
+    /** @var EventDispatcher $eventDispatcher */
+    protected $eventDispatcher;
+    
+    public function __construct(RunManager $runManager, JobTimingManager $jobTimingManager, $jobClass, EventDispatcher $eventDispatcher)
     {
         $this->runManager = $runManager;
         $this->jobTiminigManager = $jobTimingManager;
         $this->jobClass = $jobClass;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**

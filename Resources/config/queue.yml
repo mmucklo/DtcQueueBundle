@@ -76,6 +76,7 @@ services:
             - "@dtc_queue.manager.job_timing"
             - '@dtc_queue.document_manager'
             - '%dtc_queue.class.job%'
+            - '@dtc_queue.event_dispatcher'
             - '%dtc_queue.class.job_archive%'
         calls:
             - ["setMaxPriority", ['%dtc_queue.priority.max%']]
@@ -94,6 +95,7 @@ services:
             - "@dtc_queue.manager.run"
             - "@dtc_queue.manager.job_timing"
             - '%dtc_queue.class.job%'
+            - '@dtc_queue.event_dispatcher'
         calls:
             - ["setDefaultMaxRetries", ['%dtc_queue.retry.max.retries%']]
             - ["setDefaultMaxFailures", ['%dtc_queue.retry.max.failures%']]
@@ -107,6 +109,7 @@ services:
             - "@dtc_queue.manager.run"
             - "@dtc_queue.manager.job_timing"
             - "%dtc_queue.class.job%"
+            - '@dtc_queue.event_dispatcher'
         calls:
             - ["setMaxPriority", ['%dtc_queue.priority.max%']]
             - ["setPriorityDirection", ['%dtc_queue.priority.direction%']]
@@ -123,6 +126,7 @@ services:
             - "@dtc_queue.manager.run"
             - "@dtc_queue.manager.job_timing"
             - "%dtc_queue.class.job%"
+            - '@dtc_queue.event_dispatcher'
             - "%dtc_queue.redis.prefix%"
         calls:
             - ["setMaxPriority", ['%dtc_queue.priority.max%']]
@@ -197,6 +201,7 @@ services:
             - "@dtc_queue.manager.job_timing"
             - '@dtc_queue.entity_manager'
             - '%dtc_queue.class.job%'
+            - '@dtc_queue.event_dispatcher'
             - '%dtc_queue.class.job_archive%'
         calls:
             - ["setMaxPriority", ['%dtc_queue.priority.max%']]

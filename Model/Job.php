@@ -2,6 +2,8 @@
 
 namespace Dtc\QueueBundle\Model;
 
+use Dtc\QueueBundle\Manager\JobManagerInterface;
+
 class Job extends BaseJob
 {
     const STATUS_EXPIRED = 'expired';
@@ -28,7 +30,7 @@ class Job extends BaseJob
         }
 
         $job = $this->jobManager->save($this);
-
+       
         return $job;
     }
 

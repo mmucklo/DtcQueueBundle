@@ -7,6 +7,7 @@ use Dtc\QueueBundle\EventDispatcher\EventSubscriberInterface;
 
 class StubEventSubscriber implements EventSubscriberInterface
 {
+    protected $postCreateJobCalled;
     protected $preJobCalled;
     protected $postJobCalled;
 
@@ -20,6 +21,11 @@ class StubEventSubscriber implements EventSubscriberInterface
         $this->postJobCalled[] = $event;
     }
 
+    public function postCreateJob(Event $event)
+    {
+        $this->postCreateJobCalled[] = $event;
+    }
+
     public function getPreJobCalled()
     {
         return $this->preJobCalled;
@@ -30,9 +36,15 @@ class StubEventSubscriber implements EventSubscriberInterface
         return $this->postJobCalled;
     }
 
+    public function getPostCreateJobCalled()
+    {
+        return $this->postCreateJobCalled;
+    }
+
     public static function getSubscribedEvents()
     {
         return [
+            Event::POST_CREATE_JOB => 'postCreateJob',
             Event::PRE_JOB => 'preJob',
             Event::POST_JOB => 'postJob',
         ];

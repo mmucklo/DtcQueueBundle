@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Tests\Manager;
 
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Manager\JobManagerInterface;
 use Dtc\QueueBundle\Manager\PriorityJobManager;
 use Dtc\QueueBundle\Manager\RunManager;
@@ -29,6 +30,9 @@ abstract class BaseJobManagerTest extends TestCase
 
     /** @var JobTimingManager */
     public static $jobTimingManager;
+
+    /** @var EventDispatcher */
+    public static $eventDispatcher;
 
     public static function setUpBeforeClass()
     {

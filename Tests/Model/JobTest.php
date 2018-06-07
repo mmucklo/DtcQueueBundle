@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Tests\Model;
 
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Manager\JobTimingManager;
@@ -48,7 +49,8 @@ class JobTest extends TestCase
     {
         $jobTimingManager = new JobTimingManager(JobTiming::class, false);
         $runManager = new RunManager(Run::class);
-        $jobManager = new StaticJobManager($runManager, $jobTimingManager, Job::class);
+        $eventDispatcher = new EventDispatcher();
+        $jobManager = new StaticJobManager($runManager, $jobTimingManager, Job::class, $eventDispatcher);
         $worker = new FibonacciWorker();
         $worker->setJobManager($jobManager);
 

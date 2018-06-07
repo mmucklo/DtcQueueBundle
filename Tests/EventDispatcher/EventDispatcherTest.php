@@ -16,16 +16,28 @@ class EventDispatcherTest extends TestCase
 
         self::assertFalse($eventDispatcher->hasListeners(Event::POST_JOB));
         self::assertFalse($eventDispatcher->hasListeners(Event::PRE_JOB));
+        self::assertFalse($eventDispatcher->hasListeners(Event::POST_CREATE_JOB));
 
         $eventDispatcher->addSubscriber($eventSubscriber);
         self::assertTrue($eventDispatcher->hasListeners(Event::POST_JOB));
         self::assertTrue($eventDispatcher->hasListeners(Event::PRE_JOB));
+        self::assertTrue($eventDispatcher->hasListeners(Event::POST_CREATE_JOB));
 
         $job = new Job();
         $event = new Event($job);
 
         self::assertEmpty($eventSubscriber->getPostJobCalled());
         self::assertEmpty($eventSubscriber->getPreJobCalled());
+        self::assertEmpty($eventSubscriber->getPostCreateJobCalled());
+
+        $eventDispatcher->dispatch(Event::POST_CREATE_JOB, $event);
+
+        self::assertEmpty($eventSubscriber->getPostJobCalled());
+        self::assertEmpty($eventSubscriber->getPreJobCalled());
+        $postCreateJobCalled = $eventSubscriber->getPostCreateJobCalled();
+        self::assertNotEmpty($postCreateJobCalled);
+        $dispatchedEvent = $postCreateJobCalled[0];
+        self::assertEquals($event, $dispatchedEvent);
 
         $eventDispatcher->dispatch(Event::PRE_JOB, $event);
 
