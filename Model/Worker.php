@@ -54,7 +54,7 @@ abstract class Worker
             $timeU = strval($time).'.000000';
         }
 
-        $dateTime = \DateTime::createFromFormat('U.u', (string) $timeU);
+        $dateTime = \DateTime::createFromFormat('U.u', (string) $timeU, new \DateTimeZone(date_default_timezone_get()));
         if (!$dateTime) {
             throw new \InvalidArgumentException("Invalid time: $time".($timeU != $time ? " - (micro: $timeU)" : ''));
         }

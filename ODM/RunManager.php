@@ -18,7 +18,7 @@ class RunManager extends DoctrineRunManager
         $queryBuilder = $objectManager->createQueryBuilder($this->getRunClass());
         $queryBuilder->find();
         $time = time() - 86400;
-        $date = new \DateTime("@$time");
+        $date = \DateTime::createFromFormat('U', strval($time), new \DateTimeZone(date_default_timezone_get()));
         $queryBuilder->field('lastHeartbeatAt')->lt($date);
 
         return $queryBuilder->getQuery()->toArray();

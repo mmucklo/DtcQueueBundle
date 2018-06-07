@@ -24,7 +24,7 @@ class RunManager extends DoctrineRunManager
         $queryBuilder->select(['r'])
             ->from($this->getRunClass(), 'r');
         $time = time() - 86400;
-        $date = new \DateTime("@$time");
+        $date = \DateTime::createFromFormat('U', strval($time), new \DateTimeZone(date_default_timezone_get()));
         $queryBuilder->where('r.lastHeartbeatAt < :date');
         $queryBuilder->setParameter(':date', $date);
 

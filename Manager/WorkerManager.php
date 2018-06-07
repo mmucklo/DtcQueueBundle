@@ -9,6 +9,7 @@ use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Model\Worker;
+use Dtc\QueueBundle\Util\Util;
 use Psr\Log\LoggerInterface;
 
 class WorkerManager
@@ -145,7 +146,7 @@ class WorkerManager
             /** @var Worker $worker */
             $worker = $this->getWorker($job->getWorkerName());
             $this->log('debug', "Start: {$job->getClassName()}->{$job->getMethod()}", $job->getArgs());
-            $job->setStartedAt(new \DateTime());
+            $job->setStartedAt(Util::getMicrotimeDateTime());
             $job->setMessage(null);
             $worker->setCurrentJob($job);
             $result = call_user_func_array(array($worker, $job->getMethod()), $job->getArgs());
@@ -158,7 +159,7 @@ class WorkerManager
 
         // save Job history
         $elapsed = microtime(true) - $start;
-        $job->setFinishedAt(new \DateTime());
+        $job->setFinishedAt(Util::getMicrotimeDateTime());
         $job->setElapsed($elapsed);
 
         $this->log('debug', "Finished: {$job->getClassName()}->{$job->getMethod()} in {$elapsed} seconds");

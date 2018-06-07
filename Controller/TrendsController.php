@@ -41,8 +41,8 @@ class TrendsController extends Controller
         $begin = $request->query->get('begin');
         $end = $request->query->get('end');
         $type = $request->query->get('type', 'HOUR');
-        $beginDate = \DateTime::createFromFormat('Y-m-d\TH:i:s.uO', $begin) ?: null;
-        $endDate = \DateTime::createFromFormat('Y-m-d\TH:i:s.uO', $end) ?: \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
+        $beginDate = \DateTime::createFromFormat('Y-m-d\TH:i:s.uO', $begin, new \DateTimeZone(date_default_timezone_get())) ?: null;
+        $endDate = \DateTime::createFromFormat('Y-m-d\TH:i:s.uO', $end, new \DateTimeZone(date_default_timezone_get())) ?: \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
 
         $recordTimings = $this->container->getParameter('dtc_queue.timings.record');
         $params = [];
@@ -82,8 +82,8 @@ class TrendsController extends Controller
 
         $format = $this->getDateFormat($type);
         usort($timingsDates, function ($date1str, $date2str) use ($format) {
-            $date1 = \DateTime::createFromFormat($format, $date1str);
-            $date2 = \DateTime::createFromFormat($format, $date2str);
+            $date1 = \DateTime::createFromFormat($format, $date1str, new \DateTimeZone(date_default_timezone_get()));
+            $date2 = \DateTime::createFromFormat($format, $date2str, new \DateTimeZone(date_default_timezone_get()));
             if (!$date2) {
                 return false;
             }
@@ -115,7 +115,7 @@ class TrendsController extends Controller
         $timezoneOffset = $this->container->getParameter('dtc_queue.timings.timezone_offset');
         $timingsDatesAdjusted = [];
         foreach ($timingsDates as $dateStr) {
-            $date = \DateTime::createFromFormat($format, $dateStr);
+            $date = \DateTime::createFromFormat($format, $dateStr, new \DateTimeZone(date_default_timezone_get()));
             if (0 !== $timezoneOffset) {
                 // This may too simplistic in areas that observe DST - does the database or PHP code observe DST?
                 $date->setTimestamp($date->getTimestamp() + ($timezoneOffset * 3600));

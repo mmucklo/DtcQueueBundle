@@ -116,7 +116,7 @@ class Util
      */
     public static function getMicrotimeDateTime()
     {
-        $result = \DateTime::createFromFormat('U.u', $microtime = self::getMicrotimeStr());
+        $result = \DateTime::createFromFormat('U.u', $microtime = self::getMicrotimeStr(), new \DateTimeZone(date_default_timezone_get()));
         if (!$result) {
             throw new \RuntimeException("Could not create date time from $microtime");
         }
@@ -143,6 +143,6 @@ class Util
         $timePart = substr($decimal, 0, $len);
         $decimalPart = substr($decimal, $len, 6);
 
-        return \DateTime::createFromFormat('U.u', "${timePart}.${decimalPart}");
+        return \DateTime::createFromFormat('U.u', "${timePart}.${decimalPart}", new \DateTimeZone(date_default_timezone_get()));
     }
 }

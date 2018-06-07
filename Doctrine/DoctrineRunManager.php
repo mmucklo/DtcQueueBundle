@@ -57,7 +57,7 @@ abstract class DoctrineRunManager extends RunManager
             $time = time() - 3600;
             $processTimeout = $run->getProcessTimeout();
             $time -= $processTimeout;
-            $oldDate = new \DateTime("@$time");
+            $oldDate = \DateTime::createFromFormat('U', strval($time), new \DateTimeZone(date_default_timezone_get()));
             if (null === $lastHeartbeat || $oldDate > $lastHeartbeat) {
                 $delete[] = $run;
             }
