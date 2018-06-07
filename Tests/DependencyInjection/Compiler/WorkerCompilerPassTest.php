@@ -2,6 +2,7 @@
 
 namespace Dtc\QueueBundle\Tests\DependencyInjection\Compiler;
 
+use Doctrine\Bundle\DoctrineBundle\Registry;
 use Dtc\GridBundle\Manager\GridSourceManager;
 use Dtc\QueueBundle\DependencyInjection\Compiler\WorkerCompilerPass;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
@@ -50,6 +51,8 @@ class WorkerCompilerPassTest extends TestCase
         $definition7->setClass(LiveJobsGridSource::class);
         $definition8 = new Definition();
         $definition8->setClass(LiveJobsGridSource::class);
+        $definition9 = new Definition();
+        $definition9->setClass(Registry::class);
         $container->addDefinitions([
             'dtc_queue.manager.worker' => $definition1,
             'dtc_queue.manager.job.'.$type => $definition2,
@@ -61,6 +64,7 @@ class WorkerCompilerPassTest extends TestCase
             'dtc_queue.grid_source.jobs_waiting.orm' => $definition8,
             'dtc_queue.grid_source.jobs_running.odm' => $definition7,
             'dtc_queue.grid_source.jobs_running.orm' => $definition8,
+            'doctrine' => $definition9
         ]);
 
         return $container;
