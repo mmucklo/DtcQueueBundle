@@ -2,8 +2,10 @@
 
 namespace Dtc\QueueBundle\Tests\DependencyInjection\Compiler;
 
+use Doctrine\Bundle\DoctrineBundle\Registry;
 use Dtc\GridBundle\Manager\GridSourceManager;
 use Dtc\QueueBundle\DependencyInjection\Compiler\WorkerCompilerPass;
+use Dtc\QueueBundle\Doctrine\DtcQueueListener;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Manager\WorkerManager;
 use Dtc\QueueBundle\ODM\JobManager;
@@ -50,6 +52,16 @@ class WorkerCompilerPassTest extends TestCase
         $definition7->setClass(LiveJobsGridSource::class);
         $definition8 = new Definition();
         $definition8->setClass(LiveJobsGridSource::class);
+        $definition9 = new Definition();
+        $definition9->setClass(Registry::class);
+        $definition10 = new Definition();
+        $definition10->setClass(DtcQueueListener::class);
+        $definition11 = new Definition();
+        $definition11->setClass(\Dtc\QueueBundle\ORM\JobManager::class);
+        $definition12 = new Definition();
+        $definition12->setClass(\Dtc\QueueBundle\ORM\RunManager::class);
+        $definition13 = new Definition();
+        $definition13->setClass(\Dtc\QueueBundle\ORM\JobTimingManager::class);
         $container->addDefinitions([
             'dtc_queue.manager.worker' => $definition1,
             'dtc_queue.manager.job.'.$type => $definition2,
@@ -61,6 +73,11 @@ class WorkerCompilerPassTest extends TestCase
             'dtc_queue.grid_source.jobs_waiting.orm' => $definition8,
             'dtc_queue.grid_source.jobs_running.odm' => $definition7,
             'dtc_queue.grid_source.jobs_running.orm' => $definition8,
+            'doctrine' => $definition9,
+            'dtc_queue.doctrine_listener' => $definition10,
+            'dtc_queue.manager.job.orm' => $definition11,
+            'dtc_queue.manager.run.orm' => $definition12,
+            'dtc_queue.manager.job_timing.orm' => $definition13,
         ]);
 
         return $container;
