@@ -128,7 +128,7 @@ class DtcQueueListener
             }
 
             Util::copy($object, $jobArchive);
-            $jobArchive->setUpdatedAt(new \DateTime());
+            $jobArchive->setUpdatedAt(Util::getMicrotimeDateTime());
             $objectManager->persist($jobArchive);
         }
     }

@@ -5,6 +5,7 @@ namespace Dtc\QueueBundle\Manager;
 use Dtc\QueueBundle\Exception\UnsupportedException;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\Run;
+use Dtc\QueueBundle\Util\Util;
 
 class RunManager
 {
@@ -67,7 +68,7 @@ class RunManager
             $jobId = $job->getId();
         }
 
-        $run->setLastHeartbeatAt(new \DateTime());
+        $run->setLastHeartbeatAt(Util::getMicrotimeDateTime());
         $run->setCurrentJobId($jobId);
         $run->setElapsed(microtime(true) - $start);
         $this->persistRun($run);
@@ -106,7 +107,7 @@ class RunManager
         $runClass = $this->getRunClass();
         /** @var Run $run */
         $run = new $runClass();
-        $startDate = \DateTime::createFromFormat('U.u', $formattedStart = number_format($start, 6, '.', ''));
+        $startDate = \DateTime::createFromFormat('U.u', $formattedStart = number_format($start, 6, '.', ''), new \DateTimeZone(date_default_timezone_get()));
         if (false === $startDate) {
             throw new \RuntimeException("Could not create date from $start formatted as $formattedStart");
         }
@@ -134,7 +135,7 @@ class RunManager
     public function runStop(Run $run, $start)
     {
         $end = microtime(true);
-        $endedTime = \DateTime::createFromFormat('U.u', $end);
+        $endedTime = \DateTime::createFromFormat('U.u', $end, new \DateTimeZone(date_default_timezone_get()));
         if ($endedTime) {
             $run->setEndedAt($endedTime);
         }
