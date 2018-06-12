@@ -4,8 +4,8 @@ namespace Dtc\QueueBundle\Tests\Command;
 
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
-use Dtc\QueueBundle\Manager\JobTimingManager;
 use Dtc\QueueBundle\Tests\StubJobManager;
+use Dtc\QueueBundle\Tests\StubJobTimingManager;
 use Dtc\QueueBundle\Tests\StubRunManager;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -80,16 +80,18 @@ trait CommandTrait
     protected function runStubCommand($className, $params, $call, $expectedResult = 0)
     {
         $managerType = 'job';
-        if (false !== strrpos($call, 'Runs') || false !== strrpos($call, 'Timings')) {
+        if (false !== strrpos($call, 'Runs')) {
             $managerType = 'run';
+        } elseif (false !== strrpos($call, 'Timings')) {
+            $managerType = 'jobTiming';
         }
-
-        $jobTimingManager = new JobTimingManager(JobTiming::class, false);
-        $runManager = new StubRunManager($jobTimingManager, \Dtc\QueueBundle\Model\Run::class);
+        $jobTimingManager = new StubJobTimingManager(JobTiming::class, false);
+        $runManager = new StubRunManager(\Dtc\QueueBundle\Model\Run::class);
         $jobManager = new StubJobManager($runManager, $jobTimingManager, Job::class);
         $container = new Container();
         $container->set('dtc_queue.manager.job', $jobManager);
         $container->set('dtc_queue.manager.run', $runManager);
+        $container->set('dtc_queue.manager.job_timing', $jobTimingManager);
         $this->runCommandExpect($className, $container, $params, $expectedResult);
         $manager = "${managerType}Manager";
         if (0 === $expectedResult) {

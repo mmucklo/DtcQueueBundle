@@ -202,24 +202,37 @@ $fibonacciWorker->later()->setExpiresAt(new \DateTime("@$expireTime"))->fibonacc
 bin/console dtc:queue:create fibonacci fibonacci 20
 ```
 
-Running jobs
+Running Jobs
 ------------
 It's recommended that you background the following console commands
 
 ```bash
 bin/console dtc:queue:run -d 120
-# the -d parameter is a tunable seconds during which to process jobs
-#  For example you could put this command into cron or a cron-like system to run periodically
+```
+
+```bash
+# the -d parameter is the number of seconds to run
+#  For example you could put the above command into cron or a cron-like system to run every 2 minutes
 #
 # There are a number of other parameters that could be passed to dtc:queue:run run this for a full list:
 bin/console dtc:queue:run --help
-    
-# If you're running a MongoDB or ORM based job store, run these periodically:
-#
+```
+
+Pruning Jobs
+------------
+For ODM and ORM based stores, the archive tables and the regular job queues can require periodic pruning.
+
+For Mongo in production, tt maybe prudent to use a [capped collection](https://docs.mongodb.com/manual/core/capped-collections/) or [TTL Indexes](https://docs.mongodb.com/manual/core/index-ttl/)
+
+For Mysql you could create an event to delete data periodically.
+
+Nevertheless there are also several commands that exist that do similarly (and could be put into a periodic cron job as well)
+
+```bash    
 bin/console dtc:queue:prune old --older 1m
 # (deletes jobs older than one month from the Archive table)
 
-# May be needed if jobs stall out
+# May be needed if jobs stall out:
 bin/console dtc:queue:prune stalled
 
 # If you're recording runs...this is recommended:
@@ -231,21 +244,27 @@ bin/console dtc:queue:prune old_runs --older 1m
 # If you're recording timings
 bin/console dtc:queue:prune old_job_timings --older 1m
 
-
 # You can tune 1m to a smaller interval such as 10d (10 days) or even 1800s (1/2 hour)
 #  if you have too many jobs flowing through the system.   
 ```
 
-For debugging
+```bash
+bin/console dtc:queue:prune --help # lists other prune commands
+```
+
+Debugging
+---------
+These commands may help with debugging issues with the queue:
 
 ```bash
 bin/console dtc:queue:count # some status about the queue if available (ODM/ORM only)
 bin/console dtc:queue:reset # resets errored and/or stalled jobs
-bin/console dtc:queue:prune --help # lists other prune commands
-bin/console dtc:queue:run --id={jobId}
-```
 
-(jobId could be obtained from mongodb / or your database, if using an ORM / ODM solution)
+# This is really only good for 
+bin/console dtc:queue:run --id={jobId}
+
+# (jobId could be obtained from mongodb / or your database, if using an ORM / ODM solution)
+```
 
 Tracking Runs
 -------------
