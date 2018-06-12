@@ -222,7 +222,7 @@ Pruning Jobs
 ------------
 For ODM and ORM based stores, the archive tables and the regular job queues can require periodic pruning.
 
-For Mongo in production, tt maybe prudent to use a [capped collection](https://docs.mongodb.com/manual/core/capped-collections/) or [TTL Indexes](https://docs.mongodb.com/manual/core/index-ttl/)
+For Mongo in production, it may be prudent to use a [capped collection](https://docs.mongodb.com/manual/core/capped-collections/) or [TTL Indexes](https://docs.mongodb.com/manual/core/index-ttl/)
 
 For Mysql you could create an event to delete data periodically.
 
