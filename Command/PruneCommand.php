@@ -18,22 +18,25 @@ class PruneCommand extends ContainerAwareCommand
     {
         $this
         ->setName('dtc:queue:prune')
-        ->setDescription('Prune job with error status')
-        ->addArgument('type', InputArgument::REQUIRED, '<stalled|stalled_runs|error|expired|old|old_runs|old_job_timings> Prune stalled, erroneous, expired, or old jobs')
+        ->setDescription('Prune jobs')
+        ->addArgument('type', InputArgument::REQUIRED, '<stalled|stalled_runs|exception|expired|old|old_runs|old_job_timings> Prune stalled, exception, expired, or old jobs')
             ->addOption('older', null, InputOption::VALUE_REQUIRED, self::OLDER_MESSAGE);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $container = $this->getContainer();
-        $jobManager = $container->get('dtc_queue.manager.job');
         $type = $input->getArgument('type');
         switch ($type) {
-            case 'error':
-                $count = $jobManager->pruneErroneousJobs();
-                $output->writeln("$count Erroneous Job(s) pruned");
+            case 'erroneous':
+                $output->writeln("(Warning): 'erroneous' is deprecated, please use 'exception' instead");
+                $this->pruneExceptionJobs($output);
+                break;
+            case 'exception':
+                $this->pruneExceptionJobs($output);
                 break;
             case 'expired':
+                $container = $this->getContainer();
+                $jobManager = $container->get('dtc_queue.manager.job');
                 $count = $jobManager->pruneExpiredJobs();
                 $output->writeln("$count Expired Job(s) pruned");
                 break;
@@ -42,6 +45,14 @@ class PruneCommand extends ContainerAwareCommand
         }
 
         return 0;
+    }
+
+    protected function pruneExceptionJobs(OutputInterface $output)
+    {
+        $container = $this->getContainer();
+        $jobManager = $container->get('dtc_queue.manager.job');
+        $count = $jobManager->pruneExceptionJobs();
+        $output->writeln("$count Job(s) with status 'exception' pruned");
     }
 
     public function executeStalledOther(InputInterface $input, OutputInterface $output)
@@ -136,7 +147,7 @@ class PruneCommand extends ContainerAwareCommand
                 $typeName = 'Run';
                 break;
             case 'old_job_timings':
-                $count = $container->get('dtc_queue.manager.run')->pruneJobTimings($olderThan);
+                $count = $container->get('dtc_queue.manager.job_timing')->pruneJobTimings($olderThan);
                 $typeName = 'Job Timing';
                 break;
             default:

@@ -1,3 +1,6 @@
+### 4.6.0
+   * Fix for issue #72 - pruneErroneousJobs -> pruneExceptionJobs
+   * Fix for issue #73 - prune job_timings fix
 ### 4.5.3
    * Fix for issue #68 - attempt to remove dependency on doctrine service when orm is not used
    * Fix for issue #67 - make DateTime calls consistent

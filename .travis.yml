@@ -27,7 +27,7 @@ before_install:
   - sudo service beanstalkd restart
   - mysql -e 'CREATE DATABASE queue_test;'
 before_script:
-  - composer self-update
+  - composer self-update || true
   - echo "no" | pecl install redis || true
   - echo $TRAVIS_PHP_VERSION
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then extension="mongo"; echo "yes" | pecl install mongo; else extension="mongodb"; (pecl install mongodb || true); fi

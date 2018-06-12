@@ -55,12 +55,14 @@ class WorkerCompilerPass implements CompilerPassInterface
     }
 
     /**
-     * Add any extra method calls needed
+     * Add any extra method calls needed.
+     *
      * @param ContainerBuilder $container
-     * @param string $defaultManagerType
+     * @param string           $defaultManagerType
      */
-    protected function addMethodCalls(ContainerBuilder $container, $defaultManagerType) {
-        if ($defaultManagerType === 'orm') {
+    protected function addMethodCalls(ContainerBuilder $container, $defaultManagerType)
+    {
+        if ('orm' === $defaultManagerType) {
             $doctrine = $container->getDefinition('doctrine');
             $container->getDefinition('dtc_queue.doctrine_listener')->addMethodCall('setRegistry', [$doctrine]);
             $container->getDefinition('dtc_queue.manager.job.orm')->addMethodCall('setRegistry', [$doctrine]);
