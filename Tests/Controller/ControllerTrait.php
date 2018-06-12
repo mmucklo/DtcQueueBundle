@@ -73,6 +73,7 @@ trait ControllerTrait
                 'jquery' => [],
                 'purl' => [],
                 'datatables.css' => [],
+                'datatables.class' => '',
                 'datatables.js' => [],
                 'jq_grid.css' => [],
                 'jq_grid.js' => [], ]
