@@ -1,3 +1,5 @@
+### 4.6.1
+   * Fix for issue #75 - fix redis auth
 ### 4.6.0
    * Fix for issue #72 - pruneErroneousJobs -> pruneExceptionJobs
    * Fix for issue #73 - prune job_timings fix
