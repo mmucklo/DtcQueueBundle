@@ -329,7 +329,20 @@ doctrine:
            DtcQueueBundle: ~
 ```
 
+Note on NON-ORM Setups:
+-----------------------
+If you plan on using ODM or Redis or another configuration, but you have Doctrine ORM enabled elsewhere, it's recommended that you use the *[schema_filter](https://symfony.com/doc/master/bundles/DoctrineMigrationsBundle/index.html#manual-tables)* configuration parameter so that schema dumps and/or migration diffs don't pickup those tables (see [issue #77](https://github.com/mmucklo/DtcQueueBundle/issues/77)).
 
+E.g.
+```yaml
+doctrine:
+   # ...
+   dbal:
+       # ...
+       schema_filter: ~^(?!dtc_)~
+```
+
+_(if you already have a schema_filter, you can just add the "dtc\_" prefix to it.)_
 
 Beanstalk Configuration
 ------------------------

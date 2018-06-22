@@ -133,7 +133,7 @@ class Loop
                 $job = $this->workerManager->run($workerName, $methodName, true, $run->getId());
                 $this->runManager->recordHeartbeat($run, $start, $job);
                 $this->runCurrentJob($run, $job, $noMoreJobsToRun, $currentJob, $duration, $nanoSleep);
-            } while (!$this->isFinished($maxCount, $endTime, $currentJob, $noMoreJobsToRun));
+            } while (!$this->isFinished($maxCount, $duration, $endTime, $currentJob, $noMoreJobsToRun));
         } catch (\Exception $e) {
             // Uncaught error: possibly with QueueBundle itself
             $this->log('critical', $e->getMessage(), $e->getTrace());
@@ -227,8 +227,10 @@ class Loop
                 $noMoreJobsToRun = true;
             }
             if (null !== $duration) {
-                $nanoSleepTime = function_exists('random_int') ? random_int(0, $nanoSleep) : mt_rand(0, $nanoSleep);
-                time_nanosleep(0, $nanoSleepTime);
+                if ($nanoSleep > 0) {
+                    $nanoSleepTime = function_exists('random_int') ? random_int(0, $nanoSleep) : mt_rand(0, $nanoSleep);
+                    time_nanosleep(0, $nanoSleepTime);
+                }
             }
         }
     }
@@ -260,13 +262,13 @@ class Loop
      *
      * @return bool
      */
-    protected function isFinished($maxCount, $endTime, $currentJob, $noMoreJobsToRun)
+    protected function isFinished($maxCount, $duration, $endTime, $currentJob, $noMoreJobsToRun)
     {
         if (null === $maxCount) {
-            return $this->isFinishedEndTime($endTime);
+            return $this->isFinishedEndTime($duration, $endTime);
         }
         if ($currentJob <= $maxCount) {
-            return $this->isFinishedJobs($endTime, $noMoreJobsToRun);
+            return $this->isFinishedJobs($duration, $endTime, $noMoreJobsToRun);
         }
 
         return true;
@@ -278,7 +280,7 @@ class Loop
      *
      * @return bool
      */
-    protected function isFinishedJobs($endTime, $noMoreJobsToRun)
+    protected function isFinishedJobs($duration, $endTime, $noMoreJobsToRun)
     {
         if (null === $endTime) { // This means that there is a $maxCount as we force one or the other to be not null
             if ($noMoreJobsToRun) {
@@ -288,7 +290,7 @@ class Loop
             return false;
         }
 
-        return $this->isFinishedEndTime($endTime);
+        return $this->isFinishedEndTime($duration, $endTime);
     }
 
     /**
@@ -296,8 +298,11 @@ class Loop
      *
      * @return bool
      */
-    protected function isFinishedEndTime(\DateTime $endTime)
+    protected function isFinishedEndTime($duration, \DateTime $endTime)
     {
+        if (0 === $duration) {
+            return false;
+        }
         $now = Util::getMicrotimeDateTime();
         if ($endTime > $now) {
             return false;

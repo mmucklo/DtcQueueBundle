@@ -92,7 +92,7 @@ class Util
             throw new \InvalidArgumentException("$varName must be an integer");
         }
 
-        if (strval(intval($var)) !== strval($var) || $var <= 0 || $var >= pow(2, $pow)) {
+        if (strval(intval($var)) !== strval($var) || $var < 0 || $var >= pow(2, $pow)) {
             throw new \InvalidArgumentException("$varName must be an base 10 integer within 2^$pow");
         }
 

@@ -1,3 +1,6 @@
+### 4.7.0
+   * Fix for issue #74 - allow infinite durations
+   * Address issue #77 in the [README](README.md)
 ### 4.6.1
    * Fix for issue #75 - fix redis auth
 ### 4.6.0
