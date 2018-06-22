@@ -1,3 +1,5 @@
+### 4.7.1
+   * Fix for issue #79 - Subclassing issue
 ### 4.7.0
    * Fix for issue #74 - allow infinite durations
    * Address issue #77 in the [README](README.md)
