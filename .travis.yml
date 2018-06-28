@@ -27,8 +27,6 @@ before_install:
   - sudo service beanstalkd restart
   - mysql -e 'CREATE DATABASE queue_test;'
 before_script:
-  - which composer
-  - cat ~/.*
   - echo $PATH
   - ls -l ~/bin || true
   - composer self-update
