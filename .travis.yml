@@ -30,9 +30,9 @@ before_script:
   - php -m
   - whereis composer
   - composer self-update
-  - pecl install redis
-  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then pecl install mongo; fi
-  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then pecl install mongodb; fi
+  - pecl install -s redis
+  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then pecl install -s mongo; fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then pecl install -s mongodb; fi
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then composer config "platform.ext-mongo" "1.6.16" && composer require alcaeus/mongo-php-adapter; fi
   - php -m
   - composer install
