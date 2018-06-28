@@ -28,12 +28,13 @@ before_install:
   - mysql -e 'CREATE DATABASE queue_test;'
 before_script:
   - php -m
+  - whereis composer
   - composer self-update
   - pecl install redis
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then pecl install mongo; fi
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then pecl install mongodb; fi
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then composer config "platform.ext-mongo" "1.6.16" && composer require alcaeus/mongo-php-adapter; fi
-  - whereis composer
+  - php -m
   - composer install
 
 script:
