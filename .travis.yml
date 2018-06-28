@@ -28,6 +28,7 @@ before_install:
   - mysql -e 'CREATE DATABASE queue_test;'
 before_script:
   - curl --url https://getcomposer.org/composer.phar -o composer.phar && chmod a+x composer.phar
+  - ls -l
   - echo "no" | pecl install redis || true
   - echo $TRAVIS_PHP_VERSION
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then extension="mongo"; echo "yes" | pecl install mongo; else extension="mongodb"; (pecl install mongodb || true); fi
