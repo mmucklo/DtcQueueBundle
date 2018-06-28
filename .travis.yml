@@ -27,7 +27,10 @@ before_install:
   - sudo service beanstalkd restart
   - mysql -e 'CREATE DATABASE queue_test;'
 before_script:
+  - which composer
   - cat ~/.*
+  - echo $PATH
+  - ls -l ~/bin || true
   - composer self-update
   - echo 'no' | pecl install -s redis
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then pecl install -s mongo; fi
