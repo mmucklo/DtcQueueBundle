@@ -30,10 +30,8 @@ before_script:
   - composer self-update
   - (echo 'no' | pecl install redis)
   - php -m | grep 'redis' || echo "extension = redis.so" > ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/redis.ini
-  - (echo 'no' | pecl install mongo) || true
-  - pecl install mongodb || true
-  - php -m
-  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then composer config "platform.ext-mongo" "1.6.16" && composer require alcaeus/mongo-php-adapter; fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then (echo 'no' | pecl install mongo); fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then pecl install mongodb; composer config "platform.ext-mongo" "1.6.16" && composer require alcaeus/mongo-php-adapter; fi
   - COMPOSER_MEMORY_LIMIT=-1 composer install
 
 script:
