@@ -27,12 +27,11 @@ before_install:
   - sudo service beanstalkd restart
   - mysql -e 'CREATE DATABASE queue_test;'
 before_script:
-  - echo $PATH
-  - ls -l ~/bin || true
   - composer self-update
-  - echo 'no' | pecl install -s redis
-  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then pecl install -s mongo; fi
-  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then pecl install -s mongodb; fi
+  - (echo 'no' | pecl install redis) && echo "extension = redis.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini || true
+  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then pecl install mongo; fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then pecl install mongodb; fi
+  - php -m
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then composer config "platform.ext-mongo" "1.6.16" && composer require alcaeus/mongo-php-adapter; fi
   - composer install
 
