@@ -27,17 +27,17 @@ before_install:
   - sudo service beanstalkd restart
   - mysql -e 'CREATE DATABASE queue_test;'
 before_script:
-  - curl --url https://getcomposer.org/composer.phar -o composer.phar && chmod a+x composer.phar
-  - ls -l
+  - php -m
+  - composer self-update
   - echo "no" | pecl install redis || true
   - echo $TRAVIS_PHP_VERSION
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then extension="mongo"; echo "yes" | pecl install mongo; else extension="mongodb"; (pecl install mongodb || true); fi
-  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then phpversion=$(php --version | grep "PHP 7.0" | cut -f2 -d' '); (echo "extension=mongodb.so" > /home/travis/.phpenv/versions/$phpversion/etc/conf.d/mongodb.ini); fi
-  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.1" ]]; then phpversion=$(php --version | grep "PHP 7.1" | cut -f2 -d' '); (echo "extension=mongodb.so" > /home/travis/.phpenv/versions/$phpversion/etc/conf.d/mongodb.ini); fi
-  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.2" ]]; then phpversion=$(php --version | grep "PHP 7.2" | cut -f2 -d' '); (echo "extension=mongodb.so" > /home/travis/.phpenv/versions/$phpversion/etc/conf.d/mongodb.ini); fi
-  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.2" ]]; then phpversion=$(php --version | grep "PHP 7.2" | cut -f2 -d' '); (echo "extension=redis.so" > /home/travis/.phpenv/versions/$phpversion/etc/conf.d/redis.ini); fi
-  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then composer.phar config "platform.ext-mongo" "1.6.16" && composer.phar require alcaeus/mongo-php-adapter; fi
-  - php -d memory_limit=-1 composer.phar install
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.0" ]]; then (echo "extension=mongodb.so" > ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/mongodb.ini); fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.1" ]]; then (echo "extension=mongodb.so" > ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/mongodb.ini); fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.2" ]]; then (echo "extension=mongodb.so" > ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/mongodb.ini); fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.2" ]]; then (echo "extension=redis.so" > ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/redis.ini); fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then composer config "platform.ext-mongo" "1.6.16" && composer require alcaeus/mongo-php-adapter; fi
+  - php -d memory_limit=-1 composer install
 
 script:
   - REDIS_HOST=localhost BEANSTALKD_HOST=localhost MONGODB_HOST=localhost RABBIT_MQ_HOST=localhost MYSQL_HOST=localhost MYSQL_USER=root MYSQL_DATABASE=queue_test php -d memory_limit=-1 bin/phpunit --coverage-clover=coverage.clover --log-junit=phpunit.result.xml && touch build_passed
