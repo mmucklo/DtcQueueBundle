@@ -33,7 +33,8 @@ before_script:
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "5." ]]; then pecl install mongo; fi
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then pecl install mongodb; fi
   - if [[ ${TRAVIS_PHP_VERSION:0:2} == "7." ]]; then composer config "platform.ext-mongo" "1.6.16" && composer require alcaeus/mongo-php-adapter; fi
-  - php -d memory_limit=-1 composer install
+  - whereis composer
+  - composer install
 
 script:
   - REDIS_HOST=localhost BEANSTALKD_HOST=localhost MONGODB_HOST=localhost RABBIT_MQ_HOST=localhost MYSQL_HOST=localhost MYSQL_USER=root MYSQL_DATABASE=queue_test php -d memory_limit=-1 bin/phpunit --coverage-clover=coverage.clover --log-junit=phpunit.result.xml && touch build_passed
