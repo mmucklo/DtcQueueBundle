@@ -25,18 +25,45 @@ class CreateJobCommandTest extends TestCase
         $jobManager = new StubJobManager($runManager, $jobTimingManager, Job::class);
         $container = new Container();
         $container->set('dtc_queue.manager.job', $jobManager);
-        $this->runCommandException(CreateJobCommand::class, $container, ['worker_name' => 'fibonacci', 'method' => 'fibonacci', 'args' => [1]]);
+        $this->runCommandException(CreateJobCommand::class, $container, [
+            '--json-args' => null,
+            'worker_name' => 'fibonacci',
+            'method' => 'fibonacci',
+            'args' => [
+                json_encode([
+                    1,
+                ]),
+            ],
+        ]);
 
         $eventDispatcher = new EventDispatcher();
         $workerManager = new WorkerManager($jobManager, $eventDispatcher);
 
         $container->set('dtc_queue.manager.worker', $workerManager);
-        $this->runCommandException(CreateJobCommand::class, $container, ['worker_name' => 'fibonacci', 'method' => 'fibonacci', 'args' => [1]]);
+        $this->runCommandException(CreateJobCommand::class, $container, [
+            '--json-args' => null,
+            'worker_name' => 'fibonacci',
+            'method' => 'fibonacci',
+            'args' => [
+                json_encode([
+                    1,
+                ]),
+            ],
+        ]);
 
         $worker = new FibonacciWorker();
         $worker->setJobManager($jobManager);
         $workerManager->addWorker($worker);
-        $this->runCommand(CreateJobCommand::class, $container, ['worker_name' => 'fibonacci', 'method' => 'fibonacci', 'args' => [1]]);
+        $this->runCommand(CreateJobCommand::class, $container, [
+            '--json-args' => null,
+            'worker_name' => 'fibonacci',
+            'method' => 'fibonacci',
+            'args' => [
+                json_encode([
+                    1,
+                ]),
+            ],
+        ]);
 
         self::assertTrue(isset($jobManager->calls['save'][0][0]));
         self::assertTrue($jobManager->calls['save'][0][0] instanceof Job);

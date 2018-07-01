@@ -66,7 +66,7 @@ This bundle provides a way to easily create and manage queued background jobs
    - Stalls (ODM / ORM)
       * Jobs that crash the interpreter, or get terminated for some other reason can be detected
          * These can be re-queued to run in the future.
-      
+
 Installation
 ------------
 
@@ -160,7 +160,7 @@ services:
 	<!-- ... -->
 </services>
 ```
-	
+
 
 #### Create a job
 
@@ -173,7 +173,7 @@ $fibonacciWorker = $container->get('App\Worker\FibonacciWorker');
 //
 
 // For Symfony 2, 3.0, 3.1, 3.2:
-//     $fibonacciWorker = $container->get('app.worker.fibonacci'); 
+//     $fibonacciWorker = $container->get('app.worker.fibonacci');
 
 
 // Basic Examples
@@ -202,6 +202,79 @@ $fibonacciWorker->later()->setExpiresAt(new \DateTime("@$expireTime"))->fibonacc
 bin/console dtc:queue:create fibonacci fibonacci 20
 ```
 
+##### Arguments:
+
+It's recommended to stick with primitives (string, int, float, bool, null) or arrays of primitives. Objects are not
+supported as arguments. This not only promotes loose coupling between the enqueuer and the job, it allows manually
+enqueuing via cli. In a real world scenario, things can go wrong in such a way you may need to manually enqueue a job.
+
+Considering a more complicated job:
+
+```php
+class HelloWorld extends \Dtc\QueueBundle\Model\Worker
+{
+    public function run(string $name = null, int $times = 1, bool $askHowTheyAre = false): int
+    {
+        if (null === $name) {
+            $name = 'World';
+        }
+
+        for ($i = 0; $i < $times; $i++) {
+            $message = sprintf(
+                'Hello %s',
+                $name
+            );
+            if ($askHowTheyAre) {
+                $message .= ', How are you?';
+            }
+            print($message.PHP_EOL);
+        }
+        return self::RESULT_SUCCESS;
+    }
+
+    public function getName() {
+        return 'hello-world';
+    }
+}
+```
+
+A cli command could enqueue the above job:
+
+```bash
+$ bin/console dtc:queue:create_job -j hello-world run '[ null, 3, true ]'
+Hello World, How are you?
+Hello World, How are you?
+Hello World, How are you?
+$ bin/console dtc:queue:create_job -j hello-world run '[ "Matthew" ]'
+Hello Matthew
+```
+
+Please note, the last `bash` argument is a `json` encoded string of arguments to be passed to the `php` method:
+
+```json
+[
+    null,
+    3,
+    true
+]
+```
+
+```json
+[
+    "Matthew"
+]
+```
+
+in `php` this would be represented as:
+
+```php
+$job = new HelloWorld();
+
+$job->run(null, 3, true);
+
+$job->run("Matthew");
+```
+
 Running Jobs
 ------------
 It's recommended that you background the following console commands
@@ -228,7 +301,7 @@ For Mysql you could create an event to delete data periodically.
 
 Nevertheless there are also several commands that exist that do similarly (and could be put into a periodic cron job as well)
 
-```bash    
+```bash
 bin/console dtc:queue:prune old --older 1m
 # (deletes jobs older than one month from the Archive table)
 
@@ -245,7 +318,7 @@ bin/console dtc:queue:prune old_runs --older 1m
 bin/console dtc:queue:prune old_job_timings --older 1m
 
 # You can tune 1m to a smaller interval such as 10d (10 days) or even 1800s (1/2 hour)
-#  if you have too many jobs flowing through the system.   
+#  if you have too many jobs flowing through the system.
 ```
 
 ```bash
@@ -260,7 +333,7 @@ These commands may help with debugging issues with the queue:
 bin/console dtc:queue:count # some status about the queue if available (ODM/ORM only)
 bin/console dtc:queue:reset # resets errored and/or stalled jobs
 
-# This is really only good for 
+# This is really only good for
 bin/console dtc:queue:run --id={jobId}
 
 # (jobId could be obtained from mongodb / or your database, if using an ORM / ODM solution)
@@ -295,7 +368,7 @@ __config/packages/dtc_queue.yaml:__ (symfony 4)
 dtc_queue:
     odm:
         document_manager: {something} # default is "default"
-```        
+```
 
 Mysql / ORM Setup
 -----------------
@@ -316,10 +389,10 @@ __Change the EntityManager:__
 dtc_queue:
     orm:
         entity_manager: {something} # default is "default"
-```        
+```
 
 __NOTE:__ You may need to add DtcQueueBundle to your mappings section in config.yml if auto_mapping is not enabled
- 
+
 ```yaml
 doctrine:
    #...
@@ -455,17 +528,17 @@ Rename the Database or Table Name
 ```
 Dtc\QueueBundle\Document\Job
 Dtc\QueueBundle\Document\JobArchive
-```    
+```
 
    __or__
 
-```   
+```
 Dtc\QueueBundle\Entity\Job
 Dtc\QueueBundle\Entity\JobArchive
 ```
 
 (Depending on whether you're using MongoDB or an ORM)
-        
+
 2) Change the parameters on the class appropriately
 
 ```php
@@ -634,6 +707,6 @@ This bundle is under the MIT license (see LICENSE file under [Resources/meta/LIC
 
 Credit
 --------
-Originally written by @dtee 
+Originally written by @dtee
 Enhanced and maintained by @mmucklo
 
