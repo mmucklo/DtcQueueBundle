@@ -198,82 +198,11 @@ $expireTime = time() + 3600;
 $fibonacciWorker->later()->setExpiresAt(new \DateTime("@$expireTime"))->fibonacci(20); // Must be run within the hour or not at all
 ```
 
-```bash
-bin/console dtc:queue:create fibonacci fibonacci 20
-```
+##### Create Jobs - Additional Information
 
-##### Arguments:
+For further instructions on creating jobs, including how to *create a job from the __command line__*, see:
 
-It's recommended to stick with primitives (string, int, float, bool, null) or arrays of primitives. Objects are not
-supported as arguments. This not only promotes loose coupling between the enqueuer and the job, it allows manually
-enqueuing via cli. In a real world scenario, things can go wrong in such a way you may need to manually enqueue a job.
-
-Considering a more complicated job:
-
-```php
-class HelloWorld extends \Dtc\QueueBundle\Model\Worker
-{
-    public function run(string $name = null, int $times = 1, bool $askHowTheyAre = false): int
-    {
-        if (null === $name) {
-            $name = 'World';
-        }
-
-        for ($i = 0; $i < $times; $i++) {
-            $message = sprintf(
-                'Hello %s',
-                $name
-            );
-            if ($askHowTheyAre) {
-                $message .= ', How are you?';
-            }
-            print($message.PHP_EOL);
-        }
-        return self::RESULT_SUCCESS;
-    }
-
-    public function getName() {
-        return 'hello-world';
-    }
-}
-```
-
-A cli command could enqueue the above job:
-
-```bash
-$ bin/console dtc:queue:create_job -j hello-world run '[ null, 3, true ]'
-Hello World, How are you?
-Hello World, How are you?
-Hello World, How are you?
-$ bin/console dtc:queue:create_job -j hello-world run '[ "Matthew" ]'
-Hello Matthew
-```
-
-Please note, the last `bash` argument is a `json` encoded string of arguments to be passed to the `php` method:
-
-```json
-[
-    null,
-    3,
-    true
-]
-```
-
-```json
-[
-    "Matthew"
-]
-```
-
-in `php` this would be represented as:
-
-```php
-$job = new HelloWorld();
-
-$job->run(null, 3, true);
-
-$job->run("Matthew");
-```
+[/Resources/doc/create-job.md](/Resources/doc/create-job.md)
 
 Running Jobs
 ------------

@@ -20,7 +20,7 @@ class CreateJobCommand extends ContainerAwareCommand
                 'json-args',
                 'j',
                 InputOption::VALUE_NONE,
-                'Support json arguments (using the old arguments as strings is deprecated)'
+                'Consume the args as a single JSON-encoded array'
             )
             ->addArgument(
                 'worker_name',
@@ -37,7 +37,7 @@ class CreateJobCommand extends ContainerAwareCommand
             ->addArgument(
                 'args',
                 InputArgument::IS_ARRAY,
-                'Json encoded argument(s) for invoking worker method'
+                'Argument(s) for invoking worker method'
             )
             ->setDescription('Create a job - for expert users')
             ->setHelp($this->getHelpMessage())
@@ -81,14 +81,9 @@ class CreateJobCommand extends ContainerAwareCommand
         $args = $input->getArgument('args');
         if ($jsonArgs) {
             if (1 !== count($args)) {
-                throw new \InvalidArgumentException('args should be a single string when using --json-args');
+                throw new \InvalidArgumentException('args should be a single string containing a JSON-encoded array when using --json-args');
             }
             $args = json_decode($args[0], true);
-        } else {
-            trigger_error(
-                'Not Using --json-args is deprecated as of 4.7.2 and will become the default in 5.x',
-                E_USER_DEPRECATED
-            );
         }
 
         $worker = $workerManager->getWorker($workerName);
