@@ -1,3 +1,5 @@
+### 4.8.0
+   * Issue #82 - Allow for cli enqueuing of jobs with non-string arguments - see [/Resources/doc/create-job.md](/Resources/doc/create-job.md)
 ### 4.7.1
    * Fix for issue #79 - Subclassing issue
 ### 4.7.0

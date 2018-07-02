@@ -81,6 +81,8 @@ class Hello extends \Dtc\QueueBundle\Model\Worker
 
 A cli command could enqueue the above job:
 
+### Using JSON-encoded arguments
+
 ```bash
 $ bin/console dtc:queue:create_job -j hello run '[ null, 3, true ]'
 Hello, How are you?
@@ -89,6 +91,29 @@ Hello, How are you?
 $ bin/console dtc:queue:create_job -j hello run '[ "Matthew" ]'
 Hello Matthew
 ```
+
+### Using PHP-serialized arguments
+
+```bash
+$ bin/console dtc:queue:create_job -p hello run 'a:3:{i:0;N;i:1;i:3;i:2;b:1;}'
+Hello, How are you?
+Hello, How are you?
+Hello, How are you?
+$ bin/console dtc:queue:create_job -p hello run 'a:1:{i:0;s:7:"Matthew";}'
+Hello Matthew
+```
+
+### Using interpreted arguments (beta)
+
+```bash
+$ bin/console dtc:queue:create_job --interpret-args hello run null 3 true
+Hello, How are you?
+Hello, How are you?
+Hello, How are you?
+$ bin/console dtc:queue:create_job -p hello run Matthew
+Hello Matthew
+```
+
 
 Please note, the last `bash` argument is a `json` encoded string of arguments to be passed to the `php` method:
 

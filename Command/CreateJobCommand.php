@@ -22,6 +22,18 @@ class CreateJobCommand extends ContainerAwareCommand
                 InputOption::VALUE_NONE,
                 'Consume the args as a single JSON-encoded array'
             )
+            ->addOption(
+                'php-args',
+                'p',
+                InputOption::VALUE_NONE,
+                'Consume the args as a single PHP-serialized array'
+            )
+            ->addOption(
+                'interpret-args',
+                null,
+                InputOption::VALUE_NONE,
+                '(beta) Make a best guess as to the type of the argument passed in (DEFAULT for future releases - also note the "interpretation" may change in upcoming releases).'
+            )
             ->addArgument(
                 'worker_name',
                 InputArgument::REQUIRED,
@@ -52,20 +64,21 @@ class CreateJobCommand extends ContainerAwareCommand
             'my-worker-name', // worker_name
             'myMethod', // method
             json_encode([ // args
-                "first parameter", // argv[0] (string)
+                'first parameter', // argv[0] (string)
                 null, // argv[1] (null)
                 3, // argv[2] (int)
                 [ // argv[3] (array)
-                    "fourth",
-                    "param",
-                    "is",
-                    "an",
-                    "array",
-                ]
+                    'fourth',
+                    'param',
+                    'is',
+                    'an',
+                    'array',
+                ],
             ])
         );
         $helpMessage .= PHP_EOL;
-        $helpMessage .= "";
+        $helpMessage .= '';
+
         return $helpMessage;
     }
 
@@ -75,16 +88,11 @@ class CreateJobCommand extends ContainerAwareCommand
         $jobManager = $container->get('dtc_queue.manager.job');
         $workerManager = $container->get('dtc_queue.manager.worker');
 
-        $jsonArgs = $input->getOption('json-args');
         $workerName = $input->getArgument('worker_name');
         $methodName = $input->getArgument('method');
-        $args = $input->getArgument('args');
-        if ($jsonArgs) {
-            if (1 !== count($args)) {
-                throw new \InvalidArgumentException('args should be a single string containing a JSON-encoded array when using --json-args');
-            }
-            $args = json_decode($args[0], true);
-        }
+
+        // @TODO for 5.0 - do minimal interpretation on arguments as to their types
+        $args = $this->getArgs($input);
 
         $worker = $workerManager->getWorker($workerName);
 
@@ -102,5 +110,153 @@ class CreateJobCommand extends ContainerAwareCommand
         $job->setArgs($args);
 
         $jobManager->save($job);
+    }
+
+    protected function getArgs(InputInterface $input)
+    {
+        $args = $input->getArgument('args');
+        $jsonArgs = $input->getOption('json-args');
+        $phpArgs = $input->getOption('php-args');
+        $interpretArgs = $input->getOption('interpret-args');
+        $this->validateJsonArgs($jsonArgs, $phpArgs, $interpretArgs);
+
+        if ($jsonArgs) {
+            return $this->decodeJsonArgs($args);
+        }
+        if ($phpArgs) {
+            return $this->decodePHPArgs($args);
+        }
+        if ($interpretArgs) {
+            return $this->interpretArgs($args);
+        }
+
+        return $args;
+    }
+
+    protected function validateJsonArgs($jsonArgs, $phpArgs, $interpretArgs)
+    {
+        if ($jsonArgs) {
+            if ($phpArgs || $interpretArgs) {
+                throw new \InvalidArgumentException('Should not have both JSON args plus another type of args');
+            }
+        }
+
+        $this->validatePHPArgs($phpArgs, $interpretArgs);
+    }
+
+    protected function validatePHPArgs($phpArgs, $interpretArgs)
+    {
+        if ($phpArgs) {
+            if ($interpretArgs) {
+                throw new \InvalidArgumentException('Should not have both PHP args plus another type of args');
+            }
+        }
+    }
+
+    protected function interpretArgs($args)
+    {
+        if (null === $args || 0 == count($args)) {
+            return $args;
+        }
+
+        $finalArgs = [];
+
+        foreach ($args as $arg) {
+            $finalArgs[] = $this->booleanInterpretation($arg);
+        }
+
+        return $finalArgs;
+    }
+
+    private function booleanInterpretation($arg)
+    {
+        if ('true' === $arg || 'TRUE' === $arg) {
+            return true;
+        }
+        if ('false' === $arg || 'FALSE' === $arg) {
+            return false;
+        }
+
+        return $this->integerInterpretation($arg);
+    }
+
+    private function integerInterpretation($arg)
+    {
+        if (ctype_digit($arg)) {
+            $intArg = intval($arg);
+            if (strval($intArg) === $arg) {
+                return $intArg;
+            }
+            // Must be a super-long number
+            return $arg;
+        }
+
+        return $this->floatInterpretation($arg);
+    }
+
+    private function floatInterpretation($arg)
+    {
+        if (is_numeric($arg)) {
+            $floatArg = floatval($arg);
+
+            return $floatArg;
+        }
+
+        return $this->nullInterpretation($arg);
+    }
+
+    private function nullInterpretation($arg)
+    {
+        if ('null' === $arg || 'NULL' === $arg) {
+            return null;
+        }
+
+        return $arg;
+    }
+
+    protected function decodeJsonArgs($jsonArgs)
+    {
+        if (1 !== count($jsonArgs)) {
+            throw new \InvalidArgumentException('args should be a single string containing a JSON-encoded array when using --json-args');
+        }
+        $args = json_decode($jsonArgs[0], true);
+        if (null === $args) {
+            throw new \InvalidArgumentException('unable to decode JSON-encoded args: '.$jsonArgs[0]);
+        }
+
+        return $this->testArgs('JSON', $args);
+    }
+
+    /**
+     * @param string $type
+     * @param array  $args
+     *
+     * @return mixed
+     */
+    protected function testArgs($type, $args)
+    {
+        if (!is_array($args)) {
+            throw new \InvalidArgumentException('unable to decode '.$type.'-encoded args into an array.');
+        }
+        if (array_values($args) !== $args) {
+            throw new \InvalidArgumentException('Expecting numerically-indexed array in '.$type.' arguments');
+        }
+
+        return $args;
+    }
+
+    /**
+     * @param string $phpArgs
+     *
+     * @return mixed
+     */
+    protected function decodePHPArgs($phpArgs)
+    {
+        if (1 !== count($phpArgs)) {
+            throw new \InvalidArgumentException('args should be a single string containing a PHP-encoded array when using --php-args');
+        }
+        $args = unserialize($phpArgs[0]);
+
+        return $this->testArgs('PHP', $args);
     }
 }
