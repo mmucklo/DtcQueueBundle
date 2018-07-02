@@ -110,7 +110,7 @@ $ bin/console dtc:queue:create_job --interpret-args hello run null 3 true
 Hello, How are you?
 Hello, How are you?
 Hello, How are you?
-$ bin/console dtc:queue:create_job -p hello run Matthew
+$ bin/console dtc:queue:create_job --interpret-args hello run Matthew
 Hello Matthew
 ```
 
