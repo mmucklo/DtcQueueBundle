@@ -53,6 +53,7 @@ class CreateJobCommand extends ContainerAwareCommand
             )
             ->setDescription('Create a job - for expert users')
             ->setHelp($this->getHelpMessage())
+            ->setName(self::$defaultName)
         ;
     }
 
