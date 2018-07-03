@@ -1,3 +1,5 @@
+### 4.8.1
+   * PR #86 - call setName in the create_job command.
 ### 4.8.0
    * Issue #82 - Allow for cli enqueuing of jobs with non-string arguments - see [/Resources/doc/create-job.md](/Resources/doc/create-job.md)
 ### 4.7.1
