@@ -13,8 +13,6 @@ class ContainerExtended extends Container
     public function getDoctrine_Orm_DefaultEntityManagerService($something = false)
     {
         $config = Setup::createAnnotationMetadataConfiguration(array(__DIR__.'/../..'), true, null, null, false);
-        $namingStrategy = new \Doctrine\ORM\Mapping\UnderscoreNamingStrategy();
-        $config->setNamingStrategy($namingStrategy);
         $config->addCustomNumericFunction('year', Year::class);
         $config->addCustomNumericFunction('month', Month::class);
         $config->addCustomNumericFunction('day', Day::class);

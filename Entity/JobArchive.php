@@ -25,7 +25,7 @@ class JobArchive extends BaseJob
      * When the job finished.
      *
      * @Grid\Column(sortable=true, order=2)
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(name="finished_at", type="datetime", nullable=true)
      */
     protected $finishedAt;
 
@@ -38,12 +38,12 @@ class JobArchive extends BaseJob
     /**
      * When the job started.
      *
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(name="started_at", type="datetime", nullable=true)
      */
     protected $startedAt;
 
     /**
-     * @ORM\Column(type="decimal", precision=18, scale=0, nullable=true)
+     * @ORM\Column(name="when_us", type="decimal", precision=18, scale=0, nullable=true)
      */
     protected $whenUs;
 
@@ -53,13 +53,13 @@ class JobArchive extends BaseJob
     protected $priority;
 
     /**
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(name="expires_at", type="datetime", nullable=true)
      */
     protected $expiresAt;
 
     /**
      * @Grid\Column(sortable=true, order=3)
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(name="updated_at", type="datetime")
      */
     protected $updatedAt;
 }

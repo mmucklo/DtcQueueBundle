@@ -19,7 +19,7 @@ class JobTiming extends BaseJobTiming
     protected $id;
 
     /**
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(name="finished_at", type="datetime")
      */
     protected $finishedAt;
 

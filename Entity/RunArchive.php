@@ -15,7 +15,7 @@ use Dtc\GridBundle\Annotation as Grid;
 class RunArchive extends BaseRun
 {
     /**
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(name="started_at", type="datetime", nullable=true)
      */
     protected $startedAt;
     /**
@@ -25,7 +25,7 @@ class RunArchive extends BaseRun
 
     /**
      * @Grid\Column(sortable=true, order=2)
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(name="ended_at", type="datetime", nullable=true)
      */
     protected $endedAt;
 
@@ -36,22 +36,22 @@ class RunArchive extends BaseRun
     protected $elapsed;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="max_count", type="integer", nullable=true)
      */
     protected $maxCount;
 
     /**
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(name="last_heartbeat_at", type="datetime", nullable=true)
      */
     protected $lastHeartbeatAt;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="process_timeout", type="integer", nullable=true)
      */
     protected $processTimeout;
 
     /**
-     * @ORM\Column(type="string", nullable=true)
+     * @ORM\Column(name="current_job_id", type="string", nullable=true)
      */
     protected $currentJobId;
 }

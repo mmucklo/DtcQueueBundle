@@ -20,13 +20,13 @@ abstract class BaseJob extends StallableJob
 
     /**
      * @Grid\Column(sortable=true, searchable=true)
-     * @ORM\Column(type="string")
+     * @ORM\Column(name="worker_name", type="string")
      */
     protected $workerName;
 
     /**
      * @Grid\Column(sortable=true, searchable=true)
-     * @ORM\Column(type="string")
+     * @ORM\Column(name="class_name", type="string")
      */
     protected $className;
 
@@ -54,7 +54,7 @@ abstract class BaseJob extends StallableJob
     protected $priority;
 
     /**
-     * @ORM\Column(type="string")
+     * @ORM\Column(name="crc_hash", type="string")
      */
     protected $crcHash;
 
@@ -62,13 +62,13 @@ abstract class BaseJob extends StallableJob
      * whenAt in Microseconds.
      *
      * @Grid\Column(sortable=true,order=2)
-     * @ORM\Column(type="decimal", precision=18, scale=0, nullable=true)
+     * @ORM\Column(name="when_us", type="decimal", precision=18, scale=0, nullable=true)
      */
     protected $whenUs;
 
     /**
      * @Grid\Column(sortable=true)
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(name="expires_at", type="datetime", nullable=true)
      */
     protected $expiresAt;
 
@@ -76,14 +76,14 @@ abstract class BaseJob extends StallableJob
      * When the job started.
      *
      * @Grid\Column(sortable=true)
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(name="started_at", type="datetime", nullable=true)
      */
     protected $startedAt;
 
     /**
      * When the job finished.
      *
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(name="finished_at", type="datetime", nullable=true)
      */
     protected $finishedAt;
 
@@ -98,22 +98,22 @@ abstract class BaseJob extends StallableJob
     protected $message;
 
     /**
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(name="created_at", type="datetime")
      */
     protected $createdAt;
 
     /**
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(name="updated_at", type="datetime")
      */
     protected $updatedAt;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="max_duration", type="integer", nullable=true)
      */
     protected $maxDuration;
 
     /**
-     * @ORM\Column(type="bigint", nullable=true)
+     * @ORM\Column(name="run_id", type="bigint", nullable=true)
      */
     protected $runId;
 
@@ -123,7 +123,7 @@ abstract class BaseJob extends StallableJob
     protected $stalls = 0;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="max_stalls", type="integer", nullable=true)
      */
     protected $maxStalls;
 
@@ -133,7 +133,7 @@ abstract class BaseJob extends StallableJob
     protected $exceptions = 0;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="max_exceptions", type="integer", nullable=true)
      */
     protected $maxExceptions;
 
@@ -143,7 +143,7 @@ abstract class BaseJob extends StallableJob
     protected $failures = 0;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="max_failures", type="integer", nullable=true)
      */
     protected $maxFailures;
 
@@ -153,7 +153,7 @@ abstract class BaseJob extends StallableJob
     protected $retries = 0;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="max_retries", type="integer", nullable=true)
      */
     protected $maxRetries;
 

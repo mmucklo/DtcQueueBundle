@@ -1,3 +1,5 @@
+### 4.9.0
+   * Issue #87 - hard-wire multi-word column names so that indexes work even when the underscore naming strategy isn't specified.
 ### 4.8.1
    * PR #86 - call setName in the create_job command.
 ### 4.8.0
