@@ -1,3 +1,5 @@
+### 4.9.1
+   * Issue #87 revisited - be explicit on all column names, just in case.
 ### 4.9.0
    * Issue #87 - hard-wire multi-word column names so that indexes work even when the underscore naming strategy isn't specified.
 ### 4.8.1

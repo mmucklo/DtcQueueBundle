@@ -16,7 +16,7 @@ class JobArchive extends BaseJob
 {
     /**
      * @Grid\Column(sortable=true, order=1)
-     * @ORM\Column(type="bigint")
+     * @ORM\Column(name="id", type="bigint")
      * @ORM\Id
      */
     protected $id;
@@ -31,7 +31,7 @@ class JobArchive extends BaseJob
 
     /**
      * @Grid\Column(sortable=true)
-     * @ORM\Column(type="float", nullable=true)
+     * @ORM\Column(name="elapsed", type="float", nullable=true)
      */
     protected $elapsed;
 
@@ -48,7 +48,7 @@ class JobArchive extends BaseJob
     protected $whenUs;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="priority", type="integer", nullable=true)
      */
     protected $priority;
 

@@ -21,7 +21,7 @@ class Job extends BaseJob
     const STATUS_ARCHIVE = 'archive';
     /**
      * @Grid\Column(sortable=true,order=1)
-     * @ORM\Column(type="bigint")
+     * @ORM\Column(name="id", type="bigint")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */

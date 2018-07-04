@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 class JobTiming extends BaseJobTiming
 {
     /**
-     * @ORM\Column(type="bigint")
+     * @ORM\Column(name="id", type="bigint")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
@@ -24,7 +24,7 @@ class JobTiming extends BaseJobTiming
     protected $finishedAt;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(name="status", type="integer")
      */
     protected $status;
 

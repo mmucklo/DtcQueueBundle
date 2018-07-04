@@ -9,7 +9,7 @@ abstract class BaseRun extends \Dtc\QueueBundle\Model\Run
 {
     /**
      * @Grid\Column(sortable=true,order=1)
-     * @ORM\Column(type="bigint")
+     * @ORM\Column(name="id", type="bigint")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
@@ -25,13 +25,13 @@ abstract class BaseRun extends \Dtc\QueueBundle\Model\Run
     protected $endedAt;
 
     /**
-     * @ORM\Column(type="float", nullable=true)
+     * @ORM\Column(name="elapsed", type="float", nullable=true)
      */
     protected $elapsed;
 
     /**
      * @Grid\Column()
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="duration", type="integer", nullable=true)
      */
     protected $duration; // How long to run for in seconds
 
@@ -48,18 +48,18 @@ abstract class BaseRun extends \Dtc\QueueBundle\Model\Run
     protected $maxCount;
     /**
      * @Grid\Column()
-     * @ORM\Column(type="integer")
+     * @ORM\Column(name="processed", type="integer")
      */
     protected $processed = 0; // Number of jobs processed
 
     /**
      * @Grid\Column(sortable=true)
-     * @ORM\Column(type="string", nullable=true)
+     * @ORM\Column(name="hostname", type="string", nullable=true)
      */
     protected $hostname;
     /**
      * @Grid\Column()
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="pid", type="integer", nullable=true)
      */
     protected $pid;
 

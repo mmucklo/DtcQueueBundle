@@ -12,7 +12,7 @@ abstract class BaseJob extends StallableJob
     use MicrotimeTrait;
     /**
      * @Grid\Column(order=1,sortable=true,searchable=true)
-     * @ORM\Column(type="bigint")
+     * @ORM\Column(name="id", type="bigint")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
@@ -32,24 +32,24 @@ abstract class BaseJob extends StallableJob
 
     /**
      * @Grid\Column(sortable=true, searchable=true)
-     * @ORM\Column(type="string")
+     * @ORM\Column(name="method", type="string")
      */
     protected $method;
 
     /**
      * @Grid\Column(sortable=true, searchable=true)
-     * @ORM\Column(type="string")
+     * @ORM\Column(name="status", type="string")
      */
     protected $status;
 
     /**
-     * @ORM\Column(type="text")
+     * @ORM\Column(name="args", type="text")
      */
     protected $args;
 
     /**
      * @Grid\Column(sortable=true,searchable=true)
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="priority", type="integer", nullable=true)
      */
     protected $priority;
 
@@ -88,12 +88,12 @@ abstract class BaseJob extends StallableJob
     protected $finishedAt;
 
     /**
-     * @ORM\Column(type="float", nullable=true)
+     * @ORM\Column(name="elapsed", type="float", nullable=true)
      */
     protected $elapsed;
 
     /**
-     * @ORM\Column(type="text", nullable=true)
+     * @ORM\Column(name="message", type="text", nullable=true)
      */
     protected $message;
 
@@ -118,7 +118,7 @@ abstract class BaseJob extends StallableJob
     protected $runId;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(name="stalls", type="integer")
      */
     protected $stalls = 0;
 
@@ -128,7 +128,7 @@ abstract class BaseJob extends StallableJob
     protected $maxStalls;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(name="exceptions", type="integer")
      */
     protected $exceptions = 0;
 
@@ -138,7 +138,7 @@ abstract class BaseJob extends StallableJob
     protected $maxExceptions;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(name="failures", type="integer")
      */
     protected $failures = 0;
 
@@ -148,7 +148,7 @@ abstract class BaseJob extends StallableJob
     protected $maxFailures;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(name="retries", type="integer")
      */
     protected $retries = 0;
 

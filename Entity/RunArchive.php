@@ -19,7 +19,7 @@ class RunArchive extends BaseRun
      */
     protected $startedAt;
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="duration", type="integer", nullable=true)
      */
     protected $duration; // How long to run for in seconds
 
@@ -31,7 +31,7 @@ class RunArchive extends BaseRun
 
     /**
      * @Grid\Column()
-     * @ORM\Column(type="float", nullable=true)
+     * @ORM\Column(name="elapsed", type="float", nullable=true)
      */
     protected $elapsed;
 

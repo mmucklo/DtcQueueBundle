@@ -28,7 +28,7 @@ class CreateJobCommand extends ContainerAwareCommand
                 InputOption::VALUE_NONE,
                 'Consume the args as a single PHP-serialized array'
             )
-            ->addOption(
+            ->addOption( // For 5.0 this should become the default
                 'interpret-args',
                 null,
                 InputOption::VALUE_NONE,
@@ -92,7 +92,6 @@ class CreateJobCommand extends ContainerAwareCommand
         $workerName = $input->getArgument('worker_name');
         $methodName = $input->getArgument('method');
 
-        // @TODO for 5.0 - do minimal interpretation on arguments as to their types
         $args = $this->getArgs($input);
 
         $worker = $workerManager->getWorker($workerName);
