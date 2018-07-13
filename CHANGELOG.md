@@ -1,3 +1,5 @@
+### 4.10.0
+   * Issue #88 require new version of grid-bundle for Postgres fix
 ### 4.9.1
    * Issue #87 revisited - be explicit on all column names, just in case.
 ### 4.9.0
