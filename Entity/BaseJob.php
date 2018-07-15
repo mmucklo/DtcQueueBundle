@@ -12,7 +12,7 @@ abstract class BaseJob extends BaseDoctrineJob
     use MicrotimeTrait;
     /**
      * @Grid\Column(order=1,sortable=true,searchable=true)
-     * @ORM\Column(type="bigint")
+     * @ORM\Column(name="id", type="bigint")
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
@@ -20,41 +20,41 @@ abstract class BaseJob extends BaseDoctrineJob
 
     /**
      * @Grid\Column(sortable=true, searchable=true)
-     * @ORM\Column(type="string")
+     * @ORM\Column(name="worker_name", type="string")
      */
     protected $workerName;
 
     /**
      * @Grid\Column(sortable=true, searchable=true)
-     * @ORM\Column(type="string")
+     * @ORM\Column(name="class_name", type="string")
      */
     protected $className;
 
     /**
      * @Grid\Column(sortable=true, searchable=true)
-     * @ORM\Column(type="string")
+     * @ORM\Column(name="method", type="string")
      */
     protected $method;
 
     /**
      * @Grid\Column(sortable=true, searchable=true)
-     * @ORM\Column(type="string")
+     * @ORM\Column(name="status", type="string")
      */
     protected $status;
 
     /**
-     * @ORM\Column(type="text")
+     * @ORM\Column(name="args", type="text")
      */
     protected $args;
 
     /**
      * @Grid\Column(sortable=true,searchable=true)
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="priority", type="integer", nullable=true)
      */
     protected $priority;
 
     /**
-     * @ORM\Column(type="string")
+     * @ORM\Column(name="crc_hash", type="string")
      */
     protected $crcHash;
 
@@ -62,13 +62,13 @@ abstract class BaseJob extends BaseDoctrineJob
      * whenAt in Microseconds.
      *
      * @Grid\Column(sortable=true,order=2)
-     * @ORM\Column(type="decimal", precision=18, scale=0, nullable=true)
+     * @ORM\Column(name="when_us", type="decimal", precision=18, scale=0, nullable=true)
      */
     protected $whenUs;
 
     /**
      * @Grid\Column(sortable=true)
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(name="expires_at", type="datetime", nullable=true)
      */
     protected $expiresAt;
 
@@ -76,84 +76,84 @@ abstract class BaseJob extends BaseDoctrineJob
      * When the job started.
      *
      * @Grid\Column(sortable=true)
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(name="started_at", type="datetime", nullable=true)
      */
     protected $startedAt;
 
     /**
      * When the job finished.
      *
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\Column(name="finished_at", type="datetime", nullable=true)
      */
     protected $finishedAt;
 
     /**
-     * @ORM\Column(type="float", nullable=true)
+     * @ORM\Column(name="elapsed", type="float", nullable=true)
      */
     protected $elapsed;
 
     /**
-     * @ORM\Column(type="text", nullable=true)
+     * @ORM\Column(name="message", type="text", nullable=true)
      */
     protected $message;
 
     /**
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(name="created_at", type="datetime")
      */
     protected $createdAt;
 
     /**
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(name="updated_at", type="datetime")
      */
     protected $updatedAt;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="max_duration", type="integer", nullable=true)
      */
     protected $maxDuration;
 
     /**
-     * @ORM\Column(type="bigint", nullable=true)
+     * @ORM\Column(name="run_id", type="bigint", nullable=true)
      */
     protected $runId;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(name="stalls", type="integer")
      */
     protected $stalls = 0;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="max_stalls", type="integer", nullable=true)
      */
     protected $maxStalls;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(name="exceptions", type="integer")
      */
     protected $exceptions = 0;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="max_exceptions", type="integer", nullable=true)
      */
     protected $maxExceptions;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(name="failures", type="integer")
      */
     protected $failures = 0;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="max_failures", type="integer", nullable=true)
      */
     protected $maxFailures;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(name="retries", type="integer")
      */
     protected $retries = 0;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(name="max_retries", type="integer", nullable=true)
      */
     protected $maxRetries;
 

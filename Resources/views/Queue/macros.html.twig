@@ -28,7 +28,7 @@
             <option value="y">Year(s)</option>
         </select>
     {% endif %}
-    <button id="queue-action-{{ tag }}" class="btn btn-primary"><i class="fa fa-circle-o-notch fa-spin hidden"></i> {{ button_text }}</button> <progress style="display: none" id="queue-action-progress-{{ tag }}"></progress>
+    <button id="queue-action-{{ tag }}" class="btn btn-primary"><i class="fa fa-circle-o-notch fa-spin dtc-grid-hidden"></i> {{ button_text }}</button> <progress style="display: none" id="queue-action-progress-{{ tag }}"></progress>
 </div>
 <script>
   var fetchPath_{{ tag }} = '{{ path(route_name) }}';

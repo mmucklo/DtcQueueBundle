@@ -96,6 +96,7 @@ class LiveJobsGridSource extends EntityGridSource
     public function getCount()
     {
         $qb = $this->getQueryBuilder();
+        $qb->resetDQLPart('orderBy');
         $qb->add('select', 'count(j)')
             ->setFirstResult(null)
             ->setMaxResults(null);

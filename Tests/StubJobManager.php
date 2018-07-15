@@ -51,7 +51,7 @@ class StubJobManager extends StallableJobManager
         return $this->recordArgs(__FUNCTION__, func_get_args());
     }
 
-    public function pruneErroneousJobs($workerName = null, $methodName = null)
+    public function pruneExceptionJobs($workerName = null, $methodName = null)
     {
         return $this->recordArgs(__FUNCTION__, func_get_args());
     }

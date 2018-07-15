@@ -1,3 +1,27 @@
+### 5.0.0
+   * Issue #89 convert UI to bootstrap 4
+### 4.10.1
+   * Issue #88 more fixes for postgres
+### 4.10.0
+   * Issue #88 require new version of grid-bundle for Postgres fix
+### 4.9.1
+   * Issue #87 revisited - be explicit on all column names, just in case.
+### 4.9.0
+   * Issue #87 - hard-wire multi-word column names so that indexes work even when the underscore naming strategy isn't specified.
+### 4.8.1
+   * PR #86 - call setName in the create_job command.
+### 4.8.0
+   * Issue #82 - Allow for cli enqueuing of jobs with non-string arguments - see [/Resources/doc/create-job.md](/Resources/doc/create-job.md)
+### 4.7.1
+   * Fix for issue #79 - Subclassing issue
+### 4.7.0
+   * Fix for issue #74 - allow infinite durations
+   * Address issue #77 in the [README](README.md)
+### 4.6.1
+   * Fix for issue #75 - fix redis auth
+### 4.6.0
+   * Fix for issue #72 - pruneErroneousJobs -> pruneExceptionJobs
+   * Fix for issue #73 - prune job_timings fix
 ### 4.5.3
    * Fix for issue #68 - attempt to remove dependency on doctrine service when orm is not used
    * Fix for issue #67 - make DateTime calls consistent

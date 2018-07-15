@@ -66,7 +66,7 @@ This bundle provides a way to easily create and manage queued background jobs
    - Stalls (ODM / ORM)
       * Jobs that crash the interpreter, or get terminated for some other reason can be detected
          * These can be re-queued to run in the future.
-      
+
 Installation
 ------------
 
@@ -160,7 +160,7 @@ services:
 	<!-- ... -->
 </services>
 ```
-	
+
 
 #### Create a job
 
@@ -173,7 +173,7 @@ $fibonacciWorker = $container->get('App\Worker\FibonacciWorker');
 //
 
 // For Symfony 2, 3.0, 3.1, 3.2:
-//     $fibonacciWorker = $container->get('app.worker.fibonacci'); 
+//     $fibonacciWorker = $container->get('app.worker.fibonacci');
 
 
 // Basic Examples
@@ -198,28 +198,43 @@ $expireTime = time() + 3600;
 $fibonacciWorker->later()->setExpiresAt(new \DateTime("@$expireTime"))->fibonacci(20); // Must be run within the hour or not at all
 ```
 
-```bash
-bin/console dtc:queue:create fibonacci fibonacci 20
-```
+##### Create Jobs - Additional Information
 
-Running jobs
+For further instructions on creating jobs, including how to *create a job from the __command line__*, see:
+
+[/Resources/doc/create-job.md](/Resources/doc/create-job.md)
+
+Running Jobs
 ------------
 It's recommended that you background the following console commands
 
 ```bash
 bin/console dtc:queue:run -d 120
-# the -d parameter is a tunable seconds during which to process jobs
-#  For example you could put this command into cron or a cron-like system to run periodically
+```
+
+```bash
+# the -d parameter is the number of seconds to run
+#  For example you could put the above command into cron or a cron-like system to run every 2 minutes
 #
 # There are a number of other parameters that could be passed to dtc:queue:run run this for a full list:
 bin/console dtc:queue:run --help
-    
-# If you're running a MongoDB or ORM based job store, run these periodically:
-#
+```
+
+Pruning Jobs
+------------
+For ODM and ORM based stores, the archive tables and the regular job queues can require periodic pruning.
+
+For Mongo in production, it may be prudent to use a [capped collection](https://docs.mongodb.com/manual/core/capped-collections/) or [TTL Indexes](https://docs.mongodb.com/manual/core/index-ttl/)
+
+For Mysql you could create an event to delete data periodically.
+
+Nevertheless there are also several commands that exist that do similarly (and could be put into a periodic cron job as well)
+
+```bash
 bin/console dtc:queue:prune old --older 1m
 # (deletes jobs older than one month from the Archive table)
 
-# May be needed if jobs stall out
+# May be needed if jobs stall out:
 bin/console dtc:queue:prune stalled
 
 # If you're recording runs...this is recommended:
@@ -231,21 +246,27 @@ bin/console dtc:queue:prune old_runs --older 1m
 # If you're recording timings
 bin/console dtc:queue:prune old_job_timings --older 1m
 
-
 # You can tune 1m to a smaller interval such as 10d (10 days) or even 1800s (1/2 hour)
-#  if you have too many jobs flowing through the system.   
+#  if you have too many jobs flowing through the system.
 ```
 
-For debugging
+```bash
+bin/console dtc:queue:prune --help # lists other prune commands
+```
+
+Debugging
+---------
+These commands may help with debugging issues with the queue:
 
 ```bash
 bin/console dtc:queue:count # some status about the queue if available (ODM/ORM only)
 bin/console dtc:queue:reset # resets errored and/or stalled jobs
-bin/console dtc:queue:prune --help # lists other prune commands
-bin/console dtc:queue:run --id={jobId}
-```
 
-(jobId could be obtained from mongodb / or your database, if using an ORM / ODM solution)
+# This is really only good for
+bin/console dtc:queue:run --id={jobId}
+
+# (jobId could be obtained from mongodb / or your database, if using an ORM / ODM solution)
+```
 
 Tracking Runs
 -------------
@@ -276,7 +297,7 @@ __config/packages/dtc_queue.yaml:__ (symfony 4)
 dtc_queue:
     odm:
         document_manager: {something} # default is "default"
-```        
+```
 
 Mysql / ORM Setup
 -----------------
@@ -297,10 +318,10 @@ __Change the EntityManager:__
 dtc_queue:
     orm:
         entity_manager: {something} # default is "default"
-```        
+```
 
 __NOTE:__ You may need to add DtcQueueBundle to your mappings section in config.yml if auto_mapping is not enabled
- 
+
 ```yaml
 doctrine:
    #...
@@ -310,7 +331,20 @@ doctrine:
            DtcQueueBundle: ~
 ```
 
+Note on NON-ORM Setups:
+-----------------------
+If you plan on using ODM or Redis or another configuration, but you have Doctrine ORM enabled elsewhere, it's recommended that you use the *[schema_filter](https://symfony.com/doc/master/bundles/DoctrineMigrationsBundle/index.html#manual-tables)* configuration parameter so that schema dumps and/or migration diffs don't pickup those tables (see [issue #77](https://github.com/mmucklo/DtcQueueBundle/issues/77)).
 
+E.g.
+```yaml
+doctrine:
+   # ...
+   dbal:
+       # ...
+       schema_filter: ~^(?!dtc_)~
+```
+
+_(if you already have a schema_filter, you can just add the "dtc\_" prefix to it.)_
 
 Beanstalk Configuration
 ------------------------
@@ -423,17 +457,17 @@ Rename the Database or Table Name
 ```
 Dtc\QueueBundle\Document\Job
 Dtc\QueueBundle\Document\JobArchive
-```    
+```
 
    __or__
 
-```   
+```
 Dtc\QueueBundle\Entity\Job
 Dtc\QueueBundle\Entity\JobArchive
 ```
 
 (Depending on whether you're using MongoDB or an ORM)
-        
+
 2) Change the parameters on the class appropriately
 
 ```php
@@ -602,6 +636,6 @@ This bundle is under the MIT license (see LICENSE file under [Resources/meta/LIC
 
 Credit
 --------
-Originally written by @dtee 
+Originally written by @dtee
 Enhanced and maintained by @mmucklo
 

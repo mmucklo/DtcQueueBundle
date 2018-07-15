@@ -55,12 +55,14 @@ class WorkerCompilerPass implements CompilerPassInterface
     }
 
     /**
-     * Add any extra method calls needed
+     * Add any extra method calls needed.
+     *
      * @param ContainerBuilder $container
-     * @param string $defaultManagerType
+     * @param string           $defaultManagerType
      */
-    protected function addMethodCalls(ContainerBuilder $container, $defaultManagerType) {
-        if ($defaultManagerType === 'orm') {
+    protected function addMethodCalls(ContainerBuilder $container, $defaultManagerType)
+    {
+        if ('orm' === $defaultManagerType) {
             $doctrine = $container->getDefinition('doctrine');
             $container->getDefinition('dtc_queue.doctrine_listener')->addMethodCall('setRegistry', [$doctrine]);
             $container->getDefinition('dtc_queue.manager.job.orm')->addMethodCall('setRegistry', [$doctrine]);
@@ -153,11 +155,11 @@ class WorkerCompilerPass implements CompilerPassInterface
     protected function addLiveJobs(ContainerBuilder $container)
     {
         $jobReflection = new \ReflectionClass($container->getParameter('dtc_queue.class.job'));
-        if ($jobReflection->isInstance(new \Dtc\QueueBundle\Document\Job())) {
+        if ($jobReflection->isSubclassOf(\Dtc\QueueBundle\Document\BaseJob::class)) {
             GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.jobs_waiting.odm');
             GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.jobs_running.odm');
         }
-        if ($jobReflection->isInstance(new \Dtc\QueueBundle\Entity\Job())) {
+        if ($jobReflection->isSubclassOf(\Dtc\QueueBundle\Entity\BaseJob::class)) {
             GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.jobs_waiting.orm');
             GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.jobs_running.orm');
         }

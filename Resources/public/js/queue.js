@@ -112,7 +112,7 @@
       var olderThanType = getSelected(olderThanType);
       var formData = new FormData;
       var spinner = actionButton.getElementsByTagName('i');
-      spinner[0].classList.remove('hidden');
+      spinner[0].classList.remove('dtc-grid-hidden');
 
       // disable all the buttons
       disableGrid();

@@ -58,7 +58,7 @@ class PruneCommandTest extends TestCase
 
     public function testPruneCommandError()
     {
-        $this->runPruneCommand(['type' => 'error'], 'pruneErroneousJobs');
+        $this->runPruneCommand(['type' => 'exception'], 'pruneExceptionJobs');
     }
 
     public function testPruneCommandStalled()

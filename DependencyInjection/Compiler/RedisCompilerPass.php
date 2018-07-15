@@ -85,7 +85,7 @@ class RedisCompilerPass implements CompilerPassInterface
             $container->getParameter('dtc_queue.redis.phpredis.read_timeout'), ];
         $definition->addMethodCall('connect', $arguments);
         if ($container->hasParameter('dtc_queue.redis.phpredis.auth') && null !== ($auth = $container->getParameter('dtc_queue.redis.phpredis.auth'))) {
-            $definition->addMethodCall('auth', $auth);
+            $definition->addMethodCall('auth', [$auth]);
         }
         $container->setDefinition('dtc_queue.phpredis.connection', $definition);
 

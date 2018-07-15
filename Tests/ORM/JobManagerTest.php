@@ -3,7 +3,6 @@
 namespace Dtc\QueueBundle\Tests\ORM;
 
 use Doctrine\Common\Annotations\AnnotationRegistry;
-use Doctrine\ORM\Mapping\UnderscoreNamingStrategy;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Tools\Setup;
 use DoctrineExtensions\Query\Mysql\Day;
@@ -39,8 +38,6 @@ class JobManagerTest extends DoctrineJobManagerTest
         AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Column.php');
         AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Action.php');
 
-        $namingStrategy = new UnderscoreNamingStrategy();
-        $config->setNamingStrategy($namingStrategy);
         $config->addCustomNumericFunction('year', Year::class);
         $config->addCustomNumericFunction('month', Month::class);
         $config->addCustomNumericFunction('day', Day::class);
