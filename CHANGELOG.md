@@ -1,3 +1,5 @@
+### 4.10.1
+   * Issue #88 more fixes for postgres
 ### 4.10.0
    * Issue #88 require new version of grid-bundle for Postgres fix
 ### 4.9.1

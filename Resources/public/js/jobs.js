@@ -67,7 +67,7 @@
       var method = getSelected(methodElement);
       var formData = new FormData;
       var spinner = archiveButton.getElementsByTagName('i');
-      spinner[0].classList.remove('hidden');
+      spinner[0].classList.remove('dtc-grid-hidden');
 
       // disable all the buttons
       var buttons = document.getElementsByTagName('button');
