@@ -69,7 +69,7 @@ Finally,
 Additionally, if you choose to record job timings (to display in the /timings display), you'll need to install and configure doctrine extensions that support 
  the YEAR, MONTH, DAY, HOUR functions:
 
-   * Bundle #1 [beberlei/doctrineextensions][https://github.com/beberlei/DoctrineExtensions]
+   * Bundle #1 [beberlei/doctrineextensions](https://github.com/beberlei/DoctrineExtensions)
       * Then add the Date and Time functions as instructed here:
          * [mysql](https://github.com/beberlei/DoctrineExtensions/blob/master/config/mysql.yml)
    * Bundle #2 [oroinc/doctrine-extensions](https://github.com/oroinc/doctrine-extensions)
