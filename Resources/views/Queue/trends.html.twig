@@ -65,6 +65,6 @@ dtc_queue:
           var states = {{ states | json_encode | raw }};
           var fetchPath = '{{ path('dtc_queue_timings') }}';
         </script>
-        <script src="/bundles/dtcqueue/js/trends.js?v=1"></script>
+        <script src="{{ app.request.baseUrl }}/bundles/dtcqueue/js/trends.js?v=1"></script>
     {% endif %}
 {% endblock %}
