@@ -23,7 +23,7 @@ class Job extends BaseJob
         $this->setArgs($args);
 
         // Make sure the method exists - job should not be created
-        if (!method_exists($this->worker, $method)) {
+        if (!is_callable([$this->worker, $method])) {
             throw new \BadMethodCallException("{$this->className}->{$method}() does not exist");
         }
 
