@@ -93,7 +93,7 @@ dtc_grid:
 __Routes:__
    * /dtc_queue/jobs
       * ODM / ORM only
-   * /dtc_queue/all_jobs
+   * /dtc_queue/jobs_all
       * ODM / ORM list of all jobs
    * /dtc_queue/runs
       * ODM / ORM only (or another type of queue with an ODM / ORM run_manager)
