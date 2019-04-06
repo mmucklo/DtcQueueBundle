@@ -160,7 +160,8 @@ class Predis implements RedisInterface
 
         try {
             $this->predis->transaction($options, function (MultiExec $tx) use ($key, &$element) {
-                list($element) = $tx->zrange($key, 0, 0);
+                $zRange = $tx->zrange($key, 0, 0);
+                $element = isset($zRange[0]) ? $zRange[0] : null;
 
                 if (isset($element)) {
                     $tx->multi();
@@ -185,7 +186,8 @@ class Predis implements RedisInterface
 
         try {
             $this->predis->transaction($options, function (MultiExec $tx) use ($key, $max, &$element) {
-                list($element) = $tx->zrangebyscore($key, 0, $max, ['LIMIT' => [0, 1]]);
+                $zRangeByScore = $tx->zrangebyscore($key, 0, $max, ['LIMIT' => [0, 1]]);
+                $element = isset($zRangeByScore[0]) ? $zRangeByScore[0] : null;
 
                 if (isset($element)) {
                     $tx->multi();
