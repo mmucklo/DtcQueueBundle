@@ -16,3 +16,4 @@ dtc_queue:
     admin:
         # chartjs is used to render the job timings graph in the admin section
         chartjs: 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.min.js'
+
