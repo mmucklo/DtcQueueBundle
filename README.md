@@ -522,7 +522,7 @@ dtc_queue:
 Job Event Subscriber
 --------------------
 
-It's useful to listen to event in a long running script to clear doctrine manger or send email about status of a job. To
+It's useful to listen to event in a long running script to clear doctrine manager or send email about status of a job. To
 add a job event subscriber, create a new service with tag: dtc_queue.event_subscriber:
 
 ```yaml
