@@ -48,8 +48,10 @@ doctrine_mongodb:
 __config/packages/dtc_queue.yaml:__
 ```yaml
 dtc_queue:
-    default_manager: orm
-    # ...
+    manager:
+        # This parameter is required and should typically be set to one of:
+        #   [odm|orm|beanstalkd|rabbit_mq|redis]
+        job: orm
 ```
 
 See the full list of options in [/Resources/doc/full-configuration.md](/Resources/doc/full-configuration.md)
