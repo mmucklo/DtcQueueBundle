@@ -19,8 +19,14 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('dtc_queue');
+        $treeBuilder = new TreeBuilder('dtc_queue');
+
+        if (method_exists($treeBuilder, 'getRootNode')) {
+            $rootNode = $treeBuilder->getRootNode();
+        } else {
+            // BC layer for symfony/config 4.1 and older
+            $rootNode = $treeBuilder->root('dtc_queue');
+        }
 
         $node = $rootNode
             ->children()
@@ -68,8 +74,15 @@ class Configuration implements ConfigurationInterface
 
     protected function addTimings()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('timings');
+        $treeBuilder = new TreeBuilder('timings');
+
+        if (method_exists($treeBuilder, 'getRootNode')) {
+            $rootNode = $treeBuilder->getRootNode();
+        } else {
+            // BC layer for symfony/config 4.1 and older
+            $rootNode = $treeBuilder->root('timings');
+        }
+
         $rootNode
             ->addDefaultsIfNotSet()
             ->children()
@@ -90,8 +103,15 @@ class Configuration implements ConfigurationInterface
 
     protected function addSimpleScalar($rootName, $nodeName, $info, $defaultValue = 'default')
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root($rootName);
+        $treeBuilder = new TreeBuilder($rootName);
+
+        if (method_exists($treeBuilder, 'getRootNode')) {
+            $rootNode = $treeBuilder->getRootNode();
+        } else {
+            // BC layer for symfony/config 4.1 and older
+            $rootNode = $treeBuilder->root($rootName);
+        }
+
         $rootNode
             ->addDefaultsIfNotSet()
             ->children()
@@ -107,8 +127,14 @@ class Configuration implements ConfigurationInterface
 
     protected function addManager()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('manager');
+        $treeBuilder = new TreeBuilder('manager');
+
+        if (method_exists($treeBuilder, 'getRootNode')) {
+            $rootNode = $treeBuilder->getRootNode();
+        } else {
+            // BC layer for symfony/config 4.1 and older
+            $rootNode = $treeBuilder->root('manager');
+        }
         $rootNode
             ->addDefaultsIfNotSet()
             ->children()
@@ -126,8 +152,15 @@ class Configuration implements ConfigurationInterface
 
     protected function addBeanstalkd()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('beanstalkd');
+        $treeBuilder = new TreeBuilder('beanstalkd');
+
+        if (method_exists($treeBuilder, 'getRootNode')) {
+            $rootNode = $treeBuilder->getRootNode();
+        } else {
+            // BC layer for symfony/config 4.1 and older
+            $rootNode = $treeBuilder->root('beanstalkd');
+        }
+
         $rootNode
             ->children()
                 ->scalarNode('host')->end()
@@ -139,8 +172,15 @@ class Configuration implements ConfigurationInterface
 
     protected function addRetry()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('retry');
+        $treeBuilder = new TreeBuilder('retry');
+
+        if (method_exists($treeBuilder, 'getRootNode')) {
+            $rootNode = $treeBuilder->getRootNode();
+        } else {
+            // BC layer for symfony/config 4.1 and older
+            $rootNode = $treeBuilder->root('retry');
+        }
+
         $rootNode
             ->addDefaultsIfNotSet()
             ->children()
@@ -185,9 +225,15 @@ class Configuration implements ConfigurationInterface
 
     protected function addPriority()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('priority');
-        $rootNode
+        $treeBuilder = new TreeBuilder('priority');
+
+        if (method_exists($treeBuilder, 'getRootNode')) {
+            $rootNode = $treeBuilder->getRootNode();
+        } else {
+            // BC layer for symfony/config 4.1 and older
+            $rootNode = $treeBuilder->root('priority');
+        }
+                $rootNode
             ->addDefaultsIfNotSet()
             ->children()
                 ->integerNode('max')
@@ -207,8 +253,15 @@ class Configuration implements ConfigurationInterface
 
     protected function addClasses()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('class');
+        $treeBuilder = new TreeBuilder('class');
+
+        if (method_exists($treeBuilder, 'getRootNode')) {
+            $rootNode = $treeBuilder->getRootNode();
+        } else {
+            // BC layer for symfony/config 4.1 and older
+            $rootNode = $treeBuilder->root('class');
+        }
+
         $rootNode
             ->children()
                 ->scalarNode('job')

@@ -8,8 +8,15 @@ trait RabbitMQConfiguration
 {
     protected function addRabbitMqOptions()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('options');
+        $treeBuilder = new TreeBuilder('options');
+
+        if (method_exists($treeBuilder, 'getRootNode')) {
+            $rootNode = $treeBuilder->getRootNode();
+        } else {
+            // BC layer for symfony/config 4.1 and older
+            $rootNode = $treeBuilder->root('options');
+        }
+
         $rootNode
             ->children()
             ->scalarNode('insist')->end()
@@ -27,8 +34,15 @@ trait RabbitMQConfiguration
 
     protected function addRabbitMqSslOptions()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('ssl_options');
+        $treeBuilder = new TreeBuilder('ssl_options');
+
+        if (method_exists($treeBuilder, 'getRootNode')) {
+            $rootNode = $treeBuilder->getRootNode();
+        } else {
+            // BC layer for symfony/config 4.1 and older
+            $rootNode = $treeBuilder->root('ssl_options');
+        }
+
         $rootNode
             ->prototype('variable')->end()
             ->validate()
@@ -74,8 +88,15 @@ trait RabbitMQConfiguration
 
     protected function addRabbitMqExchange()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('exchange_args');
+        $treeBuilder = new TreeBuilder('exchange_args');
+
+        if (method_exists($treeBuilder, 'getRootNode')) {
+            $rootNode = $treeBuilder->getRootNode();
+        } else {
+            // BC layer for symfony/config 4.1 and older
+            $rootNode = $treeBuilder->root('exchange_args');
+        }
+
         $rootNode
             ->addDefaultsIfNotSet()
             ->children()
@@ -91,8 +112,15 @@ trait RabbitMQConfiguration
 
     protected function addRabbitMqArgs()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('queue_args');
+        $treeBuilder = new TreeBuilder('queue_args');
+
+        if (method_exists($treeBuilder, 'getRootNode')) {
+            $rootNode = $treeBuilder->getRootNode();
+        } else {
+            // BC layer for symfony/config 4.1 and older
+            $rootNode = $treeBuilder->root('queue_args');
+        }
+
         $rootNode
             ->addDefaultsIfNotSet()
             ->children()
@@ -108,8 +136,15 @@ trait RabbitMQConfiguration
 
     protected function addRabbitMq()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('rabbit_mq');
+        $treeBuilder = new TreeBuilder('rabbit_mq');
+
+        if (method_exists($treeBuilder, 'getRootNode')) {
+            $rootNode = $treeBuilder->getRootNode();
+        } else {
+            // BC layer for symfony/config 4.1 and older
+            $rootNode = $treeBuilder->root('rabbit_mq');
+        }
+
         $rootNode
             ->children()
             ->scalarNode('host')->end()
