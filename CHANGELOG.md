@@ -1,4 +1,5 @@
 ### 5.0.0
+   * PR #111 (@therealartz) - Fixes TreeBuilder deprecation notice on Symfony 4.2
    * Issue #89 convert UI to bootstrap 4
 ### 4.10.1
    * Issue #88 more fixes for postgres
