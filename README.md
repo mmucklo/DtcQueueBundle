@@ -632,7 +632,7 @@ See [/Resources/doc/full-configuration.md](/Resources/doc/full-configuration.md)
 License
 -------
 
-This bundle is under the MIT license (see LICENSE file under [Resources/meta/LICENSE](Resources/meta/LICENSE)).
+This bundle is under the MIT license.
 
 Credit
 --------
