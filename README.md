@@ -8,11 +8,11 @@ DtcQueueBundle
 
 > Allow symfony developers to create background job as easily as: `$worker->later()->process(1,2,3)`
 
-### 4.0 Release
+### 5.0 Release
 
 See [changes](CHANGELOG.md)
 
-Upgrading from 3.0: [see UPGRADING-4.0.md](UPGRADING-4.0.md)
+Upgrading from 4.0: [see UPGRADING-5.0.md](UPGRADING-5.0.md)
 
 Supported Queues
 ----------------
