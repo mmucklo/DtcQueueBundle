@@ -1,3 +1,5 @@
+### 5.0.1
+   * Pulling in a Query Builder fix from a fork https://github.com/quitoque/QueueBundle/commit/00f788e84765df2dcb81a19907463dd8eace566d
 ### 5.0.0
    * PR #111 (@therealartz) - Fixes TreeBuilder deprecation notice on Symfony 4.2
    * Issue #89 convert UI to bootstrap 4

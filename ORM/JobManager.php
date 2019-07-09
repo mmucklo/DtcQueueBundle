@@ -128,8 +128,8 @@ class JobManager extends DoctrineJobManager
 
         $queryBuilder = $queryBuilder->select('count(j)')->from($this->getJobClass(), 'j');
 
+        $this->addStandardPredicates($queryBuilder);
         $this->addWorkerNameCriterion($queryBuilder, $workerName, $method);
-        $this->addStandardPredicate($queryBuilder);
 
         $query = $queryBuilder->getQuery();
 
@@ -145,7 +145,7 @@ class JobManager extends DoctrineJobManager
         /** @var EntityRepository $repository */
         $repository = $this->getRepository();
         $queryBuilder = $repository->createQueryBuilder('j');
-        $this->addStandardPredicate($queryBuilder);
+        $this->addStandardPredicates($queryBuilder);
         $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
         $queryBuilder->select('count(j.id)');
 
@@ -239,7 +239,7 @@ class JobManager extends DoctrineJobManager
         /** @var EntityRepository $repository */
         $repository = $this->getRepository();
         $queryBuilder = $repository->createQueryBuilder('j');
-        $this->addStandardPredicate($queryBuilder);
+        $this->addStandardPredicates($queryBuilder);
         $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
 
         if ($prioritize) {
@@ -252,13 +252,13 @@ class JobManager extends DoctrineJobManager
         return $queryBuilder;
     }
 
-    protected function addStandardPredicate(QueryBuilder $queryBuilder, $status = BaseJob::STATUS_NEW)
+    protected function addStandardPredicates(QueryBuilder $queryBuilder, $status = BaseJob::STATUS_NEW)
     {
         $dateTime = Util::getMicrotimeDateTime();
         $decimal = Util::getMicrotimeDecimalFormat($dateTime);
 
         $queryBuilder
-            ->where('j.status = :status')->setParameter('status', $status)
+            ->andWhere('j.status = :status')->setParameter('status', $status)
             ->andWhere($queryBuilder->expr()->orX(
                 $queryBuilder->expr()->isNull('j.whenUs'),
                 $queryBuilder->expr()->lte('j.whenUs', ':whenUs')
@@ -397,7 +397,7 @@ class JobManager extends DoctrineJobManager
         /** @var EntityRepository $repository */
         $repository = $this->getRepository();
         $queryBuilder = $repository->createQueryBuilder('j');
-        $this->addStandardPredicate($queryBuilder, $status);
+        $this->addStandardPredicates($queryBuilder, $status);
         $queryBuilder
             ->select('DISTINCT j.workerName, j.method');
 
@@ -427,7 +427,7 @@ class JobManager extends DoctrineJobManager
         $queryBuilder->update($this->getJobClass(), 'j')
             ->set('j.status', ':statusArchive')
             ->setParameter('statusArchive', Job::STATUS_ARCHIVE);
-        $this->addStandardPredicate($queryBuilder);
+        $this->addStandardPredicates($queryBuilder);
         $this->addWorkerNameCriterion($queryBuilder, $workerName, $methodName);
         $resultCount = $queryBuilder->getQuery()->execute();
 
