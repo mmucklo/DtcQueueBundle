@@ -115,8 +115,8 @@ class JobManager extends DoctrineJobManager
     {
         return $this->removeOlderThan(
             $this->getJobArchiveClass(),
-                'updatedAt',
-                $olderThan
+            'updatedAt',
+            $olderThan
         );
     }
 
@@ -255,7 +255,7 @@ class JobManager extends DoctrineJobManager
     protected function addStandardPredicates(QueryBuilder $queryBuilder, $status = BaseJob::STATUS_NEW)
     {
         $dateTime = Util::getMicrotimeDateTime();
-        $decimal = Util::getMicrotimeDecimalFormat($dateTime);
+        $microtimeInteger = Util::getMicrotimeIntegerFormat($dateTime);
 
         $queryBuilder
             ->andWhere('j.status = :status')->setParameter('status', $status)
@@ -267,7 +267,7 @@ class JobManager extends DoctrineJobManager
                 $queryBuilder->expr()->isNull('j.expiresAt'),
                 $queryBuilder->expr()->gt('j.expiresAt', ':expiresAt')
             ))
-            ->setParameter('whenUs', $decimal)
+            ->setParameter('whenUs', $microtimeInteger)
             ->setParameter('expiresAt', $dateTime);
     }
 
@@ -321,7 +321,7 @@ class JobManager extends DoctrineJobManager
      *
      * @param \Dtc\QueueBundle\Model\Job $job
      *
-     * @return null|Job
+     * @return Job|null
      */
     public function updateNearestBatch(\Dtc\QueueBundle\Model\Job $job)
     {

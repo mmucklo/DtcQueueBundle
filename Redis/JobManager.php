@@ -26,7 +26,7 @@ class JobManager extends BaseJobManager
         // Drains from WhenAt queue into Prioirty Queue
         $whenQueue = $this->getWhenQueueCacheKey();
         $priorityQueue = $this->getPriorityQueueCacheKey();
-        $microtime = Util::getMicrotimeDecimal();
+        $microtime = Util::getMicrotimeInteger();
         while ($jobId = $this->redis->zPopByMaxScore($whenQueue, $microtime)) {
             $jobMessage = $this->redis->get($this->getJobCacheKey($jobId));
             if (is_string($jobMessage)) {
@@ -85,7 +85,7 @@ class JobManager extends BaseJobManager
         $foundWhen = $foundJob->getWhenUs();
 
         // Fix this using bcmath
-        $curtimeU = Util::getMicrotimeDecimal();
+        $curtimeU = Util::getMicrotimeInteger();
         $newFoundWhen = null;
         if (bccomp($foundWhen, $curtimeU) > 0 && bccomp($foundWhen, $when) >= 1) {
             $newFoundWhen = $when;
@@ -183,7 +183,7 @@ class JobManager extends BaseJobManager
         // Add to whenAt or priority queue?  /// optimizaiton...
         $whenUs = $job->getWhenUs();
         if (!$whenUs) {
-            $whenUs = Util::getMicrotimeDecimal();
+            $whenUs = Util::getMicrotimeInteger();
             $job->setWhenUs($whenUs);
         }
 
@@ -287,7 +287,7 @@ class JobManager extends BaseJobManager
             $jobId = $this->redis->zPop($queue);
         } else {
             $queue = $this->getWhenQueueCacheKey();
-            $microtime = Util::getMicrotimeDecimal();
+            $microtime = Util::getMicrotimeInteger();
             $jobId = $this->redis->zPopByMaxScore($queue, $microtime);
         }
 
@@ -315,7 +315,7 @@ class JobManager extends BaseJobManager
 
     public function getWaitingJobCount($workerName = null, $methodName = null)
     {
-        $microtime = Util::getMicrotimeDecimal();
+        $microtime = Util::getMicrotimeInteger();
         $count = $this->redis->zCount($this->getWhenQueueCacheKey(), 0, $microtime);
 
         if (null !== $this->maxPriority) {

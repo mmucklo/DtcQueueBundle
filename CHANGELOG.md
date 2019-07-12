@@ -1,3 +1,5 @@
+### 5.1.0
+   * Issue #98 fix microtime issues in locales that do not use '.' for the decimal point.
 ### 5.0.1
    * Pulling in a Query Builder fix from a fork https://github.com/quitoque/QueueBundle/commit/00f788e84765df2dcb81a19907463dd8eace566d
 ### 5.0.0

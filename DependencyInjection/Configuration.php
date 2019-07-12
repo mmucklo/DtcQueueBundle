@@ -233,7 +233,7 @@ class Configuration implements ConfigurationInterface
             // BC layer for symfony/config 4.1 and older
             $rootNode = $treeBuilder->root('priority');
         }
-                $rootNode
+        $rootNode
             ->addDefaultsIfNotSet()
             ->children()
                 ->integerNode('max')

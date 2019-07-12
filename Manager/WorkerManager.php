@@ -91,7 +91,7 @@ class WorkerManager
      * @param null $methodName
      * @param bool $prioritize
      *
-     * @return null|Job
+     * @return Job|null
      */
     public function run($workerName = null, $methodName = null, $prioritize = true, $runId = null)
     {
@@ -146,7 +146,7 @@ class WorkerManager
             /** @var Worker $worker */
             $worker = $this->getWorker($job->getWorkerName());
             $this->log('debug', "Start: {$job->getClassName()}->{$job->getMethod()}", $job->getArgs());
-            $job->setStartedAt(Util::getMicrotimeDateTime());
+            $job->setStartedAt(Util::getMicrotimeFloatDateTime($start));
             $job->setMessage(null);
             $worker->setCurrentJob($job);
             $result = call_user_func_array(array($worker, $job->getMethod()), $job->getArgs());

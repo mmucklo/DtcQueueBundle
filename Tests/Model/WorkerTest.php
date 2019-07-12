@@ -140,7 +140,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
             self::assertEquals(
                 $time,
                 $job->getWhenAt()->getTimestamp(),
-                    'Job start time should equals'
+                'Job start time should equals'
             );
         }
 
@@ -148,7 +148,7 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
             self::assertEquals(
                 $priority,
                 $job->getPriority(),
-                    'Priority should be the same.'
+                'Priority should be the same.'
             );
         } else {
             self::assertNull($job->getPriority(), 'Priority should be null');
@@ -157,12 +157,12 @@ class WorkerTest extends \PHPUnit_Framework_TestCase
         self::assertEquals(
             $this->worker->getName(),
             $job->getWorkerName(),
-                'Worker should be the same'
+            'Worker should be the same'
         );
         self::assertEquals(
             $method,
             $job->getMethod(),
-                'Worker method should be the same'
+            'Worker method should be the same'
         );
 
         // Make sure param gets saved

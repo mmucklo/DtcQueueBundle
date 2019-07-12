@@ -48,13 +48,15 @@ abstract class Worker
     public function at($time = null, $batch = false, $priority = null)
     {
         $timeU = $time;
+        $localeInfo = localeconv();
+        $decimalPoint = isset($localeInfo['decimal_point']) ? $localeInfo['decimal_point'] : '.';
         if (null === $time) {
             $timeU = Util::getMicrotimeStr();
-        } elseif (false === strpos(strval($time), '.')) {
-            $timeU = strval($time).'.000000';
+        } elseif (false === strpos(strval($time), $decimalPoint)) {
+            $timeU = strval($time).$decimalPoint.'000000';
         }
 
-        $dateTime = \DateTime::createFromFormat('U.u', (string) $timeU, new \DateTimeZone(date_default_timezone_get()));
+        $dateTime = \DateTime::createFromFormat('U'.$decimalPoint.'u', (string) $timeU, new \DateTimeZone(date_default_timezone_get()));
         if (!$dateTime) {
             throw new \InvalidArgumentException("Invalid time: $time".($timeU != $time ? " - (micro: $timeU)" : ''));
         }

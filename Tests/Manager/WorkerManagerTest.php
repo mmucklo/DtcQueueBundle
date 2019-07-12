@@ -63,7 +63,7 @@ class WorkerManagerTest extends TestCase
         self::assertEquals(
             BaseJob::STATUS_SUCCESS,
             $job->getStatus(),
-                'Worker run should be successful'
+            'Worker run should be successful'
         );
     }
 
@@ -80,7 +80,7 @@ class WorkerManagerTest extends TestCase
         self::assertEquals(
             BaseJob::STATUS_EXCEPTION,
             $job->getStatus(),
-                'Worker run should be not successful'
+            'Worker run should be not successful'
         );
         self::assertNotEmpty($job->getMessage(), 'Error message should not be empty');
     }
@@ -96,13 +96,13 @@ class WorkerManagerTest extends TestCase
         self::assertEquals(
             BaseJob::STATUS_SUCCESS,
             $job->getStatus(),
-                'Worker run should be successful'
+            'Worker run should be successful'
         );
 
         self::assertEquals(
             '20: 6765',
             file_get_contents($this->worker->getFilename()),
-                'Result of fibonacciFile() must match'
+            'Result of fibonacciFile() must match'
         );
     }
 }

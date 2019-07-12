@@ -4,6 +4,13 @@ namespace Dtc\QueueBundle\Util;
 
 class Util
 {
+    private static $localeinfo;
+
+    public static function resetLocaleInfo()
+    {
+        self::$localeinfo = null;
+    }
+
     /**
      * Copies the members of obj1 that have public getters to obj2 if there exists a public setter in obj2 of the same suffix, it will also copy public variables.
      *
@@ -101,12 +108,35 @@ class Util
 
     public static function getMicrotimeStr()
     {
+        // issue #98 - try to use the locale specific way to split things apart
+        if (null === self::$localeinfo) {
+            self::$localeinfo = localeconv();
+            print_r(self::$localeinfo);
+        }
+
+        $decimalPoint = isset(self::$localeinfo['decimal_point']) ? self::$localeinfo['decimal_point'] : '.';
+        echo "\n\ndecimalpoint: $decimalPoint\n";
         $parts = explode(' ', microtime());
-        $pos1 = strpos($parts[0], '.');
+        print_r($parts);
+        print_r(microtime(true));
+        $pos1 = strpos($parts[0], $decimalPoint);
 
         $timeU = $parts[1].'.'.substr($parts[0], $pos1 + 1, 6);
 
         return $timeU;
+    }
+
+    public static function getMicrotimeFloatDateTime($microtime)
+    {
+        if (!is_float($microtime)) {
+            throw new \RuntimeException("Could not create date time expected-float microtime: $microtime");
+        }
+        $result = \DateTime::createFromFormat('U.u', number_format($microtime, 6, '.', ''), new \DateTimeZone(date_default_timezone_get()));
+        if (!$result) {
+            throw new \RuntimeException("Could not create date time from float microtime: $microtime");
+        }
+
+        return $result;
     }
 
     /**
@@ -124,12 +154,12 @@ class Util
         return $result;
     }
 
-    public static function getMicrotimeDecimal()
+    public static function getMicrotimeInteger()
     {
-        return self::getMicrotimeDecimalFormat(self::getMicrotimeDateTime());
+        return self::getMicrotimeIntegerFormat(self::getMicrotimeDateTime());
     }
 
-    public static function getMicrotimeDecimalFormat(\DateTime $dateTime)
+    public static function getMicrotimeIntegerFormat(\DateTime $dateTime)
     {
         $dateTimeUs = $dateTime->format('Uu');
         $dateTimeUs = str_pad($dateTimeUs, 18, '0', STR_PAD_RIGHT);

@@ -10,7 +10,7 @@ trait MicrotimeTrait
     {
         parent::setWhenAt($whenAt);
 
-        return $this->setWhenUs(Util::getMicrotimeDecimalFormat($whenAt));
+        return $this->setWhenUs(Util::getMicrotimeIntegerFormat($whenAt));
     }
 
     /**

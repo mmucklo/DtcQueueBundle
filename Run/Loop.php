@@ -114,8 +114,8 @@ class Loop
     /**
      * @param float    $start
      * @param int      $nanoSleep
-     * @param null|int $maxCount
-     * @param null|int $duration
+     * @param int|null $maxCount
+     * @param int|null $duration
      */
     public function runLoop($start, $workerName, $methodName, $maxCount, $duration = null, $nanoSleep = 500000000)
     {
@@ -146,8 +146,8 @@ class Loop
 
     /**
      * @param int      $nanoSleep
-     * @param null|int $maxCount
-     * @param null|int $duration
+     * @param int|null $maxCount
+     * @param int|null $duration
      *
      * @throws \InvalidArgumentException
      */
@@ -192,7 +192,7 @@ class Loop
     /**
      * @param int|null $duration
      *
-     * @return null|\DateTime
+     * @return \DateTime|null
      */
     protected function getEndTime(Run $run, $duration)
     {

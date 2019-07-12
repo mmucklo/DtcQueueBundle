@@ -39,7 +39,7 @@ abstract class DoctrineRunManager extends RunManager
     }
 
     /**
-     * @return null|string
+     * @return string|null
      */
     public function getRunArchiveClass()
     {

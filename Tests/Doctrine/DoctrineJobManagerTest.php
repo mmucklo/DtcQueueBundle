@@ -873,7 +873,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
 
         $time1 = new \DateTime('@'.time());
         $job2 = $worker->batchLater(0)->fibonacci(1);
-        $time2 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
+        $time2 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeInteger());
 
         self::assertEquals($job1, $job2);
         self::assertGreaterThanOrEqual($time1, $job2->getWhenAt());
@@ -890,9 +890,9 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
 
         $job1 = $worker->later(100)->setPriority(3)->fibonacci(1);
         $priority1 = $job1->getPriority();
-        $time1 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
+        $time1 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeInteger());
         $job2 = $worker->batchLater(0)->setPriority(1)->fibonacci(1);
-        $time2 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeDecimal());
+        $time2 = Util::getDateTimeFromDecimalFormat(Util::getMicrotimeInteger());
         self::assertEquals($job1, $job2);
         self::assertNotEquals($priority1, $job2->getPriority());
 

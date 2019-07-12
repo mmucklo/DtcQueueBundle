@@ -68,9 +68,10 @@ class RunManager
             $jobId = $job->getId();
         }
 
-        $run->setLastHeartbeatAt(Util::getMicrotimeDateTime());
+        $heartbeat = microtime(true);
+        $run->setLastHeartbeatAt(Util::getMicrotimeFloatDateTime($heartbeat));
         $run->setCurrentJobId($jobId);
-        $run->setElapsed(microtime(true) - $start);
+        $run->setElapsed($heartbeat - $start);
         $this->persistRun($run);
     }
 
@@ -107,10 +108,7 @@ class RunManager
         $runClass = $this->getRunClass();
         /** @var Run $run */
         $run = new $runClass();
-        $startDate = \DateTime::createFromFormat('U.u', $formattedStart = number_format($start, 6, '.', ''), new \DateTimeZone(date_default_timezone_get()));
-        if (false === $startDate) {
-            throw new \RuntimeException("Could not create date from $start formatted as $formattedStart");
-        }
+        $startDate = Util::getMicrotimeFloatDateTime($start);
         $run->setLastHeartbeatAt($startDate);
         $run->setStartedAt($startDate);
         if (null !== $maxCount) {
@@ -135,10 +133,7 @@ class RunManager
     public function runStop(Run $run, $start)
     {
         $end = microtime(true);
-        $endedTime = \DateTime::createFromFormat('U.u', $end, new \DateTimeZone(date_default_timezone_get()));
-        if ($endedTime) {
-            $run->setEndedAt($endedTime);
-        }
+        $run->setEndedAt(Util::getMicrotimeFloatDateTime($end));
         $run->setElapsed($end - $start);
         $this->persistRun($run, 'remove');
     }

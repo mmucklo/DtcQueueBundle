@@ -168,7 +168,7 @@ class WorkerCompilerPass implements CompilerPassInterface
     /**
      * @param $managerType
      *
-     * @return null|string
+     * @return string|null
      */
     protected function getDirectory($managerType)
     {

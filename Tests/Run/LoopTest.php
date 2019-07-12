@@ -2,7 +2,6 @@
 
 namespace Dtc\QueueBundle\Tests\Run;
 
-use Dtc\QueueBundle\Beanstalkd\Job;
 use Dtc\QueueBundle\Manager\WorkerManager;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\Run\Loop;
