@@ -4,13 +4,6 @@ namespace Dtc\QueueBundle\Util;
 
 class Util
 {
-    private static $localeinfo;
-
-    public static function resetLocaleInfo()
-    {
-        self::$localeinfo = null;
-    }
-
     /**
      * Copies the members of obj1 that have public getters to obj2 if there exists a public setter in obj2 of the same suffix, it will also copy public variables.
      *
@@ -108,18 +101,8 @@ class Util
 
     public static function getMicrotimeStr()
     {
-        // issue #98 - try to use the locale specific way to split things apart
-        if (null === self::$localeinfo) {
-            self::$localeinfo = localeconv();
-            print_r(self::$localeinfo);
-        }
-
-        $decimalPoint = isset(self::$localeinfo['decimal_point']) ? self::$localeinfo['decimal_point'] : '.';
-        echo "\n\ndecimalpoint: $decimalPoint\n";
         $parts = explode(' ', microtime());
-        print_r($parts);
-        print_r(microtime(true));
-        $pos1 = strpos($parts[0], $decimalPoint);
+        $pos1 = strpos($parts[0], '.');
 
         $timeU = $parts[1].'.'.substr($parts[0], $pos1 + 1, 6);
 
