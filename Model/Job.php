@@ -203,7 +203,7 @@ class Job extends BaseJob
     }
 
     /**
-     * @param int $elapsed
+     * @param float|null $elapsed
      */
     public function setElapsed($elapsed)
     {
