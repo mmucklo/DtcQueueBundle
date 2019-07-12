@@ -175,7 +175,7 @@ class Run
     }
 
     /**
-     * @param float $elapsed
+     * @param float|null $elapsed
      */
     public function setElapsed($elapsed)
     {
