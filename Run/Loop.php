@@ -136,7 +136,7 @@ class Loop
             } while (!$this->isFinished($maxCount, $duration, $endTime, $currentJob, $noMoreJobsToRun));
         } catch (\Exception $e) {
             // Uncaught error: possibly with QueueBundle itself
-            $this->log('critical', $e->getMessage(), $e->getTrace());
+            $this->log('critical', $e->getMessage(), ["trace" => $e->getTraceAsString()]);
         }
         $this->runManager->runStop($run, $start);
         $this->log('info', 'Ended with '.$run->getProcessed().' job(s) processed over '.strval($run->getElapsed()).' seconds.');
@@ -202,7 +202,6 @@ class Loop
             $endTime = clone $run->getStartedAt();
             $endTime->add($interval);
         }
-
         return $endTime;
     }
 
