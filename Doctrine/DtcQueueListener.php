@@ -140,6 +140,12 @@ class DtcQueueListener
             $dateTime = \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
             $object->setUpdatedAt($dateTime);
         }
+        if (method_exists($object, 'getElapsed') && $object->getElapsed()) {
+            $localeinfo = localeconv();
+            if (isset($localeinfo['decimal_point']) && $localeinfo['decimal_point'] && $localeinfo['decimal_point'] !== '.') {
+                $object->setElapsed(number_format($object->getElapsed(), 16));
+            }
+        }
     }
 
     public function prePersist(LifecycleEventArgs $eventArgs)
@@ -152,6 +158,12 @@ class DtcQueueListener
                 $object->setCreatedAt($dateTime);
             }
             $object->setUpdatedAt($dateTime);
+        }
+        if (method_exists($object, 'getElapsed') && $object->getElapsed()) {
+            $localeinfo = localeconv();
+            if (isset($localeinfo['decimal_point']) && $localeinfo['decimal_point'] && $localeinfo['decimal_point'] !== '.') {
+                $object->setElapsed(number_format($object->getElapsed(), 16));
+            }
         }
     }
 }
