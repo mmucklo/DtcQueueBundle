@@ -136,5 +136,9 @@ dtc_queue:
             retry_interval: ~
             read_timeout: ~
             auth: ~
+    # Locales which don't use '.' for decimal points can have trouble saving jobs via ORM - see issue #98
+    # Set this flag to true if the problem is occurring and you have a locale that uses ',' instead of '.' or some other
+    # non-period character for decimal place
+    locale_fix: false
 
 ```

@@ -1,3 +1,5 @@
+### 5.1.1
+   * A workaround for #98, must set locale_fix: true in dtc_queue.yaml configuration.
 ### 5.1.0
    * Issue #98 fix microtime issues in locales that do not use '.' for the decimal point.
    * Fix logging issue when there's an exception caught in a run.

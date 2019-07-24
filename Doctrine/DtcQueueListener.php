@@ -19,11 +19,13 @@ class DtcQueueListener
     private $entityManagerName;
     private $objectManager;
     private $registry;
+    private $localeFix;
 
-    public function __construct($jobArchiveClass, $runArchiveClass)
+    public function __construct($jobArchiveClass, $runArchiveClass, $localeFix)
     {
         $this->jobArchiveClass = $jobArchiveClass;
         $this->runArchiveClass = $runArchiveClass;
+        $this->localeFix = $localeFix;
     }
 
     public function setRegistry(RegistryInterface $registry)
@@ -140,9 +142,9 @@ class DtcQueueListener
             $dateTime = \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
             $object->setUpdatedAt($dateTime);
         }
-        if (method_exists($object, 'getElapsed') && $object->getElapsed()) {
+        if ($this->localeFix && method_exists($object, 'getElapsed') && $object->getElapsed()) {
             $localeinfo = localeconv();
-            if (isset($localeinfo['decimal_point']) && $localeinfo['decimal_point'] && $localeinfo['decimal_point'] !== '.') {
+            if (isset($localeinfo['decimal_point']) && $localeinfo['decimal_point'] && '.' !== $localeinfo['decimal_point']) {
                 $object->setElapsed(number_format($object->getElapsed(), 16));
             }
         }
@@ -159,9 +161,9 @@ class DtcQueueListener
             }
             $object->setUpdatedAt($dateTime);
         }
-        if (method_exists($object, 'getElapsed') && $object->getElapsed()) {
+        if ($this->localeFix && method_exists($object, 'getElapsed') && $object->getElapsed()) {
             $localeinfo = localeconv();
-            if (isset($localeinfo['decimal_point']) && $localeinfo['decimal_point'] && $localeinfo['decimal_point'] !== '.') {
+            if (isset($localeinfo['decimal_point']) && $localeinfo['decimal_point'] && '.' !== $localeinfo['decimal_point']) {
                 $object->setElapsed(number_format($object->getElapsed(), 16));
             }
         }
