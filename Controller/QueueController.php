@@ -40,11 +40,13 @@ class QueueController extends Controller
      *
      * @Route("/jobs_all", name="dtc_queue_jobs_all")
      *
-     * @throws UnsupportedException
+     * @throws UnsupportedException|\Exception
      */
     public function jobsAllAction()
     {
         $this->validateManagerType('dtc_queue.manager.job');
+        $this->checkDtcGridBundle();
+
         $class1 = $this->container->getParameter('dtc_queue.class.job');
         $class2 = $this->container->getParameter('dtc_queue.class.job_archive');
         $label1 = 'Non-Archived Jobs';
@@ -166,11 +168,12 @@ class QueueController extends Controller
      * @Template("@DtcQueue/Queue/jobs.html.twig")
      * @Route("/jobs", name="dtc_queue_jobs")
      *
-     * @throws UnsupportedException
+     * @throws UnsupportedException|\Exception
      */
     public function jobsAction()
     {
         $this->validateManagerType('dtc_queue.manager.job');
+        $this->checkDtcGridBundle();
         $managerType = $this->container->getParameter('dtc_queue.manager.job');
         $rendererFactory = $this->get('dtc_grid.renderer.factory');
         $renderer = $rendererFactory->create('datatables');
@@ -190,10 +193,12 @@ class QueueController extends Controller
      *
      * @Template("@DtcQueue/Queue/jobs_running.html.twig")
      * @Route("/jobs_running", name="dtc_queue_jobs_running")
+     * @throws UnsupportedException|\Exception
      */
     public function runningJobsAction()
     {
         $this->validateManagerType('dtc_queue.manager.job');
+        $this->checkDtcGridBundle();
         $managerType = $this->container->getParameter('dtc_queue.manager.job');
         $rendererFactory = $this->get('dtc_grid.renderer.factory');
         $renderer = $rendererFactory->create('datatables');
@@ -244,10 +249,12 @@ class QueueController extends Controller
      * List jobs in system by default.
      *
      * @Route("/runs", name="dtc_queue_runs")
+     * @throws UnsupportedException|\Exception
      */
     public function runsAction()
     {
         $this->validateRunManager();
+        $this->checkDtcGridBundle();
         $class1 = $this->container->getParameter('dtc_queue.class.run');
         $class2 = $this->container->getParameter('dtc_queue.class.run_archive');
         $label1 = 'Live Runs';
@@ -278,5 +285,15 @@ class QueueController extends Controller
         $this->addCssJs($params);
 
         return $params;
+    }
+
+    /**
+     * Validates that DtcGridBundle exists
+     * @throws UnsupportedException
+     */
+    protected function checkDtcGridBundle() {
+        if (!class_exists('Dtc\GridBundle\DtcGridBundle')) {
+            throw new UnsupportedException("DtcGridBundle (mmucklo/grid-bundle) needs to be installed.");
+        }
     }
 }

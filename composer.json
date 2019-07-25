@@ -14,22 +14,21 @@
         }
     ],
     "require": {
-        "php": ">=5.6",
-        "dstuecken/php7ify": ">=1.1",
-        "mmucklo/grid-bundle": ">=4.2.0",
+        "php": ">=7.1",
         "symfony/framework-bundle": ">=2.7|>=3.3|4.*",
         "sensio/framework-extra-bundle": "2.*|3.*|4.*|5.*",
         "cocur/background-process": ">=0.7"
     },
     "require-dev": {
-        "doctrine/orm": "^2.4",
-        "doctrine/annotations": "<1.5",
-        "doctrine/cache": "<1.7",
-        "doctrine/collections": "<1.5",
-        "doctrine/instantiator": "<1.1",
-        "doctrine/common": "<2.8",
-        "doctrine/dbal": "<2.6",
+        "doctrine/orm": "^2.6",
+        "doctrine/annotations": "^1.5",
+        "doctrine/cache": "^1.7",
+        "doctrine/collections": "^1.5",
+        "doctrine/instantiator": "^1.1",
+        "doctrine/common": "^2.8",
+        "doctrine/dbal": "^2.6",
         "doctrine/mongodb-odm": "^1.2",
+        "mmucklo/grid-bundle": ">=4.2.0",
         "symfony/templating": "2.*|3.*|4.*",
         "pda/pheanstalk": "^3.1",
         "php-amqplib/php-amqplib": "^2.6",
@@ -43,6 +42,7 @@
         "doctrine/doctrine-bundle": ">=1.8.1"
     },
     "suggest": {
+        "mmucklo/grid-bundle": ">=4.2.0",
         "snc/redis-bundle": "If using redis",
         "predis/predis": "If using redis",
         "ext-redis": "Alternative redis library",

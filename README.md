@@ -8,11 +8,11 @@ DtcQueueBundle
 
 > Allow symfony developers to create background job as easily as: `$worker->later()->process(1,2,3)`
 
-### 5.0 Release
+### 6.0 Release
 
 See [changes](CHANGELOG.md)
 
-Upgrading from 4.0: [see UPGRADING-5.0.md](UPGRADING-5.0.md)
+Upgrading from 5.0: [see UPGRADING-6.0.md](UPGRADING-6.0.md)
 
 Supported Queues
 ----------------
@@ -600,6 +600,8 @@ end script
 
 Admin
 -----
+**NOTE:** ORM And ODM (MongoDB) require [mmucklo/grid-bundle](https://github.com/mmucklo/DtcGridBundle) in order to view the jobs/runs admin page.
+
 
 You can register admin routes to see queue status. In your routing.yml file, add the following:
 
