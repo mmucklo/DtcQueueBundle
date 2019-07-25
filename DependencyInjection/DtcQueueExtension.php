@@ -21,6 +21,7 @@ class DtcQueueExtension extends Extension
         $this->configRabbitMQ($config, $container);
         $this->configRedis($config, $container);
 
+        $container->setParameter('dtc_queue.locale_fix', $config['locale_fix']);
         $container->setParameter('dtc_queue.manager.job', $config['manager']['job']);
         $container->setParameter('dtc_queue.odm.document_manager', $config['odm']['document_manager']);
         $container->setParameter('dtc_queue.orm.entity_manager', $config['orm']['entity_manager']);

@@ -30,6 +30,10 @@ class Configuration implements ConfigurationInterface
 
         $node = $rootNode
             ->children()
+                ->booleanNode('locale_fix')
+                    ->defaultFalse()
+                    ->info('Set this to true to fix issues with ORM saving (see issue #98) in non-period decimal format locales')
+                ->end()
                 ->append($this->addSimpleScalar('orm', 'entity_manager', 'This only needs to be set if orm is used for any of the managers, and you do not want to use the default entity manager'))
                 ->append($this->addSimpleScalar('odm', 'document_manager', 'This only needs to be set if odm is used for any of the managers, and you do not want to use the default document manager'))
                 ->append($this->addManager())
@@ -41,7 +45,6 @@ class Configuration implements ConfigurationInterface
                 ->append($this->addClasses())
                 ->append($this->addPriority())
                 ->append($this->addRetry());
-
         $node = $this->setDeprecatedNode($node, 'scalarNode', 'document_manager', 'The "%node% option is deprecated, Use "odm: { document_manager: ... }" instead.');
         $node = $this->setDeprecatedNode($node, 'scalarNode', 'entity_manager', 'The "%node% option is deprecated, Use "orm: { entity_manager: ... }" instead.');
         $node = $this->setDeprecatedNode($node, 'scalarNode', 'default_manager', 'The "%node% option is deprecated, Use "manager: { job: ... }" instead.');

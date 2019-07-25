@@ -229,6 +229,7 @@ services:
         arguments:
             - '%dtc_queue.class.job_archive%'
             - '%dtc_queue.class.run_archive%'
+            - '%dtc_queue.locale_fix%'
         calls:
             - [ "setEntityManagerName", ['%dtc_queue.orm.entity_manager%']]
         tags:

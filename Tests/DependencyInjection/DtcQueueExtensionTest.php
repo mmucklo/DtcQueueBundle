@@ -84,6 +84,17 @@ class DtcQueueExtensionTest extends TestCase
         return $containerBuilder;
     }
 
+    public function testLocaleFix()
+    {
+        $configs = ['config' => ['locale_fix' => true]];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertTrue($containerBuilder->getParameter('dtc_queue.locale_fix'));
+
+        $configs = ['config' => []];
+        $containerBuilder = $this->tryConfigs($configs);
+        self::assertFalse($containerBuilder->getParameter('dtc_queue.locale_fix'));
+    }
+
     public function testSncRedis()
     {
         $configs = ['config' => ['redis' => ['snc_redis' => ['type' => 'asdf']]]];
