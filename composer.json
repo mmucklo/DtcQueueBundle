@@ -1,4 +1,4 @@
-{
+/
     "name": "mmucklo/queue-bundle",
     "description": "Symfony2/3/4 Queue Bundle (for background jobs) supporting Mongo (Doctrine ODM), Mysql (and any Doctrine ORM), RabbitMQ, Beanstalkd, Redis, and ... {write your own}",
     "keywords": ["queue", "Message queue","mysql","doctrine","mongo","mongodb","orm","odm","beanstalkd","rabbit_mq", "rabbitmq", "beanstalk", "redis", "symfony"],
@@ -14,7 +14,7 @@
         }
     ],
     "require": {
-        "php": ">=5.6",
+        "php": ">=7.1",
         "dstuecken/php7ify": ">=1.1",
         "mmucklo/grid-bundle": ">=4.2.0",
         "symfony/framework-bundle": ">=2.7|>=3.3|4.*",
@@ -22,13 +22,13 @@
         "cocur/background-process": ">=0.7"
     },
     "require-dev": {
-        "doctrine/orm": "^2.4",
-        "doctrine/annotations": "<1.5",
-        "doctrine/cache": "<1.7",
-        "doctrine/collections": "<1.5",
-        "doctrine/instantiator": "<1.1",
-        "doctrine/common": "<2.8",
-        "doctrine/dbal": "<2.6",
+        "doctrine/orm": "^2.6",
+        "doctrine/annotations": "^1.5",
+        "doctrine/cache": "^1.7",
+        "doctrine/collections": "^1.5",
+        "doctrine/instantiator": "^1.1",
+        "doctrine/common": "^2.8",
+        "doctrine/dbal": "^2.6",
         "doctrine/mongodb-odm": "^1.2",
         "symfony/templating": "2.*|3.*|4.*",
         "pda/pheanstalk": "^3.1",
