@@ -1,4 +1,4 @@
-/
+{
     "name": "mmucklo/queue-bundle",
     "description": "Symfony2/3/4 Queue Bundle (for background jobs) supporting Mongo (Doctrine ODM), Mysql (and any Doctrine ORM), RabbitMQ, Beanstalkd, Redis, and ... {write your own}",
     "keywords": ["queue", "Message queue","mysql","doctrine","mongo","mongodb","orm","odm","beanstalkd","rabbit_mq", "rabbitmq", "beanstalk", "redis", "symfony"],
@@ -15,8 +15,6 @@
     ],
     "require": {
         "php": ">=7.1",
-        "dstuecken/php7ify": ">=1.1",
-        "mmucklo/grid-bundle": ">=4.2.0",
         "symfony/framework-bundle": ">=2.7|>=3.3|4.*",
         "sensio/framework-extra-bundle": "2.*|3.*|4.*|5.*",
         "cocur/background-process": ">=0.7"
@@ -43,6 +41,7 @@
         "doctrine/doctrine-bundle": ">=1.8.1"
     },
     "suggest": {
+        "mmucklo/grid-bundle": ">=4.2.0",
         "snc/redis-bundle": "If using redis",
         "predis/predis": "If using redis",
         "ext-redis": "Alternative redis library",
