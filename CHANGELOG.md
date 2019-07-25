@@ -1,5 +1,6 @@
 ### 6.0.0
    * Issue #115 - remove suppot for 5.6 and 7.0
+   * Issue #113 - make DtcGridBundle (mmucklo/grid-bundle) optional.
 ### 5.1.1
    * A workaround for #98, must set locale_fix: true in dtc_queue.yaml configuration.
 ### 5.1.0
