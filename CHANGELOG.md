@@ -1,3 +1,5 @@
+### 6.0.1
+   * Issue #117 - disable DtcGridBundle compiler pass dependency
 ### 6.0.0
    * Issue #115 - remove suppot for 5.6 and 7.0
    * Issue #113 - make DtcGridBundle (mmucklo/grid-bundle) optional.

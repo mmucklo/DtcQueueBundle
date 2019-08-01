@@ -155,6 +155,11 @@ class WorkerCompilerPass implements CompilerPassInterface
     protected function addLiveJobs(ContainerBuilder $container)
     {
         $jobReflection = new \ReflectionClass($container->getParameter('dtc_queue.class.job'));
+
+        if (!class_exists('Dtc\GridBundle\DtcGridBundle')) {
+            return;
+        }
+
         if ($jobReflection->isSubclassOf(\Dtc\QueueBundle\Document\BaseJob::class)) {
             GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.jobs_waiting.odm');
             GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.jobs_running.odm');
