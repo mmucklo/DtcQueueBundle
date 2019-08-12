@@ -1,3 +1,5 @@
+### 6.0.2
+   * Issue #113 - attempt to address a long tail issue with annotations
 ### 6.0.1
    * Issue #117 - disable DtcGridBundle compiler pass dependency
 ### 6.0.0
