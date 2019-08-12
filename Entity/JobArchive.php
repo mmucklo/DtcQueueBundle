@@ -2,10 +2,12 @@
 
 namespace Dtc\QueueBundle\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
 use Dtc\GridBundle\Annotation as Grid;
+use Doctrine\Common\Annotations\Annotation\IgnoreAnnotation;
+use Doctrine\ORM\Mapping as ORM;
 
 /**
+ * @IgnoreAnnotation("Dtc\GridBundle\Annotation\Grid")
  * @ORM\Entity
  * @ORM\Table(name="dtc_queue_job_archive",indexes={
  *                  @ORM\Index(name="job_archive_status_idx", columns={"status"}),

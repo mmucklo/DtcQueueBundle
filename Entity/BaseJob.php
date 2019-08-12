@@ -3,10 +3,16 @@
 namespace Dtc\QueueBundle\Entity;
 
 use Dtc\GridBundle\Annotation as Grid;
-use Doctrine\ORM\Mapping as ORM;
 use Dtc\QueueBundle\Model\MicrotimeTrait;
 use Dtc\QueueBundle\Model\StallableJob;
+use Doctrine\Common\Annotations\Annotation\IgnoreAnnotation;
+use Doctrine\ORM\Mapping as ORM;
 
+/**
+ * Class BaseJob
+ * @IgnoreAnnotation("Dtc\GridBundle\Annotation\Grid")
+ * @package Dtc\QueueBundle\Entity
+ */
 abstract class BaseJob extends StallableJob
 {
     use MicrotimeTrait;
