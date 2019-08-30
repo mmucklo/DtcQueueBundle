@@ -591,7 +591,7 @@ respawn
 start on startup
 
 script
-        /{path to}/console dtc:queue:run --max_count 20 -v -t 3600>> /var/logs/queue.log 2>&1
+        /{path to}/console dtc:queue:run --max-count 20 -v -t 3600>> /var/logs/queue.log 2>&1
 end script
 ```
 
