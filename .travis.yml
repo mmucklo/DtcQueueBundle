@@ -7,11 +7,13 @@ php:
 
 services:
   - mongodb
-  - rabbitmq
   - mysql
   - redis
 
 addons:
+  apt:
+    packages:
+      - rabbitmq-server 
   sonarcloud:
     organization: "mmucklo-github"
     branches:
