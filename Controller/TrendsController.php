@@ -27,7 +27,8 @@ class TrendsController extends Controller
     public function trendsAction()
     {
         $recordTimings = $this->container->getParameter('dtc_queue.timings.record');
-        $params = ['record_timings' => $recordTimings, 'states' => JobTiming::getStates()];
+        $foundYearFunction = class_exists('Oro\ORM\Query\AST\Platform\Functions\Mysql\Year') || class_exists('DoctrineExtensions\Query\Mysql\Year');
+        $params = ['record_timings' => $recordTimings, 'states' => JobTiming::getStates(), 'found_year_function' => $foundYearFunction];
         $this->addCssJs($params);
 
         return $params;

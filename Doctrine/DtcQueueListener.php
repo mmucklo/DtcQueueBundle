@@ -28,7 +28,7 @@ class DtcQueueListener
         $this->localeFix = $localeFix;
     }
 
-    public function setRegistry(RegistryInterface $registry)
+    public function setRegistry($registry)
     {
         $this->registry = $registry;
     }

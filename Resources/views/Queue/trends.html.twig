@@ -32,7 +32,7 @@
             Job timings are not being recorded.
         </p>
         <p>
-            The following configuration entry needs to be enabled in config.yml:
+            The following configuration entry needs to be enabled in config/packages/dtc_queue.yaml:
         </p>
 <pre>
 dtc_queue:
@@ -40,31 +40,39 @@ dtc_queue:
     record_timings: true
 </pre>
     {% else %}
-        <script src="{{ chartjs }}"></script>
-        <div class="view">
-            <label for="type">View</label>
-            <select id="type">
-                <option value="YEAR">By Year</option>
-                <option value="MONTH">By Month</option>
-                <option value="DAY">By Day</option>
-                <option value="HOUR" selected>By Hour</option>
-                <option value="MINUTE">By Minute</option>
-            </select> <span id="type-spin"><i class="fa fa-cog fa-spin fa-3x fa-fw"></i>
-            <span class="sr-only">Loading...</span></span>
-        </div>
-        <div>
-            <canvas id="trends"></canvas>
-        </div>
-        <div id="range-container">
-            <label for="date-adjuster">Range: </label> <input id="date-adjuster" type="range" max="23" value="23" min="0" />
-        </div>
-        <div id="range-value-container">
-            <span id="date-adjuster-value"></span>
-        </div>
-        <script>
-          var states = {{ states | json_encode | raw }};
-          var fetchPath = '{{ path('dtc_queue_timings') }}';
-        </script>
-        <script src="{{ app.request.baseUrl }}/bundles/dtcqueue/js/trends.js?v=1"></script>
+        {% if not found_year_function %}
+            <h2>Please install (composer require) one of the following:</h2>
+            <pre>
+                oro/doctrine-extensions
+                beberlei/DoctrineExtensions
+            </pre>
+        {% else %}
+            <script src="{{ chartjs }}"></script>
+            <div class="view">
+                <label for="type">View</label>
+                <select id="type">
+                    <option value="YEAR">By Year</option>
+                    <option value="MONTH">By Month</option>
+                    <option value="DAY">By Day</option>
+                    <option value="HOUR" selected>By Hour</option>
+                    <option value="MINUTE">By Minute</option>
+                </select> <span id="type-spin"><i class="fa fa-cog fa-spin fa-3x fa-fw"></i>
+                <span class="sr-only">Loading...</span></span>
+            </div>
+            <div>
+                <canvas id="trends"></canvas>
+            </div>
+            <div id="range-container">
+                <label for="date-adjuster">Range: </label> <input id="date-adjuster" type="range" max="23" value="23" min="0" />
+            </div>
+            <div id="range-value-container">
+                <span id="date-adjuster-value"></span>
+            </div>
+            <script>
+              var states = {{ states | json_encode | raw }};
+              var fetchPath = '{{ path('dtc_queue_timings') }}';
+            </script>
+            <script src="{{ app.request.baseUrl }}/bundles/dtcqueue/js/trends.js?v=1"></script>
+        {% endif %}
     {% endif %}
 {% endblock %}
