@@ -29,6 +29,7 @@
         "doctrine/dbal": "^2.6",
         "doctrine/mongodb-odm": "^1.2",
         "mmucklo/grid-bundle": ">=4.2.0",
+        "symfony/console": "3.*|4.*|5.*",
         "symfony/templating": "2.*|3.*|4.*",
         "pda/pheanstalk": "^3.1",
         "php-amqplib/php-amqplib": "^2.6",
