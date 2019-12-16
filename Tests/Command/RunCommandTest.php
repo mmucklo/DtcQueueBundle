@@ -10,7 +10,7 @@ use Dtc\QueueBundle\Manager\WorkerManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Run\Loop;
 use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Tests\Fixtures\DummyOutput;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\DependencyInjection\Container;
 
 class RunCommandTest extends TestCase
@@ -56,7 +56,7 @@ class RunCommandTest extends TestCase
         $runCommand = new RunCommand();
         $runCommand->setContainer($container);
         $input = new ArrayInput(['-m' => 0, '-d' => 0]);
-        $output = new DummyOutput();
+        $output = new NullOutput();
         $failed = false;
         try {
             $runCommand->run($input, $output);
