@@ -9,7 +9,7 @@ use Dtc\QueueBundle\Tests\StubJobTimingManager;
 use Dtc\QueueBundle\Tests\StubRunManager;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Tests\Fixtures\DummyOutput;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -35,7 +35,7 @@ trait CommandTrait
         $command = new $commandClass();
         $command->setContainer($container);
         $input = new ArrayInput($params);
-        $output = new DummyOutput();
+        $output = new NullOutput();
 
         return [$command, $input, $output];
     }
