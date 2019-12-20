@@ -144,22 +144,60 @@ class TrendsController extends Controller
         }
     }
 
-    protected function getJobTimingsOdm($type, \DateTime $end, \DateTime $begin = null)
-    {
-        /** @var JobTimingManager $runManager */
-        $jobTimingManager = $this->get('dtc_queue.manager.job_timing');
-        $jobTimingClass = $jobTimingManager->getJobTimingClass();
+    /**
+     * @param string $type
+     * @param \Doctrine\ODM\MongoDB\Aggregation\Expr $expr
+     * @return mixed
+     */
+    protected function addJobTimingsDateInfo($type, $expr) {
+        switch ($type) {
+            case 'YEAR':
+                return $expr->field('year')
+                    ->year('$finishedAt');
+            case 'MONTH':
+                return $expr->field('year')
+                    ->year('$finishedAt')
+                    ->field('month')
+                    ->month('$finishedAt');
+            case 'DAY':
+                return $expr->field('year')
+                    ->year('$finishedAt')
+                    ->field('month')
+                    ->month('$finishedAt')
+                    ->field('day')
+                    ->dayOfMonth('$finishedAt');
+            case 'HOUR':
+                return $expr->field('year')
+                    ->year('$finishedAt')
+                    ->field('month')
+                    ->month('$finishedAt')
+                    ->field('day')
+                    ->dayOfMonth('$finishedAt')
+                    ->field('hour')
+                    ->hour('$finishedAt');
+            case 'MINUTE':
+                return $expr->field('year')
+                    ->year('$finishedAt')
+                    ->field('month')
+                    ->month('$finishedAt')
+                    ->field('day')
+                    ->dayOfMonth('$finishedAt')
+                    ->field('hour')
+                    ->hour('$finishedAt')
+                    ->field('minute')
+                    ->minute('$finishedAt');
+            default:
+                throw new \InvalidArgumentException("Unknown type $type");
+        }
+    }
 
-        /** @var DocumentManager $documentManager */
-        $documentManager = $jobTimingManager->getObjectManager();
-
+    protected function getJobTImingsOdmMapReduce($builder, $type, \DateTime $end, \DateTime $begin = null) {
         $regexInfo = $this->getRegexDate($type);
         if (!$begin) {
             $begin = clone $end;
             $begin->sub($regexInfo['interval']);
         }
 
-        // Run a map reduce function get worker and status break down
         $mapFunc = 'function() {
             var dateStr = this.finishedAt.toISOString();
             dateStr = dateStr.replace(/'.$regexInfo['replace']['regex']."/,'".$regexInfo['replace']['replacement']."');
@@ -171,8 +209,9 @@ class TrendsController extends Controller
                 emit(this.status, result);
             }
         }";
+
+        // Run a map reduce function get worker and status break down
         $reduceFunc = JobManager::REDUCE_FUNCTION;
-        $builder = $documentManager->createQueryBuilder($jobTimingClass);
         $builder->map($mapFunc)
             ->reduce($reduceFunc);
         $query = $builder->getQuery();
@@ -183,6 +222,85 @@ class TrendsController extends Controller
         }
 
         return $resultHash;
+    }
+
+    protected function getJobTimingsOdm($type, \DateTime $end, \DateTime $begin = null)
+    {
+        /** @var JobTimingManager $runManager */
+        $jobTimingManager = $this->get('dtc_queue.manager.job_timing');
+        $jobTimingClass = $jobTimingManager->getJobTimingClass();
+
+        /** @var DocumentManager $documentManager */
+        $documentManager = $jobTimingManager->getObjectManager();
+
+        $builder = $documentManager->createQueryBuilder($jobTimingClass);
+        if (method_exists($builder, 'map')) {
+            return $this->getJobTimingsOdmMapReduce($builder, $type, $end, $begin);
+        }
+
+        $regexInfo = $this->getRegexDate($type);
+        if (!$begin) {
+            $begin = clone $end;
+            $begin->sub($regexInfo['interval']);
+        }
+
+        $aggregationBuilder = $documentManager->createAggregationBuilder($jobTimingClass);
+        $expr = $this->addJobTimingsDateInfo($type, $aggregationBuilder->expr());
+        $expr = $expr->field('status')
+                ->expression('$status');
+
+        $aggregationBuilder
+            ->match()
+                ->field('finishedAt')
+                ->gte($begin)
+                ->lte($end)
+            ->group()
+                    ->field('id')
+                    ->expression($expr)
+                    ->field('value')
+                    ->sum(1);
+
+        $results = $aggregationBuilder->execute();
+        $resultHash = [];
+        foreach ($results as $result) {
+            $key = $result['_id']['status'];
+            $dateStr = $this->getAggregationResultDateStr($type, $result['_id']);
+            $resultHash[$key][$dateStr] = $result['value'];
+        }
+        return $resultHash;
+    }
+
+    /**
+     * Formats the aggregation result into the desired date string format.
+     * @param string $type
+     * @param array $result
+     * @return string
+     */
+    protected function getAggregationResultDateStr($type, array $result)
+    {
+        switch ($type) {
+            case 'YEAR':
+                return $result['year'];
+            case 'MONTH':
+                return "{$result['year']}-" . str_pad($result['month'], 2, "0", STR_PAD_LEFT);
+            case 'DAY':
+                $str = "{$result['year']}-" . str_pad($result['month'], 2, "0", STR_PAD_LEFT);
+                $str .= '-' . str_pad($result['day'], 2, "0", STR_PAD_LEFT);
+                return $str;
+            case 'HOUR':
+                $str = "{$result['year']}-" . str_pad($result['month'], 2, "0", STR_PAD_LEFT);
+                $str .= '-' . str_pad($result['day'], 2, "0", STR_PAD_LEFT);
+                $str .= ' ' . str_pad($result['hour'], 2, "0", STR_PAD_LEFT);
+                return $str;
+            case 'MINUTE':
+                $str = "{$result['year']}-" . str_pad($result['month'], 2, "0", STR_PAD_LEFT);
+                $str .= '-' . str_pad($result['day'], 2, "0", STR_PAD_LEFT);
+                $str .= ' ' . str_pad($result['hour'], 2, "0", STR_PAD_LEFT);
+                $str .= ':' . str_pad($result['minute'], 2, "0", STR_PAD_LEFT);
+                return $str;
+            default:
+                throw new \InvalidArgumentException("Invalid date format type '$type''");
+        }
     }
 
     protected function getDateFormat($type)

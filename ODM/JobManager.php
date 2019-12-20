@@ -9,6 +9,8 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Dtc\QueueBundle\Document\Job;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Util\Util;
+use MongoDB\DeleteResult;
+use MongoDB\UpdateResult;
 
 class JobManager extends DoctrineJobManager
 {
@@ -39,9 +41,14 @@ class JobManager extends DoctrineJobManager
             ->field('status')->equals($status);
 
         $this->addWorkerNameCriterion($qb, $workerName, $method);
+        $method = 'count';
+        if (method_exists($qb, 'count')) {
+            $method = 'execute';
+            $qb->count();
+        }
         $query = $qb->getQuery();
 
-        return $this->runQuery($query, 'count', [], 0);
+        return $this->runQuery($query, $method, [], 0);
     }
 
     /**
@@ -59,7 +66,9 @@ class JobManager extends DoctrineJobManager
 
         $query = $qb->getQuery();
         $result = $this->runQuery($query, 'execute');
-        if (isset($result['n'])) {
+        if ($result instanceof DeleteResult) {
+            return $result->getDeletedCount();
+        } else if (isset($result['n'])) {
             return $result['n'];
         }
 
@@ -67,11 +76,11 @@ class JobManager extends DoctrineJobManager
     }
 
     /**
-     * @param Builder     $builder
+     * @param $builder
      * @param string|null $workerName
      * @param string|null $method
      */
-    protected function addWorkerNameCriterion(Builder $builder, $workerName = null, $method = null)
+    protected function addWorkerNameCriterion($builder, $workerName = null, $method = null)
     {
         if (null !== $workerName) {
             $builder->field('workerName')->equals($workerName);
@@ -100,7 +109,10 @@ class JobManager extends DoctrineJobManager
         $qb->field('status')->set(\Dtc\QueueBundle\Model\Job::STATUS_EXPIRED);
         $query = $qb->getQuery();
         $result = $this->runQuery($query, 'execute');
-        if (isset($result['n'])) {
+        if ($result instanceof UpdateResult) {
+            return $result->getModifiedCount();
+        }
+        else if (isset($result['n'])) {
             return $result['n'];
         }
 
@@ -129,10 +141,37 @@ class JobManager extends DoctrineJobManager
 
         $this->addWorkerNameCriterion($builder, $workerName, $method);
         $this->addStandardPredicates($builder);
-
+        $method = 'count';
+        if (method_exists($builder, 'count')) {
+            $builder->count();
+            $method = 'execute';
+        }
         $query = $builder->getQuery();
 
-        return $this->runQuery($query, 'count', [true], 0);
+        return $this->runQuery($query, $method, [true], 0);
+    }
+
+    protected function getStatusByDocumentMapReduce($builder, $documentName) {
+        $reduceFunc = self::REDUCE_FUNCTION;
+        $mapFunc = "function() {
+            var result = {};
+            result[this.status] = 1;
+            var key = this.worker_name + '->' + this.method + '()';
+            emit(key, result);
+            }";
+        $builder->map($mapFunc)
+            ->reduce($reduceFunc);
+        $query = $builder->getQuery();
+        $results = $this->runQuery($query, 'execute', [], []);
+        $allStatus = static::getAllStatuses();
+
+        $status = [];
+
+        foreach ($results as $info) {
+            $status[$info['_id']] = $info['value'] + $allStatus;
+        }
+
+        return $status;
     }
 
     /**
@@ -145,26 +184,36 @@ class JobManager extends DoctrineJobManager
     protected function getStatusByDocument($documentName)
     {
         // Run a map reduce function get worker and status break down
-        $mapFunc = "function() {
-            var result = {};
-            result[this.status] = 1;
-            var key = this.worker_name + '->' + this.method + '()';
-            emit(key, result);
-        }";
-        $reduceFunc = self::REDUCE_FUNCTION;
         /** @var DocumentManager $objectManager */
         $objectManager = $this->getObjectManager();
         $builder = $objectManager->createQueryBuilder($documentName);
-        $builder->map($mapFunc)
-            ->reduce($reduceFunc);
-        $query = $builder->getQuery();
-        $results = $this->runQuery($query, 'execute', [], []);
+        if (method_exists($builder, 'map')) {
+            return $this->getStatusByDocumentMapReduce($builder, $documentName);
+        }
+
+        $aggregation = $objectManager->createAggregationBuilder($documentName);
+        $aggregation->group()
+            ->field('id')->expression($aggregation->expr()
+                                                ->field('worker_name')
+                                                ->expression('$worker_name')
+                                                ->field('method')
+                                                ->expression('$method')
+                                                ->field('status')
+                                                ->expression('$status')
+            )
+            ->field('value')
+            ->sum(1);
+        $results = $this->runQuery($aggregation, 'execute', [], []);
         $allStatus = static::getAllStatuses();
 
         $status = [];
 
         foreach ($results as $info) {
-            $status[$info['_id']] = $info['value'] + $allStatus;
+            $key = $info['_id']['worker_name'] . '->' .$info['_id']['method'] . '()';
+            if (!isset($status[$key])) {
+                $status[$key] = $allStatus;
+            }
+            $status[$key][$info['_id']['status']] = $info['value'];
         }
 
         return $status;
@@ -224,7 +273,7 @@ class JobManager extends DoctrineJobManager
         return $job;
     }
 
-    protected function runQuery(\Doctrine\MongoDB\Query\Query $query, $method, array $arguments = [], $resultIfNamespaceError = null)
+    protected function runQuery($query, $method, array $arguments = [], $resultIfNamespaceError = null)
     {
         try {
             $result = call_user_func_array([$query, $method], $arguments);
@@ -373,8 +422,12 @@ class JobManager extends DoctrineJobManager
         $this->addWorkerNameCriterion($builder, $workerName, $methodName);
         // Filter
         $this->addStandardPredicates($builder);
-
-        return $this->runQuery($builder->getQuery(), 'count', [], 0);
+        $method = 'count';
+        if (method_exists($builder, 'count')) {
+            $builder->count();
+            $method = 'execute';
+        }
+        return $this->runQuery($builder->getQuery(), $method, [], 0);
     }
 
     /**

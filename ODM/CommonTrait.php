@@ -7,6 +7,7 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Dtc\QueueBundle\Document\Job;
 use Dtc\QueueBundle\Document\JobTiming;
 use Dtc\QueueBundle\Document\Run;
+use MongoDB\DeleteResult;
 
 trait CommonTrait
 {
@@ -28,7 +29,10 @@ trait CommonTrait
 
         $query = $qb->getQuery();
         $result = $query->execute();
-        if (isset($result['n'])) {
+        if ($result instanceof DeleteResult) {
+            return $result->getDeletedCount();
+        }
+        else if (isset($result['n'])) {
             return $result['n'];
         }
 

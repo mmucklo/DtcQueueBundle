@@ -175,6 +175,9 @@ class DtcQueueExtension extends Extension
         if (isset($config['beanstalkd']['host'])) {
             $container->setParameter('dtc_queue.beanstalkd.host', $config['beanstalkd']['host']);
         }
+        if (isset($config['beanstalkd']['port'])) {
+            $container->setParameter('dtc_queue.beanstalkd.port', $config['beanstalkd']['port']);
+        }
         if (isset($config['beanstalkd']['tube'])) {
             $container->setParameter('dtc_queue.beanstalkd.tube', $config['beanstalkd']['tube']);
         }

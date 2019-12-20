@@ -25,6 +25,7 @@ class BeanstalkdCompilerPassTest extends TestCase
         $definition->setClass(JobManager::class);
         $container->addDefinitions(['dtc_queue.manager.job.beanstalkd' => $definition]);
         $container->setParameter('dtc_queue.beanstalkd.host', 'somehost');
+        $container->setParameter('dtc_queue.beanstalkd.port', 11300);
         $compilerPass = new BeanstalkdCompilerPass();
         $compilerPass->process($container);
 
@@ -40,7 +41,8 @@ class BeanstalkdCompilerPassTest extends TestCase
         $definition->setClass(JobManager::class);
         $container->addDefinitions(['dtc_queue.manager.job.beanstalkd' => $definition]);
         $container->setParameter('dtc_queue.beanstalkd.host', 'somehost');
-        $container->setParameter('dtc_queue.beanstalkd.tube', 'seomthing');
+        $container->setParameter('dtc_queue.beanstalkd.port', 11300);
+        $container->setParameter('dtc_queue.beanstalkd.tube', 'something');
         $compilerPass = new BeanstalkdCompilerPass();
         $compilerPass->process($container);
 

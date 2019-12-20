@@ -48,16 +48,30 @@ abstract class Worker
     public function at($time = null, $batch = false, $priority = null)
     {
         $timeU = $time;
-        $localeInfo = localeconv();
-        $decimalPoint = isset($localeInfo['decimal_point']) ? $localeInfo['decimal_point'] : '.';
         if (null === $time) {
             $timeU = Util::getMicrotimeStr();
-        } elseif (false === strpos(strval($time), $decimalPoint)) {
-            $timeU = strval($time).$decimalPoint.'000000';
+            $dateTime = \DateTime::createFromFormat('U.u', $timeU,
+                new \DateTimeZone(date_default_timezone_get()));
+        } else {
+            $localeInfo = localeconv();
+            $decimalPoint = isset($localeInfo['decimal_point']) ? $localeInfo['decimal_point'] : '.';
+            $hasDecimalPoint = strpos(strval($time), $decimalPoint) !== false;
+            $hasEnDecimalPoint = $decimalPoint === '.' ? $hasDecimalPoint : strpos(strval($time), '.');
+            if (!$hasEnDecimalPoint) {
+                if ($hasDecimalPoint) {
+                    $dateTime = \DateTime::createFromFormat('U' . $decimalPoint . 'u', strval($timeU),
+                        new \DateTimeZone(date_default_timezone_get()));
+                } else {
+                    $dateTime = \DateTime::createFromFormat('U', strval($timeU),
+                        new \DateTimeZone(date_default_timezone_get()));
+                }
+            } else {
+                $dateTime = \DateTime::createFromFormat('U.u', strval($timeU),
+                    new \DateTimeZone(date_default_timezone_get()));
+            }
         }
 
-        $dateTime = \DateTime::createFromFormat('U'.$decimalPoint.'u', (string) $timeU, new \DateTimeZone(date_default_timezone_get()));
-        if (!$dateTime) {
+        if (!($dateTime instanceof \DateTime)) {
             throw new \InvalidArgumentException("Invalid time: $time".($timeU != $time ? " - (micro: $timeU)" : ''));
         }
         $jobClass = $this->jobManager->getJobClass();
@@ -76,7 +90,13 @@ abstract class Worker
 
     public function batchOrLaterDelay($delay = 0, $batch = false, $priority = null)
     {
-        $job = $this->at(microtime(true) + $delay, $batch, $priority);
+        $timing = Util::getMicrotimeStr();
+        $parts = explode('.', $timing);
+        $parts[0] = strval(intval($parts[0]) + intval($delay));
+        $localeInfo = localeconv();
+        $decimalPoint = isset($localeInfo['decimal_point']) ? $localeInfo['decimal_point'] : '.';
+
+        $job = $this->at(implode($decimalPoint, $parts), $batch, $priority);
         $job->setDelay($delay);
 
         return $job;

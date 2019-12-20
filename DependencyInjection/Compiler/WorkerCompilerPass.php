@@ -2,7 +2,6 @@
 
 namespace Dtc\QueueBundle\DependencyInjection\Compiler;
 
-use Dtc\GridBundle\DependencyInjection\Compiler\GridSourceCompilerPass;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Model\Run;
@@ -17,6 +16,8 @@ use Symfony\Component\DependencyInjection\Reference;
 
 class WorkerCompilerPass implements CompilerPassInterface
 {
+    use WorkerCompilerTrait;
+
     public function process(ContainerBuilder $container)
     {
         if (false === $container->hasDefinition('dtc_queue.manager.worker')) {
@@ -51,18 +52,17 @@ class WorkerCompilerPass implements CompilerPassInterface
             $eventDispatcher->addMethodCall('addSubscriber', [$eventSubscriber]);
         }
         $this->setupDoctrineManagers($container);
-        $this->addLiveJobs($container);
     }
 
     /**
      * Add any extra method calls needed.
      *
      * @param ContainerBuilder $container
-     * @param string           $defaultManagerType
+     * @param string           $managerType
      */
-    protected function addMethodCalls(ContainerBuilder $container, $defaultManagerType)
+    protected function addMethodCalls(ContainerBuilder $container, $managerType)
     {
-        if ('orm' === $defaultManagerType) {
+        if ('orm' === $managerType) {
             $doctrine = $container->getDefinition('doctrine');
             $container->getDefinition('dtc_queue.doctrine_listener')->addMethodCall('setRegistry', [$doctrine]);
             $container->getDefinition('dtc_queue.manager.job.orm')->addMethodCall('setRegistry', [$doctrine]);
@@ -108,6 +108,7 @@ class WorkerCompilerPass implements CompilerPassInterface
     /**
      * @param ContainerBuilder $container
      * @param Definition       $definition
+     * @throws
      */
     protected function setupTaggedServices(ContainerBuilder $container, Definition $definition)
     {
@@ -150,27 +151,6 @@ class WorkerCompilerPass implements CompilerPassInterface
     }
 
     /**
-     * @param ContainerBuilder $container
-     */
-    protected function addLiveJobs(ContainerBuilder $container)
-    {
-        $jobReflection = new \ReflectionClass($container->getParameter('dtc_queue.class.job'));
-
-        if (!class_exists('Dtc\GridBundle\DtcGridBundle')) {
-            return;
-        }
-
-        if ($jobReflection->isSubclassOf(\Dtc\QueueBundle\Document\BaseJob::class)) {
-            GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.jobs_waiting.odm');
-            GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.jobs_running.odm');
-        }
-        if ($jobReflection->isSubclassOf(\Dtc\QueueBundle\Entity\BaseJob::class)) {
-            GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.jobs_waiting.orm');
-            GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.jobs_running.orm');
-        }
-    }
-
-    /**
      * @param $managerType
      *
      * @return string|null
@@ -200,7 +180,7 @@ class WorkerCompilerPass implements CompilerPassInterface
      *
      * @return mixed|string
      *
-     * @throws InvalidConfigurationException
+     * @throws
      */
     protected function getJobClass(ContainerBuilder $container)
     {
@@ -216,16 +196,6 @@ class WorkerCompilerPass implements CompilerPassInterface
         $this->testClass($jobClass, Job::class);
 
         return $jobClass;
-    }
-
-    protected function getRunManagerType(ContainerBuilder $container)
-    {
-        $managerType = 'dtc_queue.manager.job';
-        if ($container->hasParameter('dtc_queue.manager.run')) {
-            $managerType = 'dtc_queue.manager.run';
-        }
-
-        return $managerType;
     }
 
     protected function getJobTimingManagerType(ContainerBuilder $container)

@@ -14,7 +14,14 @@ class BeanstalkdCompilerPass implements CompilerPassInterface
         if ($container->hasParameter('dtc_queue.beanstalkd.host')) {
             $definition = new Definition(
                 'Pheanstalk\\Pheanstalk',
-                [$container->getParameter('dtc_queue.beanstalkd.host')]
+                [
+                    new Definition('Pheanstalk\\Connection',
+                        [
+                            new Definition('Pheanstalk\\SocketFactory',
+                                            [$container->getParameter('dtc_queue.beanstalkd.host'), $container->getParameter('dtc_queue.beanstalkd.port')])
+                        ]
+                    )
+                ]
             );
             $container->setDefinition('dtc_queue.beanstalkd', $definition);
             $definition = $container->getDefinition('dtc_queue.manager.job.beanstalkd');

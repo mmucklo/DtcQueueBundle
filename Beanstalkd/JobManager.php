@@ -48,17 +48,30 @@ class JobManager extends RetryableJobManager
     {
         /** @var Job $job */
         $message = $job->toMessage();
-        $arguments = [$message, $job->getPriority(), $job->getDelay(), $job->getTtr()];
+        $arguments = [$message];
+        if ($job->getPriority() !== null) {
+            $arguments[] = $job->getPriority();
+        }
+        if ($job->getDelay() !== null) {
+            while (count($arguments) < 2) {
+                $arguments[] = 0;
+            }
+            $arguments[] = $job->getDelay();
+        }
+        if ($job->getTtr() !== null) {
+            while (count($arguments) < 3) {
+                $arguments[] = 0;
+            }
+            $arguments[] = $job->getTtr();
+        }
         $method = 'put';
         if ($this->tube) {
             array_unshift($arguments, $this->tube);
             $method .= 'InTube';
         }
-        $jobId = call_user_func_array([$this->beanstalkd, $method], $arguments);
-        $job->setId($jobId);
-
-        // Ideally we should get this from beanstalk, but to save the roundtrip time, we do this here
-        $job->setBeanJob($this->getBeanJob($jobId, $message));
+        $beanJob = call_user_func_array([$this->beanstalkd, $method], $arguments);
+        $job->setId($beanJob->getId());
+        $job->setBeanJob($beanJob);
 
         return $job;
     }
@@ -124,7 +137,7 @@ class JobManager extends RetryableJobManager
      */
     protected function findJob(Pheanstalk $beanstalkd, &$expiredJob, $runId)
     {
-        $beanJob = $beanstalkd->reserve($this->reserveTimeout);
+        $beanJob = $beanstalkd->reserveWithTimeout($this->reserveTimeout);
         if ($beanJob) {
             $job = new Job();
             $job->fromMessage($beanJob->getData());
@@ -148,7 +161,7 @@ class JobManager extends RetryableJobManager
     public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
     {
         $this->beanstalkd
-            ->delete($job);
+            ->delete($job->getBeanJob());
     }
 
     // Save History get called upon completion of the job
@@ -156,7 +169,7 @@ class JobManager extends RetryableJobManager
     {
         if (!$retry) {
             $this->beanstalkd
-                ->delete($job);
+                ->delete($job->getBeanJob());
         }
     }
 

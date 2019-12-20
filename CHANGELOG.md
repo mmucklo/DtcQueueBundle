@@ -1,3 +1,5 @@
+### 6.0.4
+   * Issue #123 - More Symfony 4.4 compatibility fixes.
 ### 6.0.3
    * Issue #123 - Symfony 4.4 compatibility fix.
 ### 6.0.2

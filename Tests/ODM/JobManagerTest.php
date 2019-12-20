@@ -11,6 +11,7 @@ use Doctrine\MongoDB\Connection;
 use Doctrine\ODM\MongoDB\Configuration;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver;
+use MongoDB\Client;
 
 /**
  * @author David
@@ -51,7 +52,7 @@ class JobManagerTest extends DoctrineJobManagerTest
         $classPath = __DIR__.'../../Document';
         $config->setMetadataDriverImpl(AnnotationDriver::create($classPath));
 
-        self::$objectManager = DocumentManager::create(new Connection(getenv('MONGODB_HOST')), $config);
+        self::$objectManager = DocumentManager::create(new Client('mongodb://'.getenv('MONGODB_HOST'), [], ['typeMap' => DocumentManager::CLIENT_TYPEMAP]), $config);
 
         $documentName = 'Dtc\QueueBundle\Document\Job';
         $archiveDocumentName = 'Dtc\QueueBundle\Document\JobArchive';
@@ -95,6 +96,6 @@ class JobManagerTest extends DoctrineJobManagerTest
         /** @var DocumentManager $documentManager */
         $documentManager = $jobManager->getObjectManager();
 
-        return $documentManager->createQueryBuilder($class)->getQuery()->count();
+        return $documentManager->createQueryBuilder($class)->count()->getQuery()->execute();
     }
 }

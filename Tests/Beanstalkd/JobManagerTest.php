@@ -9,7 +9,9 @@ use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\Manager\AutoRetryTrait;
 use Dtc\QueueBundle\Tests\Manager\BaseJobManagerTest;
 use Dtc\QueueBundle\Tests\Manager\RetryableTrait;
+use Pheanstalk\Connection;
 use Pheanstalk\Pheanstalk;
+use Pheanstalk\SocketFactory;
 
 /**
  * @author David
@@ -25,11 +27,12 @@ class JobManagerTest extends BaseJobManagerTest
     public static function setUpBeforeClass()
     {
         $host = getenv('BEANSTALKD_HOST');
+        $port = getenv('BEANSTALKD_PORT');
         $className = 'Dtc\QueueBundle\Beanstalkd\Job';
         $jobTimingClass = 'Dtc\QueueBundle\Model\JobTiming';
         $runClass = 'Dtc\QueueBundle\Model\Run';
 
-        self::$beanstalkd = new Pheanstalk($host);
+        self::$beanstalkd = new Pheanstalk(new Connection(new SocketFactory($host, $port)));
         self::$jobTimingManager = new JobTimingManager($jobTimingClass, false);
         self::$runManager = new RunManager($runClass);
         self::$jobManager = new JobManager(self::$runManager, self::$jobTimingManager, $className);
@@ -38,7 +41,7 @@ class JobManagerTest extends BaseJobManagerTest
 
         $drained = 0;
         do {
-            $beanJob = self::$beanstalkd->reserve(1);
+            $beanJob = self::$beanstalkd->reserveWithTimeout(1);
             if ($beanJob) {
                 self::$beanstalkd->delete($beanJob);
                 ++$drained;

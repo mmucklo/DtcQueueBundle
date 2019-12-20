@@ -41,18 +41,18 @@ class PruneCommandTest extends TestCase
         /** @var JobManager $jobManager $ */
         /** @var DocumentRepository $repository */
         $repository = $jobManager->getRepository();
-        $count = $repository->createQueryBuilder()->getQuery()->count(true);
+        $count = $repository->createQueryBuilder()->count()->getQuery()->execute();
         self::assertEquals(1, $count);
         $archiveRepository = $jobManager->getObjectManager()->getRepository($jobManager->getJobArchiveClass());
-        $countArchive = $archiveRepository->createQueryBuilder()->getQuery()->count(true);
+        $countArchive = $archiveRepository->createQueryBuilder()->count()->getQuery()->execute();
         self::assertEquals(0, $countArchive);
 
         $this->runCommand('\Dtc\QueueBundle\Command\PruneCommand', $container, ['type' => 'expired']);
 
-        $count = $repository->createQueryBuilder()->getQuery()->count(true);
+        $count = $repository->createQueryBuilder()->count()->getQuery()->execute();
         self::assertEquals(0, $count);
 
-        $countArchive = $archiveRepository->createQueryBuilder()->getQuery()->count(true);
+        $countArchive = $archiveRepository->createQueryBuilder()->count()->getQuery()->execute();
         self::assertEquals(1, $countArchive);
     }
 

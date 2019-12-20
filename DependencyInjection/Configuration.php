@@ -167,6 +167,9 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->scalarNode('host')->end()
+                ->integerNode('port')
+                    ->defaultValue(11300)
+                ->end()
                 ->scalarNode('tube')->end()
             ->end();
 
