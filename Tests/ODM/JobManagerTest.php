@@ -7,11 +7,9 @@ use Dtc\QueueBundle\ODM\JobTimingManager;
 use Dtc\QueueBundle\ODM\RunManager;
 use Dtc\QueueBundle\Tests\Doctrine\DoctrineJobManagerTest;
 use Dtc\QueueBundle\ODM\JobManager;
-use Doctrine\MongoDB\Connection;
 use Doctrine\ODM\MongoDB\Configuration;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver;
-use MongoDB\Client;
 
 /**
  * @author David
@@ -52,7 +50,11 @@ class JobManagerTest extends DoctrineJobManagerTest
         $classPath = __DIR__.'../../Document';
         $config->setMetadataDriverImpl(AnnotationDriver::create($classPath));
 
-        self::$objectManager = DocumentManager::create(new Client('mongodb://'.getenv('MONGODB_HOST'), [], ['typeMap' => DocumentManager::CLIENT_TYPEMAP]), $config);
+        if (class_exists('Doctrine\MongoDB\Connection')) {
+            self::$objectManager = DocumentManager::create(new \Doctrine\MongoDB\Connection(getenv('MONGODB_HOST')), $config);
+        } else {
+            self::$objectManager = DocumentManager::create(new \MongoDB\Client('mongodb://'.getenv('MONGODB_HOST'), [], ['typeMap' => DocumentManager::CLIENT_TYPEMAP]), $config);
+        }
 
         $documentName = 'Dtc\QueueBundle\Document\Job';
         $archiveDocumentName = 'Dtc\QueueBundle\Document\JobArchive';
@@ -88,6 +90,11 @@ class JobManagerTest extends DoctrineJobManagerTest
         parent::setUpBeforeClass();
     }
 
+    /**
+     * @param $class
+     * @return array|\Doctrine\ODM\MongoDB\Iterator\Iterator|int|\MongoDB\DeleteResult|\MongoDB\InsertOneResult|\MongoDB\UpdateResult|object|null
+     * @throws \Doctrine\ODM\MongoDB\MongoDBException
+     */
     protected function runCountQuery($class)
     {
         /** @var JobManager $jobManager */
@@ -96,6 +103,11 @@ class JobManagerTest extends DoctrineJobManagerTest
         /** @var DocumentManager $documentManager */
         $documentManager = $jobManager->getObjectManager();
 
-        return $documentManager->createQueryBuilder($class)->count()->getQuery()->execute();
+        $queryBuilder = $documentManager->createQueryBuilder($class);
+        if (method_exists($queryBuilder, 'count')) {
+            return $queryBuilder->count()->getQuery()->execute();
+        }
+
+        return $queryBuilder->getQuery()->count();
     }
 }
