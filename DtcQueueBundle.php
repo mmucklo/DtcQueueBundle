@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle;
 
 use Dtc\QueueBundle\DependencyInjection\Compiler\BeanstalkdCompilerPass;
+use Dtc\QueueBundle\DependencyInjection\Compiler\GridCompilerPass;
 use Dtc\QueueBundle\DependencyInjection\Compiler\RabbitMQCompilerPass;
 use Dtc\QueueBundle\DependencyInjection\Compiler\RedisCompilerPass;
 use Dtc\QueueBundle\DependencyInjection\Compiler\WorkerCompilerPass;
@@ -18,5 +19,6 @@ class DtcQueueBundle extends Bundle
         $container->addCompilerPass(new RabbitMQCompilerPass());
         $container->addCompilerPass(new BeanstalkdCompilerPass());
         $container->addCompilerPass(new RedisCompilerPass());
+        $container->addCompilerPass(new GridCompilerPass());
     }
 }
