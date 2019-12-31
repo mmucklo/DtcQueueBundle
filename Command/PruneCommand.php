@@ -4,13 +4,13 @@ namespace Dtc\QueueBundle\Command;
 
 use Dtc\QueueBundle\Exception\UnsupportedException;
 use Dtc\QueueBundle\Util\Util;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class PruneCommand extends ContainerAwareCommand
+class PruneCommand extends Command
 {
     const OLDER_MESSAGE = '<int>[d|m|y|h|i|s] Specify how old the jobs should (defaults to timestamp unless a quantifier is specified [d_ays, m_onths, y_years, h_ours, i_minutes, s_econds';
 
@@ -49,7 +49,8 @@ class PruneCommand extends ContainerAwareCommand
 
     protected function pruneExceptionJobs(OutputInterface $output)
     {
-        $container = $this->getContainer();
+        // @TODO: move this to dependency injection.
+        $container = $this->getApplication()->getKernel()->getContainer();
         $jobManager = $container->get('dtc_queue.manager.job');
         $count = $jobManager->pruneExceptionJobs();
         $output->writeln("$count Job(s) with status 'exception' pruned");
@@ -57,7 +58,8 @@ class PruneCommand extends ContainerAwareCommand
 
     public function executeStalledOther(InputInterface $input, OutputInterface $output)
     {
-        $container = $this->getContainer();
+        // @TODO: move this to dependency injection.
+        $container = $this->getApplication()->getKernel()->getContainer();
         $jobManager = $container->get('dtc_queue.manager.job');
         $type = $input->getArgument('type');
         switch ($type) {
@@ -135,7 +137,8 @@ class PruneCommand extends ContainerAwareCommand
      */
     protected function pruneOlderThan($type, \DateTime $olderThan, OutputInterface $output)
     {
-        $container = $this->getContainer();
+        // @TODO: move this to dependency injection.
+        $container = $this->getApplication()->getKernel()->getContainer();
         $typeName = null;
         switch ($type) {
             case 'old':

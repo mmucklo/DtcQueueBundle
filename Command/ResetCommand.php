@@ -2,11 +2,11 @@
 
 namespace Dtc\QueueBundle\Command;
 
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ResetCommand extends ContainerAwareCommand
+class ResetCommand extends Command
 {
     protected function configure()
     {
@@ -17,7 +17,8 @@ class ResetCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $container = $this->getContainer();
+        // @TODO: move this to dependency injection.
+        $container = $this->getApplication()->getKernel()->getContainer();
         $jobManager = $container->get('dtc_queue.manager.job');
         $countException = $jobManager->resetExceptionJobs();
         $countStalled = $jobManager->resetStalledJobs();

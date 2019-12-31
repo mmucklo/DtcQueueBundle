@@ -2,11 +2,11 @@
 
 namespace Dtc\QueueBundle\Command;
 
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class CountCommand extends ContainerAwareCommand
+class CountCommand extends Command
 {
     protected function configure()
     {
@@ -17,7 +17,8 @@ class CountCommand extends ContainerAwareCommand
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $container = $this->getContainer();
+        // @TODO: move this to dependency injection.
+        $container = $this->getApplication()->getKernel()->getContainer();
         $jobManager = $container->get('dtc_queue.manager.job');
 
         $waitingCount = $jobManager->getWaitingJobCount();
@@ -41,6 +42,7 @@ class CountCommand extends ContainerAwareCommand
         }
 
         $output->writeln("Total waiting jobs: {$waitingCount}");
+        return 0;
     }
 
     /**

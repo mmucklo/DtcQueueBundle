@@ -7,14 +7,14 @@ use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Run\Loop;
 use Dtc\QueueBundle\Util\Util;
 use Psr\Log\LoggerInterface;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\HttpKernel\Kernel;
 
-class RunCommand extends ContainerAwareCommand
+class RunCommand extends Command
 {
     protected $loggerPrivate = false;
     protected $nanoSleepOption = null;
@@ -101,7 +101,8 @@ class RunCommand extends ContainerAwareCommand
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $start = microtime(true);
-        $container = $this->getContainer();
+        // @TODO: move this to dependency injection.
+        $container = $this->getApplication()->getKernel()->getContainer();
         $loop = $container->get('dtc_queue.run.loop');
         $loop->setOutput($output);
         $workerName = $input->getArgument('worker-name');
