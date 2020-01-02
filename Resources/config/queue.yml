@@ -35,9 +35,6 @@ services:
         class: Dtc\QueueBundle\ODM\LiveJobsGridSource
         arguments:
             - "@dtc_queue.manager.job.odm"
-        calls:
-            - [ 'setAnnotationReader', ['@annotation_reader' ]]
-            - [ 'setCacheDir', ['%kernel.cache_dir%' ]]
 
     dtc_queue.grid_source.jobs_running.odm:
         public: true
@@ -45,8 +42,6 @@ services:
         arguments:
             - "@dtc_queue.manager.job.odm"
         calls:
-            - [ 'setAnnotationReader', ['@annotation_reader' ]]
-            - [ 'setCacheDir', ['%kernel.cache_dir%' ]]
             - [ 'setRunning', [true ]]
 
     dtc_queue.grid_source.jobs_waiting.orm:
@@ -54,9 +49,6 @@ services:
         class: Dtc\QueueBundle\ORM\LiveJobsGridSource
         arguments:
             - "@dtc_queue.manager.job.orm"
-        calls:
-            - [ 'setAnnotationReader', ['@annotation_reader' ]]
-            - [ 'setCacheDir', ['%kernel.cache_dir%' ]]
 
     dtc_queue.grid_source.jobs_running.orm:
         public: true
@@ -64,8 +56,6 @@ services:
         arguments:
             - "@dtc_queue.manager.job.orm"
         calls:
-            - [ 'setAnnotationReader', ['@annotation_reader' ]]
-            - [ 'setCacheDir', ['%kernel.cache_dir%' ]]
             - [ 'setRunning', [true ]]
 
     dtc_queue.manager.job.odm:
@@ -253,25 +243,37 @@ services:
 
     dtc_queue.command.count:
         class: Dtc\QueueBundle\Command\CountCommand
+        calls:
+            - [ "setJobManager", ['@dtc_queue.manager.job'] ]
         tags:
             - { name: console.command }
 
     dtc_queue.command.create_job:
         class: Dtc\QueueBundle\Command\CreateJobCommand
+        calls:
+            - [ "setWorkerManager", ['@dtc_queue.manager.worker'] ]
         tags:
             - { name: console.command }
 
     dtc_queue.command.prune:
         class: Dtc\QueueBundle\Command\PruneCommand
+        calls:
+            - [ "setJobManager", ['@dtc_queue.manager.job'] ]
+            - [ "setRunManager", ['@dtc_queue.manager.run'] ]
+            - [ "setJobTimingManager", ['@dtc_queue.manager.job_timing'] ]
         tags:
             - { name: console.command }
 
     dtc_queue.command.reset:
         class: Dtc\QueueBundle\Command\ResetCommand
+        calls:
+            - [ "setJobManager", ['@dtc_queue.manager.job'] ]
         tags:
             - { name: console.command }
 
     dtc_queue.command.run:
         class: Dtc\QueueBundle\Command\RunCommand
+        calls:
+            - [ "setRunLoop", ['@dtc_queue.run.loop'] ]
         tags:
             - { name: console.command }

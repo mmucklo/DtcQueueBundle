@@ -19,6 +19,9 @@ class RunCommand extends Command
     protected $loggerPrivate = false;
     protected $nanoSleepOption = null;
 
+    /** @var Loop */
+    private $runLoop;
+
     protected function symfonyDetect()
     {
         $this->nanoSleepOption = null;
@@ -98,13 +101,15 @@ class RunCommand extends Command
             ->setDescription('Start up a job in queue');
     }
 
+    public function setRunLoop($runLoop) {
+        $this->runLoop = $runLoop;
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $start = microtime(true);
         // @TODO: move this to dependency injection.
-        $container = $this->getApplication()->getKernel()->getContainer();
-        $loop = $container->get('dtc_queue.run.loop');
-        $loop->setOutput($output);
+        $this->runLoop->setOutput($output);
         $workerName = $input->getArgument('worker-name');
         $methodName = $input->getArgument('method');
         $maxCount = $input->getOption('max-count');
@@ -115,22 +120,22 @@ class RunCommand extends Command
         $disableGc = $input->getOption('disable-gc', false);
         $this->setGc($disableGc);
 
-        $this->setLoggerService($loop, $loggerService);
+        $this->setLoggerService($this->runLoop, $loggerService);
 
         $maxCount = Util::validateIntNull('max_count', $maxCount, 32);
         $duration = Util::validateIntNull('duration', $duration, 32);
         $nanoSleep = Util::validateIntNull('nano_sleep', $nanoSleep, 63);
         $processTimeout = Util::validateIntNull('timeout', $processTimeout, 32);
-        $loop->checkMaxCountDuration($maxCount, $duration, $processTimeout);
+        $this->runLoop->checkMaxCountDuration($maxCount, $duration, $processTimeout);
 
         // Check to see if there are other instances
         set_time_limit($processTimeout); // Set timeout on the process
 
         if ($jobId = $input->getOption('id')) {
-            return $loop->runJobById($start, $jobId); // Run a single job
+            return $this->runLoop->runJobById($start, $jobId); // Run a single job
         }
 
-        return $loop->runLoop($start, $workerName, $methodName, $maxCount, $duration, $nanoSleep);
+        return $this->runLoop->runLoop($start, $workerName, $methodName, $maxCount, $duration, $nanoSleep);
     }
 
     /**

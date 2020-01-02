@@ -54,7 +54,7 @@ class RunCommandTest extends TestCase
         $this->runRunCommand($loop, $container, ['-m' => 1], 1);
 
         $runCommand = new RunCommand();
-        $runCommand->setContainer($container);
+        $runCommand->setRunLoop($loop);
         $input = new ArrayInput(['-m' => 0, '-d' => 0]);
         $output = new NullOutput();
         $failed = false;

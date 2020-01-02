@@ -8,6 +8,7 @@ use Dtc\QueueBundle\Tests\StubJobManager;
 use Dtc\QueueBundle\Tests\StubJobTimingManager;
 use Dtc\QueueBundle\Tests\StubRunManager;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\DependencyInjection\Container;
@@ -33,7 +34,21 @@ trait CommandTrait
     private function prepCommand($commandClass, ContainerInterface $container, array $params)
     {
         $command = new $commandClass();
-        $command->setContainer($container);
+        if (method_exists($command, 'setRunLoop')) {
+            $command->setRunLoop($container->get('dtc_queue.run.loop'));
+        }
+        if (method_exists($command, 'setJobManager')) {
+            $command->setJobManager($container->get('dtc_queue.manager.job'));
+        }
+        if (method_exists($command, 'setWorkerManager')) {
+            $command->setWorkerManager($container->get('dtc_queue.manager.worker'));
+        }
+        if (method_exists($command, 'setRunManager')) {
+            $command->setRunManager($container->get('dtc_queue.manager.run'));
+        }
+        if (method_exists($command, 'setJobTimingManager')) {
+            $command->setJobTimingManager($container->get('dtc_queue.manager.job_timing'));
+        }
         $input = new ArrayInput($params);
         $output = new NullOutput();
 

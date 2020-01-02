@@ -5,6 +5,8 @@ namespace Dtc\QueueBundle\Tests\Command;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Dtc\QueueBundle\Command\PruneCommand;
 use Dtc\QueueBundle\Document\Job;
+use Dtc\QueueBundle\Manager\JobTimingManager;
+use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Util\Util;
 use PHPUnit\Framework\TestCase;
 use Dtc\QueueBundle\ODM\JobManager;
@@ -23,6 +25,9 @@ class PruneCommandTest extends TestCase
 
         /** @var JobManager $jobManager */
         $jobManager = \Dtc\QueueBundle\Tests\ODM\JobManagerTest::$jobManager;
+        /** @var RunManager $runManager */
+        $runManager = \Dtc\QueueBundle\Tests\ORM\JobManagerTest::$runManager;
+        $jobTimingManager = new JobTimingManager(JobTimingManager::class, false);
         $eventDispatcher = new EventDispatcher();
         $workerManager = new WorkerManager($jobManager, $eventDispatcher);
         $worker = new FibonacciWorker();
@@ -31,6 +36,8 @@ class PruneCommandTest extends TestCase
 
         $container = new Container();
         $container->set('dtc_queue.manager.job', $jobManager);
+        $container->set('dtc_queue.manager.run', $runManager);
+        $container->set('dtc_queue.manager.job_timing', $jobTimingManager);
 
         /** @var Job $job */
         $time = time() - 1;

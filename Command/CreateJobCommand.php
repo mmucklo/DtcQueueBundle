@@ -3,6 +3,8 @@
 namespace Dtc\QueueBundle\Command;
 
 use Dtc\QueueBundle\Exception\WorkerNotRegisteredException;
+use Dtc\QueueBundle\Manager\WorkerManager;
+use Dtc\QueueBundle\Model\Job;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -12,6 +14,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 class CreateJobCommand extends Command
 {
     protected static $defaultName = 'dtc:queue:create_job';
+
+    /** @var WorkerManager */
+    private $workerManager;
 
     protected function configure()
     {
@@ -83,19 +88,18 @@ class CreateJobCommand extends Command
         return $helpMessage;
     }
 
+    public function setWorkerManager($workerManager) {
+        $this->workerManager = $workerManager;
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        // @TODO: move this to dependency injection.
-        $container = $this->getApplication()->getKernel()->getContainer();
-        $jobManager = $container->get('dtc_queue.manager.job');
-        $workerManager = $container->get('dtc_queue.manager.worker');
-
         $workerName = $input->getArgument('worker_name');
         $methodName = $input->getArgument('method');
 
         $args = $this->getArgs($input);
 
-        $worker = $workerManager->getWorker($workerName);
+        $worker = $this->workerManager->getWorker($workerName);
 
         if (!$worker) {
             throw new WorkerNotRegisteredException("Worker `{$workerName}` is not registered.");
@@ -106,11 +110,12 @@ class CreateJobCommand extends Command
         $priority = 1;
 
         $jobClass = $worker->getJobManager()->getJobClass();
+        /** @var Job $job */
         $job = new $jobClass($worker, $batch, $priority, $when);
         $job->setMethod($methodName);
         $job->setArgs($args);
 
-        $jobManager->save($job);
+        $worker->getJobManager()->save($job);
         return 0;
     }
 
