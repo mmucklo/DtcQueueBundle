@@ -89,8 +89,7 @@ trait ControllerTrait
             []
         );
         $templates = ['@DtcQueue/Queue/grid.html.twig' => file_get_contents(__DIR__.'/../../Resources/views/Queue/grid.html.twig'),
-                      '@DtcGrid/Page/datatables.html.twig' => file_get_contents(__DIR__.'/../../vendor/mmucklo/grid-bundle/views/grid/grid.html.twig'),
-                      'DtcGridBundle:Page:datatables.html.twig' => file_get_contents(__DIR__.'/../../vendor/mmucklo/grid-bundle/Resources/views/Grid/datatables.html.twig')];
+                      '@DtcGrid/Page/datatables.html.twig' => file_get_contents(__DIR__.'/../../vendor/mmucklo/grid-bundle/Resources/views/Grid/datatables.html.twig')];
         if (class_exists('Symfony\Bundle\TwigBundle\TwigEngine') && method_exists($rendererFactory, 'setTwigEngine')) {
                 $twigEngine = new TwigEngine(new Environment(new \Twig_Loader_Array($templates)),
                     new TemplateNameParser(),
