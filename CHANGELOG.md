@@ -1,6 +1,6 @@
-### 6.0.4
-   * Issue #123 - More Symfony 4.4 compatibility fixes.
 ### 6.0.3
+   * Fix deprecation warnings.
+   * Issue #123 - Doctrine ODM 2 support
    * Issue #123 - Symfony 4.4 compatibility fix.
 ### 6.0.2
    * Issue #113 - attempt to address a long tail issue with annotations
