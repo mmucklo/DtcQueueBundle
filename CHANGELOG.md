@@ -1,3 +1,5 @@
+### 6.0.4
+   * Fix layout.html.twig issue
 ### 6.0.3
    * Fix deprecation warnings.
    * Issue #123 - Doctrine ODM 2 support
