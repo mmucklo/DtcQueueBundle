@@ -11,7 +11,6 @@ use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Manager\WorkerManager;
 use Dtc\QueueBundle\ORM\LiveJobsGridSource;
 use Dtc\QueueBundle\Tests\ORM\JobManagerTest;
-use http\Env;
 use Symfony\Bridge\Twig\Extension\TranslationExtension;
 use Symfony\Bundle\TwigBundle\TwigEngine;
 use Symfony\Component\Config\FileLocator;
@@ -22,7 +21,6 @@ use Symfony\Component\Templating\TemplateNameParser;
 use Symfony\Component\Translation\Translator;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
-use Twig\TwigFilter;
 
 trait ControllerTrait
 {
@@ -71,7 +69,7 @@ trait ControllerTrait
         $container->set('dtc_queue.manager.worker', new WorkerManager($jobManager, new EventDispatcher()));
         $rendererFactory = new RendererFactory(
             new Router(new YamlFileLoader(new FileLocator(__DIR__)), 'test.yml'),
-            new Translator("en_US"),
+            new Translator('en_US'),
             [
                 'theme.css' => [],
                 'theme.js' => [],
@@ -89,14 +87,16 @@ trait ControllerTrait
             []
         );
         $templates = ['@DtcQueue/Queue/grid.html.twig' => file_get_contents(__DIR__.'/../../Resources/views/Queue/grid.html.twig'),
-                      '@DtcGrid/Page/datatables.html.twig' => file_get_contents(__DIR__.'/../../vendor/mmucklo/grid-bundle/Resources/views/Grid/datatables.html.twig')];
+                      '@DtcGrid/Page/datatables.html.twig' => file_get_contents(__DIR__.'/../../vendor/mmucklo/grid-bundle/Resources/views/Grid/datatables.html.twig'), ];
         if (class_exists('Symfony\Bundle\TwigBundle\TwigEngine') && method_exists($rendererFactory, 'setTwigEngine')) {
-                $twigEngine = new TwigEngine(new Environment(new \Twig_Loader_Array($templates)),
+            $twigEngine = new TwigEngine(
+                    new Environment(new \Twig_Loader_Array($templates)),
                     new TemplateNameParser(),
-                    new FileLocator(__DIR__));
-                $rendererFactory->setTwigEngine($twigEngine);
-                $container->set('twig', $twigEngine);
-        } else if (class_exists('Twig\Environment') && method_exists($rendererFactory, 'setTwigEnvironment')) {
+                    new FileLocator(__DIR__)
+                );
+            $rendererFactory->setTwigEngine($twigEngine);
+            $container->set('twig', $twigEngine);
+        } elseif (class_exists('Twig\Environment') && method_exists($rendererFactory, 'setTwigEnvironment')) {
             $environment = new Environment(new ArrayLoader($templates));
             $translatorExtension = new TranslationExtension(new Translator('en_US'));
 //            foreach ($translatorExtension->getFilters() as $filter) {

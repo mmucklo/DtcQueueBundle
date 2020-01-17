@@ -24,7 +24,7 @@ class WorkerManager
 
     public function __construct(JobManagerInterface $jobManager, EventDispatcher $eventDispatcher)
     {
-        $this->workers = array();
+        $this->workers = [];
         $this->jobManager = $jobManager;
         $this->eventDispatcher = $eventDispatcher;
     }
@@ -35,8 +35,6 @@ class WorkerManager
     }
 
     /**
-     * @param Worker $worker
-     *
      * @throws DuplicateWorkerException
      */
     public function addWorker(Worker $worker)
@@ -103,10 +101,6 @@ class WorkerManager
         return $this->runJob($job);
     }
 
-    /**
-     * @param array $payload
-     * @param Job   $job
-     */
     protected function handleException(array $payload, Job $job)
     {
         $exception = $payload[0];
@@ -149,7 +143,7 @@ class WorkerManager
             $job->setStartedAt(Util::getMicrotimeFloatDateTime($start));
             $job->setMessage(null);
             $worker->setCurrentJob($job);
-            $result = call_user_func_array(array($worker, $job->getMethod()), $job->getArgs());
+            $result = call_user_func_array([$worker, $job->getMethod()], $job->getArgs());
             $this->processStatus($job, $result);
         } catch (\Throwable $exception) {
             $this->handleException([$exception], $job);

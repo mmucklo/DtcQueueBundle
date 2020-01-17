@@ -3,11 +3,11 @@
 namespace Dtc\QueueBundle\Tests\Command;
 
 use Dtc\QueueBundle\Command\CountCommand;
+use Dtc\QueueBundle\Manager\JobTimingManager;
+use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
-use Dtc\QueueBundle\Manager\JobTimingManager;
 use Dtc\QueueBundle\Model\Run;
-use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Tests\Beanstalkd\JobManagerTest;
 use Dtc\QueueBundle\Tests\StubJobManager;
 use PHPUnit\Framework\TestCase;

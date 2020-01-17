@@ -2,8 +2,8 @@
 
 namespace Dtc\QueueBundle\DependencyInjection\Compiler;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -15,12 +15,15 @@ class BeanstalkdCompilerPass implements CompilerPassInterface
             $definition = new Definition(
                 'Pheanstalk\\Pheanstalk',
                 [
-                    new Definition('Pheanstalk\\Connection',
+                    new Definition(
+                        'Pheanstalk\\Connection',
                         [
-                            new Definition('Pheanstalk\\SocketFactory',
-                                            [$container->getParameter('dtc_queue.beanstalkd.host'), $container->getParameter('dtc_queue.beanstalkd.port')])
+                            new Definition(
+                                'Pheanstalk\\SocketFactory',
+                                [$container->getParameter('dtc_queue.beanstalkd.host'), $container->getParameter('dtc_queue.beanstalkd.port')]
+                            ),
                         ]
-                    )
+                    ),
                 ]
             );
             $container->setDefinition('dtc_queue.beanstalkd', $definition);

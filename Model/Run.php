@@ -46,9 +46,6 @@ class Run
         return $this->startedAt;
     }
 
-    /**
-     * @param \DateTime $startedAt
-     */
     public function setStartedAt(\DateTime $startedAt)
     {
         $this->startedAt = $startedAt;
@@ -62,9 +59,6 @@ class Run
         return $this->endedAt;
     }
 
-    /**
-     * @param \DateTime $endedAt
-     */
     public function setEndedAt(\DateTime $endedAt)
     {
         $this->endedAt = $endedAt;
@@ -94,9 +88,6 @@ class Run
         return $this->lastHeartbeatAt;
     }
 
-    /**
-     * @param \DateTime $lastHeartbeatAt
-     */
     public function setLastHeartbeatAt(\DateTime $lastHeartbeatAt)
     {
         $this->lastHeartbeatAt = $lastHeartbeatAt;

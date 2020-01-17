@@ -38,8 +38,6 @@ class JobManager extends BaseJobManager
     }
 
     /**
-     * @param Job $job
-     *
      * @return Job|null
      */
     protected function batchSave(Job $job)
@@ -164,8 +162,6 @@ class JobManager extends BaseJobManager
     }
 
     /**
-     * @param \Dtc\QueueBundle\Model\Job $job
-     *
      * @return Job|null
      *
      * @throws ClassNotSubclassException
@@ -198,8 +194,6 @@ class JobManager extends BaseJobManager
     }
 
     /**
-     * @param Job $job
-     *
      * @return Job|null
      */
     protected function saveJob(Job $job)
@@ -222,8 +216,6 @@ class JobManager extends BaseJobManager
     }
 
     /**
-     * @param Job $job
-     *
      * @return bool false if the job is already expired, true otherwise
      */
     protected function insertJob(Job $job)

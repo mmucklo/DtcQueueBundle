@@ -4,8 +4,8 @@ namespace Dtc\QueueBundle\DependencyInjection\Compiler;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-trait WorkerCompilerTrait {
-
+trait WorkerCompilerTrait
+{
     protected function getRunManagerType(ContainerBuilder $container)
     {
         $managerType = 'dtc_queue.manager.job';

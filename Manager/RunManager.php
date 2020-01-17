@@ -34,8 +34,6 @@ class RunManager
     }
 
     /**
-     * @param \DateTime $olderThan
-     *
      * @return int Number of archived runs pruned
      *
      * @throws UnsupportedException
@@ -58,8 +56,7 @@ class RunManager
     }
 
     /**
-     * @param float    $start
-     * @param Job|null $job
+     * @param float $start
      */
     public function recordHeartbeat(Run $run, $start, Job $job = null)
     {
@@ -76,7 +73,6 @@ class RunManager
     }
 
     /**
-     * @param Run    $run
      * @param string $action
      */
     protected function persistRun(Run $run, $action = 'persist')
@@ -127,7 +123,6 @@ class RunManager
     }
 
     /**
-     * @param Run      $run
      * @param int|null $start
      */
     public function runStop(Run $run, $start)

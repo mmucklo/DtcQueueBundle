@@ -2,11 +2,11 @@
 
 namespace Dtc\QueueBundle\Tests\Model;
 
+use Dtc\QueueBundle\Manager\JobTimingManager;
+use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
-use Dtc\QueueBundle\Manager\JobTimingManager;
 use Dtc\QueueBundle\Model\Run;
-use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\GetterSetterTrait;
 use Dtc\QueueBundle\Tests\StaticJobManager;
@@ -20,11 +20,11 @@ class JobTest extends TestCase
     {
         $worker = new FibonacciWorker();
         $job = new Job($worker, false, null);
-        $job->setArgs(array(1));
-        $job->setArgs(array(1, array(1, 2)));
+        $job->setArgs([1]);
+        $job->setArgs([1, [1, 2]]);
 
-        $this->callSetArgs($job, array($job));
-        $this->callSetArgs($job, array(1, array($job)));
+        $this->callSetArgs($job, [$job]);
+        $this->callSetArgs($job, [1, [$job]]);
     }
 
     protected function callSetArgs(Job $job, $args)

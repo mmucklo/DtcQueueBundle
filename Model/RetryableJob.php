@@ -110,9 +110,6 @@ abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
         return $this->updatedAt;
     }
 
-    /**
-     * @param \DateTime $updatedAt
-     */
     public function setUpdatedAt(\DateTime $updatedAt)
     {
         $this->updatedAt = $updatedAt;

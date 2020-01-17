@@ -4,11 +4,11 @@ namespace Dtc\QueueBundle\Tests\Command;
 
 use Dtc\QueueBundle\Command\CreateJobCommand;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
-use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Manager\JobTimingManager;
-use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Manager\WorkerManager;
+use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\StubJobManager;
 use PHPUnit\Framework\TestCase;

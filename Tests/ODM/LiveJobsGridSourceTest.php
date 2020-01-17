@@ -3,8 +3,8 @@
 namespace Dtc\QueueBundle\Tests\ODM;
 
 use Dtc\QueueBundle\ODM\LiveJobsGridSource;
-use Dtc\QueueBundle\Tests\Doctrine\DoctrineJobManagerTest;
 use Dtc\QueueBundle\Tests\Doctrine\BaseLiveJobGridSourceTest;
+use Dtc\QueueBundle\Tests\Doctrine\DoctrineJobManagerTest;
 
 /**
  * This test requires local mongodb running.

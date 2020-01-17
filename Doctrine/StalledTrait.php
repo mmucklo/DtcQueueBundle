@@ -9,10 +9,9 @@ use Dtc\QueueBundle\Util\Util;
 trait StalledTrait
 {
     /**
-     * @param int   $if
-     * @param int   $count
-     * @param int   $saveCount
-     * @param array $stalledJobs
+     * @param int $if
+     * @param int $count
+     * @param int $saveCount
      *
      * @return int
      */
@@ -32,9 +31,8 @@ trait StalledTrait
     }
 
     /**
-     * @param array $criterion
-     * @param int   $limit
-     * @param int   $offset
+     * @param int $limit
+     * @param int $offset
      */
     private function resetJobsByCriterion(
         array $criterion,
@@ -77,8 +75,6 @@ trait StalledTrait
     }
 
     /**
-     * @param StallableJob $jobArchive
-     *
      * @return int Number of jobs reset
      */
     protected function resetArchiveJob(StallableJob $jobArchive)
@@ -149,8 +145,6 @@ trait StalledTrait
     }
 
     /**
-     * @param array $runningJobsById
-     *
      * @return array
      */
     private function extractStalledJobs(array $runningJobsById)
@@ -170,8 +164,6 @@ trait StalledTrait
 
     /**
      * @param $runId
-     * @param array $jobs
-     * @param array $stalledJobs
      */
     private function extractStalledLiveRuns($runId, array $jobs, array &$stalledJobs)
     {

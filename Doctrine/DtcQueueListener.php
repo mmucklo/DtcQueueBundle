@@ -7,10 +7,9 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Id\AssignedGenerator;
-use Dtc\QueueBundle\Model\StallableJob;
 use Dtc\QueueBundle\Model\Run;
+use Dtc\QueueBundle\Model\StallableJob;
 use Dtc\QueueBundle\Util\Util;
-use Symfony\Bridge\Doctrine\RegistryInterface;
 
 class DtcQueueListener
 {

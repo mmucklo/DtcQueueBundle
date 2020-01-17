@@ -6,8 +6,6 @@ trait JobIdTrait
 {
     /**
      * Attach a unique id to a job since RabbitMQ will not.
-     *
-     * @param \Dtc\QueueBundle\Model\Job $job
      */
     protected function setJobId(\Dtc\QueueBundle\Model\Job $job)
     {

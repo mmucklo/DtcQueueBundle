@@ -2,10 +2,10 @@
 
 namespace Dtc\QueueBundle\Tests\Redis;
 
-use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Manager\JobTimingManager;
-use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\Manager\RunManager;
+use Dtc\QueueBundle\Model\JobTiming;
+use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\Redis\JobManager;
 use Dtc\QueueBundle\Redis\PhpRedis;
 use Dtc\QueueBundle\Tests\FibonacciWorker;

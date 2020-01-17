@@ -2,9 +2,9 @@
 
 namespace Dtc\QueueBundle\Tests\DependencyInjection\Compiler;
 
+use Dtc\QueueBundle\DependencyInjection\Compiler\RedisCompilerPass;
 use Dtc\QueueBundle\DependencyInjection\DtcQueueExtension;
 use Dtc\QueueBundle\Redis\JobManager;
-use Dtc\QueueBundle\DependencyInjection\Compiler\RedisCompilerPass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;

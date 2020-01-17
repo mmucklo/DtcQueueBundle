@@ -3,8 +3,8 @@
 namespace Dtc\QueueBundle\Tests\ORM;
 
 use Doctrine\ORM\EntityManager;
-use Symfony\Component\DependencyInjection\Container;
 use Doctrine\ORM\Tools\Setup;
+use Symfony\Component\DependencyInjection\Container;
 
 class ContainerExtended extends Container
 {
@@ -12,7 +12,7 @@ class ContainerExtended extends Container
 
     public function getDoctrine_Orm_DefaultEntityManagerService($something = false)
     {
-        $config = Setup::createAnnotationMetadataConfiguration(array(__DIR__.'/../..'), true, null, null, false);
+        $config = Setup::createAnnotationMetadataConfiguration([__DIR__.'/../..'], true, null, null, false);
         $config->addCustomNumericFunction('year', Year::class);
         $config->addCustomNumericFunction('month', Month::class);
         $config->addCustomNumericFunction('day', Day::class);

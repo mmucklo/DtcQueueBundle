@@ -24,9 +24,6 @@ abstract class Worker
         return $this->currentJob;
     }
 
-    /**
-     * @param JobManagerInterface $jobManager
-     */
     public function setJobManager(JobManagerInterface $jobManager)
     {
         $this->jobManager = $jobManager;
@@ -50,24 +47,36 @@ abstract class Worker
         $timeU = $time;
         if (null === $time) {
             $timeU = Util::getMicrotimeStr();
-            $dateTime = \DateTime::createFromFormat('U.u', $timeU,
-                new \DateTimeZone(date_default_timezone_get()));
+            $dateTime = \DateTime::createFromFormat(
+                'U.u',
+                $timeU,
+                new \DateTimeZone(date_default_timezone_get())
+            );
         } else {
             $localeInfo = localeconv();
             $decimalPoint = isset($localeInfo['decimal_point']) ? $localeInfo['decimal_point'] : '.';
-            $hasDecimalPoint = strpos(strval($time), $decimalPoint) !== false;
-            $hasEnDecimalPoint = $decimalPoint === '.' ? $hasDecimalPoint : strpos(strval($time), '.');
+            $hasDecimalPoint = false !== strpos(strval($time), $decimalPoint);
+            $hasEnDecimalPoint = '.' === $decimalPoint ? $hasDecimalPoint : strpos(strval($time), '.');
             if (!$hasEnDecimalPoint) {
                 if ($hasDecimalPoint) {
-                    $dateTime = \DateTime::createFromFormat('U' . $decimalPoint . 'u', strval($timeU),
-                        new \DateTimeZone(date_default_timezone_get()));
+                    $dateTime = \DateTime::createFromFormat(
+                        'U'.$decimalPoint.'u',
+                        strval($timeU),
+                        new \DateTimeZone(date_default_timezone_get())
+                    );
                 } else {
-                    $dateTime = \DateTime::createFromFormat('U', strval($timeU),
-                        new \DateTimeZone(date_default_timezone_get()));
+                    $dateTime = \DateTime::createFromFormat(
+                        'U',
+                        strval($timeU),
+                        new \DateTimeZone(date_default_timezone_get())
+                    );
                 }
             } else {
-                $dateTime = \DateTime::createFromFormat('U.u', strval($timeU),
-                    new \DateTimeZone(date_default_timezone_get()));
+                $dateTime = \DateTime::createFromFormat(
+                    'U.u',
+                    strval($timeU),
+                    new \DateTimeZone(date_default_timezone_get())
+                );
             }
         }
 

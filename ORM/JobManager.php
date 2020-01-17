@@ -108,8 +108,6 @@ class JobManager extends DoctrineJobManager
 
     /**
      * Removes archived jobs older than $olderThan.
-     *
-     * @param \DateTime $olderThan
      */
     public function pruneArchivedJobs(\DateTime $olderThan)
     {
@@ -319,8 +317,6 @@ class JobManager extends DoctrineJobManager
     /**
      * Tries to update the nearest job as a batch.
      *
-     * @param \Dtc\QueueBundle\Model\Job $job
-     *
      * @return Job|null
      */
     public function updateNearestBatch(\Dtc\QueueBundle\Model\Job $job)
@@ -414,9 +410,8 @@ class JobManager extends DoctrineJobManager
     }
 
     /**
-     * @param string        $workerName
-     * @param string        $methodName
-     * @param callable|null $progressCallback
+     * @param string $workerName
+     * @param string $methodName
      */
     public function archiveAllJobs($workerName = null, $methodName = null, callable $progressCallback = null)
     {
@@ -441,8 +436,6 @@ class JobManager extends DoctrineJobManager
      *
      *  This is a bit of a hack to run a lower level query so as to process the INSERT INTO SELECT
      *   All on the server as "INSERT INTO SELECT" is not supported natively in Doctrine.
-     *
-     * @param callable|null $progressCallback
      */
     protected function runArchive(callable $progressCallback = null)
     {

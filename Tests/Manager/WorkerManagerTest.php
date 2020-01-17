@@ -2,16 +2,16 @@
 
 namespace Dtc\QueueBundle\Tests\Manager;
 
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
+use Dtc\QueueBundle\Manager\JobTimingManager;
+use Dtc\QueueBundle\Manager\RunManager;
+use Dtc\QueueBundle\Manager\WorkerManager;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
-use Dtc\QueueBundle\Manager\JobTimingManager;
 use Dtc\QueueBundle\Model\Run;
-use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\StaticJobManager;
-use Dtc\QueueBundle\Manager\WorkerManager;
-use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use PHPUnit\Framework\TestCase;
 
 class WorkerManagerTest extends TestCase

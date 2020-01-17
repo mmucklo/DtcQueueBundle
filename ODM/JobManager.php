@@ -4,8 +4,8 @@ namespace Dtc\QueueBundle\ODM;
 
 use Doctrine\MongoDB\Exception\ResultException;
 use Doctrine\MongoDB\Query\Builder;
-use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Dtc\QueueBundle\Document\Job;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Util\Util;
@@ -68,7 +68,7 @@ class JobManager extends DoctrineJobManager
         $result = $this->runQuery($query, 'execute');
         if ($result instanceof DeleteResult) {
             return $result->getDeletedCount();
-        } else if (isset($result['n'])) {
+        } elseif (isset($result['n'])) {
             return $result['n'];
         }
 
@@ -111,8 +111,7 @@ class JobManager extends DoctrineJobManager
         $result = $this->runQuery($query, 'execute');
         if ($result instanceof UpdateResult) {
             return $result->getModifiedCount();
-        }
-        else if (isset($result['n'])) {
+        } elseif (isset($result['n'])) {
             return $result['n'];
         }
 
@@ -121,8 +120,6 @@ class JobManager extends DoctrineJobManager
 
     /**
      * Removes archived jobs older than $olderThan.
-     *
-     * @param \DateTime $olderThan
      *
      * @return int
      */
@@ -151,7 +148,8 @@ class JobManager extends DoctrineJobManager
         return $this->runQuery($query, $method, [true], 0);
     }
 
-    protected function getStatusByDocumentMapReduce($builder, $documentName) {
+    protected function getStatusByDocumentMapReduce($builder, $documentName)
+    {
         $reduceFunc = self::REDUCE_FUNCTION;
         $mapFunc = "function() {
             var result = {};
@@ -193,7 +191,8 @@ class JobManager extends DoctrineJobManager
 
         $aggregation = $objectManager->createAggregationBuilder($documentName);
         $aggregation->group()
-            ->field('id')->expression($aggregation->expr()
+            ->field('id')->expression(
+                $aggregation->expr()
                                                 ->field('worker_name')
                                                 ->expression('$worker_name')
                                                 ->field('method')
@@ -209,7 +208,7 @@ class JobManager extends DoctrineJobManager
         $status = [];
 
         foreach ($results as $info) {
-            $key = $info['_id']['worker_name'] . '->' .$info['_id']['method'] . '()';
+            $key = $info['_id']['worker_name'].'->'.$info['_id']['method'].'()';
             if (!isset($status[$key])) {
                 $status[$key] = $allStatus;
             }
@@ -427,13 +426,13 @@ class JobManager extends DoctrineJobManager
             $builder->count();
             $method = 'execute';
         }
+
         return $this->runQuery($builder->getQuery(), $method, [], 0);
     }
 
     /**
-     * @param string        $workerName
-     * @param string        $methodName
-     * @param callable|null $progressCallback
+     * @param string $workerName
+     * @param string $methodName
      */
     public function archiveAllJobs($workerName = null, $methodName = null, callable $progressCallback = null)
     {

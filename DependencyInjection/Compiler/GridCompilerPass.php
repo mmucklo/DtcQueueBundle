@@ -2,12 +2,13 @@
 
 namespace Dtc\QueueBundle\DependencyInjection\Compiler;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 class GridCompilerPass implements CompilerPassInterface
 {
     use WorkerCompilerTrait;
+
     public function process(ContainerBuilder $container)
     {
         if (!class_exists('Dtc\GridBundle\DtcGridBundle')) {
@@ -16,8 +17,8 @@ class GridCompilerPass implements CompilerPassInterface
 
         $defaultManagerType = $container->getParameter('dtc_queue.manager.job');
         $runManagerType = $container->getParameter($this->getRunManagerType($container));
-        if ($defaultManagerType === 'orm' || $runManagerType === 'orm' || $defaultManagerType === 'odm' || $runManagerType === 'odm') {
-            $filename =__DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'Resources' . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'dtc_grid.yaml';
+        if ('orm' === $defaultManagerType || 'orm' === $runManagerType || 'odm' === $defaultManagerType || 'odm' === $runManagerType) {
+            $filename = __DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'Resources'.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'dtc_grid.yaml';
             $cacheDir = $container->getParameter('kernel.cache_dir');
             if (class_exists('Dtc\GridBundle\Grid\Source\ColumnSource')) {
                 \Dtc\GridBundle\Grid\Source\ColumnSource::cacheClassesFromFile($cacheDir, $filename);
@@ -27,9 +28,7 @@ class GridCompilerPass implements CompilerPassInterface
         $this->addLiveJobs($container);
     }
 
-
     /**
-     * @param ContainerBuilder $container
      * @throws
      */
     protected function addLiveJobs(ContainerBuilder $container)
@@ -46,6 +45,4 @@ class GridCompilerPass implements CompilerPassInterface
             \Dtc\GridBundle\DependencyInjection\Compiler\GridSourceCompilerPass::addGridSource($container, 'dtc_queue.grid_source.jobs_running.orm');
         }
     }
-
-
 }

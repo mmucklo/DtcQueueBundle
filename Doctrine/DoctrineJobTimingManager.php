@@ -3,8 +3,8 @@
 namespace Dtc\QueueBundle\Doctrine;
 
 use Doctrine\Common\Persistence\ObjectManager;
-use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Manager\JobTimingManager;
+use Dtc\QueueBundle\Model\JobTiming;
 
 abstract class DoctrineJobTimingManager extends JobTimingManager
 {

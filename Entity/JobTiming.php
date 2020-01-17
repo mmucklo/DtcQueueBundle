@@ -2,8 +2,8 @@
 
 namespace Dtc\QueueBundle\Entity;
 
-use Dtc\QueueBundle\Model\JobTiming as BaseJobTiming;
 use Doctrine\ORM\Mapping as ORM;
+use Dtc\QueueBundle\Model\JobTiming as BaseJobTiming;
 
 /**
  * @ORM\Entity

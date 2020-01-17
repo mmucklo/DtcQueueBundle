@@ -2,8 +2,8 @@
 
 namespace Dtc\QueueBundle\Tests\DependencyInjection\Compiler;
 
-use Dtc\QueueBundle\RabbitMQ\JobManager;
 use Dtc\QueueBundle\DependencyInjection\Compiler\RabbitMQCompilerPass;
+use Dtc\QueueBundle\RabbitMQ\JobManager;
 use PhpAmqpLib\Connection\AMQPSSLConnection;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PHPUnit\Framework\TestCase;

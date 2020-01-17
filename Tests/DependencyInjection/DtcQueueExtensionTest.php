@@ -256,10 +256,9 @@ class DtcQueueExtensionTest extends TestCase
     }
 
     /**
-     * @param ContainerBuilder $containerBuilder
-     * @param string           $parameter
-     * @param string           $key
-     * @param mixed            $result
+     * @param string $parameter
+     * @param string $key
+     * @param mixed  $result
      */
     protected function arrayTest(ContainerBuilder $containerBuilder, $parameter, $key, $result)
     {

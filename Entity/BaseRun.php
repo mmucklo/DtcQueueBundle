@@ -2,14 +2,14 @@
 
 namespace Dtc\QueueBundle\Entity;
 
-use Dtc\GridBundle\Annotation as Grid;
 use Doctrine\Common\Annotations\Annotation\IgnoreAnnotation;
 use Doctrine\ORM\Mapping as ORM;
+use Dtc\GridBundle\Annotation as Grid;
 
 /**
- * Class BaseRun
+ * Class BaseRun.
+ *
  * @IgnoreAnnotation("Dtc\GridBundle\Annotation\Grid")
- * @package Dtc\QueueBundle\Entity
  */
 abstract class BaseRun extends \Dtc\QueueBundle\Model\Run
 {

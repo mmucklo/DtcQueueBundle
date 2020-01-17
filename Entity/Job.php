@@ -2,9 +2,9 @@
 
 namespace Dtc\QueueBundle\Entity;
 
-use Dtc\GridBundle\Annotation as Grid;
 use Doctrine\Common\Annotations\Annotation\IgnoreAnnotation;
 use Doctrine\ORM\Mapping as ORM;
+use Dtc\GridBundle\Annotation as Grid;
 
 /**
  * Note: the number of indexes was purposefully kept smaller than it could be (such as adding an expires index)

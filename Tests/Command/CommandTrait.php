@@ -8,7 +8,6 @@ use Dtc\QueueBundle\Tests\StubJobManager;
 use Dtc\QueueBundle\Tests\StubJobTimingManager;
 use Dtc\QueueBundle\Tests\StubRunManager;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\DependencyInjection\Container;
@@ -17,9 +16,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 trait CommandTrait
 {
     /**
-     * @param string             $commandClass
-     * @param ContainerInterface $container
-     * @param array              $params
+     * @param string $commandClass
      */
     protected function runCommand($commandClass, ContainerInterface $container, array $params)
     {
@@ -27,9 +24,7 @@ trait CommandTrait
     }
 
     /**
-     * @param string             $commandClass
-     * @param ContainerInterface $container
-     * @param array              $params
+     * @param string $commandClass
      */
     private function prepCommand($commandClass, ContainerInterface $container, array $params)
     {
@@ -56,9 +51,7 @@ trait CommandTrait
     }
 
     /**
-     * @param string             $commandClass
-     * @param ContainerInterface $container
-     * @param array              $params
+     * @param string $commandClass
      */
     protected function runCommandException($commandClass, ContainerInterface $container, array $params)
     {
@@ -74,10 +67,8 @@ trait CommandTrait
     }
 
     /**
-     * @param string             $commandClass
-     * @param ContainerInterface $container
-     * @param array              $params
-     * @param int                $expectedResult
+     * @param string $commandClass
+     * @param int    $expectedResult
      */
     protected function runCommandExpect($commandClass, ContainerInterface $container, array $params, $expectedResult)
     {

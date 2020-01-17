@@ -106,7 +106,6 @@ class TrendsController extends Controller
     /**
      * Timings offset by timezone if necessary.
      *
-     * @param array  $timingsDates
      * @param string $format
      *
      * @return array
@@ -145,11 +144,13 @@ class TrendsController extends Controller
     }
 
     /**
-     * @param string $type
+     * @param string                                 $type
      * @param \Doctrine\ODM\MongoDB\Aggregation\Expr $expr
+     *
      * @return mixed
      */
-    protected function addJobTimingsDateInfo($type, $expr) {
+    protected function addJobTimingsDateInfo($type, $expr)
+    {
         switch ($type) {
             case 'YEAR':
                 return $expr->field('year')
@@ -191,7 +192,8 @@ class TrendsController extends Controller
         }
     }
 
-    protected function getJobTImingsOdmMapReduce($builder, $type, \DateTime $end, \DateTime $begin = null) {
+    protected function getJobTImingsOdmMapReduce($builder, $type, \DateTime $end, \DateTime $begin = null)
+    {
         $regexInfo = $this->getRegexDate($type);
         if (!$begin) {
             $begin = clone $end;
@@ -267,13 +269,15 @@ class TrendsController extends Controller
             $dateStr = $this->getAggregationResultDateStr($type, $result['_id']);
             $resultHash[$key][$dateStr] = $result['value'];
         }
+
         return $resultHash;
     }
 
     /**
      * Formats the aggregation result into the desired date string format.
+     *
      * @param string $type
-     * @param array $result
+     *
      * @return string
      */
     protected function getAggregationResultDateStr($type, array $result)
@@ -282,21 +286,24 @@ class TrendsController extends Controller
             case 'YEAR':
                 return $result['year'];
             case 'MONTH':
-                return "{$result['year']}-" . str_pad($result['month'], 2, "0", STR_PAD_LEFT);
+                return "{$result['year']}-".str_pad($result['month'], 2, '0', STR_PAD_LEFT);
             case 'DAY':
-                $str = "{$result['year']}-" . str_pad($result['month'], 2, "0", STR_PAD_LEFT);
-                $str .= '-' . str_pad($result['day'], 2, "0", STR_PAD_LEFT);
+                $str = "{$result['year']}-".str_pad($result['month'], 2, '0', STR_PAD_LEFT);
+                $str .= '-'.str_pad($result['day'], 2, '0', STR_PAD_LEFT);
+
                 return $str;
             case 'HOUR':
-                $str = "{$result['year']}-" . str_pad($result['month'], 2, "0", STR_PAD_LEFT);
-                $str .= '-' . str_pad($result['day'], 2, "0", STR_PAD_LEFT);
-                $str .= ' ' . str_pad($result['hour'], 2, "0", STR_PAD_LEFT);
+                $str = "{$result['year']}-".str_pad($result['month'], 2, '0', STR_PAD_LEFT);
+                $str .= '-'.str_pad($result['day'], 2, '0', STR_PAD_LEFT);
+                $str .= ' '.str_pad($result['hour'], 2, '0', STR_PAD_LEFT);
+
                 return $str;
             case 'MINUTE':
-                $str = "{$result['year']}-" . str_pad($result['month'], 2, "0", STR_PAD_LEFT);
-                $str .= '-' . str_pad($result['day'], 2, "0", STR_PAD_LEFT);
-                $str .= ' ' . str_pad($result['hour'], 2, "0", STR_PAD_LEFT);
-                $str .= ':' . str_pad($result['minute'], 2, "0", STR_PAD_LEFT);
+                $str = "{$result['year']}-".str_pad($result['month'], 2, '0', STR_PAD_LEFT);
+                $str .= '-'.str_pad($result['day'], 2, '0', STR_PAD_LEFT);
+                $str .= ' '.str_pad($result['hour'], 2, '0', STR_PAD_LEFT);
+                $str .= ':'.str_pad($result['minute'], 2, '0', STR_PAD_LEFT);
+
                 return $str;
             default:
                 throw new \InvalidArgumentException("Invalid date format type '$type''");

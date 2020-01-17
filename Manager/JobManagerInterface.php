@@ -37,8 +37,6 @@ interface JobManagerInterface
 
     /**
      * Called after a job has finished - may delete the job / reset the job and/or do other related cleanup.
-     *
-     * @param Job $job
      */
     public function saveHistory(Job $job);
 
@@ -51,8 +49,6 @@ interface JobManagerInterface
 
     /**
      * Removes archived jobs older than $olderThan.
-     *
-     * @param \DateTime $olderThan
      */
     public function pruneArchivedJobs(\DateTime $olderThan);
 }

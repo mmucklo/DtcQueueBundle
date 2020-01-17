@@ -58,9 +58,6 @@ class Job extends BaseJob
         return $this->expiresAt;
     }
 
-    /**
-     * @param \DateTime $expiresAt
-     */
     public function setExpiresAt(\DateTime $expiresAt)
     {
         $this->expiresAt = $expiresAt;
@@ -102,9 +99,6 @@ class Job extends BaseJob
         return $this->startedAt;
     }
 
-    /**
-     * @param \DateTime|null $startedAt
-     */
     public function setStartedAt(\DateTime $startedAt = null)
     {
         $this->startedAt = $startedAt;

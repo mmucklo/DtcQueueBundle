@@ -26,7 +26,7 @@ class QueueController extends Controller
      */
     public function statusAction()
     {
-        $params = array();
+        $params = [];
         $jobManager = $this->get('dtc_queue.manager.job');
 
         $params['status'] = $jobManager->getStatus();
@@ -71,8 +71,6 @@ class QueueController extends Controller
     /**
      * @Route("/reset-stalled", name="dtc_queue_reset_stalled")
      *
-     * @param Request $request
-     *
      * @return StreamedResponse
      *
      * @throws UnsupportedException
@@ -85,8 +83,6 @@ class QueueController extends Controller
     /**
      * @Route("/prune-stalled", name="dtc_queue_prune_stalled")
      *
-     * @param Request $request
-     *
      * @return StreamedResponse
      *
      * @throws UnsupportedException
@@ -97,7 +93,6 @@ class QueueController extends Controller
     }
 
     /**
-     * @param Request $request
      * @param $functionName
      *
      * @return StreamedResponse
@@ -119,8 +114,7 @@ class QueueController extends Controller
     }
 
     /**
-     * @param Request $request
-     * @param string  $functionName
+     * @param string $functionName
      *
      * @return \Closure
      */
@@ -193,6 +187,7 @@ class QueueController extends Controller
      *
      * @Template("@DtcQueue/Queue/jobs_running.html.twig")
      * @Route("/jobs_running", name="dtc_queue_jobs_running")
+     *
      * @throws UnsupportedException|\Exception
      */
     public function runningJobsAction()
@@ -249,6 +244,7 @@ class QueueController extends Controller
      * List jobs in system by default.
      *
      * @Route("/runs", name="dtc_queue_runs")
+     *
      * @throws UnsupportedException|\Exception
      */
     public function runsAction()
@@ -288,12 +284,14 @@ class QueueController extends Controller
     }
 
     /**
-     * Validates that DtcGridBundle exists
+     * Validates that DtcGridBundle exists.
+     *
      * @throws UnsupportedException
      */
-    protected function checkDtcGridBundle() {
+    protected function checkDtcGridBundle()
+    {
         if (!class_exists('Dtc\GridBundle\DtcGridBundle')) {
-            throw new UnsupportedException("DtcGridBundle (mmucklo/grid-bundle) needs to be installed.");
+            throw new UnsupportedException('DtcGridBundle (mmucklo/grid-bundle) needs to be installed.');
         }
     }
 }

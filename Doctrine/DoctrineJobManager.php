@@ -3,9 +3,9 @@
 namespace Dtc\QueueBundle\Doctrine;
 
 use Dtc\QueueBundle\Model\BaseJob;
-use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
+use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\StallableJob;
 
 abstract class DoctrineJobManager extends BaseDoctrineJobManager
@@ -106,9 +106,8 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
     }
 
     /**
-     * @param string|null   $workerName
-     * @param string|null   $method
-     * @param callable|null $progressCallback
+     * @param string|null $workerName
+     * @param string|null $method
      */
     public function pruneStalledJobs($workerName = null, $method = null, callable $progressCallback = null)
     {
@@ -145,7 +144,7 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
     protected function stallableSave(StallableJob $job)
     {
         // Generate crc hash for the job
-        $hashValues = array(get_class($job), $job->getMethod(), $job->getWorkerName(), $job->getArgs());
+        $hashValues = [get_class($job), $job->getMethod(), $job->getWorkerName(), $job->getArgs()];
         $crcHash = hash('sha256', serialize($hashValues));
         $job->setCrcHash($crcHash);
 

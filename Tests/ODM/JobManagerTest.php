@@ -3,13 +3,13 @@
 namespace Dtc\QueueBundle\Tests\ODM;
 
 use Doctrine\Common\Annotations\AnnotationRegistry;
-use Dtc\QueueBundle\ODM\JobTimingManager;
-use Dtc\QueueBundle\ODM\RunManager;
-use Dtc\QueueBundle\Tests\Doctrine\DoctrineJobManagerTest;
-use Dtc\QueueBundle\ODM\JobManager;
 use Doctrine\ODM\MongoDB\Configuration;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver;
+use Dtc\QueueBundle\ODM\JobManager;
+use Dtc\QueueBundle\ODM\JobTimingManager;
+use Dtc\QueueBundle\ODM\RunManager;
+use Dtc\QueueBundle\Tests\Doctrine\DoctrineJobManagerTest;
 
 /**
  * @author David
@@ -92,7 +92,9 @@ class JobManagerTest extends DoctrineJobManagerTest
 
     /**
      * @param $class
+     *
      * @return array|\Doctrine\ODM\MongoDB\Iterator\Iterator|int|\MongoDB\DeleteResult|\MongoDB\InsertOneResult|\MongoDB\UpdateResult|object|null
+     *
      * @throws \Doctrine\ODM\MongoDB\MongoDBException
      */
     protected function runCountQuery($class)

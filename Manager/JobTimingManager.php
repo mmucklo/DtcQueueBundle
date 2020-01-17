@@ -19,8 +19,6 @@ class JobTimingManager
     }
 
     /**
-     * @param \DateTime $olderThan
-     *
      * @throws UnsupportedException
      *
      * @return int Number of archived runs pruned
@@ -34,7 +32,6 @@ class JobTimingManager
      * Subclasses should overrride this function instead of recordTiming.
      *
      * @param $status
-     * @param \DateTime|null $dateTime
      */
     protected function performRecording($status, \DateTime $dateTime = null)
     {
@@ -42,7 +39,6 @@ class JobTimingManager
 
     /**
      * @param $status
-     * @param \DateTime|null $dateTime
      */
     public function recordTiming($status, \DateTime $dateTime = null)
     {

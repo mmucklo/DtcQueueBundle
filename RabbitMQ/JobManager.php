@@ -2,19 +2,19 @@
 
 namespace Dtc\QueueBundle\RabbitMQ;
 
-use Dtc\QueueBundle\Manager\SaveableTrait;
-use Dtc\QueueBundle\Manager\VerifyTrait;
-use Dtc\QueueBundle\Model\BaseJob;
-use Dtc\QueueBundle\Manager\JobIdTrait;
-use Dtc\QueueBundle\Model\RetryableJob;
-use Dtc\QueueBundle\Model\JobTiming;
-use Dtc\QueueBundle\Manager\PriorityJobManager;
 use Dtc\QueueBundle\Exception\ArgumentsNotSetException;
 use Dtc\QueueBundle\Exception\ClassNotSubclassException;
 use Dtc\QueueBundle\Exception\PriorityException;
 use Dtc\QueueBundle\Exception\UnsupportedException;
-use Dtc\QueueBundle\Manager\RunManager;
+use Dtc\QueueBundle\Manager\JobIdTrait;
 use Dtc\QueueBundle\Manager\JobTimingManager;
+use Dtc\QueueBundle\Manager\PriorityJobManager;
+use Dtc\QueueBundle\Manager\RunManager;
+use Dtc\QueueBundle\Manager\SaveableTrait;
+use Dtc\QueueBundle\Manager\VerifyTrait;
+use Dtc\QueueBundle\Model\BaseJob;
+use Dtc\QueueBundle\Model\JobTiming;
+use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Util\Util;
 use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AbstractConnection;
@@ -132,8 +132,6 @@ class JobManager extends PriorityJobManager
     }
 
     /**
-     * @param \Dtc\QueueBundle\Model\Job $job
-     *
      * @return \Dtc\QueueBundle\Model\Job
      *
      * @throws ClassNotSubclassException
@@ -166,9 +164,6 @@ class JobManager extends PriorityJobManager
 
     /**
      * Sets the priority of the AMQPMessage.
-     *
-     * @param AMQPMessage                $msg
-     * @param \Dtc\QueueBundle\Model\Job $job
      */
     protected function setMsgPriority(AMQPMessage $msg, \Dtc\QueueBundle\Model\Job $job)
     {
