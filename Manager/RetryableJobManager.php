@@ -3,9 +3,9 @@
 namespace Dtc\QueueBundle\Manager;
 
 use Dtc\QueueBundle\Model\BaseJob;
-use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
+use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Util\Util;
 
 abstract class RetryableJobManager extends AbstractJobManager
@@ -30,8 +30,7 @@ abstract class RetryableJobManager extends AbstractJobManager
     abstract protected function retryableSave(RetryableJob $job);
 
     /**
-     * @param RetryableJob $job
-     * @param bool         $retry bool
+     * @param bool $retry bool
      *
      * @return
      */
@@ -104,10 +103,9 @@ abstract class RetryableJobManager extends AbstractJobManager
     /**
      * Determine if we've hit a max retry condition.
      *
-     * @param RetryableJob $job
-     * @param string       $status
-     * @param int|null     $max
-     * @param int          $count
+     * @param string   $status
+     * @param int|null $max
+     * @param int      $count
      *
      * @return bool
      */
@@ -134,8 +132,6 @@ abstract class RetryableJobManager extends AbstractJobManager
     }
 
     /**
-     * @param RetryableJob $job
-     *
      * @return bool true if the job was successfully "reset", i.e. re-queued
      */
     abstract protected function resetJob(RetryableJob $job);
@@ -155,7 +151,7 @@ abstract class RetryableJobManager extends AbstractJobManager
         }
 
         if (null === $job->getCrcHash()) {
-            $hashValues = array(get_class($job), $job->getMethod(), $job->getWorkerName(), $job->getArgs());
+            $hashValues = [get_class($job), $job->getMethod(), $job->getWorkerName(), $job->getArgs()];
             $crcHash = hash('sha256', serialize($hashValues));
             $job->setCrcHash($crcHash);
         }

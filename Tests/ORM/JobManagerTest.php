@@ -3,6 +3,7 @@
 namespace Dtc\QueueBundle\Tests\ORM;
 
 use Doctrine\Common\Annotations\AnnotationRegistry;
+use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\SchemaTool;
 use Doctrine\ORM\Tools\Setup;
 use DoctrineExtensions\Query\Mysql\Day;
@@ -10,11 +11,10 @@ use DoctrineExtensions\Query\Mysql\Hour;
 use DoctrineExtensions\Query\Mysql\Minute;
 use DoctrineExtensions\Query\Mysql\Month;
 use DoctrineExtensions\Query\Mysql\Year;
-use Dtc\QueueBundle\ORM\RunManager;
-use Dtc\QueueBundle\ORM\JobTimingManager;
-use Dtc\QueueBundle\Tests\Doctrine\DoctrineJobManagerTest;
 use Dtc\QueueBundle\ORM\JobManager;
-use Doctrine\ORM\EntityManager;
+use Dtc\QueueBundle\ORM\JobTimingManager;
+use Dtc\QueueBundle\ORM\RunManager;
+use Dtc\QueueBundle\Tests\Doctrine\DoctrineJobManagerTest;
 
 /**
  * @author David
@@ -29,7 +29,7 @@ class JobManagerTest extends DoctrineJobManagerTest
             mkdir('/tmp/dtcqueuetest/generate/proxies', 0777, true);
         }
 
-        $config = Setup::createAnnotationMetadataConfiguration(array(__DIR__.'/../..'), true, null, null, false);
+        $config = Setup::createAnnotationMetadataConfiguration([__DIR__.'/../..'], true, null, null, false);
 
         AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Grid.php');
         AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Sort.php');

@@ -5,14 +5,14 @@ namespace Dtc\QueueBundle\Tests\Command;
 use Doctrine\ODM\MongoDB\DocumentRepository;
 use Dtc\QueueBundle\Command\PruneCommand;
 use Dtc\QueueBundle\Document\Job;
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Manager\JobTimingManager;
 use Dtc\QueueBundle\Manager\RunManager;
+use Dtc\QueueBundle\Manager\WorkerManager;
+use Dtc\QueueBundle\ODM\JobManager;
+use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Util\Util;
 use PHPUnit\Framework\TestCase;
-use Dtc\QueueBundle\ODM\JobManager;
-use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
-use Dtc\QueueBundle\Manager\WorkerManager;
-use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Symfony\Component\DependencyInjection\Container;
 
 class PruneCommandTest extends TestCase

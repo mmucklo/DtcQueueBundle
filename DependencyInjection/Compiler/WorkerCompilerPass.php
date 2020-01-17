@@ -2,15 +2,15 @@
 
 namespace Dtc\QueueBundle\DependencyInjection\Compiler;
 
+use Dtc\QueueBundle\Exception\ClassNotFoundException;
+use Dtc\QueueBundle\Exception\ClassNotSubclassException;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\Model\Run;
-use Dtc\QueueBundle\Exception\ClassNotFoundException;
-use Dtc\QueueBundle\Exception\ClassNotSubclassException;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\Alias;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -57,8 +57,7 @@ class WorkerCompilerPass implements CompilerPassInterface
     /**
      * Add any extra method calls needed.
      *
-     * @param ContainerBuilder $container
-     * @param string           $managerType
+     * @param string $managerType
      */
     protected function addMethodCalls(ContainerBuilder $container, $managerType)
     {
@@ -106,13 +105,11 @@ class WorkerCompilerPass implements CompilerPassInterface
     }
 
     /**
-     * @param ContainerBuilder $container
-     * @param Definition       $definition
      * @throws
      */
     protected function setupTaggedServices(ContainerBuilder $container, Definition $definition)
     {
-        $jobManagerRef = array(new Reference('dtc_queue.manager.job'));
+        $jobManagerRef = [new Reference('dtc_queue.manager.job')];
         // Add each worker to workerManager, make sure each worker has instance to work
         foreach ($container->findTaggedServiceIds('dtc_queue.worker') as $id => $attributes) {
             $worker = $container->getDefinition($id);
@@ -126,13 +123,10 @@ class WorkerCompilerPass implements CompilerPassInterface
 
             // Give each worker access to job manager
             $worker->addMethodCall('setJobManager', $jobManagerRef);
-            $definition->addMethodCall('addWorker', array(new Reference($id)));
+            $definition->addMethodCall('addWorker', [new Reference($id)]);
         }
     }
 
-    /**
-     * @param ContainerBuilder $container
-     */
     protected function setupDoctrineManagers(ContainerBuilder $container)
     {
         $documentManager = $container->getParameter('dtc_queue.odm.document_manager');
@@ -175,8 +169,6 @@ class WorkerCompilerPass implements CompilerPassInterface
 
     /**
      * Determines the job class based on the queue manager type.
-     *
-     * @param ContainerBuilder $container
      *
      * @return mixed|string
      *
@@ -252,8 +244,6 @@ class WorkerCompilerPass implements CompilerPassInterface
 
     /**
      * Determines the job class based on the queue manager type.
-     *
-     * @param ContainerBuilder $container
      *
      * @return mixed|string
      *

@@ -3,11 +3,11 @@
 namespace Dtc\QueueBundle\Tests\RabbitMQ;
 
 use Dtc\QueueBundle\Exception\UnsupportedException;
+use Dtc\QueueBundle\Manager\JobTimingManager;
+use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
-use Dtc\QueueBundle\Manager\JobTimingManager;
 use Dtc\QueueBundle\Model\Run;
-use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\RabbitMQ\JobManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\Manager\AutoRetryTrait;

@@ -3,37 +3,31 @@
 namespace Dtc\QueueBundle\Document;
 
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
-use Dtc\GridBundle\Annotation as Grid;
 use Dtc\QueueBundle\Model\StallableJob;
 
 abstract class BaseJob extends StallableJob
 {
     /**
-     * @Grid\Column(order=1,sortable=true,searchable=true)
      * @ODM\Id
      */
     protected $id;
 
     /**
-     * @Grid\Column(sortable=true, searchable=true)
      * @ODM\Field(type="string", name="worker_name")
      */
     protected $workerName;
 
     /**
-     * @Grid\Column(sortable=true, searchable=true)
      * @ODM\Field(type="string", name="class_name")
      */
     protected $className;
 
     /**
-     * @Grid\Column(sortable=true, searchable=true)
      * @ODM\Field(type="string")
      */
     protected $method;
 
     /**
-     * @Grid\Column(sortable=true,searchable=true)
      * @ODM\Field(type="string")
      * @ODM\Index(unique=false, order="asc")
      */
@@ -50,7 +44,6 @@ abstract class BaseJob extends StallableJob
     protected $batch;
 
     /**
-     * @Grid\Column(sortable=true,searchable=true)
      * @ODM\Field(type="int", nullable=true)
      * @ODM\Index(unique=false, order="asc")
      */
@@ -62,7 +55,6 @@ abstract class BaseJob extends StallableJob
     protected $crcHash;
 
     /**
-     * @Grid\Column(sortable=true, order=2)
      * @ODM\Field(type="date", nullable=true)
      * @ODM\AlsoLoad(name="when")
      * @ODM\Index(unique=false, order="asc")
@@ -70,7 +62,6 @@ abstract class BaseJob extends StallableJob
     protected $whenAt;
 
     /**
-     * @Grid\Column(sortable=true)
      * @ODM\Field(type="date", nullable=true)
      */
     protected $expiresAt;
@@ -78,7 +69,6 @@ abstract class BaseJob extends StallableJob
     /**
      * When the job started.
      *
-     * @Grid\Column(sortable=true)
      * @ODM\Field(type="date", nullable=true)
      */
     protected $startedAt;

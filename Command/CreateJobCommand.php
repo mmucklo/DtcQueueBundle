@@ -88,7 +88,8 @@ class CreateJobCommand extends Command
         return $helpMessage;
     }
 
-    public function setWorkerManager($workerManager) {
+    public function setWorkerManager($workerManager)
+    {
         $this->workerManager = $workerManager;
     }
 
@@ -116,6 +117,7 @@ class CreateJobCommand extends Command
         $job->setArgs($args);
 
         $worker->getJobManager()->save($job);
+
         return 0;
     }
 

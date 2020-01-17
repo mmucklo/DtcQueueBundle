@@ -35,15 +35,18 @@ class PruneCommand extends Command
             ->addOption('older', null, InputOption::VALUE_REQUIRED, self::OLDER_MESSAGE);
     }
 
-    public function setJobManager($jobManager) {
+    public function setJobManager($jobManager)
+    {
         $this->jobManager = $jobManager;
     }
 
-    public function setRunManager($runManager) {
+    public function setRunManager($runManager)
+    {
         $this->runManager = $runManager;
     }
 
-    public function setJobTimingManager($jobTimingManager) {
+    public function setJobTimingManager($jobTimingManager)
+    {
         $this->jobTimingManager = $jobTimingManager;
     }
 
@@ -114,9 +117,8 @@ class PruneCommand extends Command
     }
 
     /**
-     * @param string[]        $matches
-     * @param string          $type
-     * @param OutputInterface $output
+     * @param string[] $matches
+     * @param string   $type
      *
      * @return int
      *
@@ -144,9 +146,7 @@ class PruneCommand extends Command
     }
 
     /**
-     * @param string          $type
-     * @param \DateTime       $olderThan
-     * @param OutputInterface $output
+     * @param string $type
      *
      * @return int
      *

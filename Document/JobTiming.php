@@ -2,8 +2,8 @@
 
 namespace Dtc\QueueBundle\Document;
 
-use Dtc\QueueBundle\Model\JobTiming as BaseJobTiming;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
+use Dtc\QueueBundle\Model\JobTiming as BaseJobTiming;
 
 /**
  * @ODM\Document(db="dtc_queue", collection="job_timing")

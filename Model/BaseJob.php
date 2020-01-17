@@ -75,9 +75,6 @@ abstract class BaseJob
         return $this->whenAt;
     }
 
-    /**
-     * @param \DateTime $whenAt
-     */
     public function setWhenAt(\DateTime $whenAt)
     {
         $this->whenAt = $whenAt;
@@ -238,9 +235,6 @@ abstract class BaseJob
         return $this->jobManager;
     }
 
-    /**
-     * @param JobManagerInterface $jobManager
-     */
     public function setJobManager(JobManagerInterface $jobManager)
     {
         $this->jobManager = $jobManager;
@@ -256,9 +250,6 @@ abstract class BaseJob
         return $this->createdAt;
     }
 
-    /**
-     * @param \DateTime $createdAt
-     */
     public function setCreatedAt(\DateTime $createdAt)
     {
         $this->createdAt = $createdAt;

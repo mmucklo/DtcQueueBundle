@@ -55,9 +55,8 @@ trait CommonTrait
     }
 
     /**
-     * @param string    $objectName
-     * @param string    $field
-     * @param \DateTime $olderThan
+     * @param string $objectName
+     * @param string $field
      *
      * @return int
      */

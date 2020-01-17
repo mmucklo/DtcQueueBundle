@@ -3,14 +3,14 @@
 namespace Dtc\QueueBundle\Run;
 
 use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
-use Dtc\QueueBundle\Model\BaseJob;
-use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Exception\ClassNotSubclassException;
 use Dtc\QueueBundle\Manager\JobManagerInterface;
-use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Manager\WorkerManager;
+use Dtc\QueueBundle\Model\BaseJob;
+use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\Util\Util;
-use Dtc\QueueBundle\Exception\ClassNotSubclassException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -294,8 +294,6 @@ class Loop
     }
 
     /**
-     * @param \DateTime $endTime
-     *
      * @return bool
      */
     protected function isFinishedEndTime($duration, \DateTime $endTime)
@@ -311,9 +309,6 @@ class Loop
         return true;
     }
 
-    /**
-     * @param Job $job
-     */
     protected function reportJob(Job $job)
     {
         if (BaseJob::STATUS_EXCEPTION == $job->getStatus()) {

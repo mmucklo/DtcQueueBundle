@@ -4,8 +4,8 @@ namespace Dtc\QueueBundle\Doctrine;
 
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\Common\Persistence\ObjectRepository;
-use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\Manager\RunManager;
+use Dtc\QueueBundle\Model\Run;
 
 abstract class DoctrineRunManager extends RunManager
 {
@@ -67,8 +67,6 @@ abstract class DoctrineRunManager extends RunManager
     }
 
     /**
-     * @param array $delete
-     *
      * @return int
      */
     protected function deleteOldRuns(array $delete)
@@ -92,7 +90,6 @@ abstract class DoctrineRunManager extends RunManager
     }
 
     /**
-     * @param Run    $run
      * @param string $action
      */
     protected function persistRun(Run $run, $action = 'persist')

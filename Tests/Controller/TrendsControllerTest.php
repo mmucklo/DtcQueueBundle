@@ -3,8 +3,8 @@
 namespace Dtc\QueueBundle\Tests\Controller;
 
 use Dtc\QueueBundle\Controller\TrendsController;
-use Dtc\QueueBundle\ORM\JobTimingManager;
 use Dtc\QueueBundle\Model\BaseJob;
+use Dtc\QueueBundle\ORM\JobTimingManager;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 

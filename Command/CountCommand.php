@@ -12,7 +12,8 @@ class CountCommand extends Command
     /** @var JobManagerInterface */
     private $jobManager;
 
-    public function setJobManager($jobManager) {
+    public function setJobManager($jobManager)
+    {
         $this->jobManager = $jobManager;
     }
 
@@ -46,14 +47,12 @@ class CountCommand extends Command
         }
 
         $output->writeln("Total waiting jobs: {$waitingCount}");
+
         return 0;
     }
 
     /**
-     * @param OutputInterface $output
-     * @param array           $status
-     * @param array           $initialKeys
-     * @param string          $format
+     * @param string $format
      */
     private function outputStatus(OutputInterface $output, array $status, array $initialKeys, $format)
     {
@@ -68,7 +67,6 @@ class CountCommand extends Command
     }
 
     /**
-     * @param array  $initialKeys
      * @param string $format
      */
     private function formatHeadings(array $initialKeys, array &$headingArgs, &$format)

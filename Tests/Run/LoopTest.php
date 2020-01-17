@@ -2,13 +2,13 @@
 
 namespace Dtc\QueueBundle\Tests\Run;
 
+use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Manager\WorkerManager;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\Run\Loop;
 use Dtc\QueueBundle\Tests\Beanstalkd\JobManagerTest;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use PHPUnit\Framework\TestCase;
-use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 
 class LoopTest extends TestCase
 {

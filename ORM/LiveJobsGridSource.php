@@ -25,16 +25,6 @@ class LiveJobsGridSource extends EntityGridSource
         parent::__construct($entityManager, $jobManager->getJobClass());
     }
 
-    public function getColumns()
-    {
-        if ($columns = parent::getColumns()) {
-            return $columns;
-        }
-        $this->autoDiscoverColumns();
-
-        return parent::getColumns();
-    }
-
     /**
      * @param bool $flag
      */
@@ -76,16 +66,14 @@ class LiveJobsGridSource extends EntityGridSource
         return $queryBuilder;
     }
 
-    public function autoDiscoverColumns()
+    public function setColumns($columns)
     {
-        parent::autoDiscoverColumns();
-        if ($this->columns) {
-            foreach ($this->columns as $column) {
-                if ($column instanceof GridColumn) {
-                    $column->setOption('sortable', false);
-                }
+        foreach ($columns as $column) {
+            if ($column instanceof GridColumn) {
+                $column->setOption('sortable', false);
             }
         }
+        parent::setColumns($columns);
     }
 
     public function getDefaultSort()

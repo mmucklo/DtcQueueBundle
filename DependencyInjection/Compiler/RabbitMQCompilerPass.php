@@ -2,8 +2,8 @@
 
 namespace Dtc\QueueBundle\DependencyInjection\Compiler;
 
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -33,9 +33,7 @@ class RabbitMQCompilerPass implements CompilerPassInterface
     }
 
     /**
-     * @param ContainerBuilder $container
-     * @param array            $arguments
-     * @param string           $class
+     * @param string $class
      */
     protected function setupRabbitMQOptions(ContainerBuilder $container, array &$arguments, &$class)
     {

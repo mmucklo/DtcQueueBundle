@@ -24,9 +24,6 @@ abstract class BaseDoctrineJobManager extends ArchivableJobManager
     /**
      * DoctrineJobManager constructor.
      *
-     * @param RunManager       $runManager
-     * @param JobTimingManager $jobTimingManager
-     * @param ObjectManager    $objectManager
      * @param $jobClass
      * @param $jobArchiveClass
      */

@@ -38,7 +38,7 @@ class RunCommand extends Command
     protected function configure()
     {
         $this->symfonyDetect();
-        $options = array(
+        $options = [
             new InputArgument('worker-name', InputArgument::OPTIONAL, 'Name of worker', null),
             new InputArgument('method', InputArgument::OPTIONAL, 'DI method of worker', null),
             new InputOption(
@@ -82,7 +82,7 @@ class RunCommand extends Command
                 InputOption::VALUE_NONE,
                 'Disable garbage collection'
             ),
-        );
+        ];
 
         // Symfony 4 and Symfony 3.4 out-of-the-box makes the logger private
         if (!$this->loggerPrivate) {
@@ -101,7 +101,8 @@ class RunCommand extends Command
             ->setDescription('Start up a job in queue');
     }
 
-    public function setRunLoop($runLoop) {
+    public function setRunLoop($runLoop)
+    {
         $this->runLoop = $runLoop;
     }
 

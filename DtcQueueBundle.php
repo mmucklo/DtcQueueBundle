@@ -7,8 +7,8 @@ use Dtc\QueueBundle\DependencyInjection\Compiler\GridCompilerPass;
 use Dtc\QueueBundle\DependencyInjection\Compiler\RabbitMQCompilerPass;
 use Dtc\QueueBundle\DependencyInjection\Compiler\RedisCompilerPass;
 use Dtc\QueueBundle\DependencyInjection\Compiler\WorkerCompilerPass;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class DtcQueueBundle extends Bundle
 {

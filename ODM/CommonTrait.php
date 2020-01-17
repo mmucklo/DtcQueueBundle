@@ -12,9 +12,8 @@ use MongoDB\DeleteResult;
 trait CommonTrait
 {
     /**
-     * @param string    $objectName
-     * @param string    $field
-     * @param \DateTime $olderThan
+     * @param string $objectName
+     * @param string $field
      *
      * @return int
      */
@@ -31,8 +30,7 @@ trait CommonTrait
         $result = $query->execute();
         if ($result instanceof DeleteResult) {
             return $result->getDeletedCount();
-        }
-        else if (isset($result['n'])) {
+        } elseif (isset($result['n'])) {
             return $result['n'];
         }
 

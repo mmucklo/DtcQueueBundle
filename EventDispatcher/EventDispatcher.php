@@ -4,7 +4,7 @@ namespace Dtc\QueueBundle\EventDispatcher;
 
 class EventDispatcher
 {
-    private $listeners = array();
+    private $listeners = [];
 
     public function addSubscriber(EventSubscriberInterface $subscriber)
     {

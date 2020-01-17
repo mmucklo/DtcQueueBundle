@@ -2,8 +2,8 @@
 
 namespace Dtc\QueueBundle\Tests\Manager;
 
-use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\BaseJob;
+use Dtc\QueueBundle\Model\Job;
 
 trait SaveJobTrait
 {

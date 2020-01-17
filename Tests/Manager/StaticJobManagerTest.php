@@ -2,11 +2,11 @@
 
 namespace Dtc\QueueBundle\Tests\Manager;
 
+use Dtc\QueueBundle\Manager\JobTimingManager;
+use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Model\JobTiming;
-use Dtc\QueueBundle\Manager\JobTimingManager;
 use Dtc\QueueBundle\Model\Run;
-use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\StaticJobManager;
 

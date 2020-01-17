@@ -2,10 +2,10 @@
 
 namespace Dtc\QueueBundle\Beanstalkd;
 
-use Dtc\QueueBundle\Manager\RetryableJobManager;
-use Dtc\QueueBundle\Model\RetryableJob;
-use Dtc\QueueBundle\Model\Job as BaseJob;
 use Dtc\QueueBundle\Exception\UnsupportedException;
+use Dtc\QueueBundle\Manager\RetryableJobManager;
+use Dtc\QueueBundle\Model\Job as BaseJob;
+use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Util\Util;
 use Pheanstalk\Pheanstalk;
 
@@ -49,16 +49,16 @@ class JobManager extends RetryableJobManager
         /** @var Job $job */
         $message = $job->toMessage();
         $arguments = [$message];
-        if ($job->getPriority() !== null) {
+        if (null !== $job->getPriority()) {
             $arguments[] = $job->getPriority();
         }
-        if ($job->getDelay() !== null) {
+        if (null !== $job->getDelay()) {
             while (count($arguments) < 2) {
                 $arguments[] = 0;
             }
             $arguments[] = $job->getDelay();
         }
-        if ($job->getTtr() !== null) {
+        if (null !== $job->getTtr()) {
             while (count($arguments) < 3) {
                 $arguments[] = 0;
             }
@@ -129,7 +129,6 @@ class JobManager extends RetryableJobManager
     }
 
     /**
-     * @param Pheanstalk      $beanstalkd
      * @param bool            $expiredJob
      * @param int|string|null $runId
      *

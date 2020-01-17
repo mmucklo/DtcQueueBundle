@@ -26,8 +26,6 @@ class Util
 
     /**
      * @param array[object, object] $payload
-     * @param \ReflectionObject     $reflection1
-     * @param \ReflectionObject     $reflection2
      */
     private static function copyProperties(array $payload, \ReflectionObject $reflection1, \ReflectionObject $reflection2)
     {
@@ -43,8 +41,6 @@ class Util
 
     /**
      * @param array[object, object] $payload
-     * @param \ReflectionObject     $reflection1
-     * @param \ReflectionObject     $reflection2
      */
     private static function copyMethods(array $payload, \ReflectionObject $reflection1, \ReflectionObject $reflection2)
     {
@@ -65,7 +61,6 @@ class Util
      * @param array[object, object] $payload
      * @param string                $getMethod
      * @param string                $setMethod
-     * @param \ReflectionObject     $reflection2
      */
     private static function copyMethod(array $payload, $getMethod, $setMethod, \ReflectionObject $reflection2)
     {

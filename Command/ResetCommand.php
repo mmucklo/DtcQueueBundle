@@ -19,7 +19,8 @@ class ResetCommand extends Command
             ->setDescription('Reset jobs with exception or stalled status');
     }
 
-    public function setJobManager($jobManager) {
+    public function setJobManager($jobManager)
+    {
         $this->jobManager = $jobManager;
     }
 

@@ -2,9 +2,9 @@
 
 namespace Dtc\QueueBundle\Tests\Redis;
 
-use Dtc\QueueBundle\Redis\RedisInterface;
-use Dtc\QueueBundle\Redis\Predis;
 use Dtc\QueueBundle\Redis\PhpRedis;
+use Dtc\QueueBundle\Redis\Predis;
+use Dtc\QueueBundle\Redis\RedisInterface;
 use Predis\Client;
 
 class PredisPhpRedisTest extends \PHPUnit\Framework\TestCase

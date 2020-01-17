@@ -9,8 +9,6 @@ use Dtc\QueueBundle\Model\RetryableJob;
 trait SaveableTrait
 {
     /**
-     * @param \Dtc\QueueBundle\Model\Job $job
-     *
      * @throws PriorityException
      * @throws ClassNotSubclassException
      */

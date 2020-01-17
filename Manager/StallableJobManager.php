@@ -2,8 +2,8 @@
 
 namespace Dtc\QueueBundle\Manager;
 
-use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\Job;
+use Dtc\QueueBundle\Model\RetryableJob;
 use Dtc\QueueBundle\Model\StallableJob;
 
 abstract class StallableJobManager extends PriorityJobManager
@@ -41,7 +41,6 @@ abstract class StallableJobManager extends PriorityJobManager
     }
 
     /**
-     * @param StallableJob $job
      * @param $retry true if retry
      *
      * @return bool true if retry
@@ -71,8 +70,6 @@ abstract class StallableJobManager extends PriorityJobManager
     }
 
     /**
-     * @param StallableJob $job
-     *
      * @return bool false if
      */
     private function updateJobStalled(StallableJob $job)

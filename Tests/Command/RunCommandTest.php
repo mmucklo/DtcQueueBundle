@@ -3,12 +3,12 @@
 namespace Dtc\QueueBundle\Tests\Command;
 
 use Dtc\QueueBundle\Command\RunCommand;
-use PHPUnit\Framework\TestCase;
-use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Manager\WorkerManager;
-use Dtc\QueueBundle\Tests\FibonacciWorker;
+use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\Run\Loop;
+use Dtc\QueueBundle\Tests\FibonacciWorker;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\DependencyInjection\Container;

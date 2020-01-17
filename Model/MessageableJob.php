@@ -16,7 +16,7 @@ abstract class MessageableJob extends RetryableJob
 
     protected function toMessageArray()
     {
-        return array(
+        return [
             'worker' => $this->getWorkerName(),
             'args' => $this->getArgs(),
             'method' => $this->getMethod(),
@@ -31,7 +31,7 @@ abstract class MessageableJob extends RetryableJob
             'maxFailures' => $this->getMaxFailures(),
             'exceptions' => $this->getExceptions(),
             'maxExceptions' => $this->getMaxExceptions(),
-        );
+        ];
     }
 
     /**

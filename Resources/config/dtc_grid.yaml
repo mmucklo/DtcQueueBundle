@@ -35,6 +35,44 @@ Dtc\QueueBundle\Entity\Job:
   sort:
     id: ASC
 
+Dtc\QueueBundle\Document\Job:
+  columns:
+    id:
+      sortable: true
+    whenAt:
+      sortable: true
+    workerName:
+      sortable: true
+      searchable: true
+    className:
+      sortable: true
+      searchable: true
+    method:
+      sortable: true
+      searchable: true
+    priority:
+      sortable: true
+      searchable: true
+    expiresAt:
+      sortable: true
+    startedAt:
+      sortable: true
+    status:
+      sortable: true
+      searchable: true
+  actions:
+    -
+      label: Show
+      type: show
+      route: dtc_grid_show
+    -
+      label: Archive
+      type: delete
+      route: dtc_grid_delete
+  sort:
+    whenAt: DESC
+
+
 Dtc\QueueBundle\Entity\JobArchive:
   columns:
     id:
@@ -60,6 +98,33 @@ Dtc\QueueBundle\Entity\JobArchive:
       route: dtc_grid_show
   sort:
     updatedAt: DESC
+
+Dtc\QueueBundle\Document\JobArchive:
+  columns:
+    id:
+      sortable: true
+    finishedAt:
+      sortable: true
+    updatedAt:
+      sortable: true
+    workerName:
+      sortable: true
+    className:
+      sortable: true
+    method:
+      sortable: true
+    elapsed:
+      sortable: true
+    status:
+      sortable: true
+  actions:
+    -
+      label: Show
+      type: show
+      route: dtc_grid_show
+  sort:
+    updatedAt: DESC
+
 
 Dtc\QueueBundle\Entity\Run:
   columns:
@@ -89,7 +154,54 @@ Dtc\QueueBundle\Entity\Run:
   sort:
     startedAt: DESC
 
+Dtc\QueueBundle\Document\Run:
+  columns:
+    id:
+      sortable: true
+    startedAt:
+      sortable: true
+    duration: ~
+    lastHeartbeatAt:
+      sortable: true
+    maxCount: ~
+    processed: ~
+    hostname:
+      sortable: true
+    pid: ~
+    processTimeout: ~
+    currentJobId: ~
+  actions:
+    -
+      label: Show
+      type: show
+      route: dtc_grid_show
+    -
+      label: Archive
+      type: delete
+      route: dtc_grid_delete
+  sort:
+    startedAt: DESC
+
 Dtc\QueueBundle\Entity\RunArchive:
+  columns:
+    id:
+      sortable: true
+    endedAt:
+      sortable: true
+    elapsed: ~
+    processed: ~
+    hostname:
+      sortable: true
+    pid: ~
+  actions:
+    -
+      label: Show
+      type: show
+      route: dtc_grid_show
+  sort:
+    endedAt: DESC
+
+Dtc\QueueBundle\Document\RunArchive:
   columns:
     id:
       sortable: true
