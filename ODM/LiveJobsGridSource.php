@@ -4,6 +4,7 @@ namespace Dtc\QueueBundle\ODM;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Dtc\GridBundle\Grid\Column\GridColumn;
+use Dtc\GridBundle\Grid\Source\ColumnExtractionTrait;
 use Dtc\GridBundle\Grid\Source\DocumentGridSource;
 use Dtc\QueueBundle\Model\BaseJob;
 
@@ -11,6 +12,8 @@ class LiveJobsGridSource extends DocumentGridSource
 {
     protected $jobManager;
     protected $running = false;
+
+    use ColumnExtractionTrait;
 
     public function getId()
     {
@@ -54,14 +57,14 @@ class LiveJobsGridSource extends DocumentGridSource
         if ($columns = parent::getColumns()) {
             return $columns;
         }
-        $this->autoDiscoverColumns();
+        $this->autoDiscoverColumnsWrapper();
 
         return parent::getColumns();
     }
 
-    public function autoDiscoverColumns()
+    public function autoDiscoverColumnsWrapper()
     {
-        parent::autoDiscoverColumns();
+        $this->autoDiscoverColumns();
         if ($this->columns) {
             foreach ($this->columns as $column) {
                 if ($column instanceof GridColumn) {

@@ -20,8 +20,8 @@ class GridCompilerPass implements CompilerPassInterface
         if ('orm' === $defaultManagerType || 'orm' === $runManagerType || 'odm' === $defaultManagerType || 'odm' === $runManagerType) {
             $filename = __DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'Resources'.DIRECTORY_SEPARATOR.'config'.DIRECTORY_SEPARATOR.'dtc_grid.yaml';
             $cacheDir = $container->getParameter('kernel.cache_dir');
-            if (class_exists('Dtc\GridBundle\Grid\Source\ColumnSource')) {
-                \Dtc\GridBundle\Grid\Source\ColumnSource::cacheClassesFromFile($cacheDir, $filename);
+            if (class_exists('Dtc\GridBundle\Grid\Source\ColumnUtil')) {
+                \Dtc\GridBundle\Util\ColumnUtil::cacheClassesFromFile($cacheDir, $filename);
             }
         }
 

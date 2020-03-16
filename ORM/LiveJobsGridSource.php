@@ -4,6 +4,7 @@ namespace Dtc\QueueBundle\ORM;
 
 use Doctrine\ORM\EntityManager;
 use Dtc\GridBundle\Grid\Column\GridColumn;
+use Dtc\GridBundle\Grid\Source\ColumnExtractionTrait;
 use Dtc\GridBundle\Grid\Source\EntityGridSource;
 use Dtc\QueueBundle\Model\BaseJob;
 
@@ -11,6 +12,8 @@ class LiveJobsGridSource extends EntityGridSource
 {
     protected $jobManager;
     protected $running = false;
+
+    use ColumnExtractionTrait;
 
     public function getId()
     {
@@ -30,7 +33,7 @@ class LiveJobsGridSource extends EntityGridSource
         if ($columns = parent::getColumns()) {
             return $columns;
         }
-        $this->autoDiscoverColumns();
+        $this->autoDiscoverColumnsWrapper();
 
         return parent::getColumns();
     }
@@ -76,9 +79,9 @@ class LiveJobsGridSource extends EntityGridSource
         return $queryBuilder;
     }
 
-    public function autoDiscoverColumns()
+    public function autoDiscoverColumnsWrapper()
     {
-        parent::autoDiscoverColumns();
+        $this->autoDiscoverColumns();
         if ($this->columns) {
             foreach ($this->columns as $column) {
                 if ($column instanceof GridColumn) {
