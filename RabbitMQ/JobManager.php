@@ -23,8 +23,8 @@ use PhpAmqpLib\Message\AMQPMessage;
 class JobManager extends PriorityJobManager
 {
     use JobIdTrait;
-    use VerifyTrait;
     use SaveableTrait;
+    use VerifyTrait;
 
     /** @var AMQPChannel */
     protected $channel;

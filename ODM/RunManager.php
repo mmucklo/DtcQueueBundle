@@ -12,6 +12,7 @@ class RunManager extends DoctrineRunManager
 
     /**
      * @return array
+     *
      * @throws \Exception
      */
     protected function getOldLiveRuns()

@@ -29,8 +29,8 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
  */
 abstract class DoctrineJobManagerTest extends BaseJobManagerTest
 {
-    use PriorityTestTrait;
     use AutoRetryTrait;
+    use PriorityTestTrait;
     use RetryableTrait;
 
     protected static $dtcQueueListener;

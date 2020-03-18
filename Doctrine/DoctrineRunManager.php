@@ -48,6 +48,7 @@ abstract class DoctrineRunManager extends RunManager
 
     /**
      * @return int
+     *
      * @throws \Exception
      */
     public function pruneStalledRuns()

@@ -9,8 +9,8 @@ use Symfony\Component\HttpKernel\Kernel;
 
 class Configuration implements ConfigurationInterface
 {
-    use RedisConfiguration;
     use RabbitMQConfiguration;
+    use RedisConfiguration;
 
     /**
      * Generates the configuration tree.

@@ -158,6 +158,7 @@ class Util
             throw new \RuntimeException("Could not create date time from ${timePart}.${decimalPart}");
         }
         $result->setTimezone(new \DateTimeZone(date_default_timezone_get()));
+
         return $result;
     }
 }

@@ -90,10 +90,10 @@ trait ControllerTrait
                       '@DtcGrid/Page/datatables.html.twig' => file_get_contents(__DIR__.'/../../vendor/mmucklo/grid-bundle/Resources/views/Grid/datatables.html.twig'), ];
         if (class_exists('Symfony\Bundle\TwigBundle\TwigEngine') && method_exists($rendererFactory, 'setTwigEngine')) {
             $twigEngine = new TwigEngine(
-                    new Environment(new \Twig_Loader_Array($templates)),
-                    new TemplateNameParser(),
-                    new FileLocator(__DIR__)
-                );
+                new Environment(new \Twig_Loader_Array($templates)),
+                new TemplateNameParser(),
+                new FileLocator(__DIR__)
+            );
             $rendererFactory->setTwigEngine($twigEngine);
             $container->set('twig', $twigEngine);
         } elseif (class_exists('Twig\Environment') && method_exists($rendererFactory, 'setTwigEnvironment')) {
@@ -126,7 +126,7 @@ trait ControllerTrait
         $gridSourceJob = new $gridSourceClass($jobManager->getObjectManager(), $jobManager->getJobClass());
         if (method_exists($gridSourceJob, 'autodiscoverColumns')) {
             $gridSourceJob->autodiscoverColumns();
-        } else if ($columnSource) {
+        } elseif ($columnSource) {
             $columnSourceInfo = $columnSource->getColumnSourceInfo($jobManager->getObjectManager(), $jobManager->getJobClass(), false, new AnnotationReader());
             $gridSourceJob->setIdColumn($columnSourceInfo->idColumn);
             $gridSourceJob->setColumns($columnSourceInfo->columns);
@@ -137,7 +137,7 @@ trait ControllerTrait
         $gridSourceJobArchive = new $gridSourceClass($jobManager->getObjectManager(), $jobManager->getJobArchiveClass());
         if (method_exists($gridSourceJobArchive, 'autodiscoverColumns')) {
             $gridSourceJobArchive->autodiscoverColumns();
-        } else if ($columnSource) {
+        } elseif ($columnSource) {
             $columnSourceInfo = $columnSource->getColumnSourceInfo($jobManager->getObjectManager(), $jobManager->getJobArchiveClass(), false, new AnnotationReader());
             $gridSourceJobArchive->setIdColumn($columnSourceInfo->idColumn);
             $gridSourceJobArchive->setColumns($columnSourceInfo->columns);
@@ -148,7 +148,7 @@ trait ControllerTrait
         $gridSourceRun = new $gridSourceClass($runManager->getObjectManager(), $runManager->getRunClass());
         if (method_exists($gridSourceRun, 'autodiscoverColumns')) {
             $gridSourceRun->autodiscoverColumns();
-        } else if ($columnSource) {
+        } elseif ($columnSource) {
             $columnSourceInfo = $columnSource->getColumnSourceInfo($runManager->getObjectManager(), $runManager->getRunClass(), false, new AnnotationReader());
             $gridSourceRun->setIdColumn($columnSourceInfo->idColumn);
             $gridSourceRun->setColumns($columnSourceInfo->columns);
@@ -159,7 +159,7 @@ trait ControllerTrait
         $gridSourceRunArchive = new $gridSourceClass($runManager->getObjectManager(), $runManager->getRunArchiveClass());
         if (method_exists($gridSourceRunArchive, 'autodiscoverColumns')) {
             $gridSourceRunArchive->autodiscoverColumns();
-        } else if ($columnSource) {
+        } elseif ($columnSource) {
             $columnSourceInfo = $columnSource->getColumnSourceInfo($runManager->getObjectManager(), $runManager->getRunArchiveClass(), false, new AnnotationReader());
             $gridSourceRunArchive->setIdColumn($columnSourceInfo->idColumn);
             $gridSourceRunArchive->setColumns($columnSourceInfo->columns);

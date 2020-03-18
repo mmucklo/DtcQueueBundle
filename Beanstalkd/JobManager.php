@@ -157,7 +157,7 @@ class JobManager extends RetryableJobManager
         return null;
     }
 
-    public function deleteJob(\Dtc\QueueBundle\Model\Job $job)
+    public function deleteJob(BaseJob $job)
     {
         $this->beanstalkd
             ->delete($job->getBeanJob());

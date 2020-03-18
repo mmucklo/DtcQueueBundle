@@ -24,8 +24,8 @@ use PhpAmqpLib\Connection\AMQPStreamConnection;
  */
 class JobManagerTest extends BaseJobManagerTest
 {
-    use PriorityTestTrait;
     use AutoRetryTrait;
+    use PriorityTestTrait;
     use RetryableTrait;
     use SaveJobTrait;
     public static $connection;

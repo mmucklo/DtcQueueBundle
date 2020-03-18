@@ -65,11 +65,13 @@ class LiveJobsGridSource extends DocumentGridSource
         parent::setColumns($columns);
     }
 
-    public function getColumns() {
+    public function getColumns()
+    {
         if ($columns = parent::getColumns()) {
             return $columns;
         }
         $this->autoDiscoverColumns();
+
         return parent::getColumns();
     }
 
