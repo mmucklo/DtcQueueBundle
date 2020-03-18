@@ -48,7 +48,7 @@ class TrendsController extends Controller
         }
         $endDate = \DateTime::createFromFormat('Y-m-d\TH:i:s.uO', $end) ?: \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
         if ($endDate instanceof \DateTime) {
-            $beginDate->setTimezone(new \DateTimeZone(date_default_timezone_get()));
+            $endDate->setTimezone(new \DateTimeZone(date_default_timezone_get()));
         }
 
         $recordTimings = $this->container->getParameter('dtc_queue.timings.record');
