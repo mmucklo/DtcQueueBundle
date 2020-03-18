@@ -10,6 +10,10 @@ class RunManager extends DoctrineRunManager
 {
     use CommonTrait;
 
+    /**
+     * @return array
+     * @throws \Exception
+     */
     protected function getOldLiveRuns()
     {
         /** @var DocumentManager $objectManager */
@@ -18,7 +22,11 @@ class RunManager extends DoctrineRunManager
         $queryBuilder = $objectManager->createQueryBuilder($this->getRunClass());
         $queryBuilder->find();
         $time = time() - 86400;
-        $date = \DateTime::createFromFormat('U', strval($time), new \DateTimeZone(date_default_timezone_get()));
+        $date = \DateTime::createFromFormat('U', strval($time));
+        if (false === $date) {
+            throw new \Exception("Could not create DateTime object from $time");
+        }
+        $date->setTimezone(new \DateTimeZone(date_default_timezone_get()));
         $queryBuilder->field('lastHeartbeatAt')->lt($date);
 
         return $queryBuilder->getQuery()->toArray();

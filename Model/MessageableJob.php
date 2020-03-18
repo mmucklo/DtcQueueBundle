@@ -75,8 +75,9 @@ abstract class MessageableJob extends RetryableJob
     private function setDateTimeField($dateField, $timeStr)
     {
         if ($timeStr) {
-            $dateTime = \DateTime::createFromFormat('U.u', $timeStr, new \DateTimeZone(date_default_timezone_get()));
+            $dateTime = \DateTime::createFromFormat('U.u', $timeStr);
             if (false !== $dateTime) {
+                $dateTime->setTimezone(new \DateTimeZone(date_default_timezone_get()));
                 $method = 'set'.ucfirst($dateField);
                 $this->$method($dateTime);
             }

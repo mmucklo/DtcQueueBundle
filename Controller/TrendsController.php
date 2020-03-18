@@ -42,8 +42,14 @@ class TrendsController extends Controller
         $begin = $request->query->get('begin');
         $end = $request->query->get('end');
         $type = $request->query->get('type', 'HOUR');
-        $beginDate = \DateTime::createFromFormat('Y-m-d\TH:i:s.uO', $begin, new \DateTimeZone(date_default_timezone_get())) ?: null;
-        $endDate = \DateTime::createFromFormat('Y-m-d\TH:i:s.uO', $end, new \DateTimeZone(date_default_timezone_get())) ?: \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
+        $beginDate = \DateTime::createFromFormat('Y-m-d\TH:i:s.uO', $begin) ?: null;
+        if ($beginDate instanceof \DateTime) {
+            $beginDate->setTimezone(new \DateTimeZone(date_default_timezone_get()));
+        }
+        $endDate = \DateTime::createFromFormat('Y-m-d\TH:i:s.uO', $end) ?: \Dtc\QueueBundle\Util\Util::getMicrotimeDateTime();
+        if ($endDate instanceof \DateTime) {
+            $beginDate->setTimezone(new \DateTimeZone(date_default_timezone_get()));
+        }
 
         $recordTimings = $this->container->getParameter('dtc_queue.timings.record');
         $params = [];
@@ -83,14 +89,16 @@ class TrendsController extends Controller
 
         $format = $this->getDateFormat($type);
         usort($timingsDates, function ($date1str, $date2str) use ($format) {
-            $date1 = \DateTime::createFromFormat($format, $date1str, new \DateTimeZone(date_default_timezone_get()));
-            $date2 = \DateTime::createFromFormat($format, $date2str, new \DateTimeZone(date_default_timezone_get()));
+            $date1 = \DateTime::createFromFormat($format, $date1str);
+            $date2 = \DateTime::createFromFormat($format, $date2str);
             if (!$date2) {
                 return false;
             }
             if (!$date1) {
                 return false;
             }
+            $date1->setTimezone(new \DateTimeZone(date_default_timezone_get()));
+            $date2->setTimezone(new \DateTimeZone(date_default_timezone_get()));
 
             return $date1 > $date2;
         });
@@ -115,13 +123,14 @@ class TrendsController extends Controller
         $timezoneOffset = $this->container->getParameter('dtc_queue.timings.timezone_offset');
         $timingsDatesAdjusted = [];
         foreach ($timingsDates as $dateStr) {
-            $date = \DateTime::createFromFormat($format, $dateStr, new \DateTimeZone(date_default_timezone_get()));
+            $date = \DateTime::createFromFormat($format, $dateStr);
+            if (false === $date) {
+                throw new \InvalidArgumentException("'$dateStr' is not in the right format: ".DATE_RFC3339);
+            }
+            $date->setTimezone(new \DateTimeZone(date_default_timezone_get()));
             if (0 !== $timezoneOffset) {
                 // This may too simplistic in areas that observe DST - does the database or PHP code observe DST?
                 $date->setTimestamp($date->getTimestamp() + ($timezoneOffset * 3600));
-            }
-            if (false === $date) {
-                throw new \InvalidArgumentException("'$date' is not in the right format: ".DATE_RFC3339);
             }
             $timingsDatesAdjusted[] = $date->format(DATE_RFC3339);
         }

@@ -80,6 +80,17 @@ class LiveJobsGridSource extends EntityGridSource
         }
 
         parent::setColumns($columns);
+<<<<<<< HEAD
+=======
+    }
+
+    public function getColumns() {
+        if ($columns = parent::getColumns()) {
+            return $columns;
+        }
+        $this->autoDiscoverColumns();
+        return parent::getColumns();
+>>>>>>> master
     }
 
     public function getColumns() {

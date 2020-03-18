@@ -38,9 +38,9 @@ class TrendsControllerTest extends TestCase
         $trendsController->setContainer($container);
 
         $dateTimeStr = '2017-07-01T4:04:04Z';
-        $dateTime = \DateTime::createFromFormat(DATE_ISO8601, $dateTimeStr, new \DateTimeZone(date_default_timezone_get()));
+        $dateTime = \DateTime::createFromFormat(DATE_ISO8601, $dateTimeStr);
         self::assertNotFalse($dateTime);
-
+        $dateTime->setTimezone(new \DateTimeZone(date_default_timezone_get()));
         /** @var JobTimingManager $jobTimingManager */
         $jobTimingManager = $container->get('dtc_queue.manager.job_timing');
         $jobTimingManager->recordTiming(BaseJob::STATUS_SUCCESS, $dateTime);
