@@ -41,6 +41,7 @@ abstract class Worker
      * @param int|null $time
      * @param bool     $batch
      * @param int|null $priority
+     *
      * @throws \Exception
      */
     public function at($time = null, $batch = false, $priority = null)

@@ -8,6 +8,7 @@ use Dtc\GridBundle\Grid\Source\ColumnSource;
 use Dtc\GridBundle\Grid\Source\DocumentGridSource;
 use Dtc\GridBundle\Grid\Source\EntityGridSource;
 use Dtc\GridBundle\Manager\GridSourceManager;
+use Dtc\GridBundle\Util\ColumnUtil;
 use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Manager\WorkerManager;
 use Dtc\QueueBundle\ORM\LiveJobsGridSource;
@@ -91,10 +92,10 @@ trait ControllerTrait
                       '@DtcGrid/Page/datatables.html.twig' => file_get_contents(__DIR__.'/../../vendor/mmucklo/grid-bundle/Resources/views/Grid/datatables.html.twig'), ];
         if (class_exists('Symfony\Bundle\TwigBundle\TwigEngine') && method_exists($rendererFactory, 'setTwigEngine')) {
             $twigEngine = new TwigEngine(
-                    new Environment(new \Twig_Loader_Array($templates)),
-                    new TemplateNameParser(),
-                    new FileLocator(__DIR__)
-                );
+                new Environment(new \Twig_Loader_Array($templates)),
+                new TemplateNameParser(),
+                new FileLocator(__DIR__)
+            );
             $rendererFactory->setTwigEngine($twigEngine);
             $container->set('twig', $twigEngine);
         } elseif (class_exists('Twig\Environment') && method_exists($rendererFactory, 'setTwigEnvironment')) {
@@ -124,7 +125,8 @@ trait ControllerTrait
         $container->set('dtc_grid.manager.source', $gridSourceManager);
 
         $gridSourceJob = new $gridSourceClass($jobManager->getObjectManager(), $jobManager->getJobClass());
-        $columnSourceInfo = $columnSource->getColumnSourceInfo($jobManager->getObjectManager(), $jobManager->getJobClass(), false, new AnnotationReader());
+        ColumnUtil::cacheClassesFromFile(__DIR__, __DIR__.\DIRECTORY_SEPARATOR.'..'.\DIRECTORY_SEPARATOR.'..'.\DIRECTORY_SEPARATOR.'Resources'.\DIRECTORY_SEPARATOR.'config'.\DIRECTORY_SEPARATOR.'dtc_grid.yaml');
+        $columnSourceInfo = $columnSource->getColumnSourceInfo($jobManager->getObjectManager(), $jobManager->getJobClass(), false);
         $gridSourceJob->setIdColumn($columnSourceInfo->idColumn);
         $gridSourceJob->setColumns($columnSourceInfo->columns);
         $gridSourceJob->setId($jobManager->getJobClass());
@@ -132,7 +134,7 @@ trait ControllerTrait
         $gridSourceManager->add($jobManager->getJobClass(), $gridSourceJob);
 
         $gridSourceJobArchive = new $gridSourceClass($jobManager->getObjectManager(), $jobManager->getJobArchiveClass());
-        $columnSourceInfo = $columnSource->getColumnSourceInfo($jobManager->getObjectManager(), $jobManager->getJobArchiveClass(), false, new AnnotationReader());
+        $columnSourceInfo = $columnSource->getColumnSourceInfo($jobManager->getObjectManager(), $jobManager->getJobArchiveClass(), false);
         $gridSourceJobArchive->setIdColumn($columnSourceInfo->idColumn);
         $gridSourceJobArchive->setColumns($columnSourceInfo->columns);
         $gridSourceJobArchive->setId($jobManager->getJobArchiveClass());
@@ -140,7 +142,7 @@ trait ControllerTrait
         $gridSourceManager->add($jobManager->getJobArchiveClass(), $gridSourceJobArchive);
 
         $gridSourceRun = new $gridSourceClass($runManager->getObjectManager(), $runManager->getRunClass());
-        $columnSourceInfo = $columnSource->getColumnSourceInfo($runManager->getObjectManager(), $runManager->getRunClass(), false, new AnnotationReader());
+        $columnSourceInfo = $columnSource->getColumnSourceInfo($runManager->getObjectManager(), $runManager->getRunClass(), false);
         $gridSourceRun->setIdColumn($columnSourceInfo->idColumn);
         $gridSourceRun->setColumns($columnSourceInfo->columns);
         $gridSourceRun->setId($runManager->getRunClass());
@@ -148,7 +150,7 @@ trait ControllerTrait
         $gridSourceManager->add($runManager->getRunClass(), $gridSourceRun);
 
         $gridSourceRunArchive = new $gridSourceClass($runManager->getObjectManager(), $runManager->getRunArchiveClass());
-        $columnSourceInfo = $columnSource->getColumnSourceInfo($runManager->getObjectManager(), $runManager->getRunArchiveClass(), false, new AnnotationReader());
+        $columnSourceInfo = $columnSource->getColumnSourceInfo($runManager->getObjectManager(), $runManager->getRunArchiveClass(), false);
         $gridSourceRunArchive->setIdColumn($columnSourceInfo->idColumn);
         $gridSourceRunArchive->setColumns($columnSourceInfo->columns);
         $gridSourceRunArchive->setId($runManager->getRunArchiveClass());

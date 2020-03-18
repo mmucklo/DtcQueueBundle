@@ -14,8 +14,8 @@ use Dtc\QueueBundle\Util\Util;
  */
 class JobManager extends BaseJobManager
 {
-    use StatusTrait;
     use SaveableTrait;
+    use StatusTrait;
 
     /**
      * There's a bit of danger here if there are more jobs being inserted than can be efficiently drained

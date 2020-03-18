@@ -19,8 +19,8 @@ use Dtc\QueueBundle\Tests\Manager\PriorityTestTrait;
  */
 class PhpRedisJobManagerTest extends JobManagerTest
 {
-    use PriorityTestTrait;
     use AutoRetryTrait;
+    use PriorityTestTrait;
     public static $connection;
 
     public static function setUpBeforeClass()
