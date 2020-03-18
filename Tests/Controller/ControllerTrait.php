@@ -119,16 +119,24 @@ trait ControllerTrait
         $gridSourceManager->setReader(new AnnotationReader());
         $container->set('dtc_grid.manager.source', $gridSourceManager);
         $gridSourceJob = new $gridSourceClass($jobManager->getObjectManager(), $jobManager->getJobClass());
-        $gridSourceJob->autodiscoverColumns();
+        if (method_exists($gridSourceJob, 'autodiscoverColumns')) {
+            $gridSourceJob->autodiscoverColumns();
+        }
         $gridSourceManager->add($jobManager->getJobClass(), $gridSourceJob);
         $gridSourceJobArchive = new $gridSourceClass($jobManager->getObjectManager(), $jobManager->getJobArchiveClass());
-        $gridSourceJobArchive->autodiscoverColumns();
+        if (method_exists($gridSourceJobArchive, 'autodiscoverColumns')) {
+            $gridSourceJobArchive->autodiscoverColumns();
+        }
         $gridSourceManager->add($jobManager->getJobArchiveClass(), $gridSourceJobArchive);
         $gridSourceRun = new $gridSourceClass($runManager->getObjectManager(), $runManager->getRunClass());
-        $gridSourceRun->autodiscoverColumns();
+        if (method_exists($gridSourceRun, 'autodiscoverColumns')) {
+            $gridSourceRun->autodiscoverColumns();
+        }
         $gridSourceManager->add($runManager->getRunClass(), $gridSourceRun);
         $gridSourceRunArchive = new $gridSourceClass($runManager->getObjectManager(), $runManager->getRunArchiveClass());
-        $gridSourceRunArchive->autodiscoverColumns();
+        if (method_exists($gridSourceRunArchive, 'autodiscoverColumns')) {
+            $gridSourceRunArchive->autodiscoverColumns();
+        }
         $gridSourceManager->add($runManager->getRunArchiveClass(), $gridSourceRunArchive);
 
         return $container;
