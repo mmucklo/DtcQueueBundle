@@ -30,5 +30,6 @@ class ResetCommand extends Command
         $countStalled = $this->jobManager->resetStalledJobs();
         $output->writeln("$countException job(s) in status 'exception' reset");
         $output->writeln("$countStalled job(s) stalled (in status 'running') reset");
+        return 0;
     }
 }
