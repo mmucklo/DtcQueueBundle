@@ -117,26 +117,42 @@ trait ControllerTrait
         $container->set('dtc_queue.manager.job', $jobManager);
         $gridSourceManager = new GridSourceManager(new ColumnSource(__DIR__, true));
         $gridSourceManager->setReader(new AnnotationReader());
+
+        $columnSource = new \Dtc\GridBundle\Grid\Source\ColumnSource(__DIR__, true);
+        $gridSourceManager = new GridSourceManager($columnSource);
+        $gridSourceManager->setReader(new AnnotationReader());
         $container->set('dtc_grid.manager.source', $gridSourceManager);
+
         $gridSourceJob = new $gridSourceClass($jobManager->getObjectManager(), $jobManager->getJobClass());
-        if (method_exists($gridSourceJob, 'autodiscoverColumns')) {
-            $gridSourceJob->autodiscoverColumns();
-        }
+        $columnSourceInfo = $columnSource->getColumnSourceInfo($jobManager->getObjectManager(), $jobManager->getJobClass(), false, new AnnotationReader());
+        $gridSourceJob->setIdColumn($columnSourceInfo->idColumn);
+        $gridSourceJob->setColumns($columnSourceInfo->columns);
+        $gridSourceJob->setId($jobManager->getJobClass());
+        $gridSourceJob->setDefaultSort($columnSourceInfo->sort);
         $gridSourceManager->add($jobManager->getJobClass(), $gridSourceJob);
+
         $gridSourceJobArchive = new $gridSourceClass($jobManager->getObjectManager(), $jobManager->getJobArchiveClass());
-        if (method_exists($gridSourceJobArchive, 'autodiscoverColumns')) {
-            $gridSourceJobArchive->autodiscoverColumns();
-        }
+        $columnSourceInfo = $columnSource->getColumnSourceInfo($jobManager->getObjectManager(), $jobManager->getJobArchiveClass(), false, new AnnotationReader());
+        $gridSourceJobArchive->setIdColumn($columnSourceInfo->idColumn);
+        $gridSourceJobArchive->setColumns($columnSourceInfo->columns);
+        $gridSourceJobArchive->setId($jobManager->getJobArchiveClass());
+        $gridSourceJobArchive->setDefaultSort($columnSourceInfo->sort);
         $gridSourceManager->add($jobManager->getJobArchiveClass(), $gridSourceJobArchive);
+
         $gridSourceRun = new $gridSourceClass($runManager->getObjectManager(), $runManager->getRunClass());
-        if (method_exists($gridSourceRun, 'autodiscoverColumns')) {
-            $gridSourceRun->autodiscoverColumns();
-        }
+        $columnSourceInfo = $columnSource->getColumnSourceInfo($runManager->getObjectManager(), $runManager->getRunClass(), false, new AnnotationReader());
+        $gridSourceRun->setIdColumn($columnSourceInfo->idColumn);
+        $gridSourceRun->setColumns($columnSourceInfo->columns);
+        $gridSourceRun->setId($runManager->getRunClass());
+        $gridSourceRun->setDefaultSort($columnSourceInfo->sort);
         $gridSourceManager->add($runManager->getRunClass(), $gridSourceRun);
+
         $gridSourceRunArchive = new $gridSourceClass($runManager->getObjectManager(), $runManager->getRunArchiveClass());
-        if (method_exists($gridSourceRunArchive, 'autodiscoverColumns')) {
-            $gridSourceRunArchive->autodiscoverColumns();
-        }
+        $columnSourceInfo = $columnSource->getColumnSourceInfo($runManager->getObjectManager(), $runManager->getRunArchiveClass(), false, new AnnotationReader());
+        $gridSourceRunArchive->setIdColumn($columnSourceInfo->idColumn);
+        $gridSourceRunArchive->setColumns($columnSourceInfo->columns);
+        $gridSourceRunArchive->setId($runManager->getRunArchiveClass());
+        $gridSourceRunArchive->setDefaultSort($columnSourceInfo->sort);
         $gridSourceManager->add($runManager->getRunArchiveClass(), $gridSourceRunArchive);
 
         return $container;
