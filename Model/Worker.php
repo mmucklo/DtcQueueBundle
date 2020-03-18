@@ -42,6 +42,7 @@ abstract class Worker
      * @param bool     $batch
      * @param int|null $priority
      * @throws \Exception
+     * @throws \InvalidArgumentException
      */
     public function at($time = null, $batch = false, $priority = null)
     {
@@ -68,7 +69,7 @@ abstract class Worker
                         strval($timeU)
                     );
                     if (!$dateTime) {
-                        throw new \Exception("Could not create DateTime object from $timeU");
+                        throw new \InvalidArgumentException("Could not create DateTime object from $timeU");
                     }
                     $dateTime->setTimezone(new \DateTimeZone(date_default_timezone_get()));
                 } else {
@@ -77,7 +78,7 @@ abstract class Worker
                         strval($timeU)
                     );
                     if (!$dateTime) {
-                        throw new \Exception("Could not create DateTime object from $timeU");
+                        throw new \InvalidArgumentException("Could not create DateTime object from $timeU");
                     }
                     $dateTime->setTimezone(new \DateTimeZone(date_default_timezone_get()));
                 }
@@ -87,7 +88,7 @@ abstract class Worker
                     strval($timeU)
                 );
                 if (!$dateTime) {
-                    throw new \Exception("Could not create DateTime object from $timeU");
+                    throw new \InvalidArgumentException("Could not create DateTime object from $timeU");
                 }
                 $dateTime->setTimezone(new \DateTimeZone(date_default_timezone_get()));
             }
