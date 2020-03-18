@@ -114,8 +114,10 @@ trait ControllerTrait
         $liveJobsGridSource->setRunning(true);
         $container->set('dtc_queue.grid_source.jobs_running.orm', $liveJobsGridSource);
         $container->set('dtc_queue.manager.job', $jobManager);
+        $columnSource = null;
         if (class_exists('Dtc\GridBundle\Grid\Source\ColumnSource')) {
-            $gridSourceManager = new GridSourceManager(new \Dtc\GridBundle\Grid\Source\ColumnSource(__DIR__, true));
+            $columnSource = new \Dtc\GridBundle\Grid\Source\ColumnSource(__DIR__, true);
+            $gridSourceManager = new GridSourceManager($columnSource);
             $gridSourceManager->setReader(new AnnotationReader());
         } else {
             $gridSourceManager = new GridSourceManager(new AnnotationReader(), __DIR__);
@@ -124,21 +126,45 @@ trait ControllerTrait
         $gridSourceJob = new $gridSourceClass($jobManager->getObjectManager(), $jobManager->getJobClass());
         if (method_exists($gridSourceJob, 'autodiscoverColumns')) {
             $gridSourceJob->autodiscoverColumns();
+        } else if ($columnSource) {
+            $columnSourceInfo = $columnSource->getColumnSourceInfo($jobManager->getObjectManager(), $jobManager->getJobClass(), false, new AnnotationReader());
+            $gridSourceJob->setIdColumn($columnSourceInfo->idColumn);
+            $gridSourceJob->setColumns($columnSourceInfo->columns);
+            $gridSourceJob->setId($jobManager->getJobClass());
+            $gridSourceJob->setDefaultSort($columnSourceInfo->sort);
         }
         $gridSourceManager->add($jobManager->getJobClass(), $gridSourceJob);
         $gridSourceJobArchive = new $gridSourceClass($jobManager->getObjectManager(), $jobManager->getJobArchiveClass());
         if (method_exists($gridSourceJobArchive, 'autodiscoverColumns')) {
             $gridSourceJobArchive->autodiscoverColumns();
+        } else if ($columnSource) {
+            $columnSourceInfo = $columnSource->getColumnSourceInfo($jobManager->getObjectManager(), $jobManager->getJobArchiveClass(), false, new AnnotationReader());
+            $gridSourceJobArchive->setIdColumn($columnSourceInfo->idColumn);
+            $gridSourceJobArchive->setColumns($columnSourceInfo->columns);
+            $gridSourceJobArchive->setId($jobManager->getJobArchiveClass());
+            $gridSourceJobArchive->setDefaultSort($columnSourceInfo->sort);
         }
         $gridSourceManager->add($jobManager->getJobArchiveClass(), $gridSourceJobArchive);
         $gridSourceRun = new $gridSourceClass($runManager->getObjectManager(), $runManager->getRunClass());
         if (method_exists($gridSourceRun, 'autodiscoverColumns')) {
             $gridSourceRun->autodiscoverColumns();
+        } else if ($columnSource) {
+            $columnSourceInfo = $columnSource->getColumnSourceInfo($runManager->getObjectManager(), $runManager->getRunClass(), false, new AnnotationReader());
+            $gridSourceRun->setIdColumn($columnSourceInfo->idColumn);
+            $gridSourceRun->setColumns($columnSourceInfo->columns);
+            $gridSourceRun->setId($runManager->getRunClass());
+            $gridSourceRun->setDefaultSort($columnSourceInfo->sort);
         }
         $gridSourceManager->add($runManager->getRunClass(), $gridSourceRun);
         $gridSourceRunArchive = new $gridSourceClass($runManager->getObjectManager(), $runManager->getRunArchiveClass());
         if (method_exists($gridSourceRunArchive, 'autodiscoverColumns')) {
             $gridSourceRunArchive->autodiscoverColumns();
+        } else if ($columnSource) {
+            $columnSourceInfo = $columnSource->getColumnSourceInfo($runManager->getObjectManager(), $runManager->getRunArchiveClass(), false, new AnnotationReader());
+            $gridSourceRunArchive->setIdColumn($columnSourceInfo->idColumn);
+            $gridSourceRunArchive->setColumns($columnSourceInfo->columns);
+            $gridSourceRunArchive->setId($runManager->getRunArchiveClass());
+            $gridSourceRunArchive->setDefaultSort($columnSourceInfo->sort);
         }
         $gridSourceManager->add($runManager->getRunArchiveClass(), $gridSourceRunArchive);
 
