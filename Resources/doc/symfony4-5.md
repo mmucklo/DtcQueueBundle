@@ -1,4 +1,4 @@
-# Symfony 4 Installation Instructions
+# Symfony 4/5 Installation Instructions
 
 ## Composer installation
 

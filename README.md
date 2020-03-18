@@ -76,7 +76,7 @@ Installation
 
 ### Symfony 4/5
 
-[see /Resources/doc/symfony4.md](/Resources/doc/symfony4.md)
+[see /Resources/doc/symfony4-5.md](/Resources/doc/symfony4-5.md)
 
 Usage
 -----
