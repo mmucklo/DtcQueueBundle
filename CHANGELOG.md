@@ -1,5 +1,6 @@
 ### 6.0.7
    * Issue #113 - bump mmucklo/grid-bundle >=6 and make dependency fully optional.
+   * Permit Symfony 5.
 ### 6.0.6
    * Issue #126 - fix setting of timezone.
 ### 6.0.5
