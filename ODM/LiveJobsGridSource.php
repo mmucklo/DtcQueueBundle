@@ -4,6 +4,7 @@ namespace Dtc\QueueBundle\ODM;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Dtc\GridBundle\Grid\Column\GridColumn;
+use Dtc\GridBundle\Grid\Source\ColumnExtractionTrait;
 use Dtc\GridBundle\Grid\Source\DocumentGridSource;
 use Dtc\QueueBundle\Model\BaseJob;
 
@@ -11,6 +12,8 @@ class LiveJobsGridSource extends DocumentGridSource
 {
     protected $jobManager;
     protected $running = false;
+
+    use ColumnExtractionTrait;
 
     public function getId()
     {
@@ -51,12 +54,24 @@ class LiveJobsGridSource extends DocumentGridSource
 
     public function setColumns($columns)
     {
-        foreach ($columns as $column) {
-            if ($column instanceof GridColumn) {
-                $column->setOption('sortable', false);
+        if ($columns = parent::getColumns()) {
+            return $columns;
+        }
+        $this->autoDiscoverColumnsWrapper();
+
+        return parent::getColumns();
+    }
+
+    public function autoDiscoverColumnsWrapper()
+    {
+        $this->autoDiscoverColumns();
+        if ($this->columns) {
+            foreach ($this->columns as $column) {
+                if ($column instanceof GridColumn) {
+                    $column->setOption('sortable', false);
+                }
             }
         }
-        parent::setColumns($columns);
     }
 
     public function getDefaultSort()

@@ -4,6 +4,7 @@ namespace Dtc\QueueBundle\ORM;
 
 use Doctrine\ORM\EntityManager;
 use Dtc\GridBundle\Grid\Column\GridColumn;
+use Dtc\GridBundle\Grid\Source\ColumnExtractionTrait;
 use Dtc\GridBundle\Grid\Source\EntityGridSource;
 use Dtc\QueueBundle\Model\BaseJob;
 
@@ -11,6 +12,8 @@ class LiveJobsGridSource extends EntityGridSource
 {
     protected $jobManager;
     protected $running = false;
+
+    use ColumnExtractionTrait;
 
     public function getId()
     {
@@ -23,6 +26,16 @@ class LiveJobsGridSource extends EntityGridSource
         /** @var EntityManager $entityManager */
         $entityManager = $jobManager->getObjectManager();
         parent::__construct($entityManager, $jobManager->getJobClass());
+    }
+
+    public function getColumns()
+    {
+        if ($columns = parent::getColumns()) {
+            return $columns;
+        }
+        $this->autoDiscoverColumnsWrapper();
+
+        return parent::getColumns();
     }
 
     /**
@@ -66,14 +79,16 @@ class LiveJobsGridSource extends EntityGridSource
         return $queryBuilder;
     }
 
-    public function setColumns($columns)
+    public function autoDiscoverColumnsWrapper()
     {
-        foreach ($columns as $column) {
-            if ($column instanceof GridColumn) {
-                $column->setOption('sortable', false);
+        $this->autoDiscoverColumns();
+        if ($this->columns) {
+            foreach ($this->columns as $column) {
+                if ($column instanceof GridColumn) {
+                    $column->setOption('sortable', false);
+                }
             }
         }
-        parent::setColumns($columns);
     }
 
     public function getDefaultSort()

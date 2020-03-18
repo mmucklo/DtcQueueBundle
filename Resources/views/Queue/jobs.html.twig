@@ -2,7 +2,7 @@
 {% import "@DtcQueue/Queue/macros.html.twig" as queue_macros %}
 {% block title %}DtcQueue - Admin - Waiting Jobs{% endblock %}
 {% block grid %}
-    {% include 'DtcQueueBundle:Queue:nav.html.twig' %}
+    {% include '@DtcQueue/Queue/nav.html.twig' %}
 
     <h3>Waiting Jobs</h3>
     {{ dtc_grid.render | raw }}
