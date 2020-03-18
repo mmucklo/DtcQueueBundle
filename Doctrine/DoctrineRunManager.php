@@ -46,6 +46,10 @@ abstract class DoctrineRunManager extends RunManager
         return $this->runArchiveClass;
     }
 
+    /**
+     * @return int
+     * @throws \Exception
+     */
     public function pruneStalledRuns()
     {
         $runs = $this->getOldLiveRuns();
@@ -57,7 +61,11 @@ abstract class DoctrineRunManager extends RunManager
             $time = time() - 3600;
             $processTimeout = $run->getProcessTimeout();
             $time -= $processTimeout;
-            $oldDate = \DateTime::createFromFormat('U', strval($time), new \DateTimeZone(date_default_timezone_get()));
+            $oldDate = \DateTime::createFromFormat('U', strval($time));
+            if (false === $oldDate) {
+                throw new \Exception("Could not create DateTime object from $time");
+            }
+            $oldDate->setTimezone(new \DateTimeZone(date_default_timezone_get()));
             if (null === $lastHeartbeat || $oldDate > $lastHeartbeat) {
                 $delete[] = $run;
             }

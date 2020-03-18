@@ -41,6 +41,7 @@ abstract class Worker
      * @param int|null $time
      * @param bool     $batch
      * @param int|null $priority
+     * @throws \Exception
      */
     public function at($time = null, $batch = false, $priority = null)
     {
@@ -49,9 +50,12 @@ abstract class Worker
             $timeU = Util::getMicrotimeStr();
             $dateTime = \DateTime::createFromFormat(
                 'U.u',
-                $timeU,
-                new \DateTimeZone(date_default_timezone_get())
+                $timeU
             );
+            if (!$dateTime) {
+                throw new \Exception("Could not create DateTime object from $timeU");
+            }
+            $dateTime->setTimezone(new \DateTimeZone(date_default_timezone_get()));
         } else {
             $localeInfo = localeconv();
             $decimalPoint = isset($localeInfo['decimal_point']) ? $localeInfo['decimal_point'] : '.';
@@ -61,22 +65,31 @@ abstract class Worker
                 if ($hasDecimalPoint) {
                     $dateTime = \DateTime::createFromFormat(
                         'U'.$decimalPoint.'u',
-                        strval($timeU),
-                        new \DateTimeZone(date_default_timezone_get())
+                        strval($timeU)
                     );
+                    if (!$dateTime) {
+                        throw new \Exception("Could not create DateTime object from $timeU");
+                    }
+                    $dateTime->setTimezone(new \DateTimeZone(date_default_timezone_get()));
                 } else {
                     $dateTime = \DateTime::createFromFormat(
                         'U',
-                        strval($timeU),
-                        new \DateTimeZone(date_default_timezone_get())
+                        strval($timeU)
                     );
+                    if (!$dateTime) {
+                        throw new \Exception("Could not create DateTime object from $timeU");
+                    }
+                    $dateTime->setTimezone(new \DateTimeZone(date_default_timezone_get()));
                 }
             } else {
                 $dateTime = \DateTime::createFromFormat(
                     'U.u',
-                    strval($timeU),
-                    new \DateTimeZone(date_default_timezone_get())
+                    strval($timeU)
                 );
+                if (!$dateTime) {
+                    throw new \Exception("Could not create DateTime object from $timeU");
+                }
+                $dateTime->setTimezone(new \DateTimeZone(date_default_timezone_get()));
             }
         }
 

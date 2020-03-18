@@ -1,4 +1,5 @@
-
+### 6.0.6
+   * Issue #126 - fix setting of timezone.
 ### 6.0.5
    * Restrict mmucklo/grid-bundle to < 6
 ### 6.0.4

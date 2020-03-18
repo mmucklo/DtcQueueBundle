@@ -109,10 +109,11 @@ class Util
         if (!is_float($microtime)) {
             throw new \RuntimeException("Could not create date time expected-float microtime: $microtime");
         }
-        $result = \DateTime::createFromFormat('U.u', number_format($microtime, 6, '.', ''), new \DateTimeZone(date_default_timezone_get()));
+        $result = \DateTime::createFromFormat('U.u', number_format($microtime, 6, '.', ''));
         if (!$result) {
             throw new \RuntimeException("Could not create date time from float microtime: $microtime");
         }
+        $result->setTimezone(new \DateTimeZone(date_default_timezone_get()));
 
         return $result;
     }
@@ -124,10 +125,11 @@ class Util
      */
     public static function getMicrotimeDateTime()
     {
-        $result = \DateTime::createFromFormat('U.u', $microtime = self::getMicrotimeStr(), new \DateTimeZone(date_default_timezone_get()));
+        $result = \DateTime::createFromFormat('U.u', $microtime = self::getMicrotimeStr());
         if (!$result) {
             throw new \RuntimeException("Could not create date time from $microtime");
         }
+        $result->setTimezone(new \DateTimeZone(date_default_timezone_get()));
 
         return $result;
     }
@@ -151,6 +153,11 @@ class Util
         $timePart = substr($decimal, 0, $len);
         $decimalPart = substr($decimal, $len, 6);
 
-        return \DateTime::createFromFormat('U.u', "${timePart}.${decimalPart}", new \DateTimeZone(date_default_timezone_get()));
+        $result = \DateTime::createFromFormat('U.u', "${timePart}.${decimalPart}");
+        if (!$result) {
+            throw new \RuntimeException("Could not create date time from ${timePart}.${decimalPart}");
+        }
+        $result->setTimezone(new \DateTimeZone(date_default_timezone_get()));
+        return $result;
     }
 }
