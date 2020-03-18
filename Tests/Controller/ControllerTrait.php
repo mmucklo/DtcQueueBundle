@@ -115,7 +115,7 @@ trait ControllerTrait
         $container->set('dtc_queue.grid_source.jobs_running.orm', $liveJobsGridSource);
         $container->set('dtc_queue.manager.job', $jobManager);
         if (class_exists('Dtc\GridBundle\Grid\Source\ColumnSource')) {
-            $gridSourceManager = new GridSourceManager(new \Dtc\GridBundle\Grid\Source\ColumnSource(__DIR__));
+            $gridSourceManager = new GridSourceManager(new \Dtc\GridBundle\Grid\Source\ColumnSource(__DIR__, true));
             $gridSourceManager->setReader(new AnnotationReader());
         } else {
             $gridSourceManager = new GridSourceManager(new AnnotationReader(), __DIR__);
