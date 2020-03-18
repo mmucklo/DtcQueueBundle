@@ -52,26 +52,25 @@ class LiveJobsGridSource extends DocumentGridSource
         parent::__construct($documentManager, $jobManager->getJobClass());
     }
 
-    public function getColumns()
+    public function setColumns($columns)
     {
-        if ($columns = parent::getColumns()) {
-            return $columns;
-        }
-        $this->autoDiscoverColumnsWrapper();
-
-        return parent::getColumns();
-    }
-
-    public function autoDiscoverColumnsWrapper()
-    {
-        $this->autoDiscoverColumns();
-        if ($this->columns) {
-            foreach ($this->columns as $column) {
+        if ($columns) {
+            foreach ($columns as $column) {
                 if ($column instanceof GridColumn) {
                     $column->setOption('sortable', false);
                 }
             }
         }
+
+        parent::setColumns($columns);
+    }
+
+    public function getColumns() {
+        if ($columns = parent::getColumns()) {
+            return $columns;
+        }
+        $this->autoDiscoverColumns();
+        return parent::getColumns();
     }
 
     public function getDefaultSort()
