@@ -74,7 +74,7 @@ Installation
 
 [see /Resources/doc/symfony2-3.md](/Resources/doc/symfony2-3.md)
 
-### Symfony 4
+### Symfony 4/5
 
 [see /Resources/doc/symfony4.md](/Resources/doc/symfony4.md)
 
@@ -84,7 +84,7 @@ Usage
 Create a worker class that will work on the background job.
 
 Example:
-   * __src/Worker/FibonacciWorker.php:__ (symfony 4)
+   * __src/Worker/FibonacciWorker.php:__ (symfony 4/5)
    * __src/AppBundle/Worker/FibonacciWorker.php:__ (symfony 2/3)
 ```php
 <?php
@@ -129,7 +129,7 @@ Create a DI service for the job, and tag it as a background worker.
 
 ##### YAML:
 
-__Symfony 4 and 3.3, 3.4:__
+__Symfony 5, 4 and 3.3, 3.4:__
 ```yaml
 services:
     # for symfony 3 the class name would likely be AppBundle\Worker\FibonacciWorker
@@ -274,7 +274,7 @@ Each runs can be tracked in a table in an ORM / ODM backed datastore.
 
 Ways to configure:
 __app/config/config.yml:__ (symfony 2/3)
-__config/packages/dtc_queue.yaml:__ (symfony 4)
+__config/packages/dtc_queue.yaml:__ (symfony 4/5)
 ```yaml
 dtc_queue:
     manager:
@@ -292,7 +292,7 @@ MongoDB DocumentManager
 Change the document manager
 
 __app/config/config.yml:__ (symfony 2/3)
-__config/packages/dtc_queue.yaml:__ (symfony 4)
+__config/packages/dtc_queue.yaml:__ (symfony 4/5)
 ```yaml
 dtc_queue:
     odm:
@@ -305,7 +305,7 @@ Mysql / ORM Setup
 ### As of 4.0, ORM requires the [bcmath](http://php.net/manual/en/book.bc.php) extension to be enabled
 
 __app/config/config.yml:__ (symfony 2/3)
-__config/packages/dtc_queue.yaml:__ (symfony 4)
+__config/packages/dtc_queue.yaml:__ (symfony 4/5)
 ```yaml
 dtc_queue:
     manager:
@@ -350,7 +350,7 @@ Beanstalk Configuration
 ------------------------
 
 __app/config/config.yml:__ (symfony 2/3)
-__config/packages/dtc_queue.yaml:__ (symfony 4)
+__config/packages/dtc_queue.yaml:__ (symfony 4/5)
 ```yaml
 dtc_queue:
     beanstalkd:
@@ -364,7 +364,7 @@ RabbitMQ Configuration
 ----------------------
 
 __app/config/config.yml:__ (symfony 2/3)
-__config/packages/dtc_queue.yaml:__ (symfony 4)
+__config/packages/dtc_queue.yaml:__ (symfony 4/5)
 ```yaml
 dtc_queue:
     manager:
@@ -396,7 +396,7 @@ Redis Configuration
 -------------------
 
 __app/config/config.yml:__ (symfony 2/3)
-__config/packages/dtc_queue.yaml:__ (symfony 4)
+__config/packages/dtc_queue.yaml:__ (symfony 4/5)
 ```yaml
 dtc_queue:
     manager:
@@ -438,7 +438,7 @@ Custom Jobs and Managers
 ------------------------
 
 __app/config/config.yml:__ (symfony 2/3)
-__config/packages/dtc_queue.yaml:__ (symfony 4)
+__config/packages/dtc_queue.yaml:__ (symfony 4/5)
 ```yaml
 dtc_queue:
     class_job: Some\Job\ClassName [optional]
