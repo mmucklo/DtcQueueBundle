@@ -1,4 +1,5 @@
-
+### 6.0.6
+   * Issue #113 - bump mmucklo/grid-bundle >=6 and make dependency fully optional.
 ### 6.0.5
    * Restrict mmucklo/grid-bundle to < 6
 ### 6.0.4
