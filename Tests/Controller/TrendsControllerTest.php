@@ -23,9 +23,8 @@ class TrendsControllerTest extends TestCase
     public function testTrendsAction()
     {
         $container = $this->getContainerOrm();
-        $trendsController = new TrendsController();
-        $trendsController->setContainer($container);
-        $response = $trendsController->trendsAction();
+        $trendsController = new TrendsController($container);
+        $response = $trendsController->trends();
         $this->runJsCssTest($response);
     }
 
@@ -34,8 +33,7 @@ class TrendsControllerTest extends TestCase
      */
     public function runTimingsActionTests($container)
     {
-        $trendsController = new TrendsController();
-        $trendsController->setContainer($container);
+        $trendsController = new TrendsController($container);
 
         $dateTimeStr = '2017-07-01T4:04:04Z';
         $dateTime = \DateTime::createFromFormat(DATE_ISO8601, $dateTimeStr);
@@ -50,7 +48,7 @@ class TrendsControllerTest extends TestCase
         $request = new Request();
         $request->query->set('type', 'HOUR');
         $request->query->set('end', '2017-07-01T5:05:00.0Z');
-        $timings = $trendsController->getTimingsAction($request);
+        $timings = $trendsController->timings($request);
         $content = $timings->getContent();
 
         self::assertNotEmpty($content);
@@ -63,7 +61,7 @@ class TrendsControllerTest extends TestCase
         $request = new Request();
         $request->query->set('type', 'MINUTE');
         $request->query->set('end', '2017-07-01T4:05:04.0Z');
-        $timings = $trendsController->getTimingsAction($request);
+        $timings = $trendsController->timings($request);
         $content = $timings->getContent();
         $contentDecoded = json_decode($content, true);
         self::assertEquals(['2017-07-01 04:04'], $contentDecoded['timings_dates']);
@@ -72,7 +70,7 @@ class TrendsControllerTest extends TestCase
         $request = new Request();
         $request->query->set('type', 'DAY');
         $request->query->set('end', '2017-07-01T4:05:04.0Z');
-        $timings = $trendsController->getTimingsAction($request);
+        $timings = $trendsController->timings($request);
         $content = $timings->getContent();
         $contentDecoded = json_decode($content, true);
         self::assertEquals(['2017-07-01'], $contentDecoded['timings_dates']);
@@ -80,7 +78,7 @@ class TrendsControllerTest extends TestCase
         $request = new Request();
         $request->query->set('type', 'MONTH');
         $request->query->set('end', '2017-07-01T4:05:04.0Z');
-        $timings = $trendsController->getTimingsAction($request);
+        $timings = $trendsController->timings($request);
         $content = $timings->getContent();
         $contentDecoded = json_decode($content, true);
         self::assertEquals(['2017-07'], $contentDecoded['timings_dates']);
@@ -88,7 +86,7 @@ class TrendsControllerTest extends TestCase
         $request = new Request();
         $request->query->set('type', 'YEAR');
         $request->query->set('end', '2017-07-01T4:05:04.0Z');
-        $timings = $trendsController->getTimingsAction($request);
+        $timings = $trendsController->timings($request);
         $content = $timings->getContent();
         $contentDecoded = json_decode($content, true);
         self::assertEquals(['2017'], $contentDecoded['timings_dates']);

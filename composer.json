@@ -28,7 +28,7 @@
         "doctrine/common": "^2.8",
         "doctrine/dbal": "^2.6",
         "doctrine/mongodb-odm": "1.*|^2.0",
-        "mmucklo/grid-bundle": ">=6.0.0",
+        "mmucklo/grid-bundle": ">=6.0.3",
         "symfony/console": "3.*|4.*|5.*",
         "symfony/templating": "2.*|3.*|4.*|5.*",
         "symfony/twig-bundle": "2.*|3.*|4.*|5.*",

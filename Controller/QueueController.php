@@ -6,43 +6,40 @@ use Dtc\QueueBundle\Doctrine\DoctrineJobManager;
 use Dtc\QueueBundle\Exception\UnsupportedException;
 use Dtc\QueueBundle\Model\BaseJob;
 use Dtc\QueueBundle\Model\Worker;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-class QueueController extends Controller
+class QueueController
 {
     use ControllerTrait;
 
+    private $container;
+
+    public function __construct(ContainerInterface $container) {
+        $this->container = $container;
+    }
+
     /**
      * Summary stats.
-     *
-     * @Route("/")
-     * @Route("/status/")
-     * @Template("@DtcQueue/Queue/status.html.twig")
      */
-    public function statusAction()
+    public function status()
     {
         $params = [];
-        $jobManager = $this->get('dtc_queue.manager.job');
+        $jobManager = $this->container->get('dtc_queue.manager.job');
 
         $params['status'] = $jobManager->getStatus();
         $this->addCssJs($params);
 
-        return $params;
+        return $this->render('@DtcQueue/Queue/status.html.twig', $params);
     }
 
     /**
      * List jobs in system by default.
      *
-     * @Route("/jobs_all", name="dtc_queue_jobs_all")
-     *
      * @throws UnsupportedException|\Exception
      */
-    public function jobsAllAction()
+    public function jobsAll()
     {
         $this->validateManagerType('dtc_queue.manager.job');
         $this->checkDtcGridBundle();
@@ -58,36 +55,28 @@ class QueueController extends Controller
     }
 
     /**
-     * @Route("/archive", name="dtc_queue_archive")
-     * @Method({"POST"})
-     *
      * @throws UnsupportedException
      */
-    public function archiveAction(Request $request)
+    public function archive(Request $request)
     {
         return $this->streamResults($request, 'archiveAllJobs');
     }
 
     /**
-     * @Route("/reset-stalled", name="dtc_queue_reset_stalled")
-     *
      * @return StreamedResponse
-     *
      * @throws UnsupportedException
      */
-    public function resetStalledAction(Request $request)
+    public function resetStalled(Request $request)
     {
         return $this->streamResults($request, 'resetStalledJobs');
     }
 
     /**
-     * @Route("/prune-stalled", name="dtc_queue_prune_stalled")
-     *
      * @return StreamedResponse
      *
      * @throws UnsupportedException
      */
-    public function pruneStalledAction(Request $request)
+    public function pruneStalled(Request $request)
     {
         return $this->streamResults($request, 'pruneStalledJobs');
     }
@@ -101,7 +90,7 @@ class QueueController extends Controller
      */
     protected function streamResults(Request $request, $functionName)
     {
-        $jobManager = $this->get('dtc_queue.manager.job');
+        $jobManager = $this->container->get('dtc_queue.manager.job');
         if (!$jobManager instanceof DoctrineJobManager) {
             throw new UnsupportedException('$jobManager must be instance of '.DoctrineJobManager::class);
         }
@@ -120,7 +109,7 @@ class QueueController extends Controller
      */
     protected function getStreamFunction(Request $request, $functionName)
     {
-        $jobManager = $this->get('dtc_queue.manager.job');
+        $jobManager = $this->container->get('dtc_queue.manager.job');
         $workerName = $request->get('workerName');
         $methodName = $request->get('method');
         $total = null;
@@ -159,53 +148,47 @@ class QueueController extends Controller
     /**
      * List jobs in system by default.
      *
-     * @Template("@DtcQueue/Queue/jobs.html.twig")
-     * @Route("/jobs", name="dtc_queue_jobs")
-     *
      * @throws UnsupportedException|\Exception
      */
-    public function jobsAction()
+    public function jobs()
     {
         $this->validateManagerType('dtc_queue.manager.job');
         $this->checkDtcGridBundle();
         $managerType = $this->container->getParameter('dtc_queue.manager.job');
-        $rendererFactory = $this->get('dtc_grid.renderer.factory');
+        $rendererFactory = $this->container->get('dtc_grid.renderer.factory');
         $renderer = $rendererFactory->create('datatables');
-        $gridSource = $this->get('dtc_queue.grid_source.jobs_waiting.'.('mongodb' === $managerType ? 'odm' : $managerType));
+        $gridSource = $this->container->get('dtc_queue.grid_source.jobs_waiting.'.('mongodb' === $managerType ? 'odm' : $managerType));
         $renderer->bind($gridSource);
         $params = $renderer->getParams();
         $this->addCssJs($params);
 
-        $params['worker_methods'] = $this->get('dtc_queue.manager.job')->getWorkersAndMethods();
+        $params['worker_methods'] = $this->container->get('dtc_queue.manager.job')->getWorkersAndMethods();
         $params['prompt_message'] = 'This will archive all non-running jobs';
 
-        return $params;
+        return $this->render('@DtcQueue/Queue/jobs.html.twig', $params);
     }
 
     /**
      * List jobs in system by default.
      *
-     * @Template("@DtcQueue/Queue/jobs_running.html.twig")
-     * @Route("/jobs_running", name="dtc_queue_jobs_running")
-     *
      * @throws UnsupportedException|\Exception
      */
-    public function runningJobsAction()
+    public function jobsRunning()
     {
         $this->validateManagerType('dtc_queue.manager.job');
         $this->checkDtcGridBundle();
         $managerType = $this->container->getParameter('dtc_queue.manager.job');
-        $rendererFactory = $this->get('dtc_grid.renderer.factory');
+        $rendererFactory = $this->container->get('dtc_grid.renderer.factory');
         $renderer = $rendererFactory->create('datatables');
-        $gridSource = $this->get('dtc_queue.grid_source.jobs_running.'.('mongodb' === $managerType ? 'odm' : $managerType));
+        $gridSource = $this->container->get('dtc_queue.grid_source.jobs_running.'.('mongodb' === $managerType ? 'odm' : $managerType));
         $renderer->bind($gridSource);
         $params = $renderer->getParams();
         $this->addCssJs($params);
 
-        $params['worker_methods'] = $this->get('dtc_queue.manager.job')->getWorkersAndMethods(BaseJob::STATUS_RUNNING);
+        $params['worker_methods'] = $this->container->get('dtc_queue.manager.job')->getWorkersAndMethods(BaseJob::STATUS_RUNNING);
         $params['prompt_message'] = 'This will prune all stalled jobs';
 
-        return $params;
+        return $this->render('@DtcQueue/Queue/jobs_running.html.twig', $params);
     }
 
     /**
@@ -220,14 +203,14 @@ class QueueController extends Controller
      */
     protected function getDualGridParams($class1, $class2, $label1, $label2)
     {
-        $rendererFactory = $this->get('dtc_grid.renderer.factory');
+        $rendererFactory = $this->container->get('dtc_grid.renderer.factory');
         $renderer = $rendererFactory->create('datatables');
-        $gridSource = $this->get('dtc_grid.manager.source')->get($class1);
+        $gridSource = $this->container->get('dtc_grid.manager.source')->get($class1);
         $renderer->bind($gridSource);
         $params = $renderer->getParams();
 
         $renderer2 = $rendererFactory->create('datatables');
-        $gridSource = $this->get('dtc_grid.manager.source')->get($class2);
+        $gridSource = $this->container->get('dtc_grid.manager.source')->get($class2);
         $renderer2->bind($gridSource);
         $params2 = $renderer2->getParams();
 
@@ -243,11 +226,9 @@ class QueueController extends Controller
     /**
      * List jobs in system by default.
      *
-     * @Route("/runs", name="dtc_queue_runs")
-     *
      * @throws UnsupportedException|\Exception
      */
-    public function runsAction()
+    public function runs()
     {
         $this->validateRunManager();
         $this->checkDtcGridBundle();
@@ -257,19 +238,16 @@ class QueueController extends Controller
         $label2 = 'Archived Runs';
 
         $params = $this->getDualGridParams($class1, $class2, $label1, $label2);
-
         return $this->render('@DtcQueue/Queue/grid.html.twig', $params);
     }
 
     /**
      * List registered workers in the system.
      *
-     * @Route("/workers", name="dtc_queue_workers")
-     * @Template("@DtcQueue/Queue/workers.html.twig")
      */
-    public function workersAction()
+    public function workers()
     {
-        $workerManager = $this->get('dtc_queue.manager.worker');
+        $workerManager = $this->container->get('dtc_queue.manager.worker');
         $workers = $workerManager->getWorkers();
 
         $workerList = [];
@@ -280,7 +258,7 @@ class QueueController extends Controller
         $params = ['workers' => $workerList];
         $this->addCssJs($params);
 
-        return $params;
+        return $this->render('@DtcQueue/Queue/workers.html.twig', $params);
     }
 
     /**

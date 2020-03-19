@@ -277,3 +277,15 @@ services:
             - [ "setRunLoop", ['@dtc_queue.run.loop'] ]
         tags:
             - { name: console.command }
+
+    dtc_queue.controller.queue:
+        public: true
+        class: Dtc\QueueBundle\Controller\QueueController
+        arguments:
+            - "@service_container"
+
+    dtc_queue.controller.trends:
+        public: true
+        class: Dtc\QueueBundle\Controller\TrendsController
+        arguments:
+            - "@service_container"

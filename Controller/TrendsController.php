@@ -8,36 +8,34 @@ use Dtc\QueueBundle\Doctrine\DoctrineJobTimingManager;
 use Dtc\QueueBundle\Model\JobTiming;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\ODM\JobTimingManager;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-class TrendsController extends Controller
+class TrendsController
 {
     use ControllerTrait;
 
+    private $container;
+
+    public function __construct(ContainerInterface $container) {
+        $this->container = $container;
+    }
+
     /**
      * Show a graph of job trends.
-     *
-     * @Route("/trends", name="dtc_queue_trends")
-     * @Template("@DtcQueue/Queue/trends.html.twig")
      */
-    public function trendsAction()
+    public function trends()
     {
         $recordTimings = $this->container->getParameter('dtc_queue.timings.record');
         $foundYearFunction = class_exists('Oro\ORM\Query\AST\Platform\Functions\Mysql\Year') || class_exists('DoctrineExtensions\Query\Mysql\Year');
         $params = ['record_timings' => $recordTimings, 'states' => JobTiming::getStates(), 'found_year_function' => $foundYearFunction];
         $this->addCssJs($params);
 
-        return $params;
+        return $this->render('@DtcQueue/Queue/trends.html.twig', $params);
     }
 
-    /**
-     * @Route("/timings", name="dtc_queue_timings")
-     */
-    public function getTimingsAction(Request $request)
+    public function timings(Request $request)
     {
         $begin = $request->query->get('begin');
         $end = $request->query->get('end');

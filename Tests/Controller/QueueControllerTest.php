@@ -12,114 +12,102 @@ class QueueControllerTest extends TestCase
 {
     use ControllerTrait;
 
-    public function testStatusAction()
+    public function testStatus()
     {
         $container = $this->getContainerOrm();
-        $queueController = new QueueController();
-        $queueController->setContainer($container);
-        $response = $queueController->statusAction();
+        $queueController = new QueueController($container);
+        $response = $queueController->status();
         self::assertArrayHasKey('status', $response);
         $this->runJsCssTest($response);
 
         $container = $this->getContainerOdm();
-        $queueController = new QueueController();
-        $queueController->setContainer($container);
-        $response = $queueController->statusAction();
+        $queueController = new QueueController($container);
+        $response = $queueController->status();
         self::assertArrayHasKey('status', $response);
         $this->runJsCssTest($response);
     }
 
-    public function testJobsAction()
+    public function testJobs()
     {
         $container = $this->getContainerOrm();
-        $queueController = new QueueController();
-        $queueController->setContainer($container);
-        $response = $queueController->jobsAction();
+        $queueController = new QueueController($container);
+        $response = $queueController->jobs();
         $this->runJsCssTest($response);
 
         $container = $this->getContainerOdm();
-        $queueController = new QueueController();
-        $queueController->setContainer($container);
-        $response = $queueController->jobsAction();
+        $queueController = new QueueController($container);
+        $response = $queueController->jobs();
         $this->runJsCssTest($response);
     }
 
-    public function testRunsAction()
+    public function testRuns()
     {
         $container = $this->getContainerOrm();
-        $queueController = new QueueController();
-        $queueController->setContainer($container);
-        $response = $queueController->runsAction();
+        $queueController = new QueueController($container);
+        $response = $queueController->runs();
         self::assertTrue($response instanceof Response);
 
         $container = $this->getContainerOdm();
-        $queueController = new QueueController();
-        $queueController->setContainer($container);
-        $response = $queueController->runsAction();
+        $queueController = new QueueController($container);
+        $response = $queueController->runs();
         self::assertTrue($response instanceof Response);
     }
 
-    public function testAllJobsAction()
+    public function testAllJobs()
     {
         $container = $this->getContainerOrm();
-        $queueController = new QueueController();
-        $queueController->setContainer($container);
-        $response = $queueController->jobsAllAction();
+        $queueController = new QueueController($container);
+        $response = $queueController->jobsAll();
         self::assertTrue($response instanceof Response);
 
         $container = $this->getContainerOdm();
-        $queueController = new QueueController();
-        $queueController->setContainer($container);
-        $response = $queueController->jobsAllAction();
+        $queueController = new QueueController($container);
+        $response = $queueController->jobsAll();
         self::assertTrue($response instanceof Response);
     }
 
-    public function testJobsRunningAction()
+    public function testJobsRunning()
     {
         $container = $this->getContainerOrm();
-        $queueController = new QueueController();
-        $queueController->setContainer($container);
-        $response = $queueController->runningJobsAction();
+        $queueController = new QueueController($container);
+        $response = $queueController->jobsRunning();
         $this->runJsCssTest($response);
     }
 
-    public function testWorkersAction()
+    public function testWorkers()
     {
         $container = $this->getContainerOrm();
-        $queueController = new QueueController();
-        $queueController->setContainer($container);
-        $response = $queueController->workersAction();
+        $queueController = new QueueController($container);
+        $response = $queueController->workers();
         self::assertArrayHasKey('workers', $response);
         $this->runJsCssTest($response);
     }
 
-    public function testArchiveJobsAction()
+    public function testArchiveJobs()
     {
         $container = $this->getContainerOrm();
-        $queueController = new QueueController();
-        $queueController->setContainer($container);
-        $response = $queueController->archiveAction(new Request());
+        $queueController = new QueueController($container);
+        $response = $queueController->archive(new Request());
         self::assertNotNull($response);
         self::assertTrue($response instanceof StreamedResponse);
 
         $request = new Request();
         $request->query->set('workerName', 'fibonacci');
         $request->query->set('method', 'fibonacci');
-        $response = $queueController->archiveAction($request);
+        $response = $queueController->archive($request);
         self::assertNotNull($response);
         self::assertTrue($response instanceof StreamedResponse);
 
         $container = $this->getContainerOdm();
-        $queueController = new QueueController();
-        $queueController->setContainer($container);
-        $response = $queueController->archiveAction(new Request());
+        $queueController = new QueueController($container);
+        $response = $queueController->archive(new Request());
         self::assertNotNull($response);
         self::assertTrue($response instanceof StreamedResponse);
 
         $request = new Request();
         $request->query->set('workerName', 'fibonacci');
         $request->query->set('method', 'fibonacci');
-        $response = $queueController->archiveAction($request);
+        $response = $queueController->archive($request);
         self::assertNotNull($response);
         self::assertTrue($response instanceof StreamedResponse);
     }
