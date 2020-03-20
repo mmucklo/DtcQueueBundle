@@ -12,12 +12,12 @@ class TrendsControllerTest extends TestCase
 {
     use ControllerTrait;
 
-    public function testTimingsAction()
+    public function testTimings()
     {
         $container = $this->getContainerOrm();
-        $this->runTimingsActionTests($container);
+        $this->runTimingsTests($container);
         $container = $this->getContainerOdm();
-        $this->runTimingsActionTests($container);
+        $this->runTimingsTests($container);
     }
 
     public function testTrendsAction()
@@ -31,7 +31,7 @@ class TrendsControllerTest extends TestCase
     /**
      * @param \Symfony\Component\DependencyInjection\Container $container
      */
-    public function runTimingsActionTests($container)
+    public function runTimingsTests($container)
     {
         $trendsController = new TrendsController($container);
 

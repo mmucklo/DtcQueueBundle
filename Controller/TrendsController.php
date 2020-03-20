@@ -68,7 +68,7 @@ class TrendsController
         $this->validateJobTimingManager();
 
         /** @var DoctrineJobTimingManager $jobTimingManager */
-        $jobTimingManager = $this->get('dtc_queue.manager.job_timing');
+        $jobTimingManager = $this->container->get('dtc_queue.manager.job_timing');
         if ($jobTimingManager instanceof JobTimingManager) {
             $timings = $this->getJobTimingsOdm($type, $endDate, $beginDate);
         } else {
@@ -236,7 +236,7 @@ class TrendsController
     protected function getJobTimingsOdm($type, \DateTime $end, \DateTime $begin = null)
     {
         /** @var JobTimingManager $runManager */
-        $jobTimingManager = $this->get('dtc_queue.manager.job_timing');
+        $jobTimingManager = $this->container->get('dtc_queue.manager.job_timing');
         $jobTimingClass = $jobTimingManager->getJobTimingClass();
 
         /** @var DocumentManager $documentManager */
@@ -382,7 +382,7 @@ class TrendsController
     protected function getJobTimingsOrm($type, \DateTime $end, \DateTime $begin = null)
     {
         /** @var JobTimingManager $jobTimingManager */
-        $jobTimingManager = $this->get('dtc_queue.manager.job_timing');
+        $jobTimingManager = $this->container->get('dtc_queue.manager.job_timing');
         $jobTimingClass = $jobTimingManager->getJobTimingClass();
         /** @var EntityManager $entityManager */
         $entityManager = $jobTimingManager->getObjectManager();

@@ -13,11 +13,18 @@ use Dtc\QueueBundle\EventDispatcher\EventDispatcher;
 use Dtc\QueueBundle\Manager\WorkerManager;
 use Dtc\QueueBundle\ORM\LiveJobsGridSource;
 use Dtc\QueueBundle\Tests\ORM\JobManagerTest;
+use Symfony\Bridge\Twig\Extension\RoutingExtension;
 use Symfony\Bridge\Twig\Extension\TranslationExtension;
 use Symfony\Bundle\TwigBundle\TwigEngine;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\Finder\Finder;
+use Symfony\Component\Routing\Generator\UrlGenerator;
+use Symfony\Component\Routing\Loader\GlobFileLoader;
 use Symfony\Component\Routing\Loader\YamlFileLoader;
+use Symfony\Component\Routing\RequestContext;
+use Symfony\Component\Routing\RouteCollection;
+use Symfony\Component\Routing\RouteCollectionBuilder;
 use Symfony\Component\Routing\Router;
 use Symfony\Component\Templating\TemplateNameParser;
 use Symfony\Component\Translation\Translator;
@@ -38,8 +45,8 @@ trait ControllerTrait
 
     public function runJsCssTest($response)
     {
-        static::assertArrayHasKey('css', $response);
-        static::assertArrayHasKey('js', $response);
+        static::assertContains('css', $response->getContent());
+        static::assertContains('js', $response->getContent());
     }
 
     protected function getContainerOdm()
@@ -66,6 +73,8 @@ trait ControllerTrait
         $container->setParameter('dtc_queue.manager.job', 'orm');
         $container->setParameter('dtc_queue.timings.record', true);
         $container->setParameter('dtc_queue.timings.timezone_offset', 0);
+        $container->setParameter('dtc_grid.theme.css', ['https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css', 'https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css']);
+        $container->setParameter('dtc_grid.theme.js', ['https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js']);
         $container->set('dtc_queue.manager.job', $jobManager);
         $container->set('dtc_queue.manager.job_timing', $jobTimingManager);
         $container->set('dtc_queue.manager.worker', new WorkerManager($jobManager, new EventDispatcher()));
@@ -88,8 +97,20 @@ trait ControllerTrait
                 'jq_grid.options' => [], ],
             []
         );
-        $templates = ['@DtcQueue/Queue/grid.html.twig' => file_get_contents(__DIR__.'/../../Resources/views/Queue/grid.html.twig'),
-                      '@DtcGrid/Page/datatables.html.twig' => file_get_contents(__DIR__.'/../../vendor/mmucklo/grid-bundle/Resources/views/Grid/datatables.html.twig'), ];
+        $templates = ['@DtcQueue/Queue/status.html.twig' => file_get_contents(__DIR__.'/../../Resources/views/Queue/status.html.twig'),
+                      '@DtcQueue/Queue/jobs.html.twig' => file_get_contents(__DIR__.'/../../Resources/views/Queue/jobs.html.twig'),
+                      '@DtcQueue/Queue/nav.html.twig' => file_get_contents(__DIR__.'/../../Resources/views/Queue/nav.html.twig'),
+                      '@DtcQueue/Queue/macros.html.twig' => file_get_contents(__DIR__.'/../../Resources/views/Queue/macros.html.twig'),
+                      '@DtcQueue/Queue/workers.html.twig' => file_get_contents(__DIR__.'/../../Resources/views/Queue/workers.html.twig'),
+                      '@DtcQueue/Queue/trends.html.twig' => file_get_contents(__DIR__.'/../../Resources/views/Queue/trends.html.twig'),
+                      '@DtcQueue/layout.html.twig' => file_get_contents(__DIR__.'/../../Resources/views/layout.html.twig'),
+                      '@DtcQueue/Queue/jobs_running.html.twig' => file_get_contents(__DIR__.'/../../Resources/views/Queue/jobs_running.html.twig'),
+                      '@DtcQueue/Queue/grid.html.twig' => file_get_contents(__DIR__.'/../../Resources/views/Queue/grid.html.twig'),
+                      '@DtcGrid/Page/datatables.html.twig' => file_get_contents(__DIR__.'/../../vendor/mmucklo/grid-bundle/Resources/views/Page/datatables.html.twig'),
+                      '@DtcGrid/Grid/datatables.html.twig' => file_get_contents(__DIR__.'/../../vendor/mmucklo/grid-bundle/Resources/views/Grid/datatables.html.twig'),
+                      '@DtcGrid/layout.html.twig' => file_get_contents(__DIR__.'/../../vendor/mmucklo/grid-bundle/Resources/views/layout.html.twig'),
+                      '@DtcGrid/layout_base_jquery.html.twig' => file_get_contents(__DIR__.'/../../vendor/mmucklo/grid-bundle/Resources/views/layout_base_jquery.html.twig'),
+            ];
         if (class_exists('Symfony\Bundle\TwigBundle\TwigEngine') && method_exists($rendererFactory, 'setTwigEngine')) {
             $twigEngine = new TwigEngine(
                 new Environment(new \Twig_Loader_Array($templates)),
@@ -105,6 +126,11 @@ trait ControllerTrait
 //                $environment->addFilter($filter);
 //            }
             $environment->addExtension($translatorExtension);
+            $routeCollectionBuilder = new RouteCollectionBuilder(new YamlFileLoader(new FileLocator(__DIR__.'/../../Resources/config')));
+            $routeCollectionBuilder->import('routing.yml');
+            $urlGenerator = new UrlGenerator($routeCollectionBuilder->build(), new RequestContext());
+            $routingExtension = new RoutingExtension($urlGenerator);
+            $environment->addExtension($routingExtension);
             $rendererFactory->setTwigEnvironment($environment);
             $container->set('twig', $environment);
         }

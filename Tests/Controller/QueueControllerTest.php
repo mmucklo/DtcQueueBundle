@@ -17,13 +17,13 @@ class QueueControllerTest extends TestCase
         $container = $this->getContainerOrm();
         $queueController = new QueueController($container);
         $response = $queueController->status();
-        self::assertArrayHasKey('status', $response);
+        self::assertContains('status', $response->getContent());
         $this->runJsCssTest($response);
 
         $container = $this->getContainerOdm();
         $queueController = new QueueController($container);
         $response = $queueController->status();
-        self::assertArrayHasKey('status', $response);
+        self::assertContains('status', $response->getContent());
         $this->runJsCssTest($response);
     }
 
@@ -79,7 +79,7 @@ class QueueControllerTest extends TestCase
         $container = $this->getContainerOrm();
         $queueController = new QueueController($container);
         $response = $queueController->workers();
-        self::assertArrayHasKey('workers', $response);
+        self::assertContains('workers', $response->getContent());
         $this->runJsCssTest($response);
     }
 
