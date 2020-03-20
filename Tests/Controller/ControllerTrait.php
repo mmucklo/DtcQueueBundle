@@ -86,7 +86,7 @@ trait ControllerTrait
                 'theme.js' => [],
                 'page_div_style' => 'somestyle',
                 'jquery' => [],
-                'purl' => [],
+                'purl' => '',
                 'table.options' => [],
                 'datatables.css' => [],
                 'datatables.class' => '',
