@@ -45,7 +45,7 @@
         "snc/redis-bundle": "^3.2"
     },
     "suggest": {
-        "mmucklo/grid-bundle": ">=6.0.4",
+        "mmucklo/grid-bundle": ">=6.0.8",
         "snc/redis-bundle": "If using redis",
         "predis/predis": "If using redis",
         "ext-redis": "Alternative redis library",
