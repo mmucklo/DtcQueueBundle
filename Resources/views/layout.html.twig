@@ -3,11 +3,25 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<title>{% block title %}DtcQueue - Admin{% endblock %}</title>
-	{% for item in css %}
-		<link rel="stylesheet" href="{{ item }}" />
+	{% for stylesheet in css %}
+		{% if stylesheet.url is defined %}
+			<link rel="stylesheet" href="{{ stylesheet.url }}"
+					{% if stylesheet.integrity is not empty %} integrity="{{ stylesheet.integrity }}"{% endif %}
+					{% if stylesheet.crossorigin is not empty %} crossorigin="{{ stylesheet.crossorigin }}"{% endif %}
+			>
+		{% else %}
+			<link rel="stylesheet" href="{{ stylesheet }}">
+		{% endif %}
 	{% endfor %}
-	{% for item in js %}
-		<script src="{{ item }}"></script>
+	{% for javascript in js %}
+		{% if javascript.url is defined %}
+			<script src="{{ javascript.url }}"
+					{% if javascript.integrity is not empty %} integrity="{{ javascript.integrity }}"{% endif %}
+					{% if javascript.crossorigin is not empty %} crossorigin="{{ javascript.crossorigin }}"{% endif %}
+			></script>
+		{% else %}
+			<script src="{{ javascript }}"></script>
+		{% endif %}
 	{% endfor %}
 	{% block headcontent %}
 	{% endblock %}

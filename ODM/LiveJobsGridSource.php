@@ -12,6 +12,7 @@ class LiveJobsGridSource extends DocumentGridSource
 {
     protected $jobManager;
     protected $running = false;
+    private $columnSource;
 
     use ColumnExtractionTrait;
 
@@ -28,6 +29,10 @@ class LiveJobsGridSource extends DocumentGridSource
     public function isRunning()
     {
         return $this->running;
+    }
+
+    public function setColumnSource(\Dtc\GridBundle\Grid\Source\ColumnSource $columnSource) {
+        $this->columnSource = $columnSource;
     }
 
     protected function getRunningQueryBuilder()
@@ -70,8 +75,16 @@ class LiveJobsGridSource extends DocumentGridSource
         if ($columns = parent::getColumns()) {
             return $columns;
         }
-        $this->autoDiscoverColumns();
 
+        if (!$this->columnSource) {
+            $this->autoDiscoverColumns();
+            return parent::getColumns();
+        }
+
+        $columnSourceInfo = $this->columnSource->getColumnSourceInfo($this->objectManager, 'Dtc\QueueBundle\Document\Job', false);
+        $this->setColumns($columnSourceInfo->columns);
+        $this->setDefaultSort($columnSourceInfo->sort);
+        $this->setIdColumn($columnSourceInfo->idColumn);
         return parent::getColumns();
     }
 
