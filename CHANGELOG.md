@@ -1,3 +1,5 @@
+### 6.0.8
+   * Change grid-bundle version in suggest.
 ### 6.0.7
    * Issue #113 - bump mmucklo/grid-bundle >=6 and make dependency fully optional.
    * Permit Symfony 5.
