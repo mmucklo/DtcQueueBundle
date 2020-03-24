@@ -1,4 +1,6 @@
 language: php
+dist: xenial
+os: linux
 
 php:
   - 7.1
@@ -17,8 +19,6 @@ addons:
       - rabbitmq-server 
   sonarcloud:
     organization: "mmucklo-github"
-    branches:
-      - master
 
 # beanstalkd setup from https://github.com/assaf/ironium/blob/220c112fd92ffea144b954ae4697c6b5cabe7016/.travis.yml
 # (MIT Licensed - see LICENSE for MIT License information, Copyright (c) 2014 Assaf Arkin)

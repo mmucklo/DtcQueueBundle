@@ -2,17 +2,13 @@
 
 namespace Dtc\QueueBundle\Entity;
 
-use Doctrine\Common\Annotations\Annotation\IgnoreAnnotation;
 use Doctrine\ORM\Mapping as ORM;
-use Dtc\GridBundle\Annotation as Grid;
 
 /**
- * @IgnoreAnnotation("Dtc\GridBundle\Annotation\Grid")
  * @ORM\Entity
  * @ORM\Table(name="dtc_queue_run_archive")
  * @ORM\Table(name="dtc_queue_run_archive",indexes={
  *                  @ORM\Index(name="run_archive_ended_at_idx", columns={"ended_at"})})
- * @Grid\Grid(actions={@Grid\ShowAction()},sort=@Grid\Sort(column="endedAt",direction="DESC"))
  */
 class RunArchive extends BaseRun
 {
@@ -26,13 +22,11 @@ class RunArchive extends BaseRun
     protected $duration; // How long to run for in seconds
 
     /**
-     * @Grid\Column(sortable=true, order=2)
      * @ORM\Column(name="ended_at", type="datetime", nullable=true)
      */
     protected $endedAt;
 
     /**
-     * @Grid\Column()
      * @ORM\Column(name="elapsed", type="float", nullable=true)
      */
     protected $elapsed;

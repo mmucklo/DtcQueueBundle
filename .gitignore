@@ -9,3 +9,5 @@ bin
 # PHP CS Fixer
 .php_cs.cache
 
+# Test temporary files
+Tests/Controller/DtcGridBundle/

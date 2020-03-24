@@ -3,9 +3,20 @@
 namespace Dtc\QueueBundle\Controller;
 
 use Dtc\QueueBundle\Exception\UnsupportedException;
+use Symfony\Component\HttpFoundation\Response;
 
 trait ControllerTrait
 {
+    protected function render($template, $params)
+    {
+        if ($this->container->has('templating')) {
+            return new Response($this->container->get('templating')->render($template, $params));
+        } elseif ($this->container->has('twig')) {
+            return new Response($this->container->get('twig')->render($template, $params));
+        }
+        throw new \Exception('Need Twig Bundle or Templating component installed');
+    }
+
     protected function validateJobTimingManager()
     {
         if ($this->container->hasParameter('dtc_queue.manager.job_timing')) {

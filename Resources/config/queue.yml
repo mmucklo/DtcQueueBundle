@@ -35,6 +35,8 @@ services:
         class: Dtc\QueueBundle\ODM\LiveJobsGridSource
         arguments:
             - "@dtc_queue.manager.job.odm"
+        calls:
+            - [ "setColumnSource", ['@?dtc_grid.column.source'] ]
 
     dtc_queue.grid_source.jobs_running.odm:
         public: true
@@ -43,12 +45,15 @@ services:
             - "@dtc_queue.manager.job.odm"
         calls:
             - [ 'setRunning', [true ]]
+            - [ "setColumnSource", ['@?dtc_grid.column.source'] ]
 
     dtc_queue.grid_source.jobs_waiting.orm:
         public: true
         class: Dtc\QueueBundle\ORM\LiveJobsGridSource
         arguments:
             - "@dtc_queue.manager.job.orm"
+        calls:
+            - [ "setColumnSource", ['@?dtc_grid.column.source'] ]
 
     dtc_queue.grid_source.jobs_running.orm:
         public: true
@@ -57,6 +62,8 @@ services:
             - "@dtc_queue.manager.job.orm"
         calls:
             - [ 'setRunning', [true ]]
+            - [ "setColumnSource", ['@?dtc_grid.column.source'] ]
+
 
     dtc_queue.manager.job.odm:
         public: true
@@ -277,3 +284,15 @@ services:
             - [ "setRunLoop", ['@dtc_queue.run.loop'] ]
         tags:
             - { name: console.command }
+
+    dtc_queue.controller.queue:
+        public: true
+        class: Dtc\QueueBundle\Controller\QueueController
+        arguments:
+            - "@service_container"
+
+    dtc_queue.controller.trends:
+        public: true
+        class: Dtc\QueueBundle\Controller\TrendsController
+        arguments:
+            - "@service_container"
