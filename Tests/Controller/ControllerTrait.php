@@ -18,12 +18,9 @@ use Symfony\Bridge\Twig\Extension\TranslationExtension;
 use Symfony\Bundle\TwigBundle\TwigEngine;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\Finder\Finder;
 use Symfony\Component\Routing\Generator\UrlGenerator;
-use Symfony\Component\Routing\Loader\GlobFileLoader;
 use Symfony\Component\Routing\Loader\YamlFileLoader;
 use Symfony\Component\Routing\RequestContext;
-use Symfony\Component\Routing\RouteCollection;
 use Symfony\Component\Routing\RouteCollectionBuilder;
 use Symfony\Component\Routing\Router;
 use Symfony\Component\Templating\TemplateNameParser;
@@ -89,11 +86,15 @@ trait ControllerTrait
                 'purl' => '',
                 'table.options' => [],
                 'datatables.css' => [],
+                'datatables.local.css' => [],
                 'datatables.class' => '',
                 'datatables.js' => [],
+                'datatables.local.js' => [],
                 'datatables.options' => [],
                 'jq_grid.css' => [],
+                'jq_grid.local.css' => [],
                 'jq_grid.js' => [],
+                'jq_grid.local.js' => [],
                 'jq_grid.options' => [], ],
             []
         );

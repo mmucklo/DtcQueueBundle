@@ -31,7 +31,8 @@ class LiveJobsGridSource extends DocumentGridSource
         return $this->running;
     }
 
-    public function setColumnSource(\Dtc\GridBundle\Grid\Source\ColumnSource $columnSource) {
+    public function setColumnSource(\Dtc\GridBundle\Grid\Source\ColumnSource $columnSource)
+    {
         $this->columnSource = $columnSource;
     }
 
@@ -78,6 +79,7 @@ class LiveJobsGridSource extends DocumentGridSource
 
         if (!$this->columnSource) {
             $this->autoDiscoverColumns();
+
             return parent::getColumns();
         }
 
@@ -85,6 +87,7 @@ class LiveJobsGridSource extends DocumentGridSource
         $this->setColumns($columnSourceInfo->columns);
         $this->setDefaultSort($columnSourceInfo->sort);
         $this->setIdColumn($columnSourceInfo->idColumn);
+
         return parent::getColumns();
     }
 

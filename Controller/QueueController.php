@@ -16,7 +16,8 @@ class QueueController
 
     private $container;
 
-    public function __construct(ContainerInterface $container) {
+    public function __construct(ContainerInterface $container)
+    {
         $this->container = $container;
     }
 
@@ -64,6 +65,7 @@ class QueueController
 
     /**
      * @return StreamedResponse
+     *
      * @throws UnsupportedException
      */
     public function resetStalled(Request $request)
@@ -238,12 +240,12 @@ class QueueController
         $label2 = 'Archived Runs';
 
         $params = $this->getDualGridParams($class1, $class2, $label1, $label2);
+
         return $this->render('@DtcQueue/Queue/grid.html.twig', $params);
     }
 
     /**
      * List registered workers in the system.
-     *
      */
     public function workers()
     {
