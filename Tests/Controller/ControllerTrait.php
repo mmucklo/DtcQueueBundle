@@ -59,8 +59,6 @@ trait ControllerTrait
     protected function getContainer($jobManager, $runManager, $jobTimingManager, $liveJobsGridSourceClass, $gridSourceClass)
     {
         $container = new Container();
-        $container->setParameter('dtc_grid.theme.css', []);
-        $container->setParameter('dtc_grid.theme.js', []);
         $container->setParameter('dtc_grid.jquery', ['url' => 'https://something']);
         $container->setParameter('dtc_queue.class.job', $jobManager->getJobClass());
         $container->setParameter('dtc_queue.class.job_archive', $jobManager->getJobArchiveClass());
@@ -79,8 +77,8 @@ trait ControllerTrait
             new Router(new YamlFileLoader(new FileLocator(__DIR__)), 'test.yml'),
             new Translator('en_US'),
             [
-                'theme.css' => [],
-                'theme.js' => [],
+                'theme.css' => $container->getParameter('dtc_grid.theme.css'),
+                'theme.js' => $container->getParameter('dtc_grid.theme.js'),
                 'page_div_style' => 'somestyle',
                 'jquery' => [],
                 'purl' => '',
@@ -90,7 +88,7 @@ trait ControllerTrait
                 'datatables.class' => '',
                 'datatables.js' => [],
                 'datatables.local.js' => [],
-                'datatables.options' => [],
+                'datatables.options' => ['table_attr' => ['class' => 'display table table-striped table-bordered small-font']],
                 'jq_grid.css' => [],
                 'jq_grid.local.css' => [],
                 'jq_grid.js' => [],
