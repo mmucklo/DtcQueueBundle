@@ -4,36 +4,36 @@
 
 ```php
 // Dependency inject the worker or fetch it from the container
-$fibonacciWorker = $container->get('App\Worker\FibonacciWorker');
+$fibonacci = $container->get('App\Worker\Fibonacci');
 
 // For Symfony 3.3, 3.4
-//     $fibonacciWorker = $container->get('AppBundle\Worker\FibonacciWorker');
+//     $fibonacci = $container->get('AppBundle\Worker\Fibonacci');
 //
 
 // For Symfony 2, 3.0, 3.1, 3.2:
-//     $fibonacciWorker = $container->get('app.worker.fibonacci');
+//     $fibonacci = $container->get('app.worker.fibonacci');
 
 
 // Basic Examples
-$fibonacciWorker->later()->fibonacci(20);
-$fibonacciWorker->later()->fibonacciFile(20);
+$fibonacci->later()->fibonacci(20);
+$fibonacci->later()->fibonacciFile(20);
 
 // Batch Example
-$fibonacciWorker->batchLater()->fibonacci(20); // Batch up runs into a single run
+$fibonacci->batchLater()->fibonacci(20); // Batch up runs into a single run
 
 // Timed Example
-$fibonacciWorker->later(90)->fibonacci(20); // Run 90 seconds later
+$fibonacci->later(90)->fibonacci(20); // Run 90 seconds later
 
 // Priority
 //    Note: whether 1 == High or Low priority is configurable, but by default it is High
-$fibonacciWorker->later(0, 1); // As soon as possible, High priority
-$fibonacciWorker->later(0, 125); // Medium priority
-$fibonacciWorker->later(0, 255); // Low priority
+$fibonacci->later(0, 1); // As soon as possible, High priority
+$fibonacci->later(0, 125); // Medium priority
+$fibonacci->later(0, 255); // Low priority
 
 // Advanced Usage Example:
 //  (If the job is not processed by $expireTime, then don't execute it ever...)
 $expireTime = time() + 3600;
-$fibonacciWorker->later()->setExpiresAt(new \DateTime("@$expireTime"))->fibonacci(20); // Must be run within the hour or not at all
+$fibonacci->later()->setExpiresAt(new \DateTime("@$expireTime"))->fibonacci(20); // Must be run within the hour or not at all
 ```
 
 # Create a job from the command-line

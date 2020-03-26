@@ -78,19 +78,24 @@ Installation
 
 [see /Resources/doc/symfony4-5.md](/Resources/doc/symfony4-5.md)
 
+Troubleshooting
+---------------
+
+[see /Resources/doc/troubleshooting.md](/Resources/doc/troubleshooting.md)
+
 Usage
 -----
 
 Create a worker class that will work on the background job.
 
 Example:
-   * __src/Worker/FibonacciWorker.php:__ (symfony 4/5)
-   * __src/AppBundle/Worker/FibonacciWorker.php:__ (symfony 2/3)
+   * __src/Worker/Fibonacci.php:__ (symfony 4/5)
+   * __src/AppBundle/Worker/Fibonacci.php:__ (symfony 2/3)
 ```php
 <?php
 namespace App\Worker; // for symfony 2/3, the namespace would typically be AppBundle\Worker
 
-class FibonacciWorker
+class Fibonacci
     extends \Dtc\QueueBundle\Model\Worker
 {
     private $filename;
@@ -99,8 +104,8 @@ class FibonacciWorker
     }
 
     public function fibonacciFile($n) {
-        $feb = $this->fibonacci($n);
-        file_put_contents($this->filename, "{$n}: {$feb}");
+        $fib = $this->fibonacci($n);
+        file_put_contents($this->filename, "{$n}: {$fib}");
     }
 
 
@@ -133,7 +138,7 @@ __Symfony 5, 4 and 3.3, 3.4:__
 ```yaml
 services:
     # for symfony 3 the class name would likely be AppBundle\Worker\FibonacciWorker
-    App\Worker\FibonacciWorker:
+    App\Worker\Fibonacci:
         # public: false is possible if you completely use DependencyInjection for access to the service
         public: true
         tags:
@@ -145,7 +150,7 @@ __Symfony 2, and 3.0, 3.1, 3.2:__
 ```yaml
 services:
     app.worker.fibonacci:
-        class: AppBundle\Worker\FibonacciWorker:
+        class: AppBundle\Worker\Fibonacci:
         tags:
             - { name: "dtc_queue.worker" }
 ```
@@ -154,7 +159,7 @@ services:
 ```xml
 <services>
 	<!-- ... -->
-	<service id="fibonacci_worker" class="FibonacciWorker">
+	<service id="fibonacci" class="Fibonacci">
 	    <tag name="dtc_queue.worker" />
 	</service>
 	<!-- ... -->
@@ -164,43 +169,55 @@ services:
 
 #### Create a job
 
+Simple examples:
+
+##### Command line:
+```bash
+bin/console dtc:queue:create_job <worker> <method> <arg>
+
+bin/console dtc:queue:create_job fibonacci fibonacci 3
+
+bin/console dtc:queue:create_job fibonacci fibonacciFile 8
+```
+
+##### Code:
 ```php
 // Dependency inject the worker or fetch it from the container
-$fibonacciWorker = $container->get('App\Worker\FibonacciWorker');
+$fibonacci = $container->get('App\Worker\Fibonacci');
 
 // For Symfony 3.3, 3.4
-//     $fibonacciWorker = $container->get('AppBundle\Worker\FibonacciWorker');
+//     $fibonacci = $container->get('AppBundle\Worker\Fibonacci');
 //
 
 // For Symfony 2, 3.0, 3.1, 3.2:
-//     $fibonacciWorker = $container->get('app.worker.fibonacci');
+//     $fibonacci = $container->get('app.worker.fibonacci');
 
 
 // Basic Examples
-$fibonacciWorker->later()->fibonacci(20);
-$fibonacciWorker->later()->fibonacciFile(20);
+$fibonacci->later()->fibonacci(20);
+$fibonacci->later()->fibonacciFile(20);
 
 // Batch Example
-$fibonacciWorker->batchLater()->fibonacci(20); // Batch up runs into a single run
+$fibonacci->batchLater()->fibonacci(20); // Batch up runs into a single run
 
 // Timed Example
-$fibonacciWorker->later(90)->fibonacci(20); // Run 90 seconds later
+$fibonacci->later(90)->fibonacci(20); // Run 90 seconds later
 
 // Priority
 //    Note: whether 1 == High or Low priority is configurable, but by default it is High
-$fibonacciWorker->later(0, 1); // As soon as possible, High priority
-$fibonacciWorker->later(0, 125); // Medium priority
-$fibonacciWorker->later(0, 255); // Low priority
+$fibonacci->later(0, 1); // As soon as possible, High priority
+$fibonacci->later(0, 125); // Medium priority
+$fibonacci->later(0, 255); // Low priority
 
 // Advanced Usage Example:
 //  (If the job is not processed by $expireTime, then don't execute it ever...)
 $expireTime = time() + 3600;
-$fibonacciWorker->later()->setExpiresAt(new \DateTime("@$expireTime"))->fibonacci(20); // Must be run within the hour or not at all
+$fibonacci->later()->setExpiresAt(new \DateTime("@$expireTime"))->fibonacci(20); // Must be run within the hour or not at all
 ```
 
 ##### Create Jobs - Additional Information
 
-For further instructions on creating jobs, including how to *create a job from the __command line__*, see:
+For further instructions on creating jobs, including how to create a job from the _command line_ using json-encoded arguments, see:
 
 [/Resources/doc/create-job.md](/Resources/doc/create-job.md)
 
@@ -213,7 +230,7 @@ bin/console dtc:queue:run -d 120
 ```
 
 ```bash
-# the -d parameter is the number of seconds to run
+# the -d parameter is the number of seconds during which to keep executing jobs before ending. 
 #  For example you could put the above command into cron or a cron-like system to run every 2 minutes
 #
 # There are a number of other parameters that could be passed to dtc:queue:run run this for a full list:
@@ -222,19 +239,23 @@ bin/console dtc:queue:run --help
 
 Pruning Jobs
 ------------
-For ODM and ORM based stores, the archive tables and the regular job queues can require periodic pruning.
+For ODM and ORM based stores, the archive tables and the regular job table (queue) can require periodic pruning.
+
+The _regular job table_ is for waiting and running jobs. If a job throws an exception that can't be caught or the process segfaults, machine crashes, etc. then jobs which never finished can remain in the job queue in the "Running" state.
+
+The _archive table_ is where finished and errored jobs end up after execution; this table can grow indefinitely.
 
 For Mongo in production, it may be prudent to use a [capped collection](https://docs.mongodb.com/manual/core/capped-collections/) or [TTL Indexes](https://docs.mongodb.com/manual/core/index-ttl/)
 
 For Mysql you could create an event to delete data periodically.
 
-Nevertheless there are also several commands that exist that do similarly (and could be put into a periodic cron job as well)
+Nevertheless there are also several commands that exist that do similarly (and could be put into a periodic cron job as well):
 
 ```bash
 bin/console dtc:queue:prune old --older 1m
 # (deletes jobs older than one month from the Archive table)
 
-# May be needed if jobs stall out:
+# Clear out stalled jobs from the regular job table:
 bin/console dtc:queue:prune stalled
 
 # If you're recording runs...this is recommended:
@@ -262,7 +283,7 @@ These commands may help with debugging issues with the queue:
 bin/console dtc:queue:count # some status about the queue if available (ODM/ORM only)
 bin/console dtc:queue:reset # resets errored and/or stalled jobs
 
-# This is really only good for
+# This is really only good for ORM/ODM based stores.
 bin/console dtc:queue:run --id={jobId}
 
 # (jobId could be obtained from mongodb / or your database, if using an ORM / ODM solution)
@@ -270,7 +291,7 @@ bin/console dtc:queue:run --id={jobId}
 
 Tracking Runs
 -------------
-Each runs can be tracked in a table in an ORM / ODM backed datastore.
+Each job run can be tracked in a table in an ORM / ODM backed datastore.
 
 Ways to configure:
 __app/config/config.yml:__ (symfony 2/3)
@@ -640,4 +661,3 @@ Credit
 --------
 Originally written by @dtee
 Enhanced and maintained by @mmucklo
-
