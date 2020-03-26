@@ -1,3 +1,5 @@
+### 6.0.10
+   * Fix doctrine in WorkerCompilerPass.
 ### 6.0.9
    * Fix typo, documentation.
 ### 6.0.8

@@ -61,7 +61,7 @@ class WorkerCompilerPass implements CompilerPassInterface
      */
     protected function addMethodCalls(ContainerBuilder $container, $managerType)
     {
-        if ('orm' === $managerType) {
+        if ('orm' === $managerType && $container->hasDefinition('doctrine')) {
             $doctrine = $container->getDefinition('doctrine');
             $container->getDefinition('dtc_queue.doctrine_listener')->addMethodCall('setRegistry', [$doctrine]);
             $container->getDefinition('dtc_queue.manager.job.orm')->addMethodCall('setRegistry', [$doctrine]);
