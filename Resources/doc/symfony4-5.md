@@ -15,12 +15,14 @@ First -
    * If you want the admin pages, you'll need to install symfony templating
       * composer require symfony/templating
        
-   * Inside of config/packages/framework.yaml, make sure you have the twig templating engine turned on:
+   * Symfony 4
+      * Inside of config/packages/framework.yaml, make sure you have the twig templating engine turned on:
       * (this also requires the symfony/framework package if you haven't already installed it)
 
 ```yaml
 framework:
     # ...
+    # Symfony 4:
     templating:
         engines: ['twig']
 ```

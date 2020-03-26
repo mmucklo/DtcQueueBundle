@@ -124,7 +124,7 @@ class Loop
         $run = $this->runManager->runStart($start, $maxCount, $duration, $this->processTimeout);
         $this->lastRun = $run;
         try {
-            $this->log('info', 'Staring up a new job...');
+            $this->log('info', 'Starting up a new job...');
 
             $endTime = $this->getEndTime($run, $duration);
             $currentJob = 1;
