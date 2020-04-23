@@ -1,3 +1,5 @@
+### 6.1.0
+   * Fix issue #129 with pheanstalk.
 ### 6.0.10
    * Fix doctrine in WorkerCompilerPass.
 ### 6.0.9

@@ -64,12 +64,10 @@ class JobManager extends RetryableJobManager
             }
             $arguments[] = $job->getTtr();
         }
-        $method = 'put';
         if ($this->tube) {
-            array_unshift($arguments, $this->tube);
-            $method .= 'InTube';
+            $this->beanstalkd->useTube($this->tube);
         }
-        $beanJob = call_user_func_array([$this->beanstalkd, $method], $arguments);
+        $beanJob = call_user_func_array([$this->beanstalkd, 'put'], $arguments);
         $job->setId($beanJob->getId());
         $job->setBeanJob($beanJob);
 
