@@ -263,7 +263,7 @@ class JobManager extends DoctrineJobManager
         $builder
             ->field('startedAt')->set($date)
             ->field('status')->set(BaseJob::STATUS_RUNNING);
-        if ($runId !== null) {
+        if (null !== $runId) {
             $builder->field('runId')->set($runId);
         }
 
