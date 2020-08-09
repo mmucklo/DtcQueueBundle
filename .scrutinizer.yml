@@ -4,3 +4,14 @@ filter:
 tools:
     external_code_coverage:
         timeout: 900
+
+
+build:
+    dependencies:
+        override:
+            - true
+    nodes:
+        analysis:
+            tests:
+                override:
+                    - php-scrutinizer-run
