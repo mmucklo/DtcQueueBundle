@@ -1,3 +1,6 @@
+###
+   * Deprecation fix for 5.1.
+   * Fix build, update mongo getJob a bit.
 ### 6.1.1
    * Fix issue #129 with pheanstalk.
 ### 6.1.0
