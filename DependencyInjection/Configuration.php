@@ -68,7 +68,9 @@ class Configuration implements ConfigurationInterface
     {
         $node = $node->$type($name);
 
-        if (Kernel::VERSION_ID >= 30400) {
+        if (Kernel::VERSION_ID >= 51000) { 
+            $node = $node->setDeprecated('mmucklo/queue-bundle', '5.1', $deprecatedMessage);
+        }else{
             $node = $node->setDeprecated($deprecatedMessage);
         }
 

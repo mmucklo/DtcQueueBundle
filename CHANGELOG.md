@@ -1,3 +1,5 @@
+### 6.1.1
+   * Fix issue #129 with pheanstalk.
 ### 6.1.0
    * Fix issue #129 with pheanstalk.
 ### 6.0.10
