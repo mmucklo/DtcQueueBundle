@@ -223,7 +223,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         $id = $job->getId();
         $jobManager->deleteJob($job);
 
-        $nextJob = $jobManager->getJob(null, null, true, 123);
+        $nextJob = $jobManager->getJob(null, null, true);
         self::assertNull($nextJob, "Shouldn't be any jobs left in queue");
 
         $archiveObjectName = $jobManager->getJobArchiveClass();

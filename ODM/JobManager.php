@@ -262,8 +262,10 @@ class JobManager extends DoctrineJobManager
         // Update
         $builder
             ->field('startedAt')->set($date)
-            ->field('status')->set(BaseJob::STATUS_RUNNING)
-            ->field('runId')->set($runId);
+            ->field('status')->set(BaseJob::STATUS_RUNNING);
+        if ($runId !== null) {
+            $builder->field('runId')->set($runId);
+        }
 
         $query = $builder->getQuery();
 
