@@ -1,5 +1,5 @@
 ### 6.2.1
-   * Deprecation fix for 5.1.
+   * Patch deprecation fix for 5.1.
 ### 6.2.0
    * Deprecation fix for 5.1.
    * Fix build, update mongo getJob a bit.
