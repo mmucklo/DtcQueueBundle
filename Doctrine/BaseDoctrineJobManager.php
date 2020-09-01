@@ -2,8 +2,6 @@
 
 namespace Dtc\QueueBundle\Doctrine;
 
-use Doctrine\Common\Persistence\ObjectManager;
-use Doctrine\Common\Persistence\ObjectRepository;
 use Dtc\QueueBundle\Manager\ArchivableJobManager;
 use Dtc\QueueBundle\Manager\JobTimingManager;
 use Dtc\QueueBundle\Manager\RunManager;
@@ -17,7 +15,7 @@ abstract class BaseDoctrineJobManager extends ArchivableJobManager
     const SAVE_COUNT_MAX = 100;
 
     /**
-     * @var ObjectManager
+     * @var \Doctrine\Persistence\ObjectManager
      */
     protected $objectManager;
 
@@ -30,7 +28,7 @@ abstract class BaseDoctrineJobManager extends ArchivableJobManager
     public function __construct(
         RunManager $runManager,
         JobTimingManager $jobTimingManager,
-        ObjectManager $objectManager,
+        $objectManager,
         $jobClass,
         $jobArchiveClass
     ) {
@@ -73,7 +71,7 @@ abstract class BaseDoctrineJobManager extends ArchivableJobManager
     }
 
     /**
-     * @return ObjectRepository
+     * @return \Doctrine\Persistence\ObjectRepository
      */
     public function getRepository()
     {

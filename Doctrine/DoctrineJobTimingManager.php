@@ -2,23 +2,22 @@
 
 namespace Dtc\QueueBundle\Doctrine;
 
-use Doctrine\Common\Persistence\ObjectManager;
 use Dtc\QueueBundle\Manager\JobTimingManager;
 use Dtc\QueueBundle\Model\JobTiming;
 
 abstract class DoctrineJobTimingManager extends JobTimingManager
 {
-    /** @var ObjectManager */
+    /** @var \Doctrine\Persistence\ObjectManager */
     protected $objectManager;
 
-    public function __construct(ObjectManager $objectManager, $jobTimingClass, $recordTimings)
+    public function __construct($objectManager, $jobTimingClass, $recordTimings)
     {
         $this->objectManager = $objectManager;
         parent::__construct($jobTimingClass, $recordTimings);
     }
 
     /**
-     * @return ObjectManager
+     * @return \Doctrine\Persistence\ObjectManager
      */
     public function getObjectManager()
     {

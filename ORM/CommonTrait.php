@@ -3,7 +3,6 @@
 namespace Dtc\QueueBundle\ORM;
 
 use Doctrine\Bundle\DoctrineBundle\Registry;
-use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Id\AssignedGenerator;
 use Doctrine\ORM\Mapping\ClassMetadata;

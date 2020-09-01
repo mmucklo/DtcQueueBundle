@@ -2,7 +2,6 @@
 
 namespace Dtc\QueueBundle\Doctrine;
 
-use Doctrine\Common\Persistence\Event\LifecycleEventArgs;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ODM\MongoDB\Mapping\ClassMetadata;
 use Doctrine\ORM\EntityManager;
@@ -37,7 +36,10 @@ class DtcQueueListener
         $this->entityManagerName = $entityManagerName;
     }
 
-    public function preRemove(LifecycleEventArgs $eventArgs)
+    /**
+     * @param \Doctrine\Persistence\Event\LifecycleEventArgs $eventArgs
+     */
+    public function preRemove($eventArgs)
     {
         $object = $eventArgs->getObject();
         $objectManager = $eventArgs->getObjectManager();
@@ -86,7 +88,7 @@ class DtcQueueListener
         Util::copy($object, $runArchive);
         if ($newArchive) {
             $metadata = $objectManager->getClassMetadata($runArchiveClass);
-            $this->adjustIdGenerator($metadata, $objectManager);
+            $this->adjustIdGenerator($metadata);
         }
 
         $objectManager->persist($runArchive);
@@ -95,7 +97,7 @@ class DtcQueueListener
     /**
      * @param $metadata
      */
-    protected function adjustIdGenerator(\Doctrine\Common\Persistence\Mapping\ClassMetadata $metadata)
+    protected function adjustIdGenerator($metadata)
     {
         $objectManager = $this->getObjectManager();
         if ($objectManager instanceof EntityManager && $metadata instanceof \Doctrine\ORM\Mapping\ClassMetadata) {
@@ -125,7 +127,7 @@ class DtcQueueListener
 
             if ($newArchive) {
                 $metadata = $objectManager->getClassMetadata($className);
-                $this->adjustIdGenerator($metadata, $objectManager);
+                $this->adjustIdGenerator($metadata);
             }
 
             Util::copy($object, $jobArchive);
@@ -134,7 +136,10 @@ class DtcQueueListener
         }
     }
 
-    public function preUpdate(LifecycleEventArgs $eventArgs)
+    /**
+     * @param \Doctrine\Persistence\Event\LifecycleEventArgs $eventArgs
+     */
+    public function preUpdate($eventArgs)
     {
         $object = $eventArgs->getObject();
         if ($object instanceof \Dtc\QueueBundle\Model\StallableJob) {
@@ -149,7 +154,10 @@ class DtcQueueListener
         }
     }
 
-    public function prePersist(LifecycleEventArgs $eventArgs)
+    /**
+     * @param \Doctrine\Persistence\Event\LifecycleEventArgs $eventArgs
+     */
+    public function prePersist($eventArgs)
     {
         $object = $eventArgs->getObject();
 

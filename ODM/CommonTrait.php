@@ -2,7 +2,6 @@
 
 namespace Dtc\QueueBundle\ODM;
 
-use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Dtc\QueueBundle\Document\Job;
 use Dtc\QueueBundle\Document\JobTiming;
