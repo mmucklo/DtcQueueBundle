@@ -1,3 +1,5 @@
+### 6.3.0
+   * Issue #134 - seems that Doctrine removed the deprecated Doctrine\Common\Persistence\ObjectManager in favor of Doctrine\Persistence\Objectmanager in https://github.com/doctrine/orm/pull/7953.
 ### 6.2.1
    * Patch deprecation fix for 5.1.
 ### 6.2.0

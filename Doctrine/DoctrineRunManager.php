@@ -2,20 +2,18 @@
 
 namespace Dtc\QueueBundle\Doctrine;
 
-use Doctrine\Common\Persistence\ObjectManager;
-use Doctrine\Common\Persistence\ObjectRepository;
 use Dtc\QueueBundle\Manager\RunManager;
 use Dtc\QueueBundle\Model\Run;
 
 abstract class DoctrineRunManager extends RunManager
 {
-    /** @var ObjectManager */
+    /** @var \Doctrine\Persistence\ObjectManager */
     protected $objectManager;
 
     /** @var string|null */
     protected $runArchiveClass;
 
-    public function __construct(ObjectManager $objectManager, $runClass, $runArchiveClass)
+    public function __construct($objectManager, $runClass, $runArchiveClass)
     {
         $this->runArchiveClass = $runArchiveClass;
         $this->objectManager = $objectManager;
@@ -23,7 +21,7 @@ abstract class DoctrineRunManager extends RunManager
     }
 
     /**
-     * @return ObjectManager
+     * @return \Doctrine\Persistence\ObjectManager
      */
     public function getObjectManager()
     {
@@ -31,7 +29,7 @@ abstract class DoctrineRunManager extends RunManager
     }
 
     /**
-     * @return ObjectRepository
+     * @return \Doctrine\Persistence\ObjectRepository
      */
     public function getRepository()
     {
