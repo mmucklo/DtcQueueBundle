@@ -1,3 +1,5 @@
+### 6.3.4
+   * Issue #134 - change suggested version of DtcGridBundle again.
 ### 6.3.3
    * Issue #134 - change suggested version of DtcGridBundle.
 ### 6.3.2
