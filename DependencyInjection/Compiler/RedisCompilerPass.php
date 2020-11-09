@@ -45,7 +45,7 @@ class RedisCompilerPass implements CompilerPassInterface
             $class = 'Predis';
         }
 
-        $this->setRedis($container, $class, 'snc_redis'.$alias, $type);
+        $this->setRedis($container, $class, 'snc_redis.'.$alias, $type);
     }
 
     protected function setRedis(ContainerBuilder $container, $class, $reference, $type)

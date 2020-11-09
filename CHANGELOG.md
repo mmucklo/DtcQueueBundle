@@ -1,3 +1,5 @@
+### 6.3.2
+   * Issue #137 - Fix snc_redis alias.
 ### 6.3.1
    * Issue #134 - Address more Doctrine changes.
 ### 6.3.0
