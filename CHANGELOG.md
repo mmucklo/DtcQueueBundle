@@ -1,3 +1,5 @@
+### 6.3.3
+   * Issue #134 - change suggested version of DtcGridBundle.
 ### 6.3.2
    * Issue #137 - Fix snc_redis alias.
 ### 6.3.1
