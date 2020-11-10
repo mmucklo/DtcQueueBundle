@@ -70,7 +70,7 @@ class RunManagerTest extends TestCase
                 }
             )
         );
-        $registry = new Registry($container, [], ['default' => 'doctrine.orm.default_entity_manager'], null, 'default');
+        $registry = new Registry($container, [], ['default' => 'doctrine.orm.default_entity_manager'], 'default', 'default');
         $runManager->setRegistry($registry);
         $runManager->setEntityManagerName('default');
 
@@ -98,7 +98,7 @@ class RunManagerTest extends TestCase
                 }
             )
         );
-        $registry = new Registry($container, [], ['default' => 'doctrine.orm.default_entity_manager'], null, 'default');
+        $registry = new Registry($container, [], ['default' => 'doctrine.orm.default_entity_manager'], 'default', 'default');
         $runManager->setRegistry($registry);
         $runManager->setEntityManagerName('default');
 
