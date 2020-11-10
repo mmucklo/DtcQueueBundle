@@ -1,3 +1,5 @@
+### 5.1.2
+   * A temporary work around for symfony 3.4
 ### 5.1.1
    * A workaround for #98, must set locale_fix: true in dtc_queue.yaml configuration.
 ### 5.1.0
