@@ -3,7 +3,6 @@
 namespace Dtc\QueueBundle\Command;
 
 use Dtc\QueueBundle\Exception\ClassNotSubclassException;
-use Dtc\QueueBundle\Model\Job;
 use Dtc\QueueBundle\Run\Loop;
 use Dtc\QueueBundle\Util\Util;
 use Psr\Log\LoggerInterface;
@@ -12,6 +11,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpKernel\Kernel;
 
 class RunCommand extends Command
@@ -21,6 +21,10 @@ class RunCommand extends Command
 
     /** @var Loop */
     private $runLoop;
+    /** @var LoggerInterface */
+    private $logger;
+    /** @var Container */
+    private $container;
 
     protected function symfonyDetect()
     {
@@ -84,16 +88,13 @@ class RunCommand extends Command
             ),
         ];
 
-        // Symfony 4 and Symfony 3.4 out-of-the-box makes the logger private
-        if (!$this->loggerPrivate) {
-            $options[] =
-                new InputOption(
-                    'logger',
-                    'l',
-                    InputOption::VALUE_REQUIRED,
-                    'Log using the logger service specified, or output to console if null (or an invalid logger service id) is passed in'
-                );
-        }
+        $options[] =
+            new InputOption(
+                'logger',
+                'l',
+                InputOption::VALUE_REQUIRED,
+                'Log using the logger service specified. Otherwise if not used will output to console. Logger service must be public, otherwise inject one by overriding the definition for this RunCommand service and calling the setLogger() method instead of using this option.'
+            );
 
         $this
             ->setName('dtc:queue:run')
@@ -104,6 +105,14 @@ class RunCommand extends Command
     public function setRunLoop($runLoop)
     {
         $this->runLoop = $runLoop;
+    }
+
+    public function setLogger(LoggerInterface $logger) {
+        $this->logger = $logger;
+    }
+
+    public function setContainer($container) {
+        $this->container = $container;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -163,12 +172,7 @@ class RunCommand extends Command
             return;
         }
 
-        $container = $this->getContainer();
-        if (!$container->has($loggerService)) {
-            return;
-        }
-
-        $logger = $container->get($loggerService);
+        $logger = $this->container->get($loggerService);
         if (!$logger instanceof LoggerInterface) {
             throw new ClassNotSubclassException("$loggerService must be instance of Psr\\Log\\LoggerInterface");
         }

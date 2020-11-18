@@ -282,6 +282,7 @@ services:
         class: Dtc\QueueBundle\Command\RunCommand
         calls:
             - [ "setRunLoop", ['@dtc_queue.run.loop'] ]
+            - [ "setContainer", ['@service_container'] ]
         tags:
             - { name: console.command }
 
