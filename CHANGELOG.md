@@ -1,4 +1,4 @@
-### 6.7.0
+### 6.4.0
    * Address Issue #136 - change controller specification in routing.yml
 ### 6.3.6
    * Address Issue #138 - allow specification of a LoggerService from RunCommand again.
