@@ -1,49 +1,49 @@
 dtc_queue:
     path: /dtc_queue/
-    defaults: { _controller: dtc_queue.controller.queue::status }
+    defaults: { _controller: dtc_queue.controller.queue:status }
 
 dtc_queue_queue_status:
     path: /dtc_queue/status
-    defaults: { _controller: dtc_queue.controller.queue::status }
+    defaults: { _controller: dtc_queue.controller.queue:status }
 
 dtc_queue_jobs_all:
     path: /dtc_queue/jobs_all
-    defaults: { _controller: dtc_queue.controller.queue::jobsAll }
+    defaults: { _controller: dtc_queue.controller.queue:jobsAll }
 
 dtc_queue_jobs:
     path: /dtc_queue/jobs
-    defaults: { _controller: dtc_queue.controller.queue::jobs }
+    defaults: { _controller: dtc_queue.controller.queue:jobs }
 
 dtc_queue_runs:
     path: /dtc_queue/runs
-    defaults: { _controller: dtc_queue.controller.queue::runs }
+    defaults: { _controller: dtc_queue.controller.queue:runs }
 
 dtc_queue_workers:
     path: /dtc_queue/workers
-    defaults: { _controller: dtc_queue.controller.queue::workers }
+    defaults: { _controller: dtc_queue.controller.queue:workers }
 
 dtc_queue_jobs_running:
     path: /dtc_queue/jobs-running
-    defaults: { _controller: dtc_queue.controller.queue::jobsRunning }
+    defaults: { _controller: dtc_queue.controller.queue:jobsRunning }
 
 dtc_queue_archive:
     path: /dtc_queue/archive
-    defaults: { _controller: dtc_queue.controller.queue::archive }
+    defaults: { _controller: dtc_queue.controller.queue:archive }
     methods: POST
 
 dtc_queue_reset_stalled:
     path: /dtc_queue/reset-stalled
-    defaults: { _controller: dtc_queue.controller.queue::resetStalled }
+    defaults: { _controller: dtc_queue.controller.queue:resetStalled }
 
 dtc_queue_prune_stalled:
     path: /dtc_queue/prune-stalled
-    defaults: { _controller: dtc_queue.controller.queue::pruneStalled }
+    defaults: { _controller: dtc_queue.controller.queue:pruneStalled }
 
 dtc_queue_trends:
     path: /dtc_queue/trends
-    defaults: { _controller: dtc_queue.controller.trends::trends }
+    defaults: { _controller: dtc_queue.controller.trends:trends }
 
 dtc_queue_timings:
     path: /dtc_queue/timings
-    defaults: { _controller: dtc_queue.controller.trends::timings }
+    defaults: { _controller: dtc_queue.controller.trends:timings }
 
