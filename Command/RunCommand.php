@@ -107,11 +107,13 @@ class RunCommand extends Command
         $this->runLoop = $runLoop;
     }
 
-    public function setLogger(LoggerInterface $logger) {
+    public function setLogger(LoggerInterface $logger)
+    {
         $this->logger = $logger;
     }
 
-    public function setContainer($container) {
+    public function setContainer($container)
+    {
         $this->container = $container;
     }
 

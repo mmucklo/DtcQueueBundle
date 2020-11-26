@@ -2,6 +2,11 @@
 
 namespace Dtc\QueueBundle\Controller;
 
+use Doctrine\DBAL\Platforms\MariaDb1027Platform;
+use Doctrine\DBAL\Platforms\MySqlPlatform;
+use Doctrine\DBAL\Platforms\OraclePlatform;
+use Doctrine\DBAL\Platforms\PostgreSqlPlatform;
+use Doctrine\DBAL\Platforms\SqlitePlatform;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Doctrine\ORM\EntityManager;
 use Dtc\QueueBundle\Doctrine\DoctrineJobTimingManager;
@@ -23,14 +28,51 @@ class TrendsController
         $this->container = $container;
     }
 
+    public function getDatabasePlatform(\Dtc\QueueBundle\ORM\JobTimingManager $jobTimingManager)
+    {
+        $connection = $jobTimingManager->getObjectManager()->getConnection();
+        if (method_exists($connection, 'getDatabasePlatform')) {
+            return $connection->getDatabasePlatform();
+        }
+
+        return null;
+    }
+
+    private function testForYearFunction(\Dtc\QueueBundle\ORM\JobTimingManager $jobTimingManager)
+    {
+        $foundYearFunction = false;
+        $platform = $this->getDatabasePlatform($jobTimingManager);
+        $reason = 'Platform: '.get_class($platform).' not supported';
+        if ($platform instanceof MySqlPlatform || $platform instanceof MariaDb1027Platform) {
+            $foundYearFunction = class_exists('Oro\ORM\Query\AST\Platform\Functions\Mysql\Year') || class_exists('DoctrineExtensions\Query\Mysql\Year');
+            $reason = "<h2>Please install (composer require) one of the following:</h2>\n<pre>\noro/doctrine-extensions\nbeberlei/DoctrineExtensions</pre>";
+        } elseif ($platform instanceof PostgreSqlPlatform) {
+            $foundYearFunction = class_exists('Oro\ORM\Query\AST\Platform\Functions\Postgresql\Year') || class_exists('DoctrineExtensions\Query\Postgresql\Year');
+            $reason = "<h2>Please install (composer require) one of the following:</h2>\n<pre>\noro/doctrine-extensions\nbeberlei/DoctrineExtensions</pre>";
+        } elseif ($platform instanceof OraclePlatform) {
+            $foundYearFunction = class_exists('DoctrineExtensions\Query\Oracle\Year');
+            $reason = "<h2>Please install (composer require) the following:</h2><pre>\nbeberlei/DoctrineExtensions</pre>";
+        } elseif ($platform instanceof SqlitePlatform) {
+            $foundYearFunction = class_exists('DoctrineExtensions\Query\Sqlite\Year');
+            $reason = "<h2>Please install (composer require) the following:</h2><pre>\nbeberlei/DoctrineExtensions</pre>";
+        }
+
+        return [$foundYearFunction, $reason];
+    }
+
     /**
      * Show a graph of job trends.
      */
     public function trends()
     {
         $recordTimings = $this->container->getParameter('dtc_queue.timings.record');
-        $foundYearFunction = class_exists('Oro\ORM\Query\AST\Platform\Functions\Mysql\Year') || class_exists('DoctrineExtensions\Query\Mysql\Year');
-        $params = ['record_timings' => $recordTimings, 'states' => JobTiming::getStates(), 'found_year_function' => $foundYearFunction];
+        $jobTimingManager = $this->container->get('dtc_queue.manager.job_timing');
+        $foundYearFunction = true;
+        $reason = null;
+        if ($jobTimingManager instanceof \Dtc\QueueBundle\ORM\JobTimingManager) {
+            list($foundYearFunction, $reason) = $this->testForYearFunction($jobTimingManager);
+        }
+        $params = ['record_timings' => $recordTimings, 'states' => JobTiming::getStates(), 'found_year_function' => $foundYearFunction, 'found_year_reason' => $reason];
         $this->addCssJs($params);
 
         return $this->render('@DtcQueue/Queue/trends.html.twig', $params);

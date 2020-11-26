@@ -41,11 +41,7 @@ dtc_queue:
 </pre>
     {% else %}
         {% if not found_year_function %}
-            <h2>Please install (composer require) one of the following:</h2>
-            <pre>
-                oro/doctrine-extensions
-                beberlei/DoctrineExtensions
-            </pre>
+            {{ found_year_reason }}
         {% else %}
             <script src="{{ chartjs }}"></script>
             <div class="view">
