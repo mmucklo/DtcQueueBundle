@@ -99,7 +99,7 @@ class Loop
             $this->log('error', "Job id is not found: {$jobId}");
             $this->runManager->runStop($run, $start);
 
-            return;
+            return 0;
         }
 
         $job = $this->workerManager->runJob($job);
@@ -108,7 +108,7 @@ class Loop
         $this->runManager->runStop($run, $start);
         $this->log('info', 'Ended with 1 job processed over '.strval($run->getElapsed()).' seconds.');
 
-        return;
+        return 0;
     }
 
     /**
