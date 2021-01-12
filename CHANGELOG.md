@@ -1,3 +1,5 @@
+### 6.5.0
+   * Address Issue #140 by differentiating ORM vs others.
 ### 6.4.0
    * Address Issue #136 - change controller specification in routing.yml
 ### 6.3.6
