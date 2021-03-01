@@ -20,7 +20,7 @@
         "cocur/background-process": ">=0.7"
     },
     "require-dev": {
-        "doctrine/orm": "^2.7",
+        "doctrine/orm": "^2.7|^3",
         "doctrine/annotations": "^1.5",
         "doctrine/cache": "^1.7",
         "doctrine/collections": "^1.5",
