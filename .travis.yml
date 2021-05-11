@@ -13,6 +13,7 @@ services:
   - mongodb
   - mysql
   - redis
+  - postgresql
 
 addons:
   apt:

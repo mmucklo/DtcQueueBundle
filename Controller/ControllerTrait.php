@@ -19,9 +19,11 @@ trait ControllerTrait
 
     protected function validateJobTimingManager()
     {
-        if ($this->container->hasParameter('dtc_queue.manager.job_timing')) {
+        if ($this->container->hasParameter('dtc_queue.manager.job_timing') &&
+            $this->container->getParameter('dtc_queue.manager.job_timing')) {
             $this->validateManagerType('dtc_queue.manager.job_timing');
-        } elseif ($this->container->hasParameter('dtc_queue.manager.job_timing')) {
+        } elseif ($this->container->hasParameter('dtc_queue.manager.run') &&
+                  $this->container->hasParameter('dtc_queue.manager.run')) {
             $this->validateManagerType('dtc_queue.manager.run');
         } else {
             $this->validateManagerType('dtc_queue.manager.job');
@@ -30,7 +32,8 @@ trait ControllerTrait
 
     protected function validateRunManager()
     {
-        if ($this->container->hasParameter('dtc_queue.manager.job_timing')) {
+        if ($this->container->hasParameter('dtc_queue.manager.job_timing') &&
+            $this->container->getParameter('dtc_queue.manager.job_timing')) {
             $this->validateManagerType('dtc_queue.manager.run');
         } else {
             $this->validateManagerType('dtc_queue.manager.job');

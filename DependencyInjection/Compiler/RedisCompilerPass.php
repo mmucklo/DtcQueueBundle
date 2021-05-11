@@ -11,25 +11,29 @@ class RedisCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
     {
-        if ($container->hasParameter('dtc_queue.redis.snc_redis.type')) {
+        if ($container->hasParameter('dtc_queue.redis.snc_redis.type') &&
+            $container->getParameter('dtc_queue.redis.snc_redis.type')) {
             $this->processSncRedis($container);
 
             return;
         }
 
-        if ($container->hasParameter('dtc_queue.redis.predis.dsn')) {
+        if ($container->hasParameter('dtc_queue.redis.predis.dsn') &&
+            $container->getParameter('dtc_queue.redis.predis.dsn')) {
             $this->processPredisDsn($container);
 
             return;
         }
 
-        if ($container->hasParameter('dtc_queue.redis.predis.connection_parameters')) {
+        if ($container->hasParameter('dtc_queue.redis.predis.connection_parameters') &&
+            $container->getParameter('dtc_queue.redis.predis.connection_parameters')) {
             $this->processPredisConnectionParameters($container);
 
             return;
         }
 
-        if ($container->hasParameter('dtc_queue.redis.phpredis.host')) {
+        if ($container->hasParameter('dtc_queue.redis.phpredis.host') &&
+            $container->getParameter('dtc_queue.redis.phpredis.host')) {
             $this->processPhpRedis($container);
 
             return;
