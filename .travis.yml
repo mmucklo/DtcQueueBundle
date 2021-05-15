@@ -34,7 +34,7 @@ before_script:
   - composer self-update
   - (echo 'no' | pecl install redis) || true
   - (php -m | grep 'redis') || echo "extension = redis.so" > ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/redis.ini
-  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.1" ]]; then pecl install mongodb; composer config "platform.ext-mongo" "1.6.16" && COMPOSER_MEMORY_LIMIT=-1 composer require alcaeus/mongo-php-adapter; fi
+  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.1" ]]; then pecl install mongodb; composer config "platform.ext-mongo" "1.6.16" && COMPOSER_MEMORY_LIMIT=-1 composer require alcaeus/mongo-php-adapter; && COMPOSER_MEMORY_LIMIT=-1 composer require --dev doctrine/dbal:2.10.2; fi
   - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.2" ]] || [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]] || [[ ${TRAVIS_PHP_VERSION:0:3} == "7.4" ]] || [[ ${TRAVIS_PHP_VERSION:0:3} == "8.0" ]]; then pecl install mongodb; echo 'extension = mongodb.so' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini && composer config "platform.ext-mongo" "1.6.16" && COMPOSER_MEMORY_LIMIT=-1 composer require alcaeus/mongo-php-adapter; fi
   - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]] || [[ ${TRAVIS_PHP_VERSION:0:3} == "7.4" ]] || [[ ${TRAVIS_PHP_VERSION:0:3} == "8.0" ]]; then echo 'xdebug.mode = coverage' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini; fi
   - COMPOSER_MEMORY_LIMIT=-1 composer install
