@@ -2,9 +2,7 @@
 
 <phpunit bootstrap="./Tests/bootstrap.php"
     stopOnFailure               = "true"
-    syntaxCheck                 = "true"
     verbose                     = "true"
-    debug                       = "true"
     colors                      = "true">
 
     <testsuites>
@@ -12,15 +10,4 @@
             <directory>./Tests</directory>
         </testsuite>
     </testsuites>
-
-    <filter>
-        <whitelist>
-            <directory>./</directory>
-            <exclude>
-                <directory>./src/Resources</directory>
-                <directory>./Tests</directory>
-                <directory>./vendor</directory>
-            </exclude>
-        </whitelist>
-    </filter>
 </phpunit>

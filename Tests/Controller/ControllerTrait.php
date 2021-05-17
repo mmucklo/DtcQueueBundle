@@ -42,8 +42,8 @@ trait ControllerTrait
 
     public function runJsCssTest($response)
     {
-        static::assertContains('css', $response->getContent());
-        static::assertContains('js', $response->getContent());
+        static::assertStringContainsString('css', $response->getContent());
+        static::assertStringContainsString('js', $response->getContent());
     }
 
     protected function getContainerOdm()
