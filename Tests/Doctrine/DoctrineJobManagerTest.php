@@ -79,7 +79,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         parent::setUpBeforeClass();
     }
 
-    public static function tearDownAfterClass()
+    public static function tearDownAfterClass(): void
     {
         self::$objectManager->getEventManager()->removeEventListener('preUpdate', self::$dtcQueueListener);
         self::$objectManager->getEventManager()->removeEventListener('prePersist', self::$dtcQueueListener);
