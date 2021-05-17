@@ -23,7 +23,7 @@ class WorkerManagerTest extends TestCase
     protected $workerManager;
     protected $eventDispatcher;
 
-    public function setup()
+    public function setup(): void
     {
         $jobTimingManager = new JobTimingManager(JobTiming::class, false);
         $runManager = new RunManager(Run::class);
