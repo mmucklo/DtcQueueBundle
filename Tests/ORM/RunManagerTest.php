@@ -13,7 +13,7 @@ class RunManagerTest extends TestCase
 {
     protected static $runManager;
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         JobManagerTest::setUpBeforeClass();
         $jobManager = JobManagerTest::$jobManager;

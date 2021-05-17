@@ -30,7 +30,7 @@ class JobManagerTest extends BaseJobManagerTest
     use SaveJobTrait;
     public static $connection;
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $host = getenv('RABBIT_MQ_HOST');
         $port = 5672;

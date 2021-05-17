@@ -16,7 +16,7 @@ class LiveJobsGridSourceTest extends BaseLiveJobGridSourceTest
         return new LiveJobsGridSource(DoctrineJobManagerTest::$jobManager);
     }
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         JobManagerTest::setUpBeforeClass();
     }

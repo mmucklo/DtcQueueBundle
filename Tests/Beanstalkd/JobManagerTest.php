@@ -24,7 +24,7 @@ class JobManagerTest extends BaseJobManagerTest
     use RetryableTrait;
     public static $beanstalkd;
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $host = getenv('BEANSTALKD_HOST');
         $port = getenv('BEANSTALKD_PORT');

@@ -30,7 +30,7 @@ abstract class BaseJobManagerTest extends TestCase
     /** @var JobTimingManager */
     public static $jobTimingManager;
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         self::$jobClass = self::$jobManager->getJobClass();
         self::$worker->setJobManager(self::$jobManager);

@@ -48,7 +48,7 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
     public static $container;
     public static $runManager;
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         self::$jobTimingManager = new self::$jobTimingManagerClass(self::$objectManager, self::$jobTimingClass, true);
         self::$runManager = new self::$runManagerClass(self::$objectManager, self::$runClass, self::$runArchiveClass);

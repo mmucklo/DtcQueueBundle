@@ -17,7 +17,7 @@ use Dtc\QueueBundle\Tests\Doctrine\DoctrineJobManagerTest;
  */
 class JobManagerTest extends DoctrineJobManagerTest
 {
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         if (!is_dir('/tmp/dtcqueuetest/generate/proxies')) {
             mkdir('/tmp/dtcqueuetest/generate/proxies', 0777, true);

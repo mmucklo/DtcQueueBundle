@@ -58,7 +58,7 @@ class JobManagerTest extends DoctrineJobManagerTest
         self::$objectManager = EntityManager::create($params, $config);
     }
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         self::createObjectManager();
         $entityName = 'Dtc\QueueBundle\Entity\Job';
