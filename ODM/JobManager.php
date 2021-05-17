@@ -15,7 +15,7 @@ use MongoDB\UpdateResult;
 class JobManager extends DoctrineJobManager
 {
     use CommonTrait;
-    const REDUCE_FUNCTION = 'function(k, vals) {
+    public const REDUCE_FUNCTION = 'function(k, vals) {
             var result = {};
             for (var index in vals) {
                 var val = vals[index];

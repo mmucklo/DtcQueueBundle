@@ -7,11 +7,11 @@ use Dtc\QueueBundle\Util\Util;
 
 abstract class BaseJob
 {
-    const STATUS_SUCCESS = 'success';
-    const STATUS_EXCEPTION = 'exception';
-    const STATUS_NEW = 'new';
-    const STATUS_RUNNING = 'running';
-    const STATUS_FAILURE = 'failure';
+    public const STATUS_SUCCESS = 'success';
+    public const STATUS_EXCEPTION = 'exception';
+    public const STATUS_NEW = 'new';
+    public const STATUS_RUNNING = 'running';
+    public const STATUS_FAILURE = 'failure';
 
     /**
      * @var JobManagerInterface

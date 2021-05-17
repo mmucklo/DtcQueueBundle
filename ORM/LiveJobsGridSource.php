@@ -10,11 +10,10 @@ use Dtc\QueueBundle\Model\BaseJob;
 
 class LiveJobsGridSource extends EntityGridSource
 {
+    use ColumnExtractionTrait;
     protected $jobManager;
     protected $running = false;
     private $columnSource;
-
-    use ColumnExtractionTrait;
 
     public function getId()
     {

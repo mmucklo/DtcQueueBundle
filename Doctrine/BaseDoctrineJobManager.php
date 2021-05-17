@@ -9,10 +9,10 @@ use Dtc\QueueBundle\Manager\RunManager;
 abstract class BaseDoctrineJobManager extends ArchivableJobManager
 {
     /** Number of jobs to prune / reset / gather at a time */
-    const FETCH_COUNT_MIN = 100;
-    const FETCH_COUNT_MAX = 500;
-    const SAVE_COUNT_MIN = 10;
-    const SAVE_COUNT_MAX = 100;
+    public const FETCH_COUNT_MIN = 100;
+    public const FETCH_COUNT_MAX = 500;
+    public const SAVE_COUNT_MIN = 10;
+    public const SAVE_COUNT_MAX = 100;
 
     /**
      * @var \Doctrine\Persistence\ObjectManager

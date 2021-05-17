@@ -4,7 +4,7 @@ namespace Dtc\QueueBundle\Model;
 
 class Job extends BaseJob
 {
-    const STATUS_EXPIRED = 'expired';
+    public const STATUS_EXPIRED = 'expired';
 
     protected $id;
     protected $message;

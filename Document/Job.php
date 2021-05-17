@@ -9,5 +9,5 @@ use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
  */
 class Job extends BaseJob
 {
-    const STATUS_ARCHIVE = 'archive';
+    public const STATUS_ARCHIVE = 'archive';
 }

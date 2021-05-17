@@ -4,8 +4,8 @@ namespace Dtc\QueueBundle\Model;
 
 abstract class StallableJob extends \Dtc\QueueBundle\Model\RetryableJob
 {
-    const STATUS_MAX_STALLS = 'max_stalls';
-    const STATUS_STALLED = 'stalled';
+    public const STATUS_MAX_STALLS = 'max_stalls';
+    public const STATUS_STALLED = 'stalled';
 
     protected $maxStalls = 0;
     protected $stalls = 0;

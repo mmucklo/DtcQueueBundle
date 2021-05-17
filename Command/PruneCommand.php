@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class PruneCommand extends Command
 {
-    const OLDER_MESSAGE = '<int>[d|m|y|h|i|s] Specify how old the jobs should (defaults to timestamp unless a quantifier is specified [d_ays, m_onths, y_years, h_ours, i_minutes, s_econds';
+    public const OLDER_MESSAGE = '<int>[d|m|y|h|i|s] Specify how old the jobs should (defaults to timestamp unless a quantifier is specified [d_ays, m_onths, y_years, h_ours, i_minutes, s_econds';
 
     /** @var JobManagerInterface */
     private $jobManager;

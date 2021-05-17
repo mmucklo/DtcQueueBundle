@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 abstract class BaseJobManagerTest extends TestCase
 {
-    const PERFORMANCE_TOTAL_JOBS = 100;
+    public const PERFORMANCE_TOTAL_JOBS = 100;
 
     /** @var Worker */
     public static $worker;
