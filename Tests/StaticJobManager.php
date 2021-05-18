@@ -41,9 +41,9 @@ class StaticJobManager extends AbstractJobManager
         }, $this->jobs));
     }
 
-    public function getStatus()
+    public function getStatus(): array
     {
-        return null;
+        return [];
     }
 
     public function deleteJob(Job $job)

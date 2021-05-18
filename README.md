@@ -645,7 +645,7 @@ bin/phpunit Tests/Document/JobManagerTest.php
 If you want to run Beanstalkd integration testing, you need to run a local, empty instance of beanstalkd for testing.
 
 ```bash
-sudo service beanstalkd restart; BEANSTALD_HOST=localhost bin/phpunit Tests/BeanStalkd/JobManagerTest.php
+sudo service beanstalkd restart; BEANSTALKD_HOST=localhost bin/phpunit Tests/BeanStalkd/JobManagerTest.php
 ```
 
 Full Configuration

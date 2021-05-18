@@ -218,7 +218,7 @@ class JobManager extends DoctrineJobManager
         return $status;
     }
 
-    public function getStatus()
+    public function getStatus(): array
     {
         $result = $this->getStatusByDocument($this->getJobClass());
         $status2 = $this->getStatusByDocument($this->getJobArchiveClass());

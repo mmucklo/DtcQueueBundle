@@ -27,7 +27,7 @@ interface JobManagerInterface
      */
     public function getWaitingJobCount($workerName = null, $methodName = null);
 
-    public function getStatus();
+    public function getStatus(): array;
 
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null);
 

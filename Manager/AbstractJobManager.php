@@ -34,11 +34,9 @@ abstract class AbstractJobManager implements JobManagerInterface
     }
 
     /**
-     * @return array
-     *
      * @throws UnsupportedException
      */
-    public function getStatus()
+    public function getStatus(): array
     {
         $count = $this->getWaitingJobCount();
         $allStatuses = static::getAllStatuses();

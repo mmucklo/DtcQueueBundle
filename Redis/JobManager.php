@@ -317,7 +317,7 @@ class JobManager extends BaseJobManager
         return $count;
     }
 
-    public function getStatus()
+    public function getStatus(): array
     {
         $whenQueueCacheKey = $this->getWhenQueueCacheKey();
         $priorityQueueCacheKey = $this->getPriorityQueueCacheKey();
