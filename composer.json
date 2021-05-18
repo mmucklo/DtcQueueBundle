@@ -42,7 +42,8 @@
         "doctrine/doctrine-bundle": ">=1.8.1",
         "predis/predis": "^1.1",
         "alcaeus/mongo-php-adapter": "^1.1",
-        "snc/redis-bundle": "^3.2"
+        "snc/redis-bundle": "^3.2",
+	"scrutinizer/ocular": "dev-master"
     },
     "suggest": {
         "mmucklo/grid-bundle": ">=7.2.1",
