@@ -1,3 +1,8 @@
+### 6.6.0
+   * Fix Issue #145
+   * Fix php 8.0 testing compatibility
+   * Fix stats issue with beanstalkd
+   * Fix travis build, remove builds for 7.2, 7.1 
 ### 6.5.0
    * Address Issue #140 by differentiating ORM vs others.
 ### 6.4.0
