@@ -10,4 +10,15 @@
             <directory>./Tests</directory>
         </testsuite>
     </testsuites>
+    <coverage includeUncoveredFiles="true" processUncoveredFiles="true" pathCoverage="true">
+        <include>
+            <directory suffix="php">.</directory>
+        </include>
+        <exclude>
+            <directory>Resources</directory>
+            <directory>vendor</directory>
+            <directory>Tests</directory>
+        </exclude>
+    </coverage>
+
 </phpunit>
