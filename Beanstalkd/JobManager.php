@@ -179,6 +179,6 @@ class JobManager extends RetryableJobManager
 
     public function getStats()
     {
-        return $this->beanstalkd->stats();
+        return $this->beanstalkd->statsTube($this->beanstalkd->listTubeUsed());
     }
 }

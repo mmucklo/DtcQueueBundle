@@ -24,6 +24,6 @@ class StaticJobManagerTest extends BaseJobManagerTest
     public function testGetStatus()
     {
         $status = self::$jobManager->getStatus();
-        self::assertNull($status);
+        self::assertEmpty($status);
     }
 }

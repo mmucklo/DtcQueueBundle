@@ -77,6 +77,7 @@ class RunManagerTest extends TestCase
         $run = $runManager->runStart($start = microtime(true));
         $runManager->getObjectManager()->close();
         $runManager->runStop($run, $start);
+        $this->addToAssertionCount(1);
     }
 
     public function testCloseEm2()
@@ -106,5 +107,6 @@ class RunManagerTest extends TestCase
         $runManager->getObjectManager()->close();
         $registry->resetManager('default');
         $runManager->runStop($run, $start);
+        $this->addToAssertionCount(1);
     }
 }
