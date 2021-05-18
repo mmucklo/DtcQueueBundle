@@ -20,7 +20,9 @@ trait GetterSetterTrait
             $parameters = $reflection->getMethod($setMethod)->getParameters();
             if ($parameters && 1 == count($parameters)) {
                 $parameter = $parameters[0];
-                if (!$parameter->getClass()) {
+                if (!$parameter->hasType() || ('ReflectionNamedType' == get_class($parameter->getType()) &&
+                        $parameter->getType()->isBuiltin() && 'array' != $parameter->getType()->getName() &&
+                        'iterator' != $parameter->getType()->getName())) {
                     $someValue = 'somevalue';
                     $obj->$setMethod($someValue);
                     self::assertSame($someValue, $obj->$getMethod(), "$setMethod, $getMethod");

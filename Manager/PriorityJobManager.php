@@ -8,8 +8,8 @@ use Dtc\QueueBundle\Model\RetryableJob;
 
 abstract class PriorityJobManager extends RetryableJobManager
 {
-    const PRIORITY_ASC = 'asc';
-    const PRIORITY_DESC = 'desc';
+    public const PRIORITY_ASC = 'asc';
+    public const PRIORITY_DESC = 'desc';
 
     protected $maxPriority;
     protected $priorityDirection = self::PRIORITY_DESC;

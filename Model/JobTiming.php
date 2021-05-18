@@ -4,13 +4,13 @@ namespace Dtc\QueueBundle\Model;
 
 class JobTiming
 {
-    const STATUS_INSERT = 0;
-    const STATUS_INSERT_DELAYED = 1;
-    const STATUS_FINISHED_SUCCESS = 100;
-    const STATUS_FINISHED_EXCEPTION = 101;
-    const STATUS_FINISHED_EXPIRED = 102;
-    const STATUS_FINISHED_STALLED = 103;
-    const STATUS_FINISHED_FAILURE = 104;
+    public const STATUS_INSERT = 0;
+    public const STATUS_INSERT_DELAYED = 1;
+    public const STATUS_FINISHED_SUCCESS = 100;
+    public const STATUS_FINISHED_EXCEPTION = 101;
+    public const STATUS_FINISHED_EXPIRED = 102;
+    public const STATUS_FINISHED_STALLED = 103;
+    public const STATUS_FINISHED_FAILURE = 104;
 
     protected $finishedAt;
     protected $status;

@@ -3,8 +3,6 @@ dist: xenial
 os: linux
 
 php:
-  - 7.1
-  - 7.2
   - 7.3
   - 7.4
   - 8.0
@@ -13,6 +11,7 @@ services:
   - mongodb
   - mysql
   - redis
+  - postgresql
 
 addons:
   apt:
@@ -33,15 +32,15 @@ before_script:
   - composer self-update
   - (echo 'no' | pecl install redis) || true
   - (php -m | grep 'redis') || echo "extension = redis.so" > ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/redis.ini
-  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.1" ]]; then pecl install mongodb; composer config "platform.ext-mongo" "1.6.16" && COMPOSER_MEMORY_LIMIT=-1 composer require alcaeus/mongo-php-adapter; fi
-  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.2" ]] || [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]] || [[ ${TRAVIS_PHP_VERSION:0:3} == "7.4" ]] || [[ ${TRAVIS_PHP_VERSION:0:3} == "8.0" ]]; then pecl install mongodb; echo 'extension = mongodb.so' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini && composer config "platform.ext-mongo" "1.6.16" && COMPOSER_MEMORY_LIMIT=-1 composer require alcaeus/mongo-php-adapter; fi
-  - if [[ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]] || [[ ${TRAVIS_PHP_VERSION:0:3} == "7.4" ]] || [[ ${TRAVIS_PHP_VERSION:0:3} == "8.0" ]]; then echo 'xdebug.mode = coverage' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini; fi
+  - pecl install mongodb; echo 'extension = mongodb.so' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - composer config "platform.ext-mongo" "1.6.16"
+  - COMPOSER_MEMORY_LIMIT=-1 composer require alcaeus/mongo-php-adapter
+  - echo 'xdebug.mode = coverage' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
   - COMPOSER_MEMORY_LIMIT=-1 composer install
 
 script:
   - REDIS_HOST=localhost BEANSTALKD_HOST=localhost BEANSTALKD_PORT=11300 MONGODB_HOST=localhost RABBIT_MQ_HOST=localhost MYSQL_HOST=localhost MYSQL_USER=root MYSQL_DATABASE=queue_test php -d memory_limit=-1 bin/phpunit --coverage-clover=coverage.clover --log-junit=phpunit.result.xml && touch build_passed
-  - if [ -f build_passed ]; then wget https://scrutinizer-ci.com/ocular.phar; fi
-  - if [ -f build_passed ]; then php ocular.phar code-coverage:upload --format=php-clover coverage.clover; fi
+  - if [ -f build_passed ]; then bin/ocular code-coverage:upload --format=php-clover coverage.clover; fi
   - echo $(ls -l)
   - echo $(pwd)
   - echo $(ls -l phpunit.result.xml)

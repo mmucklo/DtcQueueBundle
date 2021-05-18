@@ -21,7 +21,7 @@ class JobManagerNoPriorityTest extends JobManagerTest
     use AutoRetryTrait;
     public static $connection;
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         $host = getenv('REDIS_HOST');
         $port = getenv('REDIS_PORT') ?: 6379;

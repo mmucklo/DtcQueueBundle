@@ -16,7 +16,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Job extends BaseJob
 {
-    const STATUS_ARCHIVE = 'archive';
+    public const STATUS_ARCHIVE = 'archive';
     /**
      * @ORM\Column(name="id", type="bigint")
      * @ORM\Id

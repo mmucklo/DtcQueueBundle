@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 abstract class BaseJobManagerTest extends TestCase
 {
-    const PERFORMANCE_TOTAL_JOBS = 100;
+    public const PERFORMANCE_TOTAL_JOBS = 100;
 
     /** @var Worker */
     public static $worker;
@@ -30,7 +30,7 @@ abstract class BaseJobManagerTest extends TestCase
     /** @var JobTimingManager */
     public static $jobTimingManager;
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         self::$jobClass = self::$jobManager->getJobClass();
         self::$worker->setJobManager(self::$jobManager);
@@ -48,6 +48,7 @@ abstract class BaseJobManagerTest extends TestCase
 
     public function testSaveJob()
     {
+        $this->drain();
         $job = $this->getJob();
         $jobInQueue = self::$jobManager->getJob();
         self::assertNotNull($jobInQueue, 'There should be a job.');
@@ -70,6 +71,7 @@ abstract class BaseJobManagerTest extends TestCase
 
     public function testGetJobByWorker()
     {
+        $this->drain();
         $job = $this->getJob();
         $jobInQueue = self::$jobManager->getJob(self::$worker->getName());
         self::assertEquals(
@@ -77,6 +79,7 @@ abstract class BaseJobManagerTest extends TestCase
             $jobInQueue->getId(),
             'Job id returned by manager should be the same'
         );
+        self::$jobManager->deleteJob($job);
     }
 
     public function testDeleteJob()

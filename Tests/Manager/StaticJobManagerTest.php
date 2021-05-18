@@ -12,7 +12,7 @@ use Dtc\QueueBundle\Tests\StaticJobManager;
 
 class StaticJobManagerTest extends BaseJobManagerTest
 {
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         self::$jobTimingManager = new JobTimingManager(JobTiming::class, false);
         self::$runManager = new RunManager(Run::class);
@@ -24,6 +24,6 @@ class StaticJobManagerTest extends BaseJobManagerTest
     public function testGetStatus()
     {
         $status = self::$jobManager->getStatus();
-        self::assertNull($status);
+        self::assertEmpty($status);
     }
 }

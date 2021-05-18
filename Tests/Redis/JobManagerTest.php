@@ -33,7 +33,7 @@ class JobManagerTest extends BaseJobManagerTest
     use SaveJobTrait;
     public static $connection;
 
-    public static function setUpBeforeClass()
+    public static function setUpBeforeClass(): void
     {
         if (self::$jobManager) {
             parent::setUpBeforeClass();

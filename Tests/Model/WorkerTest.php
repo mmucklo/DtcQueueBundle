@@ -10,14 +10,15 @@ use Dtc\QueueBundle\Model\Run;
 use Dtc\QueueBundle\Model\Worker;
 use Dtc\QueueBundle\Tests\FibonacciWorker;
 use Dtc\QueueBundle\Tests\StaticJobManager;
+use PHPUnit\Framework\TestCase;
 
-class WorkerTest extends \PHPUnit_Framework_TestCase
+class WorkerTest extends TestCase
 {
     /** @var Worker */
     protected $worker;
     protected $jobManager;
 
-    public function setUp()
+    public function setUp(): void
     {
         $jobTimingManager = new JobTimingManager(JobTiming::class, false);
         $runManager = new RunManager(Run::class);

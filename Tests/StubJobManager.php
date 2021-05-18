@@ -71,9 +71,11 @@ class StubJobManager extends StallableJobManager
         return $this->recordArgs(__FUNCTION__, func_get_args());
     }
 
-    public function getStatus()
+    public function getStatus(): array
     {
-        return $this->recordArgs(__FUNCTION__, func_get_args());
+        $this->recordArgs(__FUNCTION__, func_get_args());
+
+        return [];
     }
 
     public function resetExceptionJobs($workerName = null, $methodName = null)

@@ -153,7 +153,7 @@ class JobManager extends DoctrineJobManager
     /**
      * Get Jobs statuses.
      */
-    public function getStatus()
+    public function getStatus(): array
     {
         $result = [];
         $this->getStatusByEntityName($this->getJobClass(), $result);

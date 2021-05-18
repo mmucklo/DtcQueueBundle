@@ -7,8 +7,8 @@ use Dtc\QueueBundle\Util\Util;
 
 abstract class Worker
 {
-    const RESULT_SUCCESS = 0;
-    const RESULT_FAILURE = 1;
+    public const RESULT_SUCCESS = 0;
+    public const RESULT_FAILURE = 1;
 
     /** @var JobManagerInterface */
     private $jobManager;

@@ -11,7 +11,8 @@ class RabbitMQCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container)
     {
-        if ($container->hasParameter('dtc_queue.rabbit_mq')) {
+        if ($container->hasParameter('dtc_queue.rabbit_mq') &&
+            $container->getParameter('dtc_queue.rabbit_mq')) {
             $class = 'PhpAmqpLib\\Connection\\AMQPStreamConnection';
             $rabbitMqConfig = $container->getParameter('dtc_queue.rabbit_mq');
             $arguments = [

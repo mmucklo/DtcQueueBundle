@@ -28,7 +28,6 @@ class CountCommand extends Command
     {
         $waitingCount = $this->jobManager->getWaitingJobCount();
         $status = $this->jobManager->getStatus();
-
         $firstJob = key($status);
         if ($firstJob) {
             $jobKeys = array_keys($status);
@@ -45,7 +44,6 @@ class CountCommand extends Command
             $output->writeln($msg);
             $this->outputStatus($output, $status, $initialKeys, $format);
         }
-
         $output->writeln("Total waiting jobs: {$waitingCount}");
 
         return 0;

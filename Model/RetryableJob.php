@@ -4,9 +4,9 @@ namespace Dtc\QueueBundle\Model;
 
 abstract class RetryableJob extends \Dtc\QueueBundle\Model\Job
 {
-    const STATUS_MAX_FAILURES = 'max_failures';
-    const STATUS_MAX_RETRIES = 'max_retries';
-    const STATUS_MAX_EXCEPTIONS = 'max_exceptions';
+    public const STATUS_MAX_FAILURES = 'max_failures';
+    public const STATUS_MAX_RETRIES = 'max_retries';
+    public const STATUS_MAX_EXCEPTIONS = 'max_exceptions';
 
     protected $maxFailures = 0;
     protected $failures = 0;

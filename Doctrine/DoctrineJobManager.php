@@ -14,7 +14,7 @@ abstract class DoctrineJobManager extends BaseDoctrineJobManager
     use StalledTrait;
 
     /** Number of seconds before a job is considered stalled if the runner is no longer active */
-    const STALLED_SECONDS = 1800;
+    public const STALLED_SECONDS = 1800;
 
     /**
      * @param string $objectName

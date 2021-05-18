@@ -11,6 +11,8 @@ trait PriorityTestTrait
         $jobManager = static::$jobManager;
 
         if (null === $jobManager->getMaxPriority()) {
+            $this->addToAssertionCount(1);
+
             return;
         }
 
@@ -19,7 +21,7 @@ trait PriorityTestTrait
         while ($jobManager->getJob() && $limit--) {
             static::assertTrue(true);
         }
-        self::assertGreaterThan(0, $limit);
+        static::assertGreaterThan(0, $limit);
 
         // Null vs priority case
 

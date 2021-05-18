@@ -11,7 +11,7 @@ use Pheanstalk\Pheanstalk;
 
 class JobManager extends RetryableJobManager
 {
-    const DEFAULT_RESERVE_TIMEOUT = 5; // seconds
+    public const DEFAULT_RESERVE_TIMEOUT = 5; // seconds
 
     /** @var Pheanstalk */
     protected $beanstalkd;
@@ -179,6 +179,6 @@ class JobManager extends RetryableJobManager
 
     public function getStats()
     {
-        return $this->beanstalkd->stats();
+        return $this->beanstalkd->statsTube($this->beanstalkd->listTubeUsed());
     }
 }

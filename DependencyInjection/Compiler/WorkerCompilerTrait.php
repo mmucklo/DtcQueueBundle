@@ -9,7 +9,8 @@ trait WorkerCompilerTrait
     protected function getRunManagerType(ContainerBuilder $container)
     {
         $managerType = 'dtc_queue.manager.job';
-        if ($container->hasParameter('dtc_queue.manager.run')) {
+        if ($container->hasParameter('dtc_queue.manager.run') &&
+            $container->getParameter('dtc_queue.manager.run')) {
             $managerType = 'dtc_queue.manager.run';
         }
 

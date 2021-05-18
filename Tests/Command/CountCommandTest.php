@@ -21,9 +21,9 @@ class CountCommandTest extends TestCase
     {
         $container = new Container();
         $jobTimingManager = new JobTimingManager(JobTiming::class, false);
-        $runManager = new RunManager($jobTimingManager, Run::class);
+        $runManager = new RunManager(Run::class);
         $container->set('dtc_queue.manager.job', new StubJobManager($runManager, $jobTimingManager, Job::class));
-        $this->runCommandException(CountCommand::class, $container, []);
+        $this->runCommand(CountCommand::class, $container, []);
     }
 
     public function testCountBeanstalkdCommand()
