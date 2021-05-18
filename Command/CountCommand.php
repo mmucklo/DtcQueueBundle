@@ -28,24 +28,24 @@ class CountCommand extends Command
     {
         $waitingCount = $this->jobManager->getWaitingJobCount();
         $status = $this->jobManager->getStatus();
-
-        $firstJob = key($status);
-        if ($firstJob) {
-            $jobKeys = array_keys($status);
-            $maxLength = max(array_map(function ($item) {
-                return strlen($item ?: '');
-            }, $jobKeys));
-            $formatLen = $this->determineFormatLength($maxLength);
-            $format = '%-'.$formatLen.'s';
-            $headingArgs = ['Job name'];
-            $initialKeys = array_keys($status[$firstJob]);
-            $this->formatHeadings($initialKeys, $headingArgs, $format);
-            array_unshift($headingArgs, $format);
-            $msg = call_user_func_array('sprintf', $headingArgs);
-            $output->writeln($msg);
-            $this->outputStatus($output, $status, $initialKeys, $format);
+        if ($status) {
+            $firstJob = key($status);
+            if ($firstJob) {
+                $jobKeys = array_keys($status);
+                $maxLength = max(array_map(function ($item) {
+                    return strlen($item ?: '');
+                }, $jobKeys));
+                $formatLen = $this->determineFormatLength($maxLength);
+                $format = '%-' . $formatLen . 's';
+                $headingArgs = ['Job name'];
+                $initialKeys = array_keys($status[$firstJob]);
+                $this->formatHeadings($initialKeys, $headingArgs, $format);
+                array_unshift($headingArgs, $format);
+                $msg = call_user_func_array('sprintf', $headingArgs);
+                $output->writeln($msg);
+                $this->outputStatus($output, $status, $initialKeys, $format);
+            }
         }
-
         $output->writeln("Total waiting jobs: {$waitingCount}");
 
         return 0;
