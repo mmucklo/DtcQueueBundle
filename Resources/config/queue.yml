@@ -32,7 +32,6 @@ services:
 
     dtc_queue.grid_source.jobs_waiting.odm:
         public: true
-        class: Dtc\QueueBundle\ODM\LiveJobsGridSource
         arguments:
             - "@dtc_queue.manager.job.odm"
         calls:
@@ -40,7 +39,6 @@ services:
 
     dtc_queue.grid_source.jobs_running.odm:
         public: true
-        class: Dtc\QueueBundle\ODM\LiveJobsGridSource
         arguments:
             - "@dtc_queue.manager.job.odm"
         calls:
@@ -49,7 +47,6 @@ services:
 
     dtc_queue.grid_source.jobs_waiting.orm:
         public: true
-        class: Dtc\QueueBundle\ORM\LiveJobsGridSource
         arguments:
             - "@dtc_queue.manager.job.orm"
         calls:
@@ -57,7 +54,6 @@ services:
 
     dtc_queue.grid_source.jobs_running.orm:
         public: true
-        class: Dtc\QueueBundle\ORM\LiveJobsGridSource
         arguments:
             - "@dtc_queue.manager.job.orm"
         calls:
