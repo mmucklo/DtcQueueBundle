@@ -1,3 +1,5 @@
+### 6.7.0
+   * Fix Issue #143 - more grid-bundle decoupling.
 ### 6.6.0
    * Fix Issue #145
    * Fix php 8.0 testing compatibility
