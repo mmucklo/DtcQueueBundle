@@ -56,7 +56,7 @@ abstract class BaseJob extends StallableJob
 
     /**
      * @ODM\Field(type="date", nullable=true)
-     * @ODM\AlsoLoad(name="when")
+     * @ODM\AlsoLoad("when")
      * @ODM\Index(unique=false, order="asc")
      */
     protected $whenAt;
@@ -111,13 +111,13 @@ abstract class BaseJob extends StallableJob
     protected $runId;
 
     /**
-     * @ODM\AlsoLoad(name="stalledCount")
+     * @ODM\AlsoLoad("stalledCount")
      * @ODM\Field(type="int")
      */
     protected $stalls = 0;
 
     /**
-     * @ODM\AlsoLoad(name="maxStalled")
+     * @ODM\AlsoLoad("maxStalled")
      * @ODM\Field(type="int", nullable=true)
      */
     protected $maxStalls;
@@ -133,13 +133,13 @@ abstract class BaseJob extends StallableJob
     protected $maxFailures;
 
     /**
-     * @ODM\AlsoLoad(name="errorCount")
+     * @ODM\AlsoLoad("errorCount")
      * @ODM\Field(type="int")
      */
     protected $exceptions = 0;
 
     /**
-     * @ODM\AlsoLoad(name="maxError")
+     * @ODM\AlsoLoad("maxError")
      * @ODM\Field(type="int", nullable=true)
      */
     protected $maxExceptions;
