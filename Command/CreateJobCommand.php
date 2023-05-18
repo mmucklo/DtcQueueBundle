@@ -13,7 +13,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class CreateJobCommand extends Command
 {
-    protected static $defaultName = 'dtc:queue:create_job';
 
     /** @var WorkerManager */
     private $workerManager;
@@ -21,6 +20,7 @@ class CreateJobCommand extends Command
     protected function configure()
     {
         $this
+            ->setName("dtc:queue:create_job")
             ->addOption(
                 'json-args',
                 'j',
@@ -58,7 +58,6 @@ class CreateJobCommand extends Command
             )
             ->setDescription('Create a job - for expert users')
             ->setHelp($this->getHelpMessage())
-            ->setName(self::$defaultName)
         ;
     }
 
