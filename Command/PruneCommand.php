@@ -50,7 +50,7 @@ class PruneCommand extends Command
         $this->jobTimingManager = $jobTimingManager;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $type = $input->getArgument('type');
         switch ($type) {
@@ -69,7 +69,7 @@ class PruneCommand extends Command
                 return $this->executeStalledOther($input, $output);
         }
 
-        return 0;
+        return $this::SUCCESS;
     }
 
     protected function pruneExceptionJobs(OutputInterface $output)

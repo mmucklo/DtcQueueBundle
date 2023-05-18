@@ -24,7 +24,7 @@ class CountCommand extends Command
             ->setDescription('Display job queue status.');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $waitingCount = $this->jobManager->getWaitingJobCount();
         $status = $this->jobManager->getStatus();
@@ -46,7 +46,7 @@ class CountCommand extends Command
         }
         $output->writeln("Total waiting jobs: {$waitingCount}");
 
-        return 0;
+        return $this::SUCCESS;
     }
 
     /**

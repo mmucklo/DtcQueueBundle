@@ -24,13 +24,13 @@ class ResetCommand extends Command
         $this->jobManager = $jobManager;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $countException = $this->jobManager->resetExceptionJobs();
         $countStalled = $this->jobManager->resetStalledJobs();
         $output->writeln("$countException job(s) in status 'exception' reset");
         $output->writeln("$countStalled job(s) stalled (in status 'running') reset");
 
-        return 0;
+        return $this::SUCCESS;
     }
 }

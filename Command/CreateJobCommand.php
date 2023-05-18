@@ -93,7 +93,7 @@ class CreateJobCommand extends Command
         $this->workerManager = $workerManager;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $workerName = $input->getArgument('worker_name');
         $methodName = $input->getArgument('method');
@@ -118,7 +118,7 @@ class CreateJobCommand extends Command
 
         $worker->getJobManager()->save($job);
 
-        return 0;
+        return $this::FAILURE;
     }
 
     protected function getArgs(InputInterface $input)
