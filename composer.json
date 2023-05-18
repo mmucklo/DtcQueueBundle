@@ -15,8 +15,7 @@
     ],
     "require": {
         "php": ">=7.1",
-        "symfony/framework-bundle": ">=2.7|>=3.3|4.*|5.*",
-        "sensio/framework-extra-bundle": "2.*|3.*|4.*|5.*|6.*",
+        "symfony/framework-bundle": ">=2.7|>=3.3|4.*|5.*|6.*",
         "cocur/background-process": ">=0.7"
     },
     "require-dev": {
@@ -46,7 +45,7 @@
 	"scrutinizer/ocular": "dev-master"
     },
     "suggest": {
-        "mmucklo/grid-bundle": ">=7.2.1",
+        "mmucklo/grid-bundle": ">=8.0.0",
         "snc/redis-bundle": "If using redis",
         "predis/predis": "If using redis",
         "ext-redis": "Alternative redis library",
@@ -57,6 +56,9 @@
         "oro/doctrine-extensions": "For YEAR, MONTH, DAY, HOUR, MINUTE date functions if using JobTiming trends",
         "beberlei/DoctrineExtensions": "Alternative for YEAR, MONTH, DAY, HOUR, MINUTE if using JobTiming trends",
         "alcaeus/mongo-php-adapter": "If trying to use MongoDB ODM on PHP 7.0 or greater"
+    },
+    "conflict": {
+        "mmucklo/grid-bundle": "<8.0.0"
     },
     "config": {
         "bin-dir": "bin",
