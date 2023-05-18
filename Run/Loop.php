@@ -198,7 +198,7 @@ class Loop
     {
         $endTime = null;
         if (null !== $duration) {
-            $interval = new \DateInterval("PT${duration}S");
+            $interval = new \DateInterval("PT{$duration}S");
             $endTime = clone $run->getStartedAt();
             $endTime->add($interval);
         }

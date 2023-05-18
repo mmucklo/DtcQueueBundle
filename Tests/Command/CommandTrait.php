@@ -99,7 +99,7 @@ trait CommandTrait
         $container->set('dtc_queue.manager.run', $runManager);
         $container->set('dtc_queue.manager.job_timing', $jobTimingManager);
         $this->runCommandExpect($className, $container, $params, $expectedResult);
-        $manager = "${managerType}Manager";
+        $manager = "{$managerType}Manager";
         if (0 === $expectedResult) {
             self::assertTrue(isset($$manager->calls[$call][0]));
             self::assertTrue(!isset($$manager->calls[$call][1]));
