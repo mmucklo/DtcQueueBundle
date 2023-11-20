@@ -117,7 +117,7 @@ class CreateJobCommand extends Command
 
         $worker->getJobManager()->save($job);
 
-        return $this::FAILURE;
+        return $this::SUCCESS;
     }
 
     protected function getArgs(InputInterface $input)
