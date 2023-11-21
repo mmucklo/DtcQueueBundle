@@ -50,7 +50,7 @@ class PruneCommand extends Command
         $this->jobTimingManager = $jobTimingManager;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $type = $input->getArgument('type');
         switch ($type) {
@@ -69,7 +69,7 @@ class PruneCommand extends Command
                 return $this->executeStalledOther($input, $output);
         }
 
-        return 0;
+        return $this::SUCCESS;
     }
 
     protected function pruneExceptionJobs(OutputInterface $output)
@@ -190,13 +190,13 @@ class PruneCommand extends Command
     {
         switch ($modifier) {
             case 'd':
-                $interval = new \DateInterval("P${duration}D");
+                $interval = new \DateInterval("P{$duration}D");
                 break;
             case 'm':
-                $interval = new \DateInterval("P${duration}M");
+                $interval = new \DateInterval("P{$duration}M");
                 break;
             case 'y':
-                $interval = new \DateInterval("P${duration}Y");
+                $interval = new \DateInterval("P{$duration}Y");
                 break;
             default:
                 $interval = $this->getIntervalTime($modifier, $duration);
@@ -217,14 +217,14 @@ class PruneCommand extends Command
     {
         switch ($modifier) {
             case 'h':
-                $interval = new \DateInterval("PT${duration}H");
+                $interval = new \DateInterval("PT{$duration}H");
                 break;
             case 'i':
                 $seconds = $duration * 60;
-                $interval = new \DateInterval("PT${seconds}S");
+                $interval = new \DateInterval("PT{$seconds}S");
                 break;
             case 's':
-                $interval = new \DateInterval("PT${duration}S");
+                $interval = new \DateInterval("PT{$duration}S");
                 break;
             default:
                 throw new UnsupportedException("Unknown duration modifier: $modifier");

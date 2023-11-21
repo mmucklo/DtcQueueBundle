@@ -45,6 +45,6 @@ abstract class DoctrineJobTimingManager extends JobTimingManager
 
     public function pruneJobTimings(\DateTime $olderThan)
     {
-        return $this->removeOlderThan($this->getJobTimingClass(), 'createdAt', $olderThan);
+        return $this->removeOlderThan($this->getJobTimingClass(), 'finishedAt', $olderThan);
     }
 }

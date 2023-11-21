@@ -84,7 +84,7 @@ class Loop
     /**
      * @param float $start
      */
-    public function runJobById($start, $jobId)
+    public function runJobById($start, $jobId): void
     {
         $run = $this->runManager->runStart($start, null, null, $this->processTimeout);
         $this->lastRun = $run;
@@ -99,7 +99,7 @@ class Loop
             $this->log('error', "Job id is not found: {$jobId}");
             $this->runManager->runStop($run, $start);
 
-            return 0;
+            return;
         }
 
         $job = $this->workerManager->runJob($job);
@@ -107,8 +107,6 @@ class Loop
         $run->setProcessed(1);
         $this->runManager->runStop($run, $start);
         $this->log('info', 'Ended with 1 job processed over '.strval($run->getElapsed()).' seconds.');
-
-        return 0;
     }
 
     /**
@@ -198,7 +196,7 @@ class Loop
     {
         $endTime = null;
         if (null !== $duration) {
-            $interval = new \DateInterval("PT${duration}S");
+            $interval = new \DateInterval("PT{$duration}S");
             $endTime = clone $run->getStartedAt();
             $endTime->add($interval);
         }

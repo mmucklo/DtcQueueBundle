@@ -153,9 +153,9 @@ class Util
         $timePart = substr($decimal, 0, $len);
         $decimalPart = substr($decimal, $len, 6);
 
-        $result = \DateTime::createFromFormat('U.u', "${timePart}.${decimalPart}");
+        $result = \DateTime::createFromFormat('U.u', "{$timePart}.{$decimalPart}");
         if (!$result) {
-            throw new \RuntimeException("Could not create date time from ${timePart}.${decimalPart}");
+            throw new \RuntimeException("Could not create date time from {$timePart}.{$decimalPart}");
         }
         $result->setTimezone(new \DateTimeZone(date_default_timezone_get()));
 

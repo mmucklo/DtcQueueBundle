@@ -183,7 +183,7 @@ class DtcQueueExtension extends Extension
         }
     }
 
-    public function getAlias()
+    public function getAlias(): string
     {
         return 'dtc_queue';
     }

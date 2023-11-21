@@ -117,7 +117,7 @@ class RunCommand extends Command
         $this->container = $container;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $start = microtime(true);
         // @TODO: move this to dependency injection.
@@ -144,10 +144,12 @@ class RunCommand extends Command
         set_time_limit($processTimeout); // Set timeout on the process
 
         if ($jobId = $input->getOption('id')) {
-            return $this->runLoop->runJobById($start, $jobId); // Run a single job
+            $this->runLoop->runJobById($start, $jobId); // Run a single job
+            return $this::SUCCESS;
         }
 
-        return $this->runLoop->runLoop($start, $workerName, $methodName, $maxCount, $duration, $nanoSleep);
+        $this->runLoop->runLoop($start, $workerName, $methodName, $maxCount, $duration, $nanoSleep);
+        return $this::SUCCESS;
     }
 
     /**
