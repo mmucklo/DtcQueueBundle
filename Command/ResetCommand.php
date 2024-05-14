@@ -12,7 +12,7 @@ class ResetCommand extends Command
     /** @var JobManagerInterface */
     private $jobManager;
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setName('dtc:queue:reset')

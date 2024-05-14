@@ -17,7 +17,7 @@ class CountCommand extends Command
         $this->jobManager = $jobManager;
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setName('dtc:queue:count')

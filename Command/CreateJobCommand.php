@@ -17,7 +17,7 @@ class CreateJobCommand extends Command
     /** @var WorkerManager */
     private $workerManager;
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setName("dtc:queue:create_job")
