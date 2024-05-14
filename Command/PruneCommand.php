@@ -26,7 +26,7 @@ class PruneCommand extends Command
     /** @var JobTimingManager */
     private $jobTimingManager;
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
         ->setName('dtc:queue:prune')

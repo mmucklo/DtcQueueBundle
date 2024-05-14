@@ -9,7 +9,7 @@ class GridCompilerPass implements CompilerPassInterface
 {
     use WorkerCompilerTrait;
 
-    public function process(ContainerBuilder $container)
+    public function process(ContainerBuilder $container): void
     {
         if (!class_exists('Dtc\GridBundle\DtcGridBundle')) {
             $container->getDefinition('dtc_queue.grid_source.jobs_waiting.odm')->setClass('Dtc\QueueBundle\ODM\StubLiveJobsGridSource');

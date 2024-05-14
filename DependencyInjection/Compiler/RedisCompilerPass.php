@@ -9,7 +9,7 @@ use Symfony\Component\DependencyInjection\Reference;
 
 class RedisCompilerPass implements CompilerPassInterface
 {
-    public function process(ContainerBuilder $container)
+    public function process(ContainerBuilder $container): void
     {
         if ($container->hasParameter('dtc_queue.redis.snc_redis.type') &&
             $container->getParameter('dtc_queue.redis.snc_redis.type')) {

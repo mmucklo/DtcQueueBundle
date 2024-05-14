@@ -9,7 +9,7 @@ use Symfony\Component\DependencyInjection\Reference;
 
 class BeanstalkdCompilerPass implements CompilerPassInterface
 {
-    public function process(ContainerBuilder $container)
+    public function process(ContainerBuilder $container): void
     {
         if ($container->hasParameter('dtc_queue.beanstalkd.host') &&
             $container->getParameter('dtc_queue.beanstalkd.host')) {

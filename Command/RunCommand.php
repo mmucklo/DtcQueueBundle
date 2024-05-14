@@ -39,7 +39,7 @@ class RunCommand extends Command
         }
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this->symfonyDetect();
         $options = [

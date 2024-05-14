@@ -9,7 +9,7 @@ use Symfony\Component\DependencyInjection\Reference;
 
 class RabbitMQCompilerPass implements CompilerPassInterface
 {
-    public function process(ContainerBuilder $container)
+    public function process(ContainerBuilder $container): void
     {
         if ($container->hasParameter('dtc_queue.rabbit_mq') &&
             $container->getParameter('dtc_queue.rabbit_mq')) {

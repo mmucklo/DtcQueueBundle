@@ -18,7 +18,7 @@ class WorkerCompilerPass implements CompilerPassInterface
 {
     use WorkerCompilerTrait;
 
-    public function process(ContainerBuilder $container)
+    public function process(ContainerBuilder $container): void
     {
         if (false === $container->hasDefinition('dtc_queue.manager.worker')) {
             return;
