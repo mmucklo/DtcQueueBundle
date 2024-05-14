@@ -498,13 +498,12 @@ namespace App\Entity; // Or whatever
 use Dtc\QueueBundle\Entity\Job as BaseJob;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity
- * @ORM\Table(name="job_some_other_name", indexes={@ORM\Index(name="job_crc_hash_idx", columns={"crcHash","status"}),
- *                  @ORM\Index(name="job_priority_idx", columns={"priority","whenAt"}),
- *                  @ORM\Index(name="job_when_idx", columns={"whenAt"}),
- *                  @ORM\Index(name="job_status_idx", columns={"status","whenAt"})})
- */
+#[ORM\Entity]
+#[ORM\Table(name: 'job_some_other_name')]
+#[ORM\Index(columns: ['crc_hash', 'status'], name: 'job_crc_hash_idx')]
+#[ORM\Index(columns: ['priority', 'whenAt'], name: 'job_priority_idx')]
+#[ORM\Index(columns: ['whenAt'], name: 'job_when_idx')]
+#[ORM\Index(columns: ['status', 'whenAt'], name: 'job_status_idx')]
 class Job extends BaseJob {
 }
 
@@ -518,9 +517,7 @@ namespace App\Document;
 use Doctrine\ODM\MongoDB\Mapping\Annotations as ODM;
 use Dtc\QueueBundle\Document\Job as BaseJob;
 
-/**
- * @ODM\Document(db="my_db", collection="my_job_collection")
- */
+#[ODM\Document(db: 'my_db', collection: 'my_job_collection')]
 class Job extends BaseJob
 {
 }
