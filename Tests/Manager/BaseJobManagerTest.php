@@ -235,9 +235,6 @@ abstract class BaseJobManagerTest extends TestCase
         return self::fudgeRabbitMQCount($count, $expected);
     }
 
-    /**
-     * @outputBuffering disabled
-     */
     public function testPerformance()
     {
         echo "\n".static::class.": Testing Performance\n";
