@@ -2,10 +2,9 @@
 
 namespace Dtc\QueueBundle\Tests\ODM;
 
-use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\ODM\MongoDB\Configuration;
 use Doctrine\ODM\MongoDB\DocumentManager;
-use Doctrine\ODM\MongoDB\Mapping\Driver\AnnotationDriver;
+use Doctrine\ODM\MongoDB\Mapping\Driver\AttributeDriver;
 use Dtc\QueueBundle\ODM\JobManager;
 use Dtc\QueueBundle\ODM\JobTimingManager;
 use Dtc\QueueBundle\ODM\RunManager;
@@ -27,19 +26,6 @@ class JobManagerTest extends DoctrineJobManagerTest
             mkdir('/tmp/dtcqueuetest/generate/hydrators', 0777, true);
         }
 
-        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/doctrine/mongodb-odm/lib/Doctrine/ODM/MongoDB/Mapping/Annotations/Document.php');
-        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/doctrine/mongodb-odm/lib/Doctrine/ODM/MongoDB/Mapping/Annotations/Id.php');
-        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/doctrine/mongodb-odm/lib/Doctrine/ODM/MongoDB/Mapping/Annotations/Field.php');
-        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/doctrine/mongodb-odm/lib/Doctrine/ODM/MongoDB/Mapping/Annotations/Index.php');
-        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/doctrine/mongodb-odm/lib/Doctrine/ODM/MongoDB/Mapping/Annotations/AlsoLoad.php');
-        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Grid.php');
-        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Sort.php');
-        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/ShowAction.php');
-        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/DeleteAction.php');
-        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Column.php');
-        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Action.php');
-
-        // Set up database delete here??
         $config = new Configuration();
         $config->setProxyDir('/tmp/dtcqueuetest/generate/proxies');
         $config->setProxyNamespace('Proxies');
@@ -48,13 +34,9 @@ class JobManagerTest extends DoctrineJobManagerTest
         $config->setHydratorNamespace('Hydrators');
 
         $classPath = __DIR__.'../../Document';
-        $config->setMetadataDriverImpl(AnnotationDriver::create($classPath));
+        $config->setMetadataDriverImpl(AttributeDriver::create($classPath));
 
-        if (class_exists('Doctrine\MongoDB\Connection')) {
-            self::$objectManager = DocumentManager::create(new \Doctrine\MongoDB\Connection(getenv('MONGODB_HOST')), $config);
-        } else {
-            self::$objectManager = DocumentManager::create(new \MongoDB\Client('mongodb://'.getenv('MONGODB_HOST'), [], ['typeMap' => DocumentManager::CLIENT_TYPEMAP]), $config);
-        }
+        self::$objectManager = DocumentManager::create(new \MongoDB\Client('mongodb://'.getenv('MONGODB_HOST'), [], ['typeMap' => DocumentManager::CLIENT_TYPEMAP]), $config);
 
         $documentName = 'Dtc\QueueBundle\Document\Job';
         $archiveDocumentName = 'Dtc\QueueBundle\Document\JobArchive';

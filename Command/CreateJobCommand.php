@@ -263,7 +263,7 @@ class CreateJobCommand extends Command
         if (1 !== count($phpArgs)) {
             throw new \InvalidArgumentException('args should be a single string containing a PHP-encoded array when using --php-args');
         }
-        $args = unserialize($phpArgs[0]);
+        $args = unserialize($phpArgs[0], ['allowed_classes' => true]);
 
         return $this->testArgs('PHP', $args);
     }

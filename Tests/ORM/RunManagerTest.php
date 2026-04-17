@@ -41,7 +41,7 @@ class RunManagerTest extends TestCase
         $run->setStartedAt($date);
         $run->setLastHeartbeatAt($date);
         $objectManager->persist($run);
-        $objectManager->flush($run);
+        $objectManager->flush();
         self::assertCount(1, $runRepository->findAll());
 
         $count = $runManager->pruneStalledRuns();

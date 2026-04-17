@@ -2,10 +2,10 @@
 
 namespace Dtc\QueueBundle\Tests\ORM;
 
-use Doctrine\Common\Annotations\AnnotationRegistry;
+use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
-use Doctrine\ORM\Tools\Setup;
 use DoctrineExtensions\Query\Mysql\Day;
 use DoctrineExtensions\Query\Mysql\Hour;
 use DoctrineExtensions\Query\Mysql\Minute;
@@ -19,7 +19,7 @@ use Dtc\QueueBundle\Tests\Doctrine\DoctrineJobManagerTest;
 /**
  * @author David
  *
- * This test requires local mongodb running
+ * This test requires local mysql running
  */
 class JobManagerTest extends DoctrineJobManagerTest
 {
@@ -29,14 +29,7 @@ class JobManagerTest extends DoctrineJobManagerTest
             mkdir('/tmp/dtcqueuetest/generate/proxies', 0777, true);
         }
 
-        $config = Setup::createAnnotationMetadataConfiguration([__DIR__.'/../..'], true, null, null, false);
-
-        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Grid.php');
-        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Sort.php');
-        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/ShowAction.php');
-        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/DeleteAction.php');
-        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Column.php');
-        AnnotationRegistry::registerFile(__DIR__.'/../../vendor/mmucklo/grid-bundle/Annotation/Action.php');
+        $config = ORMSetup::createAttributeMetadataConfiguration([__DIR__.'/../..'], true);
 
         $config->addCustomNumericFunction('year', Year::class);
         $config->addCustomNumericFunction('month', Month::class);
@@ -45,7 +38,7 @@ class JobManagerTest extends DoctrineJobManagerTest
         $config->addCustomNumericFunction('minute', Minute::class);
         $host = getenv('MYSQL_HOST');
         $user = getenv('MYSQL_USER');
-        $port = getenv('MYSQL_PORT') ?: 3306;
+        $port = (int) (getenv('MYSQL_PORT') ?: 3306);
         $password = getenv('MYSQL_PASSWORD');
         $db = getenv('MYSQL_DATABASE');
         $params = ['host' => $host,
@@ -55,7 +48,8 @@ class JobManagerTest extends DoctrineJobManagerTest
             'password' => $password,
             'dbname' => $db, ];
 
-        self::$objectManager = EntityManager::create($params, $config);
+        $connection = DriverManager::getConnection($params, $config);
+        self::$objectManager = new EntityManager($connection, $config);
     }
 
     public static function setUpBeforeClass(): void

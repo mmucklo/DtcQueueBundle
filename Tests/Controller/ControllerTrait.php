@@ -2,7 +2,6 @@
 
 namespace Dtc\QueueBundle\Tests\Controller;
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use Dtc\GridBundle\Grid\Renderer\RendererFactory;
 use Dtc\GridBundle\Grid\Source\ColumnSource;
 use Dtc\GridBundle\Grid\Source\DocumentGridSource;
@@ -15,15 +14,12 @@ use Dtc\QueueBundle\ORM\LiveJobsGridSource;
 use Dtc\QueueBundle\Tests\ORM\JobManagerTest;
 use Symfony\Bridge\Twig\Extension\RoutingExtension;
 use Symfony\Bridge\Twig\Extension\TranslationExtension;
-use Symfony\Bundle\TwigBundle\TwigEngine;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Routing\Generator\UrlGenerator;
 use Symfony\Component\Routing\Loader\YamlFileLoader;
 use Symfony\Component\Routing\RequestContext;
-use Symfony\Component\Routing\RouteCollectionBuilder;
 use Symfony\Component\Routing\Router;
-use Symfony\Component\Templating\TemplateNameParser;
 use Symfony\Component\Translation\Translator;
 use Twig\Environment;
 use Twig\Loader\ArrayLoader;
@@ -110,24 +106,13 @@ trait ControllerTrait
                       '@DtcGrid/layout.html.twig' => file_get_contents(__DIR__.'/../../vendor/mmucklo/grid-bundle/Resources/views/layout.html.twig'),
                       '@DtcGrid/layout_base_jquery.html.twig' => file_get_contents(__DIR__.'/../../vendor/mmucklo/grid-bundle/Resources/views/layout_base_jquery.html.twig'),
             ];
-        if (class_exists('Symfony\Bundle\TwigBundle\TwigEngine') && method_exists($rendererFactory, 'setTwigEngine')) {
-            $twigEngine = new TwigEngine(
-                new Environment(new \Twig_Loader_Array($templates)),
-                new TemplateNameParser(),
-                new FileLocator(__DIR__)
-            );
-            $rendererFactory->setTwigEngine($twigEngine);
-            $container->set('twig', $twigEngine);
-        } elseif (class_exists('Twig\Environment') && method_exists($rendererFactory, 'setTwigEnvironment')) {
+        if (class_exists('Twig\Environment') && method_exists($rendererFactory, 'setTwigEnvironment')) {
             $environment = new Environment(new ArrayLoader($templates));
             $translatorExtension = new TranslationExtension(new Translator('en_US'));
-//            foreach ($translatorExtension->getFilters() as $filter) {
-//                $environment->addFilter($filter);
-//            }
             $environment->addExtension($translatorExtension);
-            $routeCollectionBuilder = new RouteCollectionBuilder(new YamlFileLoader(new FileLocator(__DIR__.'/../../Resources/config')));
-            $routeCollectionBuilder->import('routing.yml');
-            $urlGenerator = new UrlGenerator($routeCollectionBuilder->build(), new RequestContext());
+            $loader = new YamlFileLoader(new FileLocator(__DIR__.'/../../Resources/config'));
+            $routeCollection = $loader->load('routing.yml');
+            $urlGenerator = new UrlGenerator($routeCollection, new RequestContext());
             $routingExtension = new RoutingExtension($urlGenerator);
             $environment->addExtension($routingExtension);
             $rendererFactory->setTwigEnvironment($environment);
@@ -142,11 +127,9 @@ trait ControllerTrait
         $container->set('dtc_queue.grid_source.jobs_running.orm', $liveJobsGridSource);
         $container->set('dtc_queue.manager.job', $jobManager);
         $gridSourceManager = new GridSourceManager(new ColumnSource(__DIR__, true));
-        $gridSourceManager->setReader(new AnnotationReader());
 
         $columnSource = new \Dtc\GridBundle\Grid\Source\ColumnSource(__DIR__, true);
         $gridSourceManager = new GridSourceManager($columnSource);
-        $gridSourceManager->setReader(new AnnotationReader());
         $container->set('dtc_grid.manager.source', $gridSourceManager);
 
         $gridSourceJob = new $gridSourceClass($jobManager->getObjectManager(), $jobManager->getJobClass());
