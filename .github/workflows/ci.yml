@@ -1,0 +1,154 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  unit-tests:
+    name: Unit Tests (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.1', '8.2', '8.3', '8.4']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: redis, mongodb, pdo_mysql, pdo_sqlite, mysqli, sockets, pcntl
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run unit tests
+        run: bin/phpunit --testsuite unit
+
+  integration-tests:
+    name: Integration Tests (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.1', '8.3']
+        include:
+          - php: '8.3'
+            coverage: true
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: queue_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s
+          --health-timeout=10s
+          --health-retries=20
+          --health-start-period=60s
+
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      mongodb:
+        image: mongo:6
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd="mongosh --eval 'db.runCommand(\"ping\").ok' --quiet"
+          --health-interval=10s
+          --health-timeout=10s
+          --health-retries=10
+          --health-start-period=30s
+
+      rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+          - 5672:5672
+        options: >-
+          --health-cmd="rabbitmq-diagnostics -q ping"
+          --health-interval=15s
+          --health-timeout=10s
+          --health-retries=20
+          --health-start-period=90s
+
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: root
+          POSTGRES_DB: queue_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U root -d queue_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+          --health-start-period=15s
+
+      beanstalkd:
+        image: schickling/beanstalkd
+        ports:
+          - 11300:11300
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: redis, mongodb, pdo_mysql, pdo_pgsql, pdo_sqlite, mysqli, sockets, pcntl
+          coverage: ${{ matrix.coverage && 'xdebug' || 'none' }}
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run integration tests
+        env:
+          REDIS_HOST: 127.0.0.1
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_USER: root
+          MYSQL_PASSWORD: root
+          MYSQL_DATABASE: queue_test
+          MONGODB_HOST: 127.0.0.1
+          RABBIT_MQ_HOST: 127.0.0.1
+          BEANSTALKD_HOST: 127.0.0.1
+          BEANSTALKD_PORT: 11300
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: root
+          POSTGRES_DATABASE: queue_test
+        run: |
+          if [ "${{ matrix.coverage }}" = "true" ]; then
+            php -d memory_limit=-1 bin/phpunit --testsuite integration --coverage-clover=coverage.xml
+          else
+            php -d memory_limit=-1 bin/phpunit --testsuite integration
+          fi
+
+      - name: Upload coverage to Codecov
+        if: matrix.coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: coverage.xml
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

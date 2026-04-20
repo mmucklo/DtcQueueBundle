@@ -340,10 +340,8 @@ abstract class DoctrineJobManagerTest extends BaseJobManagerTest
         self::assertNotNull($result);
         self::assertEquals(BaseJob::STATUS_EXCEPTION, $result->getStatus());
         if ($objectManager instanceof EntityManager) {
-            JobManagerTest::createObjectManager();
-            $jobManager = new self::$jobManagerClass(self::$runManager, self::$jobTimingManager, self::$objectManager, self::$objectName, self::$archiveObjectName);
-            $jobManager->getObjectManager()->clear();
-            $objectManager = $jobManager->getObjectManager();
+            // Clear the identity map so we re-fetch from the database
+            $objectManager->clear();
         }
 
         $count = $jobManager->resetExceptionJobs();

@@ -9,13 +9,7 @@ trait RedisConfiguration
     protected function addPredis()
     {
         $treeBuilder = new TreeBuilder('predis');
-
-        if (method_exists($treeBuilder, 'getRootNode')) {
-            $rootNode = $treeBuilder->getRootNode();
-        } else {
-            // BC layer for symfony/config 4.1 and older
-            $rootNode = $treeBuilder->root('predis');
-        }
+        $rootNode = $treeBuilder->getRootNode();
 
         $rootNode
             ->children()
@@ -56,13 +50,7 @@ trait RedisConfiguration
     protected function addRedis()
     {
         $treeBuilder = new TreeBuilder('redis');
-
-        if (method_exists($treeBuilder, 'getRootNode')) {
-            $rootNode = $treeBuilder->getRootNode();
-        } else {
-            // BC layer for symfony/config 4.1 and older
-            $rootNode = $treeBuilder->root('redis');
-        }
+        $rootNode = $treeBuilder->getRootNode();
 
         $rootNode
             ->addDefaultsIfNotSet()
@@ -89,13 +77,7 @@ trait RedisConfiguration
     protected function addPhpRedisArgs()
     {
         $treeBuilder = new TreeBuilder('phpredis');
-
-        if (method_exists($treeBuilder, 'getRootNode')) {
-            $rootNode = $treeBuilder->getRootNode();
-        } else {
-            // BC layer for symfony/config 4.1 and older
-            $rootNode = $treeBuilder->root('phpredis');
-        }
+        $rootNode = $treeBuilder->getRootNode();
 
         $rootNode
             ->addDefaultsIfNotSet()
@@ -121,13 +103,7 @@ trait RedisConfiguration
     protected function addPredisArgs()
     {
         $treeBuilder = new TreeBuilder('connection_parameters');
-
-        if (method_exists($treeBuilder, 'getRootNode')) {
-            $rootNode = $treeBuilder->getRootNode();
-        } else {
-            // BC layer for symfony/config 4.1 and older
-            $rootNode = $treeBuilder->root('connection_parameters');
-        }
+        $rootNode = $treeBuilder->getRootNode();
 
         $rootNode
             ->addDefaultsIfNotSet()
@@ -164,13 +140,7 @@ trait RedisConfiguration
     protected function addSncRedis()
     {
         $treeBuilder = new TreeBuilder('snc_redis');
-
-        if (method_exists($treeBuilder, 'getRootNode')) {
-            $rootNode = $treeBuilder->getRootNode();
-        } else {
-            // BC layer for symfony/config 4.1 and older
-            $rootNode = $treeBuilder->root('snc_redis');
-        }
+        $rootNode = $treeBuilder->getRootNode();
 
         $rootNode
             ->children()

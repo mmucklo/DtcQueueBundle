@@ -12,13 +12,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\HttpKernel\Kernel;
 
 class RunCommand extends Command
 {
-    protected $loggerPrivate = false;
-    protected $nanoSleepOption = null;
-
     /** @var Loop */
     private $runLoop;
     /** @var LoggerInterface */
@@ -26,22 +22,8 @@ class RunCommand extends Command
     /** @var Container */
     private $container;
 
-    protected function symfonyDetect()
-    {
-        $this->nanoSleepOption = null;
-        if (class_exists('Symfony\Component\HttpKernel\Kernel')) {
-            if (Kernel::VERSION_ID >= 30000) {
-                $this->nanoSleepOption = 's';
-            }
-            if (Kernel::VERSION_ID >= 30400) {
-                $this->loggerPrivate = true;
-            }
-        }
-    }
-
     protected function configure(): void
     {
-        $this->symfonyDetect();
         $options = [
             new InputArgument('worker-name', InputArgument::OPTIONAL, 'Name of worker', null),
             new InputArgument('method', InputArgument::OPTIONAL, 'DI method of worker', null),
@@ -75,7 +57,7 @@ class RunCommand extends Command
             ),
             new InputOption(
                 'nano-sleep',
-                $this->nanoSleepOption,
+                's',
                 InputOption::VALUE_REQUIRED,
                 'If using duration, this is the time to sleep when there\'s no jobs in nanoseconds',
                 500000000
@@ -128,7 +110,7 @@ class RunCommand extends Command
         $duration = $input->getOption('duration');
         $processTimeout = $input->getOption('timeout');
         $nanoSleep = $input->getOption('nano-sleep');
-        $loggerService = !$this->loggerPrivate ? $input->getOption('logger', null) : null;
+        $loggerService = null;
         $disableGc = $input->getOption('disable-gc', false);
         $this->setGc($disableGc);
 

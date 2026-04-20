@@ -186,7 +186,7 @@ class JobManagerTest extends BaseJobManagerTest
         do {
             $message = $channel->basic_get('dtc_queue');
             if ($message) {
-                $channel->basic_ack($message->delivery_info['delivery_tag']);
+                $channel->basic_ack($message->getDeliveryTag());
                 ++$drained;
             }
         } while ($message);

@@ -127,6 +127,6 @@ abstract class BaseJob extends StallableJob
     {
         $args = parent::getArgs();
 
-        return unserialize($args);
+        return unserialize($args, ['allowed_classes' => true]);
     }
 }

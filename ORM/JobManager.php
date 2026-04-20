@@ -2,6 +2,8 @@
 
 namespace Dtc\QueueBundle\ORM;
 
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\QueryBuilder;
@@ -194,6 +196,28 @@ class JobManager extends DoctrineJobManager
     }
 
     /**
+     * Determines whether the current database platform supports SELECT ... FOR UPDATE SKIP LOCKED.
+     */
+    protected function supportsSkipLocked(): bool
+    {
+        /** @var EntityManager $entityManager */
+        $entityManager = $this->getObjectManager();
+        $connection = $entityManager->getConnection();
+        $platform = $connection->getDatabasePlatform();
+        $builder = $platform->createSelectSQLBuilder();
+
+        // Use reflection to check if the builder was configured with skipLockedSQL
+        // The DefaultSelectSQLBuilder stores it as a constructor parameter
+        $ref = new \ReflectionObject($builder);
+        if ($ref->hasProperty('skipLockedSQL')) {
+            $prop = $ref->getProperty('skipLockedSQL');
+            return $prop->getValue($builder) !== null;
+        }
+
+        return false;
+    }
+
+    /**
      * Get the next job to run (can be filtered by workername and method name).
      *
      * @param string $workerName
@@ -204,6 +228,102 @@ class JobManager extends DoctrineJobManager
      * @return Job|null
      */
     public function getJob($workerName = null, $methodName = null, $prioritize = true, $runId = null)
+    {
+        if ($this->supportsSkipLocked()) {
+            return $this->getJobSkipLocked($workerName, $methodName, $prioritize, $runId);
+        }
+
+        return $this->getJobOptimistic($workerName, $methodName, $prioritize, $runId);
+    }
+
+    /**
+     * Acquires a job using SELECT ... FOR UPDATE SKIP LOCKED within a transaction.
+     * This is the preferred path for MySQL 8.0+, PostgreSQL 9.5+, and MariaDB 10.6+.
+     */
+    protected function getJobSkipLocked($workerName, $methodName, $prioritize, $runId)
+    {
+        /** @var EntityManager $entityManager */
+        $entityManager = $this->getObjectManager();
+        $connection = $entityManager->getConnection();
+        $metadata = $entityManager->getClassMetadata($this->getJobClass());
+        $tableName = $metadata->getTableName();
+
+        $dateTime = Util::getMicrotimeDateTime();
+        $microtimeInteger = Util::getMicrotimeIntegerFormat($dateTime);
+
+        // Build the WHERE clause
+        $conditions = ['j.status = :status'];
+        $params = ['status' => BaseJob::STATUS_NEW];
+        $types = [];
+
+        $conditions[] = '(j.when_us IS NULL OR j.when_us <= :whenUs)';
+        $params['whenUs'] = $microtimeInteger;
+
+        $conditions[] = '(j.expires_at IS NULL OR j.expires_at > :expiresAt)';
+        $params['expiresAt'] = $dateTime->format('Y-m-d H:i:s');
+
+        if (null !== $workerName) {
+            $conditions[] = 'j.worker_name = :workerName';
+            $params['workerName'] = $workerName;
+        }
+
+        if (null !== $methodName) {
+            $conditions[] = 'j.method = :methodName';
+            $params['methodName'] = $methodName;
+        }
+
+        $orderBy = $prioritize
+            ? 'ORDER BY COALESCE(j.priority, 0) DESC, j.when_us ASC'
+            : 'ORDER BY j.when_us ASC';
+
+        $whereClause = implode(' AND ', $conditions);
+        $selectSql = "SELECT j.id FROM {$tableName} j WHERE {$whereClause} {$orderBy} LIMIT 1 FOR UPDATE SKIP LOCKED";
+
+        $connection->beginTransaction();
+        try {
+            $row = $connection->fetchAssociative($selectSql, $params);
+            if (!$row) {
+                $connection->commit();
+                return null;
+            }
+
+            $jobId = $row['id'];
+            $startedAt = Util::getMicrotimeDateTime();
+
+            $updateParams = [
+                'status' => BaseJob::STATUS_RUNNING,
+                'startedAt' => $startedAt->format('Y-m-d H:i:s'),
+                'id' => $jobId,
+            ];
+
+            $updateSql = "UPDATE {$tableName} SET status = :status, started_at = :startedAt";
+            if (null !== $runId) {
+                $updateSql .= ', run_id = :runId';
+                $updateParams['runId'] = $runId;
+            }
+            $updateSql .= ' WHERE id = :id';
+
+            $connection->executeStatement($updateSql, $updateParams);
+            $connection->commit();
+
+            // Fetch the entity - if it was in the identity map, refresh to get updated status
+            $job = $this->getRepository()->find($jobId);
+            if ($job && $entityManager->contains($job)) {
+                $entityManager->refresh($job);
+            }
+
+            return $job;
+        } catch (\Throwable $e) {
+            $connection->rollBack();
+            throw $e;
+        }
+    }
+
+    /**
+     * Acquires a job using optimistic UPDATE ... WHERE status = 'new' approach.
+     * Fallback for databases that don't support SKIP LOCKED (e.g., SQLite).
+     */
+    protected function getJobOptimistic($workerName, $methodName, $prioritize, $runId)
     {
         do {
             $queryBuilder = $this->getJobQueryBuilder($workerName, $methodName, $prioritize);
@@ -306,9 +426,11 @@ class JobManager extends DoctrineJobManager
         /** @var EntityManager $entityManager */
         $entityManager = $this->getObjectManager();
         if (($job = $entityManager->getUnitOfWork()->tryGetById(['id' => $id], $this->getJobClass())) instanceof Job) {
-            $entityManager->refresh($job);
+            if ($entityManager->contains($job)) {
+                $entityManager->refresh($job);
 
-            return $job;
+                return $job;
+            }
         }
 
         return $this->getRepository()->find($id);

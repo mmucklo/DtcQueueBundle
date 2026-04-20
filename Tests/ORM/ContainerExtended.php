@@ -2,25 +2,28 @@
 
 namespace Dtc\QueueBundle\Tests\ORM;
 
+use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\Tools\Setup;
+use Doctrine\ORM\ORMSetup;
 use Symfony\Component\DependencyInjection\Container;
 
 class ContainerExtended extends Container
 {
-    protected $methodMap = ['doctrine.orm.default_entity_manager' => 'getDoctrine_Orm_DefaultEntityManagerService'];
+    public function __construct()
+    {
+        parent::__construct();
+        $this->methodMap = ['doctrine.orm.default_entity_manager' => 'getDoctrine_Orm_DefaultEntityManagerService'];
+    }
 
     public function getDoctrine_Orm_DefaultEntityManagerService($something = false)
     {
-        $config = Setup::createAnnotationMetadataConfiguration([__DIR__.'/../..'], true, null, null, false);
-        $config->addCustomNumericFunction('year', Year::class);
-        $config->addCustomNumericFunction('month', Month::class);
-        $config->addCustomNumericFunction('day', Day::class);
-        $config->addCustomNumericFunction('hour', Hour::class);
-        $config->addCustomNumericFunction('minute', Minute::class);
+        $config = ORMSetup::createAttributeMetadataConfiguration([__DIR__.'/../..'], true);
+        if (PHP_VERSION_ID >= 80400 && method_exists($config, 'enableNativeLazyObjects')) {
+            $config->enableNativeLazyObjects(true);
+        }
         $host = getenv('MYSQL_HOST');
         $user = getenv('MYSQL_USER');
-        $port = getenv('MYSQL_PORT') ?: 3306;
+        $port = (int) (getenv('MYSQL_PORT') ?: 3306);
         $password = getenv('MYSQL_PASSWORD');
         $db = getenv('MYSQL_DATABASE');
         $params = ['host' => $host,
@@ -30,6 +33,7 @@ class ContainerExtended extends Container
             'password' => $password,
             'dbname' => $db, ];
 
-        return EntityManager::create($params, $config);
+        $connection = DriverManager::getConnection($params, $config);
+        return new EntityManager($connection, $config);
     }
 }

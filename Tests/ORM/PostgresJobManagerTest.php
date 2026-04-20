@@ -6,25 +6,21 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
 use Doctrine\ORM\Tools\SchemaTool;
-use DoctrineExtensions\Query\Mysql\Day;
-use DoctrineExtensions\Query\Mysql\Hour;
-use DoctrineExtensions\Query\Mysql\Minute;
-use DoctrineExtensions\Query\Mysql\Month;
-use DoctrineExtensions\Query\Mysql\Year;
 use Dtc\QueueBundle\ORM\JobManager;
 use Dtc\QueueBundle\ORM\JobTimingManager;
 use Dtc\QueueBundle\ORM\RunManager;
 use Dtc\QueueBundle\Tests\Doctrine\DoctrineJobManagerTest;
 
 /**
- * @author David
- *
- * This test requires local mysql running
+ * This test requires local PostgreSQL running.
  */
-class JobManagerTest extends DoctrineJobManagerTest
+class PostgresJobManagerTest extends DoctrineJobManagerTest
 {
     public static function createObjectManager()
     {
+        if (!extension_loaded('pdo_pgsql')) {
+            return;
+        }
         if (!is_dir('/tmp/dtcqueuetest/generate/proxies')) {
             mkdir('/tmp/dtcqueuetest/generate/proxies', 0777, true);
         }
@@ -34,22 +30,19 @@ class JobManagerTest extends DoctrineJobManagerTest
             $config->enableNativeLazyObjects(true);
         }
 
-        $config->addCustomNumericFunction('year', Year::class);
-        $config->addCustomNumericFunction('month', Month::class);
-        $config->addCustomNumericFunction('day', Day::class);
-        $config->addCustomNumericFunction('hour', Hour::class);
-        $config->addCustomNumericFunction('minute', Minute::class);
-        $host = getenv('MYSQL_HOST');
-        $user = getenv('MYSQL_USER');
-        $port = (int) (getenv('MYSQL_PORT') ?: 3306);
-        $password = getenv('MYSQL_PASSWORD');
-        $db = getenv('MYSQL_DATABASE');
-        $params = ['host' => $host,
+        $host = getenv('POSTGRES_HOST');
+        $user = getenv('POSTGRES_USER') ?: 'root';
+        $port = (int) (getenv('POSTGRES_PORT') ?: 5432);
+        $password = getenv('POSTGRES_PASSWORD') ?: '';
+        $db = getenv('POSTGRES_DATABASE') ?: 'queue_test';
+        $params = [
+            'host' => $host,
             'port' => $port,
             'user' => $user,
-            'driver' => 'mysqli',
+            'driver' => 'pdo_pgsql',
             'password' => $password,
-            'dbname' => $db, ];
+            'dbname' => $db,
+        ];
 
         $connection = DriverManager::getConnection($params, $config);
         self::$objectManager = new EntityManager($connection, $config);
@@ -57,6 +50,9 @@ class JobManagerTest extends DoctrineJobManagerTest
 
     public static function setUpBeforeClass(): void
     {
+        if (!extension_loaded('pdo_pgsql') || !getenv('POSTGRES_HOST')) {
+            return;
+        }
         self::createObjectManager();
         $entityName = 'Dtc\QueueBundle\Entity\Job';
         $archiveEntityName = 'Dtc\QueueBundle\Entity\JobArchive';
@@ -96,6 +92,14 @@ class JobManagerTest extends DoctrineJobManagerTest
         self::$runManagerClass = RunManager::class;
         self::$jobTimingManagerClass = JobTimingManager::class;
         parent::setUpBeforeClass();
+    }
+
+    protected function setUp(): void
+    {
+        if (!extension_loaded('pdo_pgsql') || !getenv('POSTGRES_HOST')) {
+            $this->markTestSkipped('pdo_pgsql extension or POSTGRES_HOST not available');
+        }
+        parent::setUp();
     }
 
     protected function runCountQuery($class)

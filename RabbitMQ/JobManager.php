@@ -219,12 +219,12 @@ class JobManager extends PriorityJobManager
 
             if (($expiresAt = $job->getExpiresAt()) && $expiresAt->getTimestamp() < time()) {
                 $expiredJob = true;
-                $this->channel->basic_nack($message->delivery_info['delivery_tag']);
+                $this->channel->basic_nack($message->getDeliveryTag());
                 $this->jobTiminigManager->recordTiming(JobTiming::STATUS_FINISHED_EXPIRED);
 
                 return null;
             }
-            $job->setDeliveryTag($message->delivery_info['delivery_tag']);
+            $job->setDeliveryTag($message->getDeliveryTag());
 
             return $job;
         }
