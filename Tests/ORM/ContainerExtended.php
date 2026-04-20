@@ -18,6 +18,9 @@ class ContainerExtended extends Container
     public function getDoctrine_Orm_DefaultEntityManagerService($something = false)
     {
         $config = ORMSetup::createAttributeMetadataConfiguration([__DIR__.'/../..'], true);
+        if (PHP_VERSION_ID >= 80400 && method_exists($config, 'enableNativeLazyObjects')) {
+            $config->enableNativeLazyObjects(true);
+        }
         $host = getenv('MYSQL_HOST');
         $user = getenv('MYSQL_USER');
         $port = (int) (getenv('MYSQL_PORT') ?: 3306);

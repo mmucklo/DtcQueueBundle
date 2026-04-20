@@ -26,6 +26,9 @@ class PostgresJobManagerTest extends DoctrineJobManagerTest
         }
 
         $config = ORMSetup::createAttributeMetadataConfiguration([__DIR__.'/../..'], true);
+        if (PHP_VERSION_ID >= 80400 && method_exists($config, 'enableNativeLazyObjects')) {
+            $config->enableNativeLazyObjects(true);
+        }
 
         $host = getenv('POSTGRES_HOST');
         $user = getenv('POSTGRES_USER') ?: 'root';

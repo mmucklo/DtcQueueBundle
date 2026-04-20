@@ -30,6 +30,9 @@ class JobManagerTest extends DoctrineJobManagerTest
         }
 
         $config = ORMSetup::createAttributeMetadataConfiguration([__DIR__.'/../..'], true);
+        if (PHP_VERSION_ID >= 80400 && method_exists($config, 'enableNativeLazyObjects')) {
+            $config->enableNativeLazyObjects(true);
+        }
 
         $config->addCustomNumericFunction('year', Year::class);
         $config->addCustomNumericFunction('month', Month::class);
