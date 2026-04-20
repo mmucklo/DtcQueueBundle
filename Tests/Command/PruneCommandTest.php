@@ -122,8 +122,11 @@ class PruneCommandTest extends TestCase
         $this->runPruneCommandOlder('1dd', 1, $type, $call);
 
         // Test by day / month / year
+        // Note: format('%a') truncates partial days, and the command's "now" is
+        // microseconds after startDate, so the diff can be 0 or 1 full days.
         $result = $this->getPruneCommandOlderDateDays('1d', $type, $call);
-        self::assertEquals(1, intval($result));
+        self::assertGreaterThanOrEqual(0, intval($result));
+        self::assertLessThanOrEqual(1, intval($result));
         $result = $this->getPruneCommandOlderDateDays('1m', $type, $call);
         self::assertGreaterThanOrEqual(28, intval($result));
         self::assertLessThanOrEqual(31, intval($result));
