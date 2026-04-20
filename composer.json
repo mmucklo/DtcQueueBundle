@@ -35,7 +35,8 @@
         "beberlei/doctrineextensions": "^1.0|^2.0",
         "predis/predis": "^1.1|^2.0",
         "snc/redis-bundle": "^3.2|^4.0",
-        "symfony/yaml": "^6.4|^7.0|^8.0"
+        "symfony/yaml": "^6.4|^7.0|^8.0",
+        "symfony/var-exporter": "^6.4|^7.0|^8.0"
     },
     "suggest": {
         "mmucklo/grid-bundle": ">=8.0.0",
