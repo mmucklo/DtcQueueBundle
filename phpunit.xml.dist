@@ -3,7 +3,8 @@
 <phpunit bootstrap="./Tests/bootstrap.php"
     stopOnFailure               = "true"
     colors                      = "true"
-    failOnWarning               = "false">
+    failOnWarning               = "false"
+    failOnDeprecation           = "false">
 
     <testsuites>
         <testsuite name="unit">
@@ -15,6 +16,7 @@
             <directory>./Tests/DependencyInjection</directory>
             <directory>./Tests/Util</directory>
             <file>./Tests/ORM/SqliteJobManagerTest.php</file>
+            <exclude>./Tests/Manager/BaseJobManagerTest.php</exclude>
         </testsuite>
         <testsuite name="integration">
             <directory>./Tests/ORM</directory>
@@ -26,6 +28,8 @@
             <directory>./Tests/Controller</directory>
             <directory>./Tests/Run</directory>
             <directory>./Tests/Doctrine</directory>
+            <exclude>./Tests/Doctrine/DoctrineJobManagerTest.php</exclude>
+            <exclude>./Tests/Doctrine/BaseLiveJobGridSourceTest.php</exclude>
         </testsuite>
     </testsuites>
     <source>

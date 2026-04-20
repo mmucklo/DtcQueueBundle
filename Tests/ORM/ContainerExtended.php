@@ -9,7 +9,11 @@ use Symfony\Component\DependencyInjection\Container;
 
 class ContainerExtended extends Container
 {
-    protected array $methodMap = ['doctrine.orm.default_entity_manager' => 'getDoctrine_Orm_DefaultEntityManagerService'];
+    public function __construct()
+    {
+        parent::__construct();
+        $this->methodMap = ['doctrine.orm.default_entity_manager' => 'getDoctrine_Orm_DefaultEntityManagerService'];
+    }
 
     public function getDoctrine_Orm_DefaultEntityManagerService($something = false)
     {
